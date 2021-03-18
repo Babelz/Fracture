@@ -12,6 +12,7 @@
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>8</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -39,7 +40,50 @@
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Collections\CirularBuffer.cs" />
+        <Compile Include="Collections\FreeList.cs" />
+        <Compile Include="Collections\LinearGrowthArray.cs" />
+        <Compile Include="Collections\LinearRegistry.cs" />
+        <Compile Include="Collections\Stack.cs" />
+        <Compile Include="Di\Attributes\BindingConstructorAttribute.cs" />
+        <Compile Include="Di\Attributes\BindingMethodAttribute.cs" />
+        <Compile Include="Di\Attributes\BindingPropertyAttribute.cs" />
+        <Compile Include="Di\Binding\DependencyActivator.cs" />
+        <Compile Include="Di\Binding\DependencyBinder.cs" />
+        <Compile Include="Di\Binding\DependencyBinding.cs" />
+        <Compile Include="Di\Binding\DependencyBindingOptions.cs" />
+        <Compile Include="Di\Binding\DependencyBindingResolver.cs" />
+        <Compile Include="Di\Binding\DependencyTypeMapper.cs" />
+        <Compile Include="Di\Dependency.cs" />
+        <Compile Include="Di\Exceptions.cs" />
+        <Compile Include="Di\Kernel.cs" />
+        <Compile Include="Events\EventQueue.cs" />
+        <Compile Include="Events\EventScheduler.cs" />
+        <Compile Include="Events\KeyEventScheduler.cs" />
+        <Compile Include="Events\ScheduledEvent.cs" />
+        <Compile Include="Exceptions.cs" />
+        <Compile Include="Memory\ByteUtils.cs" />
+        <Compile Include="Memory\IClearable.cs" />
+        <Compile Include="Memory\ICloneable.cs" />
+        <Compile Include="Memory\ICopyable.cs" />
+        <Compile Include="Memory\Pools\ArrayPool.cs" />
+        <Compile Include="Memory\Pools\CleanPool.cs" />
+        <Compile Include="Memory\Pools\CollectionPool.cs" />
+        <Compile Include="Memory\Pools\ConcurrentPool.cs" />
+        <Compile Include="Memory\Pools\DelegatePool.cs" />
+        <Compile Include="Memory\Pools\LinearPool.cs" />
+        <Compile Include="Memory\Pools\Pool.cs" />
+        <Compile Include="Memory\Pools\PrototypePool.cs" />
+        <Compile Include="Memory\Storages\FixedStorageObject.cs" />
+        <Compile Include="Memory\Storages\IStorageObject.cs" />
+        <Compile Include="Memory\Storages\LinearStorageObject.cs" />
+        <Compile Include="Memory\Storages\ListStorageObject.cs" />
+        <Compile Include="Memory\Storages\StackStorageObject.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Reflection\DynamicConstructorBinder.cs" />
+        <Compile Include="Reflection\DynamicPropertyBinder.cs" />
+        <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
+        <Compile Include="Util\HashUtil.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
