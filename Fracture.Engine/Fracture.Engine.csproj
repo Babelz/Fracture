@@ -12,6 +12,7 @@
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>8</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -33,13 +34,114 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="Microsoft.CSharp" />
+        <Reference Include="MonoGame.Framework, Version=3.7.1.189, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\packages\MonoGame.Framework.Portable.3.7.1.189\lib\portable-net45+win8+wpa81\MonoGame.Framework.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
+        <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
+          <HintPath>..\packages\NLog.4.7.8\lib\net45\NLog.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
         <Reference Include="System" />
+        <Reference Include="System.Configuration" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
+        <Reference Include="System.IO.Compression" />
+        <Reference Include="System.Runtime.Serialization" />
+        <Reference Include="System.ServiceModel" />
+        <Reference Include="System.Transactions" />
         <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Core\Components\StateWatcher.cs" />
+        <Compile Include="Core\GameEngineSystem.cs" />
+        <Compile Include="Core\GameEngineTime.cs" />
+        <Compile Include="Core\Primitives\Aabb.cs" />
+        <Compile Include="Core\Primitives\Line.cs" />
+        <Compile Include="Core\Primitives\Rectf.cs" />
+        <Compile Include="Core\Primitives\Transform.cs" />
+        <Compile Include="Core\Systems\SceneSystem.cs" />
+        <Compile Include="Ecs\ComponentSystem.cs" />
+        <Compile Include="Ecs\EntitySystem.cs" />
+        <Compile Include="Ecs\Exceptions.cs" />
+        <Compile Include="Ecs\GraphicsComponentSystem.cs" />
+        <Compile Include="Ecs\PhysicsBodyComponentSystem.cs" />
+        <Compile Include="Ecs\TransformComponentSystem.cs" />
+        <Compile Include="Events\EventQueueSystem.cs" />
+        <Compile Include="Events\EventSchedulerSystem.cs" />
+        <Compile Include="GameEngine.cs" />
+        <Compile Include="Graphics\GraphicsLayerSystem.cs" />
+        <Compile Include="Graphics\GraphicsPipelineSystem.cs" />
+        <Compile Include="Graphics\GraphicsUtils.cs" />
+        <Compile Include="Graphics\ViewSystem.cs" />
+        <Compile Include="IGameEngine.cs" />
+        <Compile Include="Input\Devices\InputDeviceSystem.cs" />
+        <Compile Include="Input\Devices\KeyboardDevice.cs" />
+        <Compile Include="Input\Devices\MouseDevice.cs" />
+        <Compile Include="Input\InputBinding.cs" />
+        <Compile Include="Input\InputManager.cs" />
+        <Compile Include="Input\KeyboardInputSystem.cs" />
+        <Compile Include="Input\MouseInputSystem.cs" />
+        <Compile Include="Physics\Contacts\BroadContactSolver.cs" />
+        <Compile Include="Physics\Contacts\NarrowContactSolver.cs" />
+        <Compile Include="Physics\Dynamics\Body.cs" />
+        <Compile Include="Physics\Dynamics\BodyList.cs" />
+        <Compile Include="Physics\Dynamics\Shape.cs" />
+        <Compile Include="Physics\PhysicsWorldSystem.cs" />
+        <Compile Include="Physics\Spatial\QuadTree.cs" />
+        <Compile Include="Physics\Spatial\QuadTreeNode.cs" />
+        <Compile Include="Physics\Spatial\QuadTreeNodeLink.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Scripting\CsScript.cs" />
+        <Compile Include="Scripting\CsScriptAttribute.cs" />
+        <Compile Include="Scripting\CsScriptingSystem.cs" />
+        <Compile Include="Scripting\CsScriptRepository.cs" />
+        <Compile Include="Scripting\CsScriptTypeLoader.cs" />
+        <Compile Include="Tiles\Themes\Terra.cs" />
+        <Compile Include="Tiles\Tile.cs" />
+        <Compile Include="Tiles\TileAttributes.cs" />
+        <Compile Include="Tiles\TileBehaviour.cs" />
+        <Compile Include="Tiles\TileGenerator.cs" />
+        <Compile Include="Tiles\TileMapGenerator.cs" />
+        <Compile Include="Tiles\TileMapPhysicsSystem.cs" />
+        <Compile Include="Tiles\TileMapSystem.cs" />
+        <Compile Include="Tiles\TileMapTheme.cs" />
+        <Compile Include="Tiles\TilePainter.cs" />
+        <Compile Include="Ui\Components\ControlFocusManager.cs" />
+        <Compile Include="Ui\Components\ControlInputManager.cs" />
+        <Compile Include="Ui\Components\ControlManager.cs" />
+        <Compile Include="Ui\Controls\Button.cs" />
+        <Compile Include="Ui\Controls\Checkbox.cs" />
+        <Compile Include="Ui\Controls\ContentRoot.cs" />
+        <Compile Include="Ui\Controls\Control.cs" />
+        <Compile Include="Ui\Controls\DynamicContainerControl.cs" />
+        <Compile Include="Ui\Controls\HeaderPanel.cs" />
+        <Compile Include="Ui\Controls\ImageBox.cs" />
+        <Compile Include="Ui\Controls\ListBox.cs" />
+        <Compile Include="Ui\Controls\ListView.cs" />
+        <Compile Include="Ui\Controls\MessageBox.cs" />
+        <Compile Include="Ui\Controls\Panel.cs" />
+        <Compile Include="Ui\Controls\Paragraph.cs" />
+        <Compile Include="Ui\Controls\SelectButton.cs" />
+        <Compile Include="Ui\Controls\Slider.cs" />
+        <Compile Include="Ui\Controls\StaticContainerControl.cs" />
+        <Compile Include="Ui\Controls\TextInput.cs" />
+        <Compile Include="Ui\Controls\WrapPanel.cs" />
+        <Compile Include="Ui\Ui.cs" />
+        <Compile Include="Ui\UiCanvas.cs" />
+        <Compile Include="Ui\UiLayout.cs" />
+        <Compile Include="Ui\UiSystem.cs" />
+        <Compile Include="Ui\UiUtils.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="packages.config" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
+        <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
+        <Name>Fracture.Common</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -49,11 +49,11 @@ namespace Fracture.Common.Collections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ComputeIndexLocation(int index, 
-                                                 float bucketScale, 
-                                                 int bucketSize, 
-                                                 out int bucketLocation, 
-                                                 out int bucketIndex)
+        private static void IndexLocation(int index, 
+                                          float bucketScale, 
+                                          int bucketSize, 
+                                          out int bucketLocation, 
+                                          out int bucketIndex)
         {
             bucketLocation = (int)(index * bucketScale);
             bucketIndex    = index - bucketLocation * bucketSize;
@@ -61,14 +61,14 @@ namespace Fracture.Common.Collections
         
         public ref T AtIndex(int index)
         {
-            ComputeIndexLocation(index, bucketScale, bucketSize, out var i, out var j);
+            IndexLocation(index, bucketScale, bucketSize, out var i, out var j);
 
             return ref buckets[i][j];
         }
         
         public void Insert(int index, in T value)
         {
-            ComputeIndexLocation(index, bucketScale, bucketSize, out var i, out var j);
+            IndexLocation(index, bucketScale, bucketSize, out var i, out var j);
 
             buckets[i][j] = value;
         }
