@@ -80,13 +80,6 @@ namespace Fracture.Common.Events
     /// </summary>
     public sealed class AsyncScheduledEvent : IScheduledEvent
     {
-        #region Fields
-        private CancellationTokenSource cancellation;
-        
-        private Task measurer;
-        private Task invoker;
-        #endregion
-
         #region Events
         public event EventHandler Invoke;
         #endregion
@@ -139,46 +132,8 @@ namespace Fracture.Common.Events
                 throw new InvalidOperationException("due time not specified");
             
             DueTime     = dueTime;
-            Waiting     = true;
             ElapsedTime = TimeSpan.Zero;
-
-            // Check if last call cancellation token still exists.
-            if (cancellation != null)
-            {
-                // Check if any tasks are running.
-                if (measurer.Status == TaskStatus.Running || invoker.Status == TaskStatus.Running)
-                    cancellation.Cancel();
-
-                // Dispose the token.
-                cancellation.Dispose();
-            }
-
-            // Create new cancellation token for aborting
-            // the tasks if restart is called.
-            cancellation = new CancellationTokenSource();
-
-            // Task to measure that the required time will pass
-            // until we invoke the elapsed event.
-            measurer = new Task(() =>
-            {
-                // Not the most compute resource friendly way of doing
-                // a sleep, but this is the most accurate way i can think of.
-                // TODO: find a better way to do this.
-                while (true) if (ElapsedTime >= DueTime) break;
-            }, cancellation.Token);
-
-            // Task to wait for measurer task to finish and then
-            // invokes elapsed event.
-            invoker = new Task(() =>
-            {
-                measurer.Start();
-
-                Task.Wait(Task.Delay()TEST THIS);
-
-                Invoke?.Invoke(this, EventArgs.Empty);
-            }, cancellation.Token);
-
-            invoker.Start();
+            Waiting     = true;
         }
 
         public void Wait()
@@ -196,7 +151,16 @@ namespace Fracture.Common.Events
         {
             if (!Waiting) return;
 
-            ElapsedTime += elapsed;
+            if (ElapsedTime < DueTime)
+            {
+                ElapsedTime += elapsed;    
+                
+                return;
+            }
+            
+            Task.Factory.StartNew(() => Invoke?.Invoke(this, EventArgs.Empty));
+            
+            Waiting = false;
         }
     }
     

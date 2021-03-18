@@ -181,7 +181,7 @@ namespace Fracture.Common.Events
             ref var context = ref events.AtIndex(i);
             
             // Check that this this topic still exists.
-            if (Exists(context.Key))
+            if (!Exists(context.Key))
                continue;
          
             // Dispatch all events to subscriptions.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Fracture.Common.Di.Binding;
 
@@ -41,14 +42,14 @@ namespace Fracture.Common.Di
         void Unbind(object instance, Type proxy);
         void Unbind(Type type, Type proxy);
 
-        void Bind(Type type, DependencyBindingOptions options);
-        void Bind<T>(DependencyBindingOptions options);
-        void Bind(object instance, DependencyBindingOptions options);
+        void Bind(Type type);
+        void Bind<T>();
+        void Bind(object instance);
 
-        void Proxy(Type actual, Type proxy, DependencyBindingOptions options);
-        void Proxy<T>(Type proxy, DependencyBindingOptions options);
-        void Proxy(object instance, Type proxy, DependencyBindingOptions options);
-        void Proxy<T>(object instance, DependencyBindingOptions options);
+        void Proxy(Type actual, Type proxy);
+        void Proxy<T>(Type proxy);
+        void Proxy(object instance, Type proxy);
+        void Proxy<T>(object instance);
     }
     
     /// <summary>
@@ -57,13 +58,19 @@ namespace Fracture.Common.Di
     /// </summary>
     public class Kernel : IDependencyLocator, IDependencyBinder
     {
+        private readonly DependencyBindingOptions bindingOptions;
+        private readonly DependencyBindingOptions proxyOptions;
         #region Fields
         private readonly List<DependencyBinder> binders;
         private readonly List<Dependency> dependencies;
         #endregion
         
-        public Kernel()
+        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.ClassesInterfaces, 
+                      DependencyBindingOptions proxyOptions = DependencyBindingOptions.ClassesInterfaces)
         {
+            this.bindingOptions = bindingOptions;
+            this.proxyOptions   = proxyOptions;
+            
             binders      = new List<DependencyBinder>();
             dependencies = new List<Dependency>();
         }
@@ -215,9 +222,9 @@ namespace Fracture.Common.Di
             }
         }
 
-        public void Bind(Type type, DependencyBindingOptions options)
+        public void Bind(Type type)
         {
-            var binder = ConstructBinder(type, null, null, options);
+            var binder = ConstructBinder(type, null, null, bindingOptions);
 
             if (ConstructDependency(binder, out var dependency))
                 dependencies.Add(dependency);
@@ -227,12 +234,12 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
         
-        public void Bind<T>(DependencyBindingOptions options)
-            => Bind(typeof(T), options);
+        public void Bind<T>()
+            => Bind(typeof(T));
 
-        public void Bind(object instance, DependencyBindingOptions options)
+        public void Bind(object instance)
         {
-            var binder = ConstructBinder(null, null, instance, options);
+            var binder = ConstructBinder(null, null, instance, bindingOptions);
 
             if (ConstructDependency(binder, out var dependency))
                 dependencies.Add(dependency);
@@ -242,9 +249,9 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy(Type actual, Type proxy, DependencyBindingOptions options)
+        public void Proxy(Type actual, Type proxy)
         {
-            var binder = ConstructBinder(actual, proxy, null, options);
+            var binder = ConstructBinder(actual, proxy, null, proxyOptions);
 
             if (ConstructDependency(binder, out var dependency))
                 dependencies.Add(dependency);
@@ -254,12 +261,12 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(Type proxy, DependencyBindingOptions options)
-            => Proxy(proxy, typeof(T), options);
+        public void Proxy<T>(Type proxy)
+            => Proxy(proxy, typeof(T));
 
-        public void Proxy(object instance, Type proxy, DependencyBindingOptions options)
+        public void Proxy(object instance, Type proxy)
         {
-            var binder = ConstructBinder(null, proxy, instance, options);
+            var binder = ConstructBinder(null, proxy, instance, proxyOptions);
 
             if (ConstructDependency(binder, out var dependency))
                 dependencies.Add(dependency);
@@ -269,8 +276,8 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(object instance, DependencyBindingOptions options)
-            => Proxy(instance, typeof(T), options);
+        public void Proxy<T>(object instance)
+            => Proxy(instance, typeof(T));
 
         public bool Exists(Type type, Func<object, bool> predicate)
         {
