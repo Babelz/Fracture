@@ -21,7 +21,10 @@ namespace Fracture.Common.Tests.Collections
 
             try
             {
+                // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthStack<int>();
+                
+                // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthStack<int>(new LinearGrowthArray<int>(8));
             }
             catch

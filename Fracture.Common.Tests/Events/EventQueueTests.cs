@@ -19,7 +19,8 @@ namespace Fracture.Common.Tests.Events
          try
          {
             // Should throw with invalid bucket size.
-            var queue = new UniqueEventQueue<object, TestEventHandler>(-1);
+            // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
+            new UniqueEventQueue<object, TestEventHandler>(-1);
             
             Assert.True(false);
          }
@@ -30,7 +31,8 @@ namespace Fracture.Common.Tests.Events
          try
          {
             // Should throw with invalid bucket size.
-            var queue = new SharedEventQueue<object, TestEventHandler>(-1);
+            // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
+            new SharedEventQueue<object, TestEventHandler>(-1);
             
             Assert.True(false);
          }

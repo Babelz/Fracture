@@ -250,7 +250,6 @@ namespace Fracture.Engine.Physics
         /// <param name="time">time delta used for simulations</param>
         /// <param name="treeNodeBodyLimit">max bodies one node can hold in the tree before it will be split</param>
         /// <param name="treeNodeMaxDepth">max splits one node can have</param>
-        /// <param name="bounds">initial bounds of the simulation area</param>
         /// </summary>
         public PhysicsWorldSystem(IPhysicsSimulationTime time, 
                                   int treeNodeBodyLimit, 

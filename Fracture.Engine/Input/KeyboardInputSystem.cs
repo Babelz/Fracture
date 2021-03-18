@@ -1,4 +1,5 @@
-﻿using Fracture.Engine.Core;
+﻿using System.Linq;
+using Fracture.Engine.Core;
 using Fracture.Engine.Input.Devices;
 using Microsoft.Xna.Framework.Input;
 

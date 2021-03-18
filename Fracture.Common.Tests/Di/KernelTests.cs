@@ -13,6 +13,7 @@ namespace Fracture.Common.Tests.Di
         {
             try
             {
+                // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new Kernel();
             }
             catch

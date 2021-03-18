@@ -33,8 +33,8 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       public ComponentDependencyException(int entityId, Type dependingSystem, Type dependencySystem, string message = "")
-         : base($"{dependingSystem.Name} expecting entity to have component in system {dependencySystem.Name} present" + 
-                (!string.IsNullOrEmpty(message) ? $": {message}" : ""))
+         : base($"{dependingSystem.Name} expecting entity {entityId} to have component in system {dependencySystem.Name} " +
+                $"present" + (!string.IsNullOrEmpty(message) ? $": {message}" : ""))
       {
          DependingSystem  = dependingSystem;
          DependencySystem = dependencySystem;

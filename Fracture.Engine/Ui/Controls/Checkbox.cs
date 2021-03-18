@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fracture.Client.Content.Ui;
 using Fracture.Engine.Core;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;

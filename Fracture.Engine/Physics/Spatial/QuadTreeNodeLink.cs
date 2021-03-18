@@ -71,17 +71,16 @@ namespace Fracture.Engine.Physics.Spatial
         {
             linkPool = new DelegatePool<QuadTreeNodeLink>(
                 new LinearStorageObject<QuadTreeNodeLink>(
-                    new LinearGrowthArray<QuadTreeNodeLink>(16, 1)),
+                    new LinearGrowthArray<QuadTreeNodeLink>()),
                 Clone);
 
             listPool = new CollectionPool<List<int>, int>(
                 new DelegatePool<List<int>>(
                     new LinearStorageObject<List<int>>(
-                        new LinearGrowthArray<List<int>>(
-                            8, 1)), () => new List<int>()));
+                        new LinearGrowthArray<List<int>>()), () => new List<int>()));
 
             arrayPool = new ArrayPool<List<int>>(
-                () => new LinearStorageObject<List<int>[]>(new LinearGrowthArray<List<int>[]>(8, 1)), 8);
+                () => new LinearStorageObject<List<int>[]>(new LinearGrowthArray<List<int>[]>()), 8);
         }
 
         private QuadTreeNodeLink(DelegatePool<QuadTreeNodeLink> linkPool, 

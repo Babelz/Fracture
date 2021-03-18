@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Fracture.Client.Content.Ui;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 

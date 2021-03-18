@@ -11,6 +11,7 @@ namespace Fracture.Common.Tests.Collections
         {
             try
             {
+                // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new FreeList<int>(() => 1);
             }
             catch

@@ -7,6 +7,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
     {
         #region Properties
         [BindingProperty]
+        // ReSharper disable once UnusedMember.Local - will be used dependency binder.
         private Dep0 Dep0
         {
             get => throw new NotImplementedException();
@@ -17,6 +18,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
         }
 
         [BindingProperty]
+        // ReSharper disable once UnusedMember.Local - will be used dependency binder.
         public Dep1 Dep01
         {
             get => throw new NotImplementedException();
@@ -27,6 +29,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
         }
 
         [BindingProperty]
+        // ReSharper disable once UnusedMember.Local - will be used dependency binder.
         public Dep2 Dep2
         {
             get => throw new NotImplementedException();

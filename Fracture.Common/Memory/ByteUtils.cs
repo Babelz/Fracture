@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
@@ -11,15 +12,15 @@ namespace Fracture.Common.Memory
     public static unsafe class ByteUtils
     {
         #region Fields
-        //private static readonly int VectorSpan1 = 1;
-        //private static readonly int VectorSpan2 = 2;
-        //private static readonly int VectorSpan3 = 3;
-        //private static readonly int VectorSpan4 = 4;
+        private static readonly int VectorSpan1 = 1;
+        private static readonly int VectorSpan2 = 2;
+        private static readonly int VectorSpan3 = 3;
+        private static readonly int VectorSpan4 = 4;
 
-        //private const int LongSpan1 = sizeof(long);
-        //private const int LongSpan2 = sizeof(long) + sizeof(long);
-        //private const int LongSpan3 = sizeof(long) + sizeof(long) + sizeof(long);
-        //private const int IntSpan1  = sizeof(int);
+        private const int LongSpan1 = sizeof(long);
+        private const int LongSpan2 = sizeof(long) + sizeof(long);
+        private const int LongSpan3 = sizeof(long) + sizeof(long) + sizeof(long);
+        private const int IntSpan1  = sizeof(int);
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -188,121 +189,139 @@ namespace Fracture.Common.Memory
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void VectorizedCopy(byte[] source, int sourceIndex, byte[] destination, int destinationIndex, int count)
         {
-            // TODO: Fix.
-            #region Optimized, missing Vector<T> 
-            //            #if !DEBUG
-            //            // Tests need to check even if IsHardwareAccelerated == false
-            //            // Check will be Jitted away https://github.com/dotnet/coreclr/issues/1079
-            //            if (Vector.IsHardwareAccelerated)
-            //            {
-            //            #endif
-            //                if (count > 512 + 64)
-            //                {
-            //                    // In-built copy faster for large arrays (vs repeated bounds checks on Vector.ctor?)
-            //                    Array.Copy(source, sourceIndex, destionation, destinationIndex, count);
-            //                    return;
-            //                }
-            //                if (source == null) throw new ArgumentNullException(nameof(source));
-            //                if (destionation == null) throw new ArgumentNullException(nameof(destionation));
+            if (Vector.IsHardwareAccelerated)
+            {
+                if (count > 512 + 64)
+                {
+                    // In-built copy faster for large arrays.
+                    Array.Copy(source, sourceIndex, destination, destinationIndex, count);
+                    
+                    return;
+                }
+                
+                if (source == null) 
+                    throw new ArgumentNullException(nameof(source));
+                
+                if (destination == null) 
+                    throw new ArgumentNullException(nameof(destination));
 
-            //                if (count < 0 || sourceIndex < 0 || destinationIndex < 0) throw new ArgumentOutOfRangeException(nameof(count));
-            //                if (count == 0) return;
-            //                if (sourceIndex + count > source.Length) throw new ArgumentException(nameof(source));
-            //                if (destinationIndex + count > destionation.Length) throw new ArgumentException(nameof(destionation));
+                if (count < 0 || sourceIndex < 0 || destinationIndex < 0) 
+                    throw new ArgumentOutOfRangeException(nameof(count));
+                
+                if (sourceIndex + count > source.Length) 
+                    throw new ArgumentException(nameof(source));
+                
+                if (destinationIndex + count > destination.Length) 
+                    throw new ArgumentException(nameof(destination));
+                
+                if (count == 0) 
+                    return;
 
-            //                while (count >= VectorSpan4)
-            //                {
-            //                    new Vector<byte>(source, sourceIndex).CopyTo(destionation, destinationIndex);
-            //                    new Vector<byte>(source, sourceIndex + VectorSpan1).CopyTo(destionation, destinationIndex + VectorSpan1);
-            //                    new Vector<byte>(source, sourceIndex + VectorSpan2).CopyTo(destionation, destinationIndex + VectorSpan2);
-            //                    new Vector<byte>(source, sourceIndex + VectorSpan3).CopyTo(destionation, destinationIndex + VectorSpan3);
-            //                    if (count == VectorSpan4) return;
-            //                    count -= VectorSpan4;
-            //                    sourceIndex += VectorSpan4;
-            //                    destinationIndex += VectorSpan4;
-            //                }
-            //                if (count >= VectorSpan2)
-            //                {
-            //                    new Vector<byte>(source, sourceIndex).CopyTo(destionation, destinationIndex);
-            //                    new Vector<byte>(source, sourceIndex + VectorSpan1).CopyTo(destionation, destinationIndex + VectorSpan1);
-            //                    if (count == VectorSpan2) return;
-            //                    count -= VectorSpan2;
-            //                    sourceIndex += VectorSpan2;
-            //                    destinationIndex += VectorSpan2;
-            //                }
-            //                if (count >= VectorSpan1)
-            //                {
-            //                    new Vector<byte>(source, sourceIndex).CopyTo(destionation, destinationIndex);
-            //                    if (count == VectorSpan1) return;
-            //                    count -= VectorSpan1;
-            //                    sourceIndex += VectorSpan1;
-            //                    destinationIndex += VectorSpan1;
-            //                }
-            //                if (count > 0)
-            //                {
-            //                    fixed (byte* srcOrigin = source)
-            //                    fixed (byte* dstOrigin = destionation)
-            //                    {
-            //                        var pSrc = srcOrigin + sourceIndex;
-            //                        var dSrc = dstOrigin + destinationIndex;
+                while (count >= VectorSpan4)
+                {
+                    new Vector<byte>(source, sourceIndex).CopyTo(destination, destinationIndex);
+                    new Vector<byte>(source, sourceIndex + VectorSpan1).CopyTo(destination, destinationIndex + VectorSpan1);
+                    new Vector<byte>(source, sourceIndex + VectorSpan2).CopyTo(destination, destinationIndex + VectorSpan2);
+                    new Vector<byte>(source, sourceIndex + VectorSpan3).CopyTo(destination, destinationIndex + VectorSpan3);
+                    
+                    if (count == VectorSpan4) 
+                        return;
+                    
+                    count            -= VectorSpan4;
+                    sourceIndex      += VectorSpan4;
+                    destinationIndex += VectorSpan4;
+                }
+                
+                if (count >= VectorSpan2)
+                {
+                    new Vector<byte>(source, sourceIndex).CopyTo(destination, destinationIndex);
+                    new Vector<byte>(source, sourceIndex + VectorSpan1).CopyTo(destination, destinationIndex + VectorSpan1);
+                    
+                    if (count == VectorSpan2) 
+                        return;
+                    
+                    count            -= VectorSpan2;
+                    sourceIndex      += VectorSpan2;
+                    destinationIndex += VectorSpan2;
+                }
+                
+                if (count >= VectorSpan1)
+                {
+                    new Vector<byte>(source, sourceIndex).CopyTo(destination, destinationIndex);
+                    
+                    if (count == VectorSpan1) 
+                        return;
+                    
+                    count            -= VectorSpan1;
+                    sourceIndex      += VectorSpan1;
+                    destinationIndex += VectorSpan1;
+                }
+                
+                if (count > 0)
+                {
+                    fixed (byte* srcOrigin = source)
+                    fixed (byte* dstOrigin = destination)
+                    {
+                        var pSrc = srcOrigin + sourceIndex;
+                        var dSrc = dstOrigin + destinationIndex;
 
-            //                        if (count >= LongSpan1)
-            //                        {
-            //                            var lpSrc = (long*)pSrc;
-            //                            var ldSrc = (long*)dSrc;
+                        if (count >= LongSpan1)
+                        {
+                            var lpSrc = (long*)pSrc;
+                            var ldSrc = (long*)dSrc;
 
-            //                            if (count < LongSpan2)
-            //                            {
-            //                                count -= LongSpan1;
-            //                                pSrc += LongSpan1;
-            //                                dSrc += LongSpan1;
-            //                                *ldSrc = *lpSrc;
-            //                            }
-            //                            else if (count < LongSpan3)
-            //                            {
-            //                                count -= LongSpan2;
-            //                                pSrc += LongSpan2;
-            //                                dSrc += LongSpan2;
-            //                                *ldSrc = *lpSrc;
-            //                                *(ldSrc + 1) = *(lpSrc + 1);
-            //                            }
-            //                            else
-            //                            {
-            //                                count -= LongSpan3;
-            //                                pSrc += LongSpan3;
-            //                                dSrc += LongSpan3;
-            //                                *ldSrc = *lpSrc;
-            //                                *(ldSrc + 1) = *(lpSrc + 1);
-            //                                *(ldSrc + 2) = *(lpSrc + 2);
-            //                            }
-            //                        }
-            //                        if (count >= IntSpan1)
-            //                        {
-            //                            var ipSrc = (int*)pSrc;
-            //                            var idSrc = (int*)dSrc;
-            //                            count -= IntSpan1;
-            //                            pSrc += IntSpan1;
-            //                            dSrc += IntSpan1;
-            //                            *idSrc = *ipSrc;
-            //                        }
-            //                        while (count > 0)
-            //                        {
-            //                            count--;
-            //                            *dSrc = *pSrc;
-            //                            dSrc += 1;
-            //                            pSrc += 1;
-            //                        }
-            //                    }
-            //                }
-            //#if !DEBUG
-            //            }
-            //            else
-            //            {
-            //                Array.Copy(src, srcOffset, dst, dstOffset, count);
-            //                return;
-            //            }
-            //#endif 
-            #endregion
+                            if (count < LongSpan2)
+                            {
+                                count  -= LongSpan1;
+                                pSrc   += LongSpan1;
+                                dSrc   += LongSpan1;
+                                *ldSrc = *lpSrc;
+                            }
+                            else if (count < LongSpan3)
+                            {
+                                count -= LongSpan2;
+                                pSrc  += LongSpan2;
+                                dSrc  += LongSpan2;
+                                
+                                *ldSrc       = *lpSrc;
+                                *(ldSrc + 1) = *(lpSrc + 1);
+                            }
+                            else
+                            {
+                                count -= LongSpan3;
+                                pSrc  += LongSpan3;
+                                dSrc  += LongSpan3;
+                                
+                                *ldSrc       = *lpSrc;
+                                *(ldSrc + 1) = *(lpSrc + 1);
+                                *(ldSrc + 2) = *(lpSrc + 2);
+                            }
+                        }
+                        if (count >= IntSpan1)
+                        {
+                            var ipSrc = (int*)pSrc;
+                            var idSrc = (int*)dSrc;
+                            
+                            count -= IntSpan1;
+                            pSrc  += IntSpan1;
+                            dSrc  += IntSpan1;
+                            
+                            *idSrc = *ipSrc;
+                        }
+                        while (count > 0)
+                        {
+                            count--;
+                            
+                            *dSrc = *pSrc;
+                            
+                            dSrc += 1;
+                            pSrc += 1;
+                        }
+                    }
+                }
+                
+                return;
+            }
 
             Array.Copy(source, sourceIndex, destination, destinationIndex, count);
         }

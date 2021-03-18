@@ -269,7 +269,7 @@ namespace Fracture.Engine.Ecs
    /// Component system that allows entity to own more than one
    /// component of specific type.
    /// </summary>
-   public abstract class SharedComponentSystem : ComponentSystem, IComponentSystem
+   public abstract class SharedComponentSystem : ComponentSystem
    {
       #region Fields
       /// <summary>

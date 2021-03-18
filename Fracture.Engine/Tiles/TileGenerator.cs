@@ -49,17 +49,8 @@ namespace Fracture.Engine.Tiles
          var map     = context.Map;
          var surface = map.TileEngine.MapSurface;
          var width   = map.TileEngine.MapSize.X;
-         var theme   = context.GeneratorTheme;
          
-         for (var column = 0; column < width; column++)
-         {
-            map.InsertTile(surface, column, theme.TileFactory.Create(context.Engine, floor));
-            
-            for (var row = surface + 1; row < map.TileEngine.MapSize.Y; row++)
-            {
-               map.InsertTile(row, column, theme.TileFactory.Create(context.Engine, dirt));
-            }
-         }
+         
       }
    }
 }

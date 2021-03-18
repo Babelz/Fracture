@@ -103,6 +103,8 @@ namespace Fracture.Engine.Physics.Contacts
                 Array.Resize(ref pairs, pairs.Length * 2);
 
             pairs[Count++] = new ContactPair(firstBodyId, secondBodyId);
+            
+            lookup.Add(new ContactPair(firstBodyId, secondBodyId));
         }
 
         /// <summary>
