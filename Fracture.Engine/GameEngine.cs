@@ -4,6 +4,7 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fracture.Engine
@@ -67,7 +68,6 @@ namespace Fracture.Engine
             services = new Kernel(DependencyBindingOptions.Class | 
                                   DependencyBindingOptions.Interfaces | 
                                   DependencyBindingOptions.Strict);
-            
             
             systems = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.Strict);
             

@@ -1,0 +1,103 @@
+﻿<style name="default-neva">
+	<panel>
+		<texture-normal value="ui\\textures\\container_window_no_header"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+
+		<source-center value="x: 3, y: 3, w: 235, h: 364"/>
+	</panel>
+
+	<button>	
+		<texture-hover value="ui\\textures\\button_hover"/>
+		<texture-normal value="ui\\textures\\button_normal"/>
+
+		<source-center value="x: 8, y: 6, w: 104, h: 32"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+
+		<font-normal value="ui\\fonts\\normal"/>
+
+		<offset-click value="x: 0, y: 2.5"/>
+	</button>
+
+	<checkbox>
+		<texture-checked value="ui\\textures\\checkbox_checked"/>
+		<texture-unchecked value="ui\\textures\\checkbox_unchecked"/>
+	
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	
+		<offset-click value="x: 0, y: 2.5"/>
+	</checkbox>
+
+	<text-input>
+		<texture-normal value="ui\\textures\\container_view_black"/>
+	
+		<font-normal value="ui\\fonts\\normal"/>
+
+		<source-text value="x: 12, y: 13, w: 192, h: 71"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	</text-input>
+
+	<paragraph>	
+		<font-normal value="ui\\fonts\\normal"/>
+		<font-small value="ui\\fonts\\small"/>
+		<font-header-large value="ui\\fonts\\header-large"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	</paragraph>
+
+	<list-box>
+		<font-normal value="ui\\fonts\\normal"/>
+
+		<texture-normal value="ui\\textures\\container_view_black"/>
+		<texture-arrow value="ui\\textures\\button_arrow"/>
+
+		<source-text value="x: 12, y: 13, w: 192, h: 71"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	
+		<color-item-selected value="White"/>
+		<color-item-normal value="Gray"/>
+		<color-item-hover value="Yellow"/>
+	</list-box>
+
+	<list-view>
+		<texture-hover value="ui\\textures\\button_action_background"/>
+		<texture-focused value="ui\\textures\\button_action_background"/>
+		
+		<color-item-hover value="r: 255, g: 255, b: 0, a: 128"/>
+		<color-item-selected value="r: 128, g: 128, b: 128, a: 128"/>
+	</list-view>
+
+	<image-box>
+		<offset-normal value="x: 1, y: 1"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	</image-box>
+
+	<slider>
+		<texture-normal value="ui\\textures\\container_view_black"/>
+		<texture-circle value="ui\\textures\\button_circle"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+	</slider>
+
+	<header-panel>
+		<texture-normal value="ui\\textures\\container_window"/>
+
+		<color-enabled value="White"/>
+		<color-disabled value="Gray"/>
+
+		<source-center value="x: 3, y: 3, w: 236, h: 364"/>
+		<source-header value="x: 5, y: 5, w: 232, h: 34"/>
+	</header-panel>
+</style>

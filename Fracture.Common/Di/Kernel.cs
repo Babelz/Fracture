@@ -57,9 +57,10 @@ namespace Fracture.Common.Di
     /// </summary>
     public class Kernel : IDependencyLocator, IDependencyBinder
     {
+        #region Fields
         private readonly DependencyBindingOptions bindingOptions;
         private readonly DependencyBindingOptions proxyOptions;
-        #region Fields
+        
         private readonly List<DependencyBinder> binders;
         private readonly List<Dependency> dependencies;
         #endregion
