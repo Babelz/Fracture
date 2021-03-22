@@ -98,16 +98,6 @@
         <Compile Include="Scripting\CsScriptingSystem.cs" />
         <Compile Include="Scripting\CsScriptRepository.cs" />
         <Compile Include="Scripting\CsScriptTypeLoader.cs" />
-        <Compile Include="Tiles\Themes\Terra.cs" />
-        <Compile Include="Tiles\Tile.cs" />
-        <Compile Include="Tiles\TileAttributes.cs" />
-        <Compile Include="Tiles\TileBehaviour.cs" />
-        <Compile Include="Tiles\TileGenerator.cs" />
-        <Compile Include="Tiles\TileMapGenerator.cs" />
-        <Compile Include="Tiles\TileMapPhysicsSystem.cs" />
-        <Compile Include="Tiles\TileMapSystem.cs" />
-        <Compile Include="Tiles\TileMapTheme.cs" />
-        <Compile Include="Tiles\TilePainter.cs" />
         <Compile Include="Ui\Components\ControlFocusManager.cs" />
         <Compile Include="Ui\Components\ControlInputManager.cs" />
         <Compile Include="Ui\Components\ControlManager.cs" />
