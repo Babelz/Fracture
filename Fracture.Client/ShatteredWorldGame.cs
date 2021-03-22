@@ -18,11 +18,6 @@ namespace Fracture.Client
         public ShatteredWorldGame()
         {
             IsMouseVisible = true;
-            
-            GraphicsDeviceManager.PreferredBackBufferWidth  = 1024;
-            GraphicsDeviceManager.PreferredBackBufferHeight = 768;
-            
-            GraphicsDeviceManager.ApplyChanges();
         }
         
         protected override void BindSystems(IDependencyBinder binder)
@@ -77,10 +72,16 @@ namespace Fracture.Client
         protected override void Initialize()
         {
             base.Initialize();
+
+            // Set window settings.
+            GraphicsDeviceManager.PreferredBackBufferWidth  = 1024;
+            GraphicsDeviceManager.PreferredBackBufferHeight = 800;
             
-            // Set presentation parameters.
+            GraphicsDeviceManager.ApplyChanges();
+            
+            // Set world presentation parameters.
             Transform.SetScreenUnitToWorldUnitRatio(32.0f);
-            
+
             UiCanvas.SetSize(GraphicsDevice.PresentationParameters.BackBufferWidth, 
                              GraphicsDevice.PresentationParameters.BackBufferHeight);
             
