@@ -75,6 +75,11 @@ namespace Fracture.Common.Di
             dependencies = new List<Dependency>();
         }
         
+        public Kernel(DependencyBindingOptions bindingOptions)
+            : this(bindingOptions, bindingOptions)
+        {
+        }
+        
         private static bool ConstructDependency(DependencyBinder binder, out Dependency dependency)
         {
             dependency = null;

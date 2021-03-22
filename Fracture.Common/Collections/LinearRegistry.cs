@@ -1,10 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Fracture.Common.Collections
 {
    /// <summary>
-   /// Container that works as unique, read/write storage that
-   /// allows writing once.
+   /// Container that works as unique read/write storage.
+   ///
+   /// TODO: optimize access, make complete data structure out of this.
    /// </summary>
    public sealed class LinearRegistry<T>
    {
@@ -14,6 +17,10 @@ namespace Fracture.Common.Collections
 
       #region Fields
       private T[] items;
+      #endregion
+
+      #region Properties
+      public IEnumerable<T> Values => items.Where(i => i != null);
       #endregion
 
       public LinearRegistry()
@@ -32,9 +39,6 @@ namespace Fracture.Common.Collections
          while (location >= items.Length)
             Array.Resize(ref items, items.Length * 2);
 
-         if (items[location]?.Equals(default(T)) ?? false)
-            throw new InvalidOperationException($"index {location} already reserved");
-         
          items[location] = item;
       }
 

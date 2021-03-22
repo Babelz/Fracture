@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Fracture.Common.Collections;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Microsoft.Xna.Framework;
@@ -940,7 +942,7 @@ namespace Fracture.Engine.Graphics
    public sealed class GraphicsPipelineSystem : GameEngineSystem, IGraphicsPipelineSystem
    {
       #region Fields
-      private readonly List<GraphicsFragment> fragments;
+      private readonly LinearRegistry<GraphicsFragment> fragments;
       
       private readonly List<IGraphicsPipelinePhase> phases;
       
@@ -959,29 +961,13 @@ namespace Fracture.Engine.Graphics
          Priority = priority;
          
          // Initialize system.
-         fragments = new List<GraphicsFragment>();
+         fragments = new LinearRegistry<GraphicsFragment>();
          phases    = new List<IGraphicsPipelinePhase>();
       }
       
       public void CreateFragment(int index, GraphicsFragmentSettings settings)
       {
-         var fragment = new GraphicsFragment(index, manager, settings);
-         
-         fragments.Add(fragment);
-         
-         if (fragments.Count > 1)
-         {
-            fragments.Sort((x, y) =>
-            {
-               var xo = x.Order;
-               var yo = y.Order;
-               
-               if (xo < yo) 
-                  return -1;
-               
-               return xo > yo ? 1 : 0;
-            });  
-         }
+         fragments.Register(index, new GraphicsFragment(index, manager, settings));
       }
 
       public void AddPhase(IGraphicsPipelinePhase phase)
@@ -995,21 +981,17 @@ namespace Fracture.Engine.Graphics
 
       public void DeleteFragment(int index)
       {
-         // Make sure fragment exists.
-         if (index > fragments.Count) 
-            throw new InvalidOperationException("could not remove fragment");
-
          // Dispose and remove the actual fragment.
-         var fragment = fragments[index];
+         var fragment = fragments.AtLocation(index);
          
          fragment.Dispose();
          
          // Remove the fragment.
-         fragments.RemoveAt(index);
+         fragments.Register(index, default);
       }
       
       public IGraphicsFragment FragmentAtIndex(int index) 
-         => fragments[index];
+         => fragments.AtLocation(index);
 
       public override void Initialize(IGameEngine engine)
       {
@@ -1024,22 +1006,17 @@ namespace Fracture.Engine.Graphics
          manager.GraphicsDevice.SetRenderTarget(null);
          manager.GraphicsDevice.Clear(Color.Transparent);
          
-         // Clear all fragments.
-         for (var i = 0; i < fragments.Count; i++)
-            fragments[i].Clear();
+         // Clear all fragments
+         foreach (var fragment in fragments.Values)
+            fragment.Clear();
          
          // Execute all phases.
-         for (var i = 0; i < phases.Count; i++)
-         {
-            if (phases[i].Disabled)
-               continue;
-            
-            phases[i].Execute(time);
-         }
+         foreach (var phase in phases.Where(p => !p.Disabled))
+            phase.Execute(time);
          
          // Present all results.
-         for (var i = 0; i < fragments.Count; i++)
-            fragments[i].Present();
+         foreach (var fragment in fragments.Values)
+            fragment.Present();
       }
    }
 }

@@ -87,8 +87,8 @@ namespace Fracture.Client
             // Setup phases.
             var pipeline = Systems.First<IGraphicsPipelineSystem>();
             
-            pipeline.AddPhase(new GraphicsLayerPipelinePhase(this, 1));
-            pipeline.AddPhase(new UiPipelinePhase(this, 2));
+            pipeline.AddPhase(new GraphicsLayerPipelinePhase(this, 0));
+            pipeline.AddPhase(new UiPipelinePhase(this, 1));
 
             // Create layers.   
             var layers = Systems.First<IGraphicsLayerSystem>();

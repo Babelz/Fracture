@@ -15,7 +15,7 @@ namespace Fracture.Engine.Core.Components
 
       public StateWatcher()
       {
-         activityTimers = new Dictionary<T, TimeSpan>();
+         activityTimers  = new Dictionary<T, TimeSpan>();
          inactivityTimers = new Dictionary<T, TimeSpan>();
       }
 
