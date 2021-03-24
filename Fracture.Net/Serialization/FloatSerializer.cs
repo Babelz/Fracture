@@ -1,4 +1,5 @@
 using System;
+using System.Configuration;
 using System.IO;
 using System.Runtime.Remoting.Messaging;
 using Fracture.Common.Memory;
@@ -19,8 +20,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         public override void Serialize(object value, byte[] buffer, int offset)
         {
-            CheckLowerBound(buffer.Length, offset, sizeof(float));
-            CheckUpperBound(buffer.Length, offset, sizeof(float));
+            base.Serialize(value, buffer, offset);
             
             ByteUtils.WriteFloat((float)value, buffer, offset);
         }
@@ -31,8 +31,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         public override object Deserialize(byte[] buffer, int offset)
         {
-            CheckLowerBound(buffer.Length, offset, sizeof(float));
-            CheckUpperBound(buffer.Length, offset, sizeof(float));
+            base.Deserialize(buffer, offset);
 
             return ByteUtils.ReadFloat(buffer, offset);
         }

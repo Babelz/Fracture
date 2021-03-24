@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Xml.Schema;
 
 namespace Fracture.Net.Serialization
 {
@@ -56,7 +57,7 @@ namespace Fracture.Net.Serialization
         public static Type RuntimeType
         {
             get;
-        } = typeof(T);
+        }
         
         /// <summary>
         /// Gets the runtime type id that this value serializer writes and accepts from the serialization buffer. This
@@ -65,8 +66,14 @@ namespace Fracture.Net.Serialization
         public static ushort SerializationType
         {
             get;
-        } = SerializationTypeGenerator.Next();
+        } 
         #endregion
+        
+        static ValueSerializer()
+        {
+          SerializationType = SerializationTypeGenerator.Next();
+          RuntimeType       = typeof(T);
+        }
         
         protected ValueSerializer()
         { 
@@ -76,7 +83,7 @@ namespace Fracture.Net.Serialization
         /// Static utility check for doing bounds check on upper bound of a buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static void CheckUpperBound(int bufferLength, int offset, int size)
+        private static void CheckUpperBound(int bufferLength, int offset, int size)
         {
             if (offset <= 0) return;
             
@@ -90,19 +97,33 @@ namespace Fracture.Net.Serialization
         /// Static check for doing bounds check on upper bound of a buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static void CheckLowerBound(int bufferLength, int offset, int size)
+        private static void CheckLowerBound(int bufferLength, int offset, int size)
         {
             if (offset >= 0) return;
             
             if (offset + size < 0)
-                throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would underoverflow the " +
+                throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would underflow the " +
                                                       $"buffer of length {bufferLength} by " +
                                                       $"{Math.Abs(offset + size)} bytes");
         }
 
-        public abstract void Serialize(object value, byte[] buffer, int offset);
+        public virtual void Serialize(object value, byte[] buffer, int offset)
+        {
+            var size = GetSizeFromValue(value);
+            
+            CheckLowerBound(buffer.Length, offset, size);
+            CheckUpperBound(buffer.Length, offset, size);
+        }
         
-        public abstract object Deserialize(byte[] buffer, int offset); 
+        public virtual object Deserialize(byte[] buffer, int offset)
+        {
+            var size = GetSizeFromBuffer(buffer, offset);
+            
+            CheckLowerBound(buffer.Length, offset, size);
+            CheckUpperBound(buffer.Length, offset, size);
+            
+            return null;
+        }
         
         public abstract int GetSizeFromBuffer(byte[] buffer, int offset);
         
