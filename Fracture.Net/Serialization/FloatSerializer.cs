@@ -48,4 +48,47 @@ namespace Fracture.Net.Serialization
         public override int GetSizeFromValue(object value)
             => sizeof(float);
     }
+    
+    /// <summary>
+    /// Value serializer that provides serialization for <see cref="double"/>.
+    /// </summary>
+    public sealed class DoubleSerializer : ValueSerializer<double>
+    {
+        public DoubleSerializer()
+        {
+        }
+        
+        /// <summary>
+        /// Writes given double value to given buffer beginning at given offset.
+        /// </summary>
+        public override void Serialize(object value, byte[] buffer, int offset)
+        {
+            base.Serialize(value, buffer, offset);
+            
+            ByteUtils.WriteDouble((double)value, buffer, offset);
+        }
+        
+        /// <summary>
+        /// Reads next 8-bytes from given buffer beginning at given offset as double
+        /// and returns that value to the caller.
+        /// </summary>
+        public override object Deserialize(byte[] buffer, int offset)
+        {
+            base.Deserialize(buffer, offset);
+
+            return ByteUtils.ReadDouble(buffer, offset);
+        }
+        
+        /// <summary>
+        /// Returns size of double, should always be 8-bytes.
+        /// </summary>
+        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+            => sizeof(double);
+
+        /// <summary>
+        /// Returns size of decimal, should always be 8-bytes.
+        /// </summary>
+        public override int GetSizeFromValue(object value)
+            => sizeof(double);
+    }
 }
