@@ -39,13 +39,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of float, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(float);
 
         /// <summary>
         /// Returns size of float, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(float);
     }
     
@@ -82,13 +82,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of double, should always be 8-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(double);
 
         /// <summary>
-        /// Returns size of decimal, should always be 8-bytes.
+        /// Returns size of double, should always be 8-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(double);
     }
 }

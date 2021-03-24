@@ -35,13 +35,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of int32, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(int);
         
         /// <summary>
         /// Returns size of int32, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(int);
     }
     
@@ -78,13 +78,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of uint32, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(uint);
         
         /// <summary>
         /// Returns size of uint32, should always be 4-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(uint);
     }
 }

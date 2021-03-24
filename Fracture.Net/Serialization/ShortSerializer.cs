@@ -78,13 +78,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of uint16, should always be 2-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(ushort);
         
         /// <summary>
         /// Returns size of uint16, should always be 2-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(ushort);
     }
 }

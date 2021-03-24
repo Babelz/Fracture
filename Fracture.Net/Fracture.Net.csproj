@@ -46,6 +46,7 @@
         <Compile Include="Serialization\FloatSerializer.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
         <Compile Include="Serialization\ShortSerializer.cs" />
+        <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\ValueSerializer.cs" />
     </ItemGroup>
     <ItemGroup>

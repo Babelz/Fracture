@@ -37,14 +37,15 @@ namespace Fracture.Net.Serialization
         object Deserialize(byte[] buffer, int offset); 
         
         /// <summary>
-        /// Gets the size of the value from given buffer at given offset.
+        /// Gets the size of the value from given buffer at given offset. This size is the values size
+        /// inside the buffer when it is serialized.
         /// </summary>
-        int GetSizeFromBuffer(byte[] buffer, int offset);
+        ushort GetSizeFromBuffer(byte[] buffer, int offset);
         
         /// <summary>
-        /// Returns the size of the object when it is serialized.
+        /// Returns the size of the value when it is serialized.
         /// </summary>
-        int GetSizeFromValue(object value);
+        ushort GetSizeFromValue(object value);
     }
 
     public abstract class ValueSerializer<T> : IValueSerializer
@@ -80,53 +81,47 @@ namespace Fracture.Net.Serialization
         }
         
         /// <summary>
-        /// Static utility check for doing bounds check on upper bound of a buffer.
+        /// Checks both upper and lower bounds of a buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CheckUpperBound(int bufferLength, int offset, int size)
+        protected static void CheckBufferBounds(int bufferLength, int offset, int size)
         {
-            if (offset <= 0) return;
-            
-            if (offset + size >= bufferLength)
-                throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would overflow the " +
-                                                      $"buffer of length {bufferLength} by " +
-                                                      $"{(size + offset) - bufferLength} bytes");
-        }
-        
-        /// <summary>
-        /// Static check for doing bounds check on upper bound of a buffer.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void CheckLowerBound(int bufferLength, int offset, int size)
-        {
-            if (offset >= 0) return;
-            
-            if (offset + size < 0)
-                throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would underflow the " +
-                                                      $"buffer of length {bufferLength} by " +
-                                                      $"{Math.Abs(offset + size)} bytes");
+            if (offset >= 0)
+            {
+                // Check upper bound.
+                if (offset + size >= bufferLength)
+                    throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would overflow the " +
+                                                          $"buffer of length {bufferLength} by " +
+                                                          $"{(size + offset) - bufferLength} bytes");
+            }
+            else
+            {
+                // Check lower bound.
+                if (offset + size < 0)
+                    throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would underflow the " +
+                                                          $"buffer of length {bufferLength} by " +
+                                                          $"{Math.Abs(offset + size)} bytes");   
+            }
         }
 
         public virtual void Serialize(object value, byte[] buffer, int offset)
         {
             var size = GetSizeFromValue(value);
             
-            CheckLowerBound(buffer.Length, offset, size);
-            CheckUpperBound(buffer.Length, offset, size);
+            CheckBufferBounds(buffer.Length, offset, size);
         }
         
         public virtual object Deserialize(byte[] buffer, int offset)
         {
             var size = GetSizeFromBuffer(buffer, offset);
             
-            CheckLowerBound(buffer.Length, offset, size);
-            CheckUpperBound(buffer.Length, offset, size);
+            CheckBufferBounds(buffer.Length, offset, size);
             
             return null;
         }
         
-        public abstract int GetSizeFromBuffer(byte[] buffer, int offset);
+        public abstract ushort GetSizeFromBuffer(byte[] buffer, int offset);
         
-        public abstract int GetSizeFromValue(object value);
+        public abstract ushort GetSizeFromValue(object value);
     }
 }

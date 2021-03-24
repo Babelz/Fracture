@@ -3,7 +3,8 @@ using Fracture.Common.Memory;
 namespace Fracture.Net.Serialization
 {
     /// <summary>
-    /// Value serializer that provides serialization for <see cref="byte"/>.
+    /// Value serializer that provides serialization for <see cref="byte"/>. Also servers as serializer
+    /// for <see cref="char"/>.
     /// </summary>
     public sealed class ByteSerializer : ValueSerializer<byte>
     {
@@ -35,13 +36,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of byte, should always be 1-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(byte);
         
         /// <summary>
         /// Returns size of byte, should always be 1-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(byte);
     }
     
@@ -78,13 +79,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of sbyte, should always be 1-bytes.
         /// </summary>
-        public override int GetSizeFromBuffer(byte[] buffer, int offset)
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(sbyte);
         
         /// <summary>
         /// Returns size of sbyte, should always be 1-bytes.
         /// </summary>
-        public override int GetSizeFromValue(object value)
+        public override ushort GetSizeFromValue(object value)
             => sizeof(sbyte);
     }
 }
