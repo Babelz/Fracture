@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Common.Tests", "Fr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Engine.Tests", "Fracture.Engine.Tests\Fracture.Engine.Tests.csproj", "{1D94F5F3-67C4-4638-BA64-1AB0D7846832}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Net.Tests", "Fracture.Net.Tests\Fracture.Net.Tests.csproj", "{13D256C6-83F3-47FF-B41C-974861D017F4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{1D94F5F3-67C4-4638-BA64-1AB0D7846832}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1D94F5F3-67C4-4638-BA64-1AB0D7846832}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1D94F5F3-67C4-4638-BA64-1AB0D7846832}.Release|Any CPU.Build.0 = Release|Any CPU
+		{13D256C6-83F3-47FF-B41C-974861D017F4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{13D256C6-83F3-47FF-B41C-974861D017F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{13D256C6-83F3-47FF-B41C-974861D017F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{13D256C6-83F3-47FF-B41C-974861D017F4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
