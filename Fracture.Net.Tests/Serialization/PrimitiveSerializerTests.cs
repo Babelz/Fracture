@@ -44,26 +44,66 @@ namespace Fracture.Net.Tests.Serialization
         
             public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
             {
-                new object[] { new FloatSerializer(), 772842.0f, new byte[sizeof(float)], new byte[] { 160, 174, 60, 73 } },
-                new object[] { new IntSerializer(), -884752274, new byte[sizeof(int)], new byte[] { 110, 192, 67, 203, } }, 
+                new object[]
+                {
+                    new FloatSerializer(),
+                    772842.0f,
+                    new byte[sizeof(float)],
+                    new byte[]
+                    {
+                        160,
+                        174,
+                        60,
+                        73
+                    }
+                },
+                new object[]
+                {
+                    new IntSerializer(),
+                    -884752274,
+                    new byte[sizeof(int)],
+                    new byte[]
+                    {
+                        110,
+                        192,
+                        67,
+                        203,
+                    }
+                }, 
+                new object[]
+                {
+                    new UintSerializer(),
+                    4294967295u,
+                    new byte[sizeof(uint)],
+                    new byte[]
+                    {
+                        255,
+                        255,
+                        255,
+                        255
+                    }
+                }
             }; 
             
             public static IEnumerable<object[]> Deserializes_To_Value_Correctly_Data_Source => new []
             {
                 new object[] { new FloatSerializer(), new byte[] { 160, 174, 60, 73 }, 772842.0f },
-                new object[] { new IntSerializer(), new byte[] { 146, 63, 188, 52 }, 884752274}, 
+                new object[] { new IntSerializer(), new byte[] { 146, 63, 188, 52 }, 884752274 },
+                new object[] { new UintSerializer(), new byte[] { 52, 0, 0, 0 }, 52u }, 
             };
             
             public static IEnumerable<object[]> Test_Size_From_Value_Data_Source => new []
             {
                 new object[] { new FloatSerializer(), 88283.0f, 4 },
                 new object[] { new IntSerializer(), 99482, 4 },
+                new object[] { new UintSerializer(), 42u, 4 },
             };
             
             public static IEnumerable<object[]> Test_Size_From_Buffer_Data_Source => new []
             {
-                new object[] { new FloatSerializer(), new byte[] { 24, 22, 224, 11 }, 4 },
-                new object[] { new IntSerializer(), new byte[] { 22, 14, 99, 2 }, 4 },
+                new object[] { new FloatSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
+                new object[] { new IntSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
+                new object[] { new UintSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
             };
             #endregion
         }
