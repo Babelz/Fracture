@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using Fracture.Net.Serialization;
 using Xunit;
@@ -15,7 +16,7 @@ namespace Fracture.Net.Tests.Serialization
         private static class DataSource
         {
             #region Properties
-            public static IEnumerable<object[]> Serializer_Ctor_Test_Data_Source => new List<object[]>()
+            public static IEnumerable<object[]> Serializer_Ctor_Test_Data_Source => new []
             {
                 new object[] { new Action(() => new SbyteSerializer()) },
                 new object[] { new Action(() => new ByteSerializer()) },
@@ -27,22 +28,41 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new DoubleSerializer()) },
                 new object[] { new Action(() => new StringSerializer()) },
             };
+            
+            public static IEnumerable<object[]> Test_Serializers_Source => new []
+            {
+                new object[] { new SbyteSerializer() },
+                new object[] { new ByteSerializer() },
+                new object[] { new ShortSerializer() },
+                new object[] { new UshortSerializer() },
+                new object[] { new IntSerializer() },
+                new object[] { new UintSerializer() },
+                new object[] { new FloatSerializer() },
+                new object[] { new DoubleSerializer() },
+                new object[] { new StringSerializer() } 
+            };
         
-            public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new List<object[]>()
+            public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
             {
                 new object[] { new FloatSerializer(), 772842.0f, new byte[sizeof(float)], new byte[] { 160, 174, 60, 73 } }
             }; 
             
-            public static IEnumerable<object[]> Deserializes_To_Value_Correctly_Data_Source => new List<object[]>()
+            public static IEnumerable<object[]> Deserializes_To_Value_Correctly_Data_Source => new []
             {
                 new object[] { new FloatSerializer(), new byte[] { 160, 174, 60, 73 }, 772842.0f }
             };
+            
+            public static IEnumerable<object[]> Test_Size_From_Value_Data_Source => new []
+            {
+                new object[] { new FloatSerializer(), 88283.0f, 4 }
+            };
+            
+            public static IEnumerable<object[]> Test_Size_From_Buffer_Data_Source => new []
+            {
+                new object[] { new FloatSerializer(), new byte[] { 24, 22, 224, 11 }, 4 }
+            };
             #endregion
         }
-        #endregion
-        
-        #region Fields
-        private IntSerializer serializer;
         #endregion
         
         [Theory()]
@@ -75,40 +95,46 @@ namespace Fracture.Net.Tests.Serialization
             Assert.Equal(expectedValue, value);
         }
         
-        [Fact()]
-        public void Size_From_Value_Is_Four()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Size_From_Value_Data_Source), MemberType = typeof(DataSource))]
+        public void Test_Size_From_Value(IValueSerializer serializer, object value, ushort expectedSize)
         {
-            Assert.Equal(4, serializer.GetSizeFromValue(2948.0f));
+            Assert.Equal(expectedSize, serializer.GetSizeFromValue(value));
         }
         
-        [Fact()]
-        public void Size_From_Buffer_Is_Four()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Size_From_Buffer_Data_Source), MemberType = typeof(DataSource))]
+        public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
         {
-            Assert.Equal(4, serializer.GetSizeFromValue(new byte[] { 24, 22, 224, 11 }));
+            Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));
         }
         
-        [Fact()]
-        public void Serialize_Throws_On_Buffer_Overflow()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
+        public void Serialize_Throws_On_Buffer_Overflow(IValueSerializer serializer)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(1.0f, new byte[16], 16));
+            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[16], 32));
         }
         
-        [Fact()]
-        public void Deserialize_Throws_On_Buffer_Overflow()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
+        public void Deserialize_Throws_On_Buffer_Overflow(IValueSerializer serializer)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[8], 7));
+            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[8], 16));
         }
         
-        [Fact()]
-        public void Serialize_Throws_On_Buffer_Underflow()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
+        public void Serialize_Throws_On_Buffer_Underflow(IValueSerializer serializer)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(1.0f, new byte[4], -5));
+            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[4], -20));
         }
         
-        [Fact()]
-        public void Deserialize_Throws_On_Buffer_Underflow()
+        [Theory()]
+        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
+        public void Deserialize_Throws_On_Buffer_Underflow(IValueSerializer serializer)
         {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[5], -9));
+            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[5], -15));
         }
     }
 }

@@ -84,7 +84,7 @@ namespace Fracture.Net.Serialization
         /// Checks both upper and lower bounds of a buffer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static void CheckBufferBounds(int bufferLength, int offset, int size)
+        private static void CheckBufferBounds(int bufferLength, int offset, int size)
         {
             if (offset >= 0)
             {
@@ -106,15 +106,25 @@ namespace Fracture.Net.Serialization
 
         public virtual void Serialize(object value, byte[] buffer, int offset)
         {
+            // Check current offset bounds with zero content size, offset can under or overflow the
+            // bounds of the buffer.
+            CheckBufferBounds(buffer.Length, offset, 0);
+            
             var size = GetSizeFromValue(value);
             
+            // Same here, check bounds for the actual value size.
             CheckBufferBounds(buffer.Length, offset, size);
         }
         
         public virtual object Deserialize(byte[] buffer, int offset)
-        {
+        {   
+            // Check current offset bounds with zero content size, offset can under or overflow the
+            // bounds of the buffer.
+            CheckBufferBounds(buffer.Length, offset, 0);
+
             var size = GetSizeFromBuffer(buffer, offset);
             
+            // Check bounds for the actual value size.
             CheckBufferBounds(buffer.Length, offset, size);
             
             return null;
