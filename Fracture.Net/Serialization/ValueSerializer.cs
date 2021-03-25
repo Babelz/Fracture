@@ -89,7 +89,7 @@ namespace Fracture.Net.Serialization
             if (offset >= 0)
             {
                 // Check upper bound.
-                if (offset + size >= bufferLength)
+                if (offset + size > bufferLength)
                     throw new ArgumentOutOfRangeException($"writing {size} bytes at offset {offset} would overflow the " +
                                                           $"buffer of length {bufferLength} by " +
                                                           $"{(size + offset) - bufferLength} bytes");
