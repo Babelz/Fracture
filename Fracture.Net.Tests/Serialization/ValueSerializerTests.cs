@@ -10,7 +10,7 @@ using Xunit;
 namespace Fracture.Net.Tests.Serialization
 {
     [Trait("Category", "Serialization")]
-    public sealed class PrimitiveSerializerTests
+    public sealed class PrimitiveValueSerializerTests
     {
         #region Data source
         private static class DataSource
@@ -26,19 +26,7 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new UintSerializer()) },
                 new object[] { new Action(() => new FloatSerializer()) }
             };
-            
-            public static IEnumerable<object[]> Test_Serializers_Source => new []
-            {
-                new object[] { new SbyteSerializer() },
-                new object[] { new ByteSerializer() },
-                new object[] { new ShortSerializer() },
-                new object[] { new UshortSerializer() },
-                new object[] { new IntSerializer() },
-                new object[] { new UintSerializer() },
-                new object[] { new FloatSerializer() },
-                new object[] { new DoubleSerializer() } 
-            };
-        
+
             public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
             {
                 new object[] { new SbyteSerializer(), (sbyte)-45, new byte[sizeof(sbyte)], new byte[] { 211 } },
@@ -121,6 +109,10 @@ namespace Fracture.Net.Tests.Serialization
             #endregion
         }
         #endregion
+
+        public PrimitiveValueSerializerTests()
+        {
+        }
         
         [Theory()]
         [MemberData(nameof(DataSource.Serializer_Ctor_Test_Data_Source), MemberType = typeof(DataSource))]
@@ -164,6 +156,34 @@ namespace Fracture.Net.Tests.Serialization
         public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));
+        }
+    }
+    
+    [Trait("Category", "Serialization")]
+    public sealed class ValueSerializerBoundCheckTests
+    {
+        #region Data source
+        private static class DataSource
+        {
+            #region Properties
+            public static IEnumerable<object[]> Test_Serializers_Source => new []
+            {
+                new object[] { new SbyteSerializer() },
+                new object[] { new ByteSerializer() },
+                new object[] { new ShortSerializer() },
+                new object[] { new UshortSerializer() },
+                new object[] { new IntSerializer() },
+                new object[] { new UintSerializer() },
+                new object[] { new FloatSerializer() },
+                new object[] { new DoubleSerializer() },
+                new object[] { new StringSerializer() }
+            };
+            #endregion
+        }
+        #endregion
+        
+        public ValueSerializerBoundCheckTests()
+        {
         }
         
         [Theory()]
