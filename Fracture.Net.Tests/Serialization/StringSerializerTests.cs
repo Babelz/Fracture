@@ -1,3 +1,5 @@
+using System.Net.Sockets;
+using Fracture.Net.Serialization;
 using Xunit;
 
 namespace Fracture.Net.Tests.Serialization
@@ -5,12 +7,18 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class StringSerializerTests 
     {
+        #region Fields
+        private readonly StringSerializer serializer;
+        #endregion
+        
         public StringSerializerTests()
         {
+            serializer = new StringSerializer();
         }
         
         public void Serialized_String_Contains_Size_Of_The_String()
         {
+            
         }
         
         public void Serializes_To_UTF_16_Format()
