@@ -15,32 +15,95 @@ namespace Fracture.Net
             /// <summary>
             /// Size of the whole message.
             /// </summary>
-            public const ushort ContentSize = sizeof(ushort);
+            public static class ContentSize
+            {
+                #region Constants
+                public const ushort Size = sizeof(ushort);
+                #endregion
+                                    
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static void Write(ushort value, byte[] buffer, int offset)
+                    => ByteUtils.WriteUshort(value, buffer, offset);
+                    
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static ushort Read(byte[] buffer, int offset)
+                    => ByteUtils.ReadUshort(buffer, offset);
+            }
             
             /// <summary>
             /// Size of the type id of the message.
             /// </summary>
-            public const ushort TypeIdSize = sizeof(ushort);
+            public static class TypeId
+            {
+                #region Constants
+                public const ushort Size = sizeof(ushort);
+                #endregion
+                                    
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static void Write(ushort value, byte[] buffer, int offset)
+                    => ByteUtils.WriteUshort(value, buffer, offset);
+                    
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                public static ushort Read(byte[] buffer, int offset)
+                    => ByteUtils.ReadUshort(buffer, offset);
+            }
             #endregion
             
             public static class Field
             {
-                #region Constant fields
                 /// <summary>
-                /// Size of single fields type id.
+                /// Type id of the message field.
                 /// </summary>
-                public const ushort TypeIdSize = sizeof(byte);
+                public static class TypeId
+                {
+                    #region Constants
+                    public const ushort Size = sizeof(ushort);
+                    #endregion
+                                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static void Write(ushort value, byte[] buffer, int offset)
+                        => ByteUtils.WriteUshort(value, buffer, offset);
+                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static ushort Read(byte[] buffer, int offset)
+                        => ByteUtils.ReadUshort(buffer, offset);
+                }
                 
                 /// <summary>
-                /// If the field is a collection, contains the size of generic type id.
+                /// Generic type id of the message field if the field is a collection.
                 /// </summary>
-                public const ushort GenericTypeIdSize = sizeof(ushort);
+                public static class GenericTypeId
+                {
+                    #region Constants
+                    public const ushort Size = sizeof(ushort);
+                    #endregion
+                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static void Write(ushort value, byte[] buffer, int offset)
+                        => ByteUtils.WriteUshort(value, buffer, offset);
+                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static ushort Read(byte[] buffer, int offset)
+                        => ByteUtils.ReadUshort(buffer, offset);
+                }
                 
                 /// <summary>
-                /// IF the field is dynamic, contains the dynamic types length.
+                /// Length of the field if the field is dynamic.
                 /// </summary>
-                public const ushort DynamicTypeLengthSize = sizeof(ushort);
-                #endregion
+                public static class DynamicTypeLength
+                {
+                    #region Constants
+                    public const ushort Size = sizeof(ushort);
+                    #endregion
+                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static void Write(ushort value, byte[] buffer, int offset)
+                        => ByteUtils.WriteUshort(value, buffer, offset);
+                    
+                    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                    public static ushort Read(byte[] buffer, int offset)
+                        => ByteUtils.ReadUshort(buffer, offset);
+                }
             }
         }
     }
