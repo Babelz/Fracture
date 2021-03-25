@@ -31,10 +31,10 @@ namespace Fracture.Net.Tests.Serialization
             
             serializer.Serialize(Value, buffer, 0);
             
-            Assert.Equal(110, buffer[0]);
-            Assert.Equal(192, buffer[1]);
-            Assert.Equal(67, buffer[2]);
-            Assert.Equal(203, buffer[3]);
+            Assert.Equal( 110, buffer[0]);
+            Assert.Equal( 192, buffer[1]);
+            Assert.Equal( 67, buffer[2]);
+            Assert.Equal( 203, buffer[3]);
         }
 
         [Fact()]
