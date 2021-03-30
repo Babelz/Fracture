@@ -145,8 +145,8 @@ namespace Fracture.Net.Serialization
     {
         /// <summary>
         /// Gets all types that are assignable from <see cref="IValueSerializer"/>, are classes and are not abstract.
-        /// Orders all types by their name as the order of instantiation effects how the serialization type of each
-        /// serializer will be.
+        /// Orders all types by their name as the order of instantiation effects the order of the serialization types
+        /// of each serializer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IEnumerable<Type> GetSerializerTypes()
