@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 namespace Fracture.Net.Serialization
@@ -132,5 +133,31 @@ namespace Fracture.Net.Serialization
         public abstract ushort GetSizeFromBuffer(byte[] buffer, int offset);
         
         public abstract ushort GetSizeFromValue(object value);
+    }
+    
+    /// <summary>
+    /// Static utility class for creating value serializers. Expect all methods in this class to be slow as they all
+    /// rely heavily on reflection for locating the serialization classes from all of the loaded assemblies in current
+    /// app domain.
+    /// </summary>
+    public static class ValueSerializerFactory
+    {
+        /// <summary>
+        /// Creates new map that maps serialization types to their serializers. 
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDictionary<int, IValueSerializer> CreateSerializationTypeMap()
+        {
+            throw new NotImplementedException();
+        }
+        
+        /// <summary>
+        /// Creates new map that maps runtime types to their serializers.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IDictionary<Type, IValueSerializer> CreateRuntimeTypeMap()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
