@@ -41,7 +41,7 @@ namespace Fracture.Net.Tests.Serialization
         public void Get_Size_From_Value_Returns_String_Size_In_And_Size_Field_Bytes()
         {
             Assert.Equal(10, serializer.GetSizeFromValue("hell"));
-            Assert.Equal(10, serializer.GetSizeFromValue("    "));
+            Assert.Equal(14, serializer.GetSizeFromValue("      "));
         }
         
         [Fact()]
