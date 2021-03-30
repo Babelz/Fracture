@@ -55,9 +55,11 @@ namespace Fracture.Net
     /// </summary>
     public static class ProtocolHeaderFactory
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ProtocolHeader<ushort> CreateUshort()
             => new ProtocolHeader<ushort>(ByteUtils.WriteUshort, ByteUtils.ReadUshort);
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ProtocolHeader<uint> CreateUint()
             => new ProtocolHeader<uint>(ByteUtils.WriteUint, ByteUtils.ReadUint);   
     }
