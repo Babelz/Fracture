@@ -1,5 +1,4 @@
 ﻿using System;
-using Fracture.Client.Content.Ui;
 using Fracture.Common;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -7,6 +6,7 @@ using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Fracture.Engine.Ui.Components;
 using Microsoft.Xna.Framework;
+using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Ui.Controls
 {

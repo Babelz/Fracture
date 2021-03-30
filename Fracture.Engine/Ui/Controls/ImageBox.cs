@@ -1,10 +1,10 @@
 ﻿using System;
-using Fracture.Client.Content.Ui;
 using Fracture.Common;
 using Fracture.Engine.Core;
 using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Ui.Controls
 {

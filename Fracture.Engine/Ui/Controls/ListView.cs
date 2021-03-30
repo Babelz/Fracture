@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fracture.Client.Content.Ui;
 using Fracture.Engine.Core;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Ui.Controls
 {

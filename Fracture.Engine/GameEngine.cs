@@ -4,7 +4,6 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fracture.Engine

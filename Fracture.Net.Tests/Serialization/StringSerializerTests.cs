@@ -1,4 +1,3 @@
-using System.Net.Sockets;
 using Fracture.Net.Serialization;
 using Xunit;
 

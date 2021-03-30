@@ -1,7 +1,3 @@
-using System;
-using System.Configuration;
-using System.IO;
-using System.Runtime.Remoting.Messaging;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization

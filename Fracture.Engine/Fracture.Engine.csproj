@@ -129,13 +129,13 @@
       <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
-      <ProjectReference Include="..\Fracture.Client.Content\Fracture.Client.Content.csproj">
-        <Project>{9d7f1622-c3ba-4647-ae93-80be0e8a2def}</Project>
-        <Name>Fracture.Client.Content</Name>
-      </ProjectReference>
       <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
         <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
         <Name>Fracture.Common</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\Fracture.Content\Fracture.Content.csproj">
+        <Project>{9d7f1622-c3ba-4647-ae93-80be0e8a2def}</Project>
+        <Name>Fracture.Content</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -1,9 +1,9 @@
-﻿using Fracture.Client.Content.Ui;
-using Fracture.Engine.Core;
+﻿using Fracture.Engine.Core;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Ui.Components;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Ui.Controls
 {

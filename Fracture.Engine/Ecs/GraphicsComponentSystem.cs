@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Fracture.Client.Content.Graphics;
 using Fracture.Common.Collections;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
@@ -11,6 +10,7 @@ using Fracture.Engine.Events;
 using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Shattered.Content.Graphics;
 
 namespace Fracture.Engine.Ecs
 {

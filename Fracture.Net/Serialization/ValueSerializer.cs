@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using System.Xml.Schema;
 
 namespace Fracture.Net.Serialization
 {
