@@ -91,14 +91,14 @@ namespace Fracture.Net
                 public static readonly ProtocolHeader<ushort> TypeId = ProtocolHeaderFactory.CreateUshort();
                 
                 /// <summary>
-                /// Generic type id of the message field if the field is a collection.
-                /// </summary>
-                public static readonly ProtocolHeader<ushort> GenericTypeId = ProtocolHeaderFactory.CreateUshort();
-                
-                /// <summary>
-                /// Length of the field if the field is dynamic.
+                /// Length of the field if the field size can vary.
                 /// </summary>
                 public static readonly ProtocolHeader<ushort> DynamicTypeLength = ProtocolHeaderFactory.CreateUshort();
+                
+                /// <summary>
+                /// Length of single element if the field is collection and element size can vary.
+                /// </summary>
+                public static readonly ProtocolHeader<ushort> ElementLength = ProtocolHeaderFactory.CreateUshort();
             }
         }
     }

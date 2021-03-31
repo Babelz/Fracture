@@ -1,24 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
+using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
 {
-    /// <summary>
-    /// Value serializer that provides serialization for generic arrays that contain
-    /// any serializable primitives, classes or structures.
-    /// </summary>
-    public class ArraySerializer : ValueSerializer<Array>
+    public sealed class PrimitiveArraySerializer<T> : ValueSerializer<T[]>
     {
-        public ArraySerializer()
+        public PrimitiveArraySerializer()
         {
         }
         
         public override void Serialize(object value, byte[] buffer, int offset)
         {
             base.Serialize(value, buffer, offset);
-            
-            var array = (Array)value;
-            
-            array.
         }
         
         public override object Deserialize(byte[] buffer, int offset)
