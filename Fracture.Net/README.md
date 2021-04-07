@@ -1,0 +1,25 @@
+# Fracture.Net
+Contains low level networking related code for clients and servers. 
+
+## Serialization
+Fracture serializer provides fast and compact serialization format for serializing objects to binary. However it does
+not attempt to be the best fastest or most compact serializer available. Serialization is developed with online games in
+mind and more precisely the Shattered World MMO. Serialization uses code generation to avoid overhead from reflection
+when serializing and deserializing messages. 
+
+Fracture serializer provides serialization for the following types:
+- [x] Signed primitives (sbyte, short, int, long)
+- [x] Unsigned primitives (byte, ushort, uint, ulong)
+- [x] Floats and decimals (float, decimal)
+- [x] Strings
+- [ ] Characters
+- [ ] Booleans
+- [ ] Date times and timespans
+- [ ] Time zone information
+- [ ] Null values
+- [ ] Arrays 
+- [ ] Lists
+- [ ] Dictionaries
+- [ ] Classes and structures
+    - [ ] Auto mapping
+    - [ ] Manually mapping

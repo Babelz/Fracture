@@ -5,9 +5,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="float"/>.
     /// </summary>
-    public sealed class FloatSerializer : ValueSerializer<float>
+    public sealed class FloatSerializer : ValueSerializer
     {
         public FloatSerializer()
+            : base(Serialization.SerializationType.Float, typeof(float))
         {
         }
         
@@ -48,9 +49,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="double"/>.
     /// </summary>
-    public sealed class DoubleSerializer : ValueSerializer<double>
+    public sealed class DoubleSerializer : ValueSerializer
     {
         public DoubleSerializer()
+            : base(Serialization.SerializationType.Double, typeof(double))
         {
         }
         

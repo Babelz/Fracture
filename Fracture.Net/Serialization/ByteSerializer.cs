@@ -6,9 +6,10 @@ namespace Fracture.Net.Serialization
     /// Value serializer that provides serialization for <see cref="byte"/>. Also servers as serializer
     /// for <see cref="char"/>.
     /// </summary>
-    public sealed class ByteSerializer : ValueSerializer<byte>
+    public sealed class ByteSerializer : ValueSerializer
     {
         public ByteSerializer()
+            : base(Serialization.SerializationType.Byte, typeof(byte))
         {
         }
         
@@ -49,9 +50,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="sbyte"/>.
     /// </summary>
-    public sealed class SbyteSerializer : ValueSerializer<sbyte>
+    public sealed class SbyteSerializer : ValueSerializer
     {
         public SbyteSerializer()
+            : base(Serialization.SerializationType.Sbyte, typeof(sbyte))
         {
         }
         

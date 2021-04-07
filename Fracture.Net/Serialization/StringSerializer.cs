@@ -6,7 +6,7 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="string"/>. Use .NET default UTF-16 encoding.
     /// </summary>
-    public sealed class StringSerializer : ValueSerializer<string>
+    public sealed class StringSerializer : ValueSerializer
     {
         #region Static fields
         // UTF-16 encoding.
@@ -14,6 +14,7 @@ namespace Fracture.Net.Serialization
         #endregion
         
         public StringSerializer()
+            : base(Serialization.SerializationType.String, typeof(string))
         {
         }
         

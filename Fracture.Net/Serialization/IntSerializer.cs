@@ -5,9 +5,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="int"/>.
     /// </summary>
-    public sealed class IntSerializer : ValueSerializer<int>
+    public sealed class IntSerializer : ValueSerializer
     {
         public IntSerializer()
+            : base(Serialization.SerializationType.Int, typeof(int))
         {
         }
         
@@ -48,9 +49,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="uint"/>.
     /// </summary>
-    public sealed class UintSerializer : ValueSerializer<uint>
+    public sealed class UintSerializer : ValueSerializer
     {
         public UintSerializer()
+            : base(Serialization.SerializationType.Uint, typeof(uint))
         {
         }
         

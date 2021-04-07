@@ -3,90 +3,90 @@ using Fracture.Common.Memory;
 namespace Fracture.Net.Serialization
 {
     /// <summary>
-    /// Value serializer that provides serialization for <see cref="short"/>.
+    /// Value serializer that provides serialization for <see cref="long"/>.
     /// </summary>
-    public sealed class ShortSerializer : ValueSerializer
+    public sealed class LongSerializer : ValueSerializer
     {
-        public ShortSerializer()
-            : base(Serialization.SerializationType.Short, typeof(short))
+        public LongSerializer()
+            : base(Serialization.SerializationType.Long, typeof(long))
         {
         }
         
         /// <summary>
-        /// Writes given int16 value to given buffer beginning at given offset.
+        /// Writes given int64 value to given buffer beginning at given offset.
         /// </summary>
         public override void Serialize(object value, byte[] buffer, int offset)
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteShort((short)value, buffer, offset);
+            ByteUtils.WriteLong((long)value, buffer, offset);
         }
         
         /// <summary>
-        /// Reads next 2-bytes from given buffer beginning at given offset as int16
+        /// Reads next 8-bytes from given buffer beginning at given offset as int32
         /// and returns that value to the caller.
         /// </summary>
         public override object Deserialize(byte[] buffer, int offset)
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadShort(buffer, offset);
+            return ByteUtils.ReadLong(buffer, offset);
         }
 
         /// <summary>
-        /// Returns size of int16, should always be 2-bytes.
+        /// Returns size of int64, should always be 8-bytes.
         /// </summary>
         public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => sizeof(short);
+            => sizeof(long);
         
         /// <summary>
-        /// Returns size of int16, should always be 2-bytes.
+        /// Returns size of int64, should always be 8-bytes.
         /// </summary>
         public override ushort GetSizeFromValue(object value)
-            => sizeof(short);
+            => sizeof(long);
     }
     
     /// <summary>
-    /// Value serializer that provides serialization for <see cref="ushort"/>.
+    /// Value serializer that provides serialization for <see cref="ulong"/>.
     /// </summary>
-    public sealed class UshortSerializer : ValueSerializer
+    public sealed class UlongSerializer : ValueSerializer
     {
-        public UshortSerializer()
-            : base(Serialization.SerializationType.Ushort, typeof(ushort))
+        public UlongSerializer()
+            : base(Serialization.SerializationType.Ulong, typeof(ulong))
         {
         }
         
         /// <summary>
-        /// Writes given uint16 value to given buffer beginning at given offset.
+        /// Writes given uint64 value to given buffer beginning at given offset.
         /// </summary>
         public override void Serialize(object value, byte[] buffer, int offset)
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteUshort((ushort)value, buffer, offset);
+            ByteUtils.WriteUlong((ulong)value, buffer, offset);
         }
         
         /// <summary>
-        /// Reads next 2-bytes from given buffer beginning at given offset as uint16
+        /// Reads next 8-bytes from given buffer beginning at given offset as uint32
         /// and returns that value to the caller.
         /// </summary>
         public override object Deserialize(byte[] buffer, int offset)
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadUshort(buffer, offset);
+            return ByteUtils.ReadUlong(buffer, offset);
         }
 
         /// <summary>
-        /// Returns size of uint16, should always be 2-bytes.
+        /// Returns size of uint64, should always be 8-bytes.
         /// </summary>
         public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => sizeof(ushort);
+            => sizeof(ulong);
         
         /// <summary>
-        /// Returns size of uint16, should always be 2-bytes.
+        /// Returns size of uint64, should always be 8-bytes.
         /// </summary>
         public override ushort GetSizeFromValue(object value)
-            => sizeof(ushort);
+            => sizeof(ulong);
     }
 }

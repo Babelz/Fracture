@@ -42,7 +42,7 @@ namespace Fracture.Common.Memory
         /// Unsafe write for arrays, see <see cref="Write{T}(T,byte[],int)"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Write<T>(byte[] destination, int destinationIndex, T[] source, int sourceIndex, int count) where T : struct
+        public static void WriteArray<T>(byte[] destination, int destinationIndex, T[] source, int sourceIndex, int count) where T : struct
         {
             var size         = Marshal.SizeOf(typeof(T));
             var requiredSize = size * count;
@@ -62,10 +62,10 @@ namespace Fracture.Common.Memory
             }
         }
         /// <summary>
-        /// Unsafe read for arrays, see <see cref="Read{T}(T[],int,byte[],int,int)"/>
+        /// Unsafe read for arrays, see <see cref="ReadArray{T}"/>
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Read<T>(T[] destination, int destinationIndex, byte[] source, int sourceIndex, int count) where T : struct
+        public static void ReadArray<T>(T[] destination, int destinationIndex, byte[] source, int sourceIndex, int count) where T : struct
         {
             var size         = Marshal.SizeOf(typeof(T));
             var requiredSize = count / size;
@@ -112,42 +112,40 @@ namespace Fracture.Common.Memory
             => (short)((bytes[index]) | (bytes[index + 1] << 8));
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ushort ReadUshort(byte[] bytes, int index) 
-            => (ushort)((bytes[index]) | (bytes[index + 1] << 8));
+            => (ushort)ReadShort(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ReadInt(byte[] bytes, int index)   
             => (bytes[index]) | (bytes[index + 1] << 8) | (bytes[index + 2] << 16) | (bytes[index + 3] << 24);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static uint ReadUint(byte[] bytes, int index) 
-            => (uint)((bytes[index]) | (bytes[index + 1] << 8) | (bytes[index + 2] << 16) | (bytes[index + 3] << 24));
+            => (uint)ReadInt(bytes, index);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long ReadLong(byte[] bytes, int index)   
+            => Read<long>(bytes, index);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ulong ReadUlong(byte[] bytes, int index) 
+            => (ulong)ReadLong(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteDouble(double value, byte[] bytes, int index)
-        {
-            Write(value, bytes, index);
-        }
+            => Write(value, bytes, index);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteFloat(float value, byte[] bytes, int index)
-        {
-            Write(value, bytes, index);
-        }
-
+            => Write(value, bytes, index);
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteBool(bool value, byte[] bytes, int index)
-        {
-            bytes[index] = (byte)(value ? 1 : 0);
-        }
+            => bytes[index] = (byte)(value ? 1 : 0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteByte(byte value, byte[] bytes, int index)
-        {
-            bytes[index] = value;
-        }
+            => bytes[index] = value;
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteSByte(sbyte value, byte[] bytes, int index)
-        {
-            bytes[index] = (byte)value;
-        }
+            => WriteByte((byte)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteChar(char value, byte[] bytes, int index)
@@ -164,10 +162,7 @@ namespace Fracture.Common.Memory
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUshort(ushort value, byte[] bytes, int index)
-        {
-            bytes[index]     |= (byte)(value);
-            bytes[index + 1] |= (byte)(value >> 8);
-        }
+            => WriteShort((short)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteInt(int value, byte[] bytes, int index)
@@ -179,12 +174,23 @@ namespace Fracture.Common.Memory
         }
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteUint(uint value, byte[] bytes, int index)
+            => WriteInt((int)value, bytes, index);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteLong(long value, byte[] bytes, int index)
         {
             bytes[index]     |= (byte)(value);
             bytes[index + 1] |= (byte)(value >> 8);
             bytes[index + 2] |= (byte)(value >> 16);
             bytes[index + 3] |= (byte)(value >> 24);
+            bytes[index + 4] |= (byte)(value >> 32);
+            bytes[index + 5] |= (byte)(value >> 40);
+            bytes[index + 6] |= (byte)(value >> 48);
+            bytes[index + 7] |= (byte)(value >> 56);
         }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteUlong(ulong value, byte[] bytes, int index)
+            => WriteLong((long)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void VectorizedCopy(byte[] source, int sourceIndex, byte[] destination, int destinationIndex, int count)

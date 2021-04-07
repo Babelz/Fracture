@@ -6,81 +6,77 @@ using System.Runtime.CompilerServices;
 namespace Fracture.Net.Serialization
 {
     /// <summary>
-    /// Internal static utility class for holding serialization type id generation context. These values should be
-    /// static to type.
+    /// Enumeration containing all supported build in types for serialization.
     /// </summary>
-    internal static class SerializationTypeGenerator
+    public enum SerializationType : byte
     {
-        #region Static fields
-        private static ushort next = 0;
-        #endregion
-        
-        /// <summary>
-        /// Gets next static serialization type id from the generator.
-        /// </summary>
-        public static ushort Next() => next++;
-    }
-    
-    /// <summary>
-    /// Interface creating type free serializers for serializing single values. These values
-    /// can be anything from single primitive to more complex classes and specific types like lists. 
-    /// </summary>
-    public interface IValueSerializer
-    {
-        /// <summary>
-        /// Serializes given value to given buffer starting at given offset.
-        /// </summary>
-        void Serialize(object value, byte[] buffer, int offset);
-        
-        /// <summary>
-        /// Deserializes value from given buffer starting at given offset.
-        /// </summary>
-        object Deserialize(byte[] buffer, int offset); 
-        
-        /// <summary>
-        /// Gets the size of the value from given buffer at given offset. This size is the values size
-        /// inside the buffer when it is serialized.
-        /// </summary>
-        ushort GetSizeFromBuffer(byte[] buffer, int offset);
-        
-        /// <summary>
-        /// Returns the size of the value when it is serialized.
-        /// </summary>
-        ushort GetSizeFromValue(object value);
+        Null = 0,
+        Sbyte,
+        Short,
+        Int,
+        Long,
+        Byte,
+        Ushort,
+        Uint,
+        Ulong,
+        Float,
+        Double,
+        String,
+        Char,
+        Bool,
+        DateTime,
+        Timespan,
+        TimeZone,
+        Array,
+        List,
+        Dictionary,
+        Collection,
+        Enumerable,
+        ManagedStructure,
+        UnmanagedStructure
     }
 
-    public abstract class ValueSerializer<T> : IValueSerializer
+    /// <summary>
+    /// Abstract base class for creating type free serializers for serializing single values. These values
+    /// can be anything from single primitive to more complex classes and specific types like lists. 
+    /// </summary>
+    public abstract class ValueSerializer
     {
-        #region Static properties
+        #region Properties
         /// <summary>
-        /// Gets the runtime type that this value serializer serializes from and to from the serialization buffer. This
-        /// value should be static to the class.
+        /// Gets the runtime type that this value serializer serializes from and to from the serialization buffer.
         /// </summary>
-        public static Type RuntimeType
+        public Type RuntimeType
         {
             get;
         }
         
         /// <summary>
-        /// Gets the runtime type id that this value serializer writes and accepts from the serialization buffer. This
-        /// value should be static to the class.
+        /// Gets the runtime type id that this value serializer writes and accepts from the serialization buffer. 
         /// </summary>
-        public static ushort SerializationType
+        public byte SerializationType
         {
             get;
-        } 
+        }
         #endregion
         
-        static ValueSerializer()
-        { 
-            SerializationType = SerializationTypeGenerator.Next();
-            RuntimeType       = typeof(T);
+        /// <summary>
+        /// Constructor to allow extension of build in serialization types.
+        /// </summary>
+        protected ValueSerializer(byte serializationType, Type runtimeType)
+        {
+            SerializationType = serializationType;
+            RuntimeType       = runtimeType;
         }
         
-        protected ValueSerializer()
-        { 
+        /// <summary>
+        /// Constructor to use build in serialization types.
+        /// </summary>
+        protected ValueSerializer(SerializationType serializationType, Type runtimeType)
+            : this((byte)serializationType, runtimeType)
+        {
         }
-        
+
         /// <summary>
         /// Checks both upper and lower bounds of a buffer.
         /// </summary>
@@ -105,6 +101,9 @@ namespace Fracture.Net.Serialization
             }
         }
 
+        /// <summary>
+        /// Serializes given value to given buffer starting at given offset.
+        /// </summary>
         public virtual void Serialize(object value, byte[] buffer, int offset)
         {
             // Check current offset bounds with zero content size, offset can under or overflow the
@@ -117,6 +116,9 @@ namespace Fracture.Net.Serialization
             CheckBufferBounds(buffer.Length, offset, size);
         }
         
+        /// <summary>
+        /// Deserializes value from given buffer starting at given offset.
+        /// </summary>
         public virtual object Deserialize(byte[] buffer, int offset)
         {   
             // Check current offset bounds with zero content size, offset can under or overflow the
@@ -131,8 +133,15 @@ namespace Fracture.Net.Serialization
             return null;
         }
         
+        /// <summary>
+        /// Gets the size of the value from given buffer at given offset. This size is the values size
+        /// inside the buffer when it is serialized.
+        /// </summary>
         public abstract ushort GetSizeFromBuffer(byte[] buffer, int offset);
         
+        /// <summary>
+        /// Returns the size of the value when it is serialized.
+        /// </summary>
         public abstract ushort GetSizeFromValue(object value);
     }
     

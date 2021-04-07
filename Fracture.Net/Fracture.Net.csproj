@@ -46,6 +46,7 @@
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
+        <Compile Include="Serialization\LongSerializer.cs" />
         <Compile Include="Serialization\ShortSerializer.cs" />
         <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\ValueSerializer.cs" />
@@ -55,6 +56,9 @@
         <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
         <Name>Fracture.Common</Name>
       </ProjectReference>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="README.md" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
