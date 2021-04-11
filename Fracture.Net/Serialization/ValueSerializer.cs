@@ -26,13 +26,11 @@ namespace Fracture.Net.Serialization
         Bool,
         DateTime,
         TimeSpan,
+        Enum,
+        Structure,
         Array,
         List,
-        Dictionary,
-        Collection,
-        Enumerable,
-        Enum,
-        Structure
+        Dictionary
     }
 
     /// <summary>
