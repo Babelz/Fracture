@@ -44,6 +44,7 @@
         <Compile Include="Protocol.cs" />
         <Compile Include="Serialization\ArraySerializer.cs" />
         <Compile Include="Serialization\ByteSerializer.cs" />
+        <Compile Include="Serialization\DateTimeSerializer.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
         <Compile Include="Serialization\LongSerializer.cs" />

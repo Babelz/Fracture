@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization
     public sealed class ShortSerializer : ValueSerializer
     {
         public ShortSerializer()
-            : base(Serialization.SerializationType.Short, typeof(short))
+            : base(SerializationType.Short, typeof(short))
         {
         }
         
@@ -52,7 +52,7 @@ namespace Fracture.Net.Serialization
     public sealed class UshortSerializer : ValueSerializer
     {
         public UshortSerializer()
-            : base(Serialization.SerializationType.Ushort, typeof(ushort))
+            : base(SerializationType.Ushort, typeof(ushort))
         {
         }
         

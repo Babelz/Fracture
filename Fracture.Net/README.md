@@ -11,15 +11,13 @@ Fracture serializer provides serialization for the following types:
 - [x] Signed primitives (sbyte, short, int, long)
 - [x] Unsigned primitives (byte, ushort, uint, ulong)
 - [x] Floats and decimals (float, decimal)
-- [x] Strings
-- [ ] Characters
-- [ ] Booleans
-- [ ] Date times and timespans
-- [ ] Time zone information
-- [ ] Null values
+- [x] Strings and characters
+- [x] Booleans
+- [x] Date times and timespans
+- [x] Null values
 - [ ] Arrays 
 - [ ] Lists
 - [ ] Dictionaries
-- [ ] Classes and structures
-    - [ ] Auto mapping (unmanaged)
-    - [ ] Manually mapping (managed)
+- [ ] Structures
+    - [ ] Auto mapped
+    - [ ] Manually mapped

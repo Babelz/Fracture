@@ -25,8 +25,7 @@ namespace Fracture.Net.Serialization
         Char,
         Bool,
         DateTime,
-        Timespan,
-        TimeZone,
+        TimeSpan,
         Array,
         List,
         Dictionary,
@@ -54,7 +53,7 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Gets the runtime type id that this value serializer writes and accepts from the serialization buffer. 
         /// </summary>
-        public byte SerializationType
+        public byte SerializedType
         {
             get;
         }
@@ -63,10 +62,10 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Constructor to allow extension of build in serialization types.
         /// </summary>
-        protected ValueSerializer(byte serializationType, Type runtimeType)
+        protected ValueSerializer(byte serializedType, Type runtimeType)
         {
-            SerializationType = serializationType;
-            RuntimeType       = runtimeType;
+            SerializedType = serializedType;
+            RuntimeType    = runtimeType;
         }
         
         /// <summary>
@@ -172,7 +171,7 @@ namespace Fracture.Net.Serialization
         public static IDictionary<byte, ValueSerializer> CreateSerializationTypeMap()
             => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
                                    .ToDictionary(
-                                       (v) => v.SerializationType, 
+                                       (v) => v.SerializedType, 
                                        (v) => v);
         
         /// <summary>

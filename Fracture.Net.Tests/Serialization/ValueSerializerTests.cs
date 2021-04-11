@@ -258,7 +258,8 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), },
                 new object[] { new LongSerializer() },
                 new object[] { new UlongSerializer() },
-                new object[] { new NullSerializer() }
+                new object[] { new NullSerializer() },
+                new object[] { new BoolSerializer() }
             };
             #endregion
         }

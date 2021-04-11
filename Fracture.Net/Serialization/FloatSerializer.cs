@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization
     public sealed class FloatSerializer : ValueSerializer
     {
         public FloatSerializer()
-            : base(Serialization.SerializationType.Float, typeof(float))
+            : base(SerializationType.Float, typeof(float))
         {
         }
         
@@ -52,7 +52,7 @@ namespace Fracture.Net.Serialization
     public sealed class DoubleSerializer : ValueSerializer
     {
         public DoubleSerializer()
-            : base(Serialization.SerializationType.Double, typeof(double))
+            : base(SerializationType.Double, typeof(double))
         {
         }
         

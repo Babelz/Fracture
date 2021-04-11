@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization
     public sealed class ByteSerializer : ValueSerializer
     {
         public ByteSerializer()
-            : base(Serialization.SerializationType.Byte, typeof(byte))
+            : base(SerializationType.Byte, typeof(byte))
         {
         }
         
@@ -52,7 +52,7 @@ namespace Fracture.Net.Serialization
     public sealed class SbyteSerializer : ValueSerializer
     {
         public SbyteSerializer()
-            : base(Serialization.SerializationType.Sbyte, typeof(sbyte))
+            : base(SerializationType.Sbyte, typeof(sbyte))
         {
         }
         
@@ -96,7 +96,7 @@ namespace Fracture.Net.Serialization
     public sealed class BoolSerializer : ValueSerializer
     {
         public BoolSerializer()
-            : base(Serialization.SerializationType.Bool, typeof(bool))
+            : base(SerializationType.Bool, typeof(bool))
         {
         }
         

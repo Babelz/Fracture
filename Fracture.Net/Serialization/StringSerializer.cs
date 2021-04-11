@@ -14,7 +14,7 @@ namespace Fracture.Net.Serialization
         #endregion
         
         public StringSerializer()
-            : base(Serialization.SerializationType.String, typeof(string))
+            : base(SerializationType.String, typeof(string))
         {
         }
         
@@ -76,7 +76,7 @@ namespace Fracture.Net.Serialization
     public sealed class CharSerializer : ValueSerializer
     {
         public CharSerializer()
-            : base(Serialization.SerializationType.Char, typeof(char))
+            : base(SerializationType.Char, typeof(char))
         {
         }
         

@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization
     public sealed class LongSerializer : ValueSerializer
     {
         public LongSerializer()
-            : base(Serialization.SerializationType.Long, typeof(long))
+            : base(SerializationType.Long, typeof(long))
         {
         }
         
@@ -52,7 +52,7 @@ namespace Fracture.Net.Serialization
     public sealed class UlongSerializer : ValueSerializer
     {
         public UlongSerializer()
-            : base(Serialization.SerializationType.Ulong, typeof(ulong))
+            : base(SerializationType.Ulong, typeof(ulong))
         {
         }
         

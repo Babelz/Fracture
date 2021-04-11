@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization
     public sealed class IntSerializer : ValueSerializer
     {
         public IntSerializer()
-            : base(Serialization.SerializationType.Int, typeof(int))
+            : base(SerializationType.Int, typeof(int))
         {
         }
         
@@ -52,7 +52,7 @@ namespace Fracture.Net.Serialization
     public sealed class UintSerializer : ValueSerializer
     {
         public UintSerializer()
-            : base(Serialization.SerializationType.Uint, typeof(uint))
+            : base(SerializationType.Uint, typeof(uint))
         {
         }
         

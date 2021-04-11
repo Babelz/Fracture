@@ -11,7 +11,7 @@ namespace Fracture.Net.Serialization
     public sealed class NullSerializer : ValueSerializer
     {
         public NullSerializer() 
-            : base(Serialization.SerializationType.Null, null)
+            : base(SerializationType.Null, null)
         {
         }
         
