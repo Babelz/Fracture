@@ -29,9 +29,9 @@ namespace Fracture.Net.Serialization
             var bytes = Encoding.GetBytes((string)value);
 
             // Write the dynamic fields size.
-            Protocol.Message.Field.DynamicTypeLength.Write((ushort)bytes.Length, buffer, offset);
+            Protocol.Message.Field.ContentSize.Write((ushort)bytes.Length, buffer, offset);
             
-            offset += Protocol.Message.Field.DynamicTypeLength.Size;
+            offset += Protocol.Message.Field.ContentSize.Size;
 
             // Write the actual data of the string.
             ByteUtils.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
@@ -46,9 +46,9 @@ namespace Fracture.Net.Serialization
             base.Deserialize(buffer, offset);
 
             // Get the dynamic field size.
-            var size = Protocol.Message.Field.DynamicTypeLength.Read(buffer, offset);
+            var size = Protocol.Message.Field.ContentSize.Read(buffer, offset);
             
-            offset += Protocol.Message.Field.DynamicTypeLength.Size;
+            offset += Protocol.Message.Field.ContentSize.Size;
             
             // Get the string itself.
             return Encoding.GetString(buffer, offset, size);
@@ -59,13 +59,58 @@ namespace Fracture.Net.Serialization
         /// field size header size.
         /// </summary>
         public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(ByteUtils.ReadUshort(buffer, offset) + Protocol.Message.Field.DynamicTypeLength.Size);
+            => (ushort)(ByteUtils.ReadUshort(buffer, offset) + Protocol.Message.Field.ContentSize.Size);
 
         /// <summary>
         /// Returns size of the string from the value. This consists of the actual string length and the dynamic
         /// field size header size.
         /// </summary>
         public override ushort GetSizeFromValue(object value)
-            => (ushort)(Encoding.GetByteCount((string)value) + Protocol.Message.Field.DynamicTypeLength.Size);
+            => (ushort)(Encoding.GetByteCount((string)value) + Protocol.Message.Field.ContentSize.Size);
+    }
+    
+    /// <summary>
+    /// Value serializer that provides serialization for <see cref="char"/>. Also servers as serializer
+    /// for <see cref="char"/>.
+    /// </summary>
+    public sealed class CharSerializer : ValueSerializer
+    {
+        public CharSerializer()
+            : base(Serialization.SerializationType.Char, typeof(char))
+        {
+        }
+        
+        /// <summary>
+        /// Writes given char value to given buffer beginning at given offset.
+        /// </summary>
+        public override void Serialize(object value, byte[] buffer, int offset)
+        {
+            base.Serialize(value, buffer, offset);
+            
+            ByteUtils.WriteChar((char)value, buffer, offset);
+        }
+        
+        /// <summary>
+        /// Reads next 2-bytes from given buffer beginning at given offset as char
+        /// and returns that value to the caller.
+        /// </summary>
+        public override object Deserialize(byte[] buffer, int offset)
+        {
+            base.Deserialize(buffer, offset);
+            
+            return ByteUtils.ReadChar(buffer, offset);
+        }
+
+        /// <summary>
+        /// Returns size of char, should always be 2-bytes.
+        /// </summary>
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
+            => sizeof(char);
+        
+        /// <summary>
+        /// Returns size of char, should always be 2-bytes.
+        /// </summary>
+        public override ushort GetSizeFromValue(object value)
+            => sizeof(char);
     }
 }

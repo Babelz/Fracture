@@ -86,19 +86,14 @@ namespace Fracture.Net
             public static class Field
             {
                 /// <summary>
-                /// Type id of the message field.
-                /// </summary>
-                public static readonly ProtocolHeader<ushort> TypeId = ProtocolHeaderFactory.CreateUshort();
-                
-                /// <summary>
                 /// Length of the field if the field size can vary.
                 /// </summary>
-                public static readonly ProtocolHeader<ushort> DynamicTypeLength = ProtocolHeaderFactory.CreateUshort();
+                public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeaderFactory.CreateUshort();
                 
                 /// <summary>
                 /// Length of single element if the field is collection and element size can vary.
                 /// </summary>
-                public static readonly ProtocolHeader<ushort> ElementLength = ProtocolHeaderFactory.CreateUshort();
+                public static readonly ProtocolHeader<ushort> ElementSize = ProtocolHeaderFactory.CreateUshort();
             }
         }
     }

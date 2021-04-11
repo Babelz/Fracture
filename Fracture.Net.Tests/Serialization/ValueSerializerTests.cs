@@ -21,7 +21,11 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new UshortSerializer()) },
                 new object[] { new Action(() => new IntSerializer()) },
                 new object[] { new Action(() => new UintSerializer()) },
-                new object[] { new Action(() => new FloatSerializer()) }
+                new object[] { new Action(() => new FloatSerializer()) },
+                new object[] { new Action(() => new CharSerializer()) },
+                new object[] { new Action(() => new LongSerializer()) },
+                new object[] { new Action(() => new UlongSerializer()) },
+                new object[] { new Action(() => new NullSerializer()) },
             };
 
             public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
@@ -48,13 +52,7 @@ namespace Fracture.Net.Tests.Serialization
                     new UintSerializer(),
                     4294967295u,
                     new byte[sizeof(uint)],
-                    new byte[]
-                    {
-                        255,
-                        255,
-                        255,
-                        255
-                    }
+                    Enumerable.Repeat((byte)255, 4).ToArray()
                 },
                 new object[]
                 {
@@ -68,6 +66,51 @@ namespace Fracture.Net.Tests.Serialization
                         60,
                         73
                     }
+                },
+                new object[] 
+                { 
+                    new CharSerializer(),
+                    'C',
+                    new byte[sizeof(char)],
+                    new byte[]
+                    {
+                        67,
+                        0
+                    }
+                },
+                new object[] 
+                { 
+                    new LongSerializer(),
+                    long.MaxValue,
+                    new byte[sizeof(long)],
+                    new byte[]
+                    {
+                        255,
+                        255,
+                        255,
+                        255,
+                        255,
+                        255,
+                        255,
+                        127,
+                    }
+                },
+                new object[] 
+                { 
+                    new UlongSerializer(),
+                    ulong.MaxValue,
+                    new byte[sizeof(ulong)],
+                    Enumerable.Repeat((byte)255, 8).ToArray()
+                },
+                new object[] 
+                { 
+                    new NullSerializer(),
+                    null,
+                    new byte[sizeof(byte)],
+                    new byte[]
+                    {
+                        0
+                    }
                 }
             }; 
             
@@ -79,7 +122,11 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new UshortSerializer(), new byte[] { 225, 212 }, (ushort)54497u },
                 new object[] { new IntSerializer(), new byte[] { 146, 63, 188, 52 }, 884752274 },
                 new object[] { new UintSerializer(), new byte[] { 52, 0, 0, 0 }, 52u }, 
-                new object[] { new FloatSerializer(), new byte[] { 160, 174, 60, 73 }, 772842.0f }
+                new object[] { new FloatSerializer(), new byte[] { 160, 174, 60, 73 }, 772842.0f },
+                new object[] { new CharSerializer(), new byte[] { 62, 38 }, '☾' },
+                new object[] { new LongSerializer(), new byte[] { 255, 255, 255, 255, 255, 255, 255, 127 }, long.MaxValue },
+                new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), ulong.MaxValue },
+                new object[] { new NullSerializer(), new byte[] { 0 }, null }
             };
             
             public static IEnumerable<object[]> Test_Size_From_Value_Data_Source => new []
@@ -90,7 +137,11 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new UshortSerializer(), (ushort)7724u, 2 },
                 new object[] { new IntSerializer(), 99482, 4 },
                 new object[] { new UintSerializer(), 42u, 4 },
-                new object[] { new FloatSerializer(), 88283.0f, 4 }
+                new object[] { new FloatSerializer(), 88283.0f, 4 },
+                new object[] { new CharSerializer(), 'a', 2 },
+                new object[] { new LongSerializer(), (long)-299918, 8, },
+                new object[] { new UlongSerializer(), (ulong)88277u, 8 },
+                new object[] { new NullSerializer(), null, 1 }
             };
             
             public static IEnumerable<object[]> Test_Size_From_Buffer_Data_Source => new []
@@ -102,6 +153,10 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new IntSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
                 new object[] { new UintSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
                 new object[] { new FloatSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
+                new object[] { new CharSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
+                new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
+                new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
+                new object[] { new NullSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 }
             };
             #endregion
         }
@@ -120,7 +175,7 @@ namespace Fracture.Net.Tests.Serialization
         
         [Theory()]
         [MemberData(nameof(DataSource.Serializes_To_Buffer_Correctly_Data_Source), MemberType = typeof(DataSource))]
-        public void Serializes_To_Buffer_Correctly(IValueSerializer serializer, 
+        public void Serializes_To_Buffer_Correctly(ValueSerializer serializer, 
                                                    object value, 
                                                    byte[] serializationBuffer, 
                                                    byte[] expectedSerializedBytes)
@@ -132,7 +187,7 @@ namespace Fracture.Net.Tests.Serialization
 
         [Theory()]
         [MemberData(nameof(DataSource.Deserializes_To_Value_Correctly_Data_Source), MemberType = typeof(DataSource))]
-        public void Deserializes_To_Value_Correctly(IValueSerializer serializer, 
+        public void Deserializes_To_Value_Correctly(ValueSerializer serializer, 
                                                     byte[] serializedBytes, 
                                                     object expectedValue)
         {
@@ -143,14 +198,14 @@ namespace Fracture.Net.Tests.Serialization
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Size_From_Value_Data_Source), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Value(IValueSerializer serializer, object value, ushort expectedSize)
+        public void Test_Size_From_Value(ValueSerializer serializer, object value, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromValue(value));
         }
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Size_From_Buffer_Data_Source), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
+        public void Test_Size_From_Buffer(ValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));
         }
@@ -173,7 +228,11 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new UintSerializer() },
                 new object[] { new FloatSerializer() },
                 new object[] { new DoubleSerializer() },
-                new object[] { new StringSerializer() }
+                new object[] { new StringSerializer() },
+                new object[] { new CharSerializer(), },
+                new object[] { new LongSerializer() },
+                new object[] { new UlongSerializer() },
+                new object[] { new NullSerializer() }
             };
             #endregion
         }
@@ -185,28 +244,28 @@ namespace Fracture.Net.Tests.Serialization
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Serialize_Throws_On_Buffer_Overflow(IValueSerializer serializer)
+        public void Serialize_Throws_On_Buffer_Overflow(ValueSerializer serializer)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[16], 32));
         }
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Deserialize_Throws_On_Buffer_Overflow(IValueSerializer serializer)
+        public void Deserialize_Throws_On_Buffer_Overflow(ValueSerializer serializer)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[8], 16));
         }
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Serialize_Throws_On_Buffer_Underflow(IValueSerializer serializer)
+        public void Serialize_Throws_On_Buffer_Underflow(ValueSerializer serializer)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[4], -20));
         }
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Deserialize_Throws_On_Buffer_Underflow(IValueSerializer serializer)
+        public void Deserialize_Throws_On_Buffer_Underflow(ValueSerializer serializer)
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[5], -15));
         }

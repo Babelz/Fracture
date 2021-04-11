@@ -22,7 +22,7 @@ namespace Fracture.Net.Tests.Serialization
             
             serializer.Serialize("Hello!", buffer, 0);
             
-            Assert.Equal(12, Protocol.Message.Field.DynamicTypeLength.Read(buffer, 0));
+            Assert.Equal(12, Protocol.Message.Field.ContentSize.Read(buffer, 0));
         }
         
         [Fact()]

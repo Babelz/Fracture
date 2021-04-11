@@ -21,5 +21,5 @@ Fracture serializer provides serialization for the following types:
 - [ ] Lists
 - [ ] Dictionaries
 - [ ] Classes and structures
-    - [ ] Auto mapping
-    - [ ] Manually mapping
+    - [ ] Auto mapping (unmanaged)
+    - [ ] Manually mapping (managed)

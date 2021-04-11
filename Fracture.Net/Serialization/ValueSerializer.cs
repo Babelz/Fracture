@@ -32,8 +32,8 @@ namespace Fracture.Net.Serialization
         Dictionary,
         Collection,
         Enumerable,
-        ManagedStructure,
-        UnmanagedStructure
+        Enum,
+        Structure
     }
 
     /// <summary>
@@ -153,7 +153,7 @@ namespace Fracture.Net.Serialization
     public static class ValueSerializerFactory
     {
         /// <summary>
-        /// Gets all types that are assignable from <see cref="IValueSerializer"/>, are classes and are not abstract.
+        /// Gets all types that are assignable from <see cref="ValueSerializer"/>, are classes and are not abstract.
         /// Orders all types by their name as the order of instantiation effects the order of the serialization types
         /// of each serializer.
         /// </summary>
@@ -163,25 +163,25 @@ namespace Fracture.Net.Serialization
                                       .SelectMany(a => a.GetTypes())
                                       .Where(t => !t.IsAbstract && 
                                                   t.IsClass && 
-                                                  t.IsAssignableFrom(typeof(IValueSerializer)))
+                                                  t.IsAssignableFrom(typeof(ValueSerializer)))
                                       .OrderBy(t => t.Name);
 
         /// <summary>
         /// Creates new map that maps serialization types to their serializers. 
         /// </summary>
-        public static IDictionary<ushort, IValueSerializer> CreateSerializationTypeMap()
-            => GetSerializerTypes().Select(t => (IValueSerializer)Activator.CreateInstance(t))
+        public static IDictionary<byte, ValueSerializer> CreateSerializationTypeMap()
+            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
                                    .ToDictionary(
-                                       (v) => (ushort)v.GetType().GetProperty("SerializationType")!.GetValue(null), 
+                                       (v) => v.SerializationType, 
                                        (v) => v);
         
         /// <summary>
         /// Creates new map that maps runtime types to their serializers.
         /// </summary>
-        public static IDictionary<Type, IValueSerializer> CreateRuntimeTypeMap()
-            => GetSerializerTypes().Select(t => (IValueSerializer)Activator.CreateInstance(t))
+        public static IDictionary<Type, ValueSerializer> CreateRuntimeTypeMap()
+            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
                                    .ToDictionary(
-                                       (v) => (Type)v.GetType().GetProperty("RuntimeType")!.GetValue(null), 
+                                       (v) => v.RuntimeType, 
                                        (v) => v);
     }
 }

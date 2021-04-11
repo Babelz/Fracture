@@ -3,8 +3,7 @@ using Fracture.Common.Memory;
 namespace Fracture.Net.Serialization
 {
     /// <summary>
-    /// Value serializer that provides serialization for <see cref="byte"/>. Also servers as serializer
-    /// for <see cref="char"/>.
+    /// Value serializer that provides serialization for <see cref="byte"/>.
     /// </summary>
     public sealed class ByteSerializer : ValueSerializer
     {
