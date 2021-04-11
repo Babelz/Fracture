@@ -26,6 +26,7 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new LongSerializer()) },
                 new object[] { new Action(() => new UlongSerializer()) },
                 new object[] { new Action(() => new NullSerializer()) },
+                new object[] { new Action(() => new BoolSerializer()) }
             };
 
             public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
@@ -111,6 +112,27 @@ namespace Fracture.Net.Tests.Serialization
                     {
                         0
                     }
+                },
+                new object[]
+                {
+                    new BoolSerializer(),
+                    true,
+                    new byte[sizeof(bool)],
+                    new byte[]
+                    {
+                        1
+                    }
+                },
+                
+                new object[]
+                {
+                    new BoolSerializer(),
+                    false,
+                    new byte[sizeof(bool)],
+                    new byte[]
+                    {
+                        0
+                    }
                 }
             }; 
             
@@ -126,7 +148,9 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), new byte[] { 62, 38 }, '☾' },
                 new object[] { new LongSerializer(), new byte[] { 255, 255, 255, 255, 255, 255, 255, 127 }, long.MaxValue },
                 new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), ulong.MaxValue },
-                new object[] { new NullSerializer(), new byte[] { 0 }, null }
+                new object[] { new NullSerializer(), new byte[] { 0 }, null },
+                new object[] { new BoolSerializer(), new byte[] { 1 }, true },
+                new object[] { new BoolSerializer(), new byte[] { 0 }, false },
             };
             
             public static IEnumerable<object[]> Test_Size_From_Value_Data_Source => new []
@@ -141,7 +165,8 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), 'a', 2 },
                 new object[] { new LongSerializer(), (long)-299918, 8, },
                 new object[] { new UlongSerializer(), (ulong)88277u, 8 },
-                new object[] { new NullSerializer(), null, 1 }
+                new object[] { new NullSerializer(), null, 1 },
+                new object[] { new BoolSerializer(), true, 1 }
             };
             
             public static IEnumerable<object[]> Test_Size_From_Buffer_Data_Source => new []
@@ -156,7 +181,8 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
                 new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
                 new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
-                new object[] { new NullSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 }
+                new object[] { new NullSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
+                new object[] { new BoolSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 }
             };
             #endregion
         }

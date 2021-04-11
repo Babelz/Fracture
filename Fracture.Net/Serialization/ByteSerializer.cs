@@ -89,4 +89,48 @@ namespace Fracture.Net.Serialization
         public override ushort GetSizeFromValue(object value)
             => sizeof(sbyte);
     }
+    
+    /// <summary>
+    /// Value serializer that provides serialization <see cref="bool"/>.
+    /// </summary>
+    public sealed class BoolSerializer : ValueSerializer
+    {
+        public BoolSerializer()
+            : base(Serialization.SerializationType.Bool, typeof(bool))
+        {
+        }
+        
+        /// <summary>
+        /// Writes given bool value to given buffer beginning at given offset.
+        /// </summary>
+        public override void Serialize(object value, byte[] buffer, int offset)
+        {
+            base.Serialize(value, buffer, offset);
+            
+            ByteUtils.WriteBool((bool)value, buffer, offset);
+        }
+        
+        /// <summary>
+        /// Reads next 1-bytes from given buffer beginning at given offset as bool
+        /// and returns that value to the caller.
+        /// </summary>
+        public override object Deserialize(byte[] buffer, int offset)
+        {
+            base.Deserialize(buffer, offset);
+            
+            return ByteUtils.ReadBool(buffer, offset);
+        }
+
+        /// <summary>
+        /// Returns size of bool, should always be 1-bytes.
+        /// </summary>
+        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
+            => sizeof(bool);
+        
+        /// <summary>
+        /// Returns size of bool, should always be 1-bytes.
+        /// </summary>
+        public override ushort GetSizeFromValue(object value)
+            => sizeof(bool);
+    }
 }
