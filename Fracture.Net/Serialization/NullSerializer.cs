@@ -11,9 +11,12 @@ namespace Fracture.Net.Serialization
     public sealed class NullSerializer : ValueSerializer
     {
         public NullSerializer() 
-            : base(SerializationType.Null, null)
+            : base(SerializationType.Null)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == null;
         
         // ReSharper disable once ParameterOnlyUsedForPreconditionCheck.Local
         /// <summary>

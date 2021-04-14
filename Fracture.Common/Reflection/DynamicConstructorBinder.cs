@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace Fracture.Common.Reflection
 {
-/// <summary>
+    /// <summary>
     /// Static utility class for creating dynamic bindings fro constructors.
     /// </summary>
     public static class DynamicConstructorBinder

@@ -1,3 +1,4 @@
+using System;
 using System.Text;
 using Fracture.Common.Memory;
 
@@ -14,9 +15,12 @@ namespace Fracture.Net.Serialization
         #endregion
         
         public StringSerializer()
-            : base(SerializationType.String, typeof(string))
+            : base(SerializationType.String)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(string);
         
         /// <summary>
         /// Writes given string value to given buffer beginning at given offset.
@@ -76,9 +80,12 @@ namespace Fracture.Net.Serialization
     public sealed class CharSerializer : ValueSerializer
     {
         public CharSerializer()
-            : base(SerializationType.Char, typeof(char))
+            : base(SerializationType.Char)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(char);
         
         /// <summary>
         /// Writes given char value to given buffer beginning at given offset.

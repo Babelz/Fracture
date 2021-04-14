@@ -1,3 +1,4 @@
+using System;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
@@ -8,9 +9,12 @@ namespace Fracture.Net.Serialization
     public sealed class IntSerializer : ValueSerializer
     {
         public IntSerializer()
-            : base(SerializationType.Int, typeof(int))
+            : base(SerializationType.Int)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(int);
         
         /// <summary>
         /// Writes given int32 value to given buffer beginning at given offset.
@@ -52,9 +56,12 @@ namespace Fracture.Net.Serialization
     public sealed class UintSerializer : ValueSerializer
     {
         public UintSerializer()
-            : base(SerializationType.Uint, typeof(uint))
+            : base(SerializationType.Uint)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(uint);
         
         /// <summary>
         /// Writes given uint32 value to given buffer beginning at given offset.

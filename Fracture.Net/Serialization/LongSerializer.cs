@@ -1,3 +1,4 @@
+using System;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
@@ -8,9 +9,12 @@ namespace Fracture.Net.Serialization
     public sealed class LongSerializer : ValueSerializer
     {
         public LongSerializer()
-            : base(SerializationType.Long, typeof(long))
+            : base(SerializationType.Long)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(long);
         
         /// <summary>
         /// Writes given int64 value to given buffer beginning at given offset.
@@ -52,9 +56,12 @@ namespace Fracture.Net.Serialization
     public sealed class UlongSerializer : ValueSerializer
     {
         public UlongSerializer()
-            : base(SerializationType.Ulong, typeof(ulong))
+            : base(SerializationType.Ulong)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(ulong);
         
         /// <summary>
         /// Writes given uint64 value to given buffer beginning at given offset.

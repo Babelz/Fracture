@@ -1,3 +1,4 @@
+using System;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
@@ -8,9 +9,12 @@ namespace Fracture.Net.Serialization
     public sealed class ShortSerializer : ValueSerializer
     {
         public ShortSerializer()
-            : base(SerializationType.Short, typeof(short))
+            : base(SerializationType.Short)
         {
         }
+
+        public override bool SupportsType(Type type)
+            => type == typeof(short);
         
         /// <summary>
         /// Writes given int16 value to given buffer beginning at given offset.
@@ -52,9 +56,12 @@ namespace Fracture.Net.Serialization
     public sealed class UshortSerializer : ValueSerializer
     {
         public UshortSerializer()
-            : base(SerializationType.Ushort, typeof(ushort))
+            : base(SerializationType.Ushort)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(ushort);
         
         /// <summary>
         /// Writes given uint16 value to given buffer beginning at given offset.

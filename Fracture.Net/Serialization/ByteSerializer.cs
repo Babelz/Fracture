@@ -1,3 +1,4 @@
+using System;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
@@ -8,10 +9,13 @@ namespace Fracture.Net.Serialization
     public sealed class ByteSerializer : ValueSerializer
     {
         public ByteSerializer()
-            : base(SerializationType.Byte, typeof(byte))
+            : base(SerializationType.Byte)
         {
         }
         
+        public override bool SupportsType(Type type)
+            => type == typeof(byte);
+
         /// <summary>
         /// Writes given byte value to given buffer beginning at given offset.
         /// </summary>
@@ -52,10 +56,13 @@ namespace Fracture.Net.Serialization
     public sealed class SbyteSerializer : ValueSerializer
     {
         public SbyteSerializer()
-            : base(SerializationType.Sbyte, typeof(sbyte))
+            : base(SerializationType.Sbyte)
         {
         }
         
+        public override bool SupportsType(Type type)
+            => type == typeof(sbyte);
+
         /// <summary>
         /// Writes given sbyte value to given buffer beginning at given offset.
         /// </summary>
@@ -96,10 +103,13 @@ namespace Fracture.Net.Serialization
     public sealed class BoolSerializer : ValueSerializer
     {
         public BoolSerializer()
-            : base(SerializationType.Bool, typeof(bool))
+            : base(SerializationType.Bool)
         {
         }
         
+        public override bool SupportsType(Type type)
+            => type == typeof(bool);
+
         /// <summary>
         /// Writes given bool value to given buffer beginning at given offset.
         /// </summary>

@@ -89,11 +89,6 @@ namespace Fracture.Net
                 /// Length of the field if the field size can vary.
                 /// </summary>
                 public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeaderFactory.CreateUshort();
-                
-                /// <summary>
-                /// Length of single element if the field is collection and element size can vary.
-                /// </summary>
-                public static readonly ProtocolHeader<ushort> ElementSize = ProtocolHeaderFactory.CreateUshort();
             }
         }
     }

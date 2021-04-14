@@ -1,4 +1,5 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -41,14 +42,6 @@ namespace Fracture.Net.Serialization
     {
         #region Properties
         /// <summary>
-        /// Gets the runtime type that this value serializer serializes from and to from the serialization buffer.
-        /// </summary>
-        public Type RuntimeType
-        {
-            get;
-        }
-        
-        /// <summary>
         /// Gets the runtime type id that this value serializer writes and accepts from the serialization buffer. 
         /// </summary>
         public byte SerializedType
@@ -60,17 +53,16 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Constructor to allow extension of build in serialization types.
         /// </summary>
-        protected ValueSerializer(byte serializedType, Type runtimeType)
+        protected ValueSerializer(byte serializedType)
         {
             SerializedType = serializedType;
-            RuntimeType    = runtimeType;
         }
         
         /// <summary>
         /// Constructor to use build in serialization types.
         /// </summary>
-        protected ValueSerializer(SerializationType serializationType, Type runtimeType)
-            : this((byte)serializationType, runtimeType)
+        protected ValueSerializer(SerializationType serializationType)
+            : this((byte)serializationType)
         {
         }
 
@@ -97,6 +89,11 @@ namespace Fracture.Net.Serialization
                                                           $"{Math.Abs(offset + size)} bytes");   
             }
         }
+        
+        /// <summary>
+        /// Returns boolean declaring if this serializer supports given type.
+        /// </summary>
+        public abstract bool SupportsType(Type type);
 
         /// <summary>
         /// Serializes given value to given buffer starting at given offset.
@@ -141,7 +138,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         public abstract ushort GetSizeFromValue(object value);
     }
-    
+
     /// <summary>
     /// Static utility class for creating value serializers. Expect all methods in this class to be slow as they all
     /// rely heavily on reflection for locating the serialization classes from all of the loaded assemblies in current
@@ -164,21 +161,19 @@ namespace Fracture.Net.Serialization
                                       .OrderBy(t => t.Name);
 
         /// <summary>
+        /// Creates instance of all known serializers and returns them to the caller.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<ValueSerializer> GetSerializers() 
+            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t));
+        
+        /// <summary>
         /// Creates new map that maps serialization types to their serializers. 
         /// </summary>
-        public static IDictionary<byte, ValueSerializer> CreateSerializationTypeMap()
+        public static IDictionary<byte, ValueSerializer> GetSerializationTypeMap()
             => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
                                    .ToDictionary(
                                        (v) => v.SerializedType, 
-                                       (v) => v);
-        
-        /// <summary>
-        /// Creates new map that maps runtime types to their serializers.
-        /// </summary>
-        public static IDictionary<Type, ValueSerializer> CreateRuntimeTypeMap()
-            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
-                                   .ToDictionary(
-                                       (v) => v.RuntimeType, 
                                        (v) => v);
     }
 }

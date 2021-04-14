@@ -10,9 +10,12 @@ namespace Fracture.Net.Serialization
     public sealed class TimeSpanSerializer : ValueSerializer
     {
         public TimeSpanSerializer() 
-            : base(SerializationType.TimeSpan, typeof(TimeSpan))
+            : base(SerializationType.TimeSpan)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(TimeSpan);
 
         /// <summary>
         /// Writes given time span value to given buffer beginning at given offset.
@@ -59,9 +62,12 @@ namespace Fracture.Net.Serialization
         #endregion
         
         public DateTimeSerializer() 
-            : base(SerializationType.DateTime, typeof(DateTime))
+            : base(SerializationType.DateTime)
         {
         }
+        
+        public override bool SupportsType(Type type)
+            => type == typeof(DateTime);
 
         /// <summary>
         /// Writes given date time value to given buffer beginning at given offset.
