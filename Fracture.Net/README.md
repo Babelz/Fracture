@@ -7,6 +7,13 @@ not attempt to be the best fastest or most compact serializer available. Seriali
 mind and more precisely the Shattered World MMO. Serialization uses code generation to avoid overhead from reflection
 when serializing and deserializing messages. 
 
+Serialization of objects has the following constraints:
+    - Serializer only uses public members when performing serialization
+    - Objects with no default constructor can be serialized 
+    - Both properties and fields can be serialized
+    - Serializer can be instructed how to serialize third party types
+    - All types the serializer comes across must have instructions how to serialize them
+
 Fracture serializer provides serialization for the following types:
 - [x] Signed primitives (sbyte, short, int, long)
 - [x] Unsigned primitives (byte, ushort, uint, ulong)
