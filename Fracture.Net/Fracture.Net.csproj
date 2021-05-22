@@ -46,7 +46,7 @@
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializationGenerator.cs" />
+        <Compile Include="Serialization\Generation\ObjectSerializerCompiler.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
         <Compile Include="Serialization\Generation\ObjectTypeSpecializationRegistry.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
