@@ -50,20 +50,17 @@ namespace Fracture.Net
             => read(buffer, offset);
     }
     
-    /// <summary>
-    /// Static utility class for creating protocol headers.
-    /// </summary>
-    public static class ProtocolHeaderFactory
+    public static class ProtocolHeader
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolHeader<ushort> CreateUshort()
+        public static ProtocolHeader<ushort> Ushort()
             => new ProtocolHeader<ushort>(ByteUtils.WriteUshort, ByteUtils.ReadUshort);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolHeader<uint> CreateUint()
-            => new ProtocolHeader<uint>(ByteUtils.WriteUint, ByteUtils.ReadUint);   
+        public static ProtocolHeader<uint> Uint()
+            => new ProtocolHeader<uint>(ByteUtils.WriteUint, ByteUtils.ReadUint);  
     }
-    
+
     /// <summary>
     /// Static utility class containing protocol specific constants and functions.
     /// </summary>
@@ -75,12 +72,12 @@ namespace Fracture.Net
             /// <summary>
             /// Size of the whole message.
             /// </summary>
-            public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeaderFactory.CreateUshort();
+            public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeader.Ushort();
             
             /// <summary>
             /// Size of the type id of the message.
             /// </summary>
-            public static readonly ProtocolHeader<ushort> TypeId = ProtocolHeaderFactory.CreateUshort();
+            public static readonly ProtocolHeader<ushort> TypeId = ProtocolHeader.Ushort();
             #endregion
             
             public static class Field
@@ -88,7 +85,12 @@ namespace Fracture.Net
                 /// <summary>
                 /// Length of the field if the field size can vary.
                 /// </summary>
-                public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeaderFactory.CreateUshort();
+                public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeader.Ushort();
+                
+                /// <summary>
+                /// Size of the type specialization id for the field if it has any. 
+                /// </summary>
+                public static readonly ProtocolHeader<ushort> TypeSpecializationId = ProtocolHeader.Ushort();
             }
         }
     }
