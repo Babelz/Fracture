@@ -1,5 +1,6 @@
-using System;
-using System.Linq;
+#pragma warning disable 649 - used for testing and the value is dynamically discovered
+#pragma warning disable 169 - used for testing and the value is dynamically discovered
+
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -9,6 +10,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
     public sealed class ObjectSerializationMappingTests
     {
         #region Test types
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
         private class NoDefaultConstructorTestClass
         {
             #region Properties
@@ -23,6 +25,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 => Foo = foo;
         }
         
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
         private class DefaultConstructorTestClass
         {
             #region Fields
@@ -42,6 +45,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
         }
         
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
         private sealed class ReadOnlyPropertyTestClass
         {
             #region Properties
@@ -52,6 +56,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
         private sealed class WriteOnlyPropertyTestClass
         {
             #region Fields
@@ -65,19 +70,22 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
-        
-        public sealed class EmptyTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class EmptyTestClass
         {
         }
-        
-        public sealed class StaticFieldTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class StaticFieldTestClass
         {
             #region Fields
             public static int j;
             #endregion
         }
-        
-        public sealed class StaticPropertyTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class StaticPropertyTestClass
         {
             #region Properties
             public static int Foo
@@ -87,8 +95,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
-        
-        public sealed class ReadOnlyFieldTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class ReadOnlyFieldTestClass
         {
             #region Fields
             private readonly int x;
@@ -98,8 +107,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             {
             }
         }
-        
-        public sealed class ParametrizedReadOnlyFieldTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class ParametrizedReadOnlyFieldTestClass
         {
             #region Fields
             public readonly int x;
@@ -108,10 +118,12 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public ParametrizedReadOnlyFieldTestClass(int x)
                 => this.x = x;
         }
-        
-        public sealed class ParametrizedReadOnlyPropertyTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class ParametrizedReadOnlyPropertyTestClass
         {
             #region Properties
+            // ReSharper disable once MemberCanBePrivate.Local
             public int X
             {
                 get;
@@ -121,17 +133,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public ParametrizedReadOnlyPropertyTestClass(int x)
                 => X = x;
         }
-        
-        public sealed class PublicFieldTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class PublicFieldTestClass
         {
             #region Fields
             private int x1;
-            
+
             public int x2;
             #endregion
         }
-        
-        public sealed class PublicPropertyTestClass
+
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class PublicPropertyTestClass
         {
             #region Properties
             private int Foo1

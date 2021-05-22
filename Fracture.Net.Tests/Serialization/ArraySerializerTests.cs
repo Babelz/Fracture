@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using Fracture.Net.Serialization;
-using Xunit;
-
 namespace Fracture.Net.Tests.Serialization
 {
     // [Trait("Category", "Serialization")]

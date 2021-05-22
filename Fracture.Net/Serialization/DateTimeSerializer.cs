@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization

@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using System.Security.Permissions;
 
 namespace Fracture.Net.Serialization.Generation
 {
@@ -131,6 +127,8 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         public string Name => IsField ? Field.Name : Property.Name;
 
+        public Type Type => IsField ? Field.FieldType : Property.PropertyType;
+        
         /// <summary>
         /// Returns boolean declaring whether this mapping points to a field.
         /// </summary>

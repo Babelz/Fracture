@@ -1,5 +1,4 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -140,16 +139,24 @@ namespace Fracture.Net.Serialization
     }
 
     /// <summary>
-    /// Static utility class for creating value serializers. Expect all methods in this class to be slow as they all
-    /// rely heavily on reflection for locating the serialization classes from all of the loaded assemblies in current
-    /// app domain.
+    /// Static registry class that holds all value serializers found from loaded assemblies. 
     /// </summary>
-    public static class ValueSerializerFactory
+    public static class ValueSerializerRegistry
     {
+        #region Staticfields
+        private static readonly Dictionary<byte, ValueSerializer> serializationTypeMap;
+        
+        private static readonly List<ValueSerializer> serializers;
+        #endregion
+        
+        static ValueSerializerRegistry()
+        {
+            serializers          = GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t)).ToList();
+            serializationTypeMap = serializers.ToDictionary((v) => v.SerializedType, (v) => v);
+        }
+        
         /// <summary>
         /// Gets all types that are assignable from <see cref="ValueSerializer"/>, are classes and are not abstract.
-        /// Orders all types by their name as the order of instantiation effects the order of the serialization types
-        /// of each serializer.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IEnumerable<Type> GetSerializerTypes()
@@ -159,21 +166,13 @@ namespace Fracture.Net.Serialization
                                                   t.IsClass && 
                                                   t.IsAssignableFrom(typeof(ValueSerializer)))
                                       .OrderBy(t => t.Name);
-
-        /// <summary>
-        /// Creates instance of all known serializers and returns them to the caller.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<ValueSerializer> GetSerializers() 
-            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t));
         
-        /// <summary>
-        /// Creates new map that maps serialization types to their serializers. 
-        /// </summary>
-        public static IDictionary<byte, ValueSerializer> GetSerializationTypeMap()
-            => GetSerializerTypes().Select(t => (ValueSerializer)Activator.CreateInstance(t))
-                                   .ToDictionary(
-                                       (v) => v.SerializedType, 
-                                       (v) => v);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueSerializer GetValueSerializerForRunType(Type type)
+            => serializers.First(v => v.SupportsType(type));
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ValueSerializer GetValueSerializerForSerializationType(byte serializationType)
+            => serializationTypeMap[serializationType];
     }
 }

@@ -1,9 +1,10 @@
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 namespace Fracture.Net.Serialization.Generation
 {
@@ -32,12 +33,12 @@ namespace Fracture.Net.Serialization.Generation
     /// <summary>
     /// Delegate for wrapping serialization functions.
     /// </summary>
-    public delegate void Serialize(ObjectSerializationContext context, object value, byte[] buffer, int offset);
+    public delegate void DynamicSerializeDelegate(ObjectSerializationContext context, object value, byte[] buffer, int offset);
     
     /// <summary>
     /// Delegate for wrapping deserialization functions.  
     /// </summary>
-    public delegate object Deserialize(ObjectSerializationContext context, byte[] buffer, int offset);
+    public delegate object DynamicDeserializeDelegate(ObjectSerializationContext context, byte[] buffer, int offset);
     
     public readonly struct ObjectSerializerContext
     {
@@ -47,19 +48,19 @@ namespace Fracture.Net.Serialization.Generation
             get;
         }
         
-        public Serialize Serialize
+        public DynamicSerializeDelegate Serialize
         {
             get;
         }
-        public Deserialize Deserialize
+        public DynamicDeserializeDelegate Deserialize
         {
             get;
         }
         #endregion
 
-        public ObjectSerializerContext(ObjectSerializationContext context, 
-                                       Serialize serialize,
-                                       Deserialize deserialize)
+        public ObjectSerializerContext(in ObjectSerializationContext context, 
+                                       DynamicSerializeDelegate serialize,
+                                       DynamicDeserializeDelegate deserialize)
         {
             Context     = context;
             Serialize   = serialize ?? throw new ArgumentNullException(nameof(serialize));
@@ -75,15 +76,13 @@ namespace Fracture.Net.Serialization.Generation
         DefaultActivation = 0,
         ParametrizedActivation,
         SerializeField,
-        SerializeProperty,
-        DeserializeField,
-        DeserializeProperty
+        SerializeProperty
     }
     
     public interface ISerializationOp
     {
         #region Properties
-        public SerializationOpCode OpCode
+        public SerializationOpCode Code
         {
             get;
         }
@@ -93,7 +92,7 @@ namespace Fracture.Net.Serialization.Generation
     public readonly struct SerializationParametrizedActivationOp : ISerializationOp
     {
         #region Properties
-        public SerializationOpCode OpCode => SerializationOpCode.ParametrizedActivation;
+        public SerializationOpCode Code => SerializationOpCode.ParametrizedActivation;
         
         public ConstructorInfo Constructor
         {
@@ -113,13 +112,13 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         public override string ToString()
-            => $"{{ op: {OpCode}, ctor: parametrized, params: {Parameters.Count} }}";
+            => $"{{ op: {Code}, ctor: parametrized, params: {Parameters.Count} }}";
     }
     
     public readonly struct SerializationDefaultActivationOp : ISerializationOp
     {
         #region Properties
-        public SerializationOpCode OpCode => SerializationOpCode.DefaultActivation;
+        public SerializationOpCode Code => SerializationOpCode.DefaultActivation;
         
         public ConstructorInfo Constructor
         {
@@ -133,15 +132,15 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         public override string ToString()
-            => $"{{ op: {OpCode}, ctor: default }}";
+            => $"{{ op: {Code}, ctor: default }}";
     }
 
     public readonly struct SerializationFieldOp : ISerializationOp
     {
         #region Properties
-        public SerializationOpCode OpCode => SerializationOpCode.SerializeField;
+        public SerializationOpCode Code => SerializationOpCode.SerializeField;
         
-        private SerializationValue Value
+        public SerializationValue Value
         {
             get;
         }
@@ -156,15 +155,15 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         public override string ToString()
-            => $"{{ op: {OpCode}, prop: {Value.Name} }}";
+            => $"{{ op: {Code}, prop: {Value.Name} }}";
     }
 
     public readonly struct SerializationPropertyOp : ISerializationOp
     {
         #region Properties
-        public SerializationOpCode OpCode => SerializationOpCode.SerializeProperty;
+        public SerializationOpCode Code => SerializationOpCode.SerializeProperty;
         
-        private SerializationValue Value
+        public SerializationValue Value
         {
             get;
         }
@@ -179,18 +178,18 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         public override string ToString()
-            => $"{{ op: {OpCode}, prop: {Value.Name} }}";
+            => $"{{ op: {Code}, prop: {Value.Name} }}";
     }
     
     public readonly struct ObjectSerializationProgram
     {
         #region Properties
-        private Type Type
+        public Type Type
         {
             get;
         }
         
-        private IReadOnlyCollection<ISerializationOp> Ops
+        public IReadOnlyCollection<ISerializationOp> Ops
         {
             get;
         }
@@ -209,14 +208,28 @@ namespace Fracture.Net.Serialization.Generation
     /// </summary>
     public static class ObjectSerializerCompiler
     {
-        public static ObjectSerializationProgram CompileDeserializer(ObjectSerializationMapping mapping)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ObjectSerializationProgram CompileDeserialize(ObjectSerializationMapping mapping)
         {
-            throw new NotImplementedException();
+            var ops = new List<ISerializationOp>();
+            
+            if (!mapping.Activator.IsDefaultConstructor)
+                ops.Add(new SerializationParametrizedActivationOp(mapping.Activator.Constructor, mapping.Activator.Values));
+            else
+                ops.Add(new SerializationDefaultActivationOp(mapping.Activator.Constructor));
+
+            ops.AddRange(mapping.Values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)));
+
+            return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
         }
         
-        public static ObjectSerializationProgram CompileSerializer(ObjectSerializationMapping mapping)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ObjectSerializationProgram CompileSerialize(ObjectSerializationMapping mapping)
         {
-            throw new NotImplementedException();
+            var values = mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values);
+            var ops    = values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)).ToList();
+            
+            return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
         }
     }
     
@@ -225,14 +238,90 @@ namespace Fracture.Net.Serialization.Generation
     /// </summary>
     public static class ObjectSerializerInterpreter
     {
-        public static ObjectSerializerContext InterpretDeserialize(ObjectSerializationProgram program)
+        private static void AssertSerializationProgramIntegrity(ObjectSerializationProgram serializeProgram, ObjectSerializationProgram deserializeProgram)
         {
-            throw new NotImplementedException();
+            if (serializeProgram.Type != deserializeProgram.Type)
+                throw new InvalidOperationException($"serialization program type \"{deserializeProgram.Type.Name}\" and deserialization program type " +
+                                                    $"\"{serializeProgram.Type.Name}\" are different");
+            
+            var serializeProgramSerializers   = GetProgramSerializers(serializeProgram);
+            var deserializeProgramSerializers = GetProgramSerializers(deserializeProgram);
+            
+            if (serializeProgramSerializers.Count != deserializeProgramSerializers.Count) 
+                throw new InvalidOperationException($"serialization programs for type \"{serializeProgram.Type.Name}\" have different count of value serializers");
         }
         
-        public static ObjectSerializerContext InterpretSerialize(ObjectSerializationProgram program)
+        private static IReadOnlyCollection<ValueSerializer> GetProgramSerializers(ObjectSerializationProgram program)
         {
-            throw new NotImplementedException();
+            var serializers = new List<ValueSerializer>();
+            
+            foreach (var op in program.Ops)
+            {
+                switch (op.Code)
+                {
+                    case SerializationOpCode.ParametrizedActivation:
+                        serializers.AddRange(
+                            ((SerializationParametrizedActivationOp)op).Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForRunType(p.Type))
+                        );
+                        break;
+                    case SerializationOpCode.SerializeField:
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(((SerializationFieldOp)op).Value.Type));
+                        break;
+                    case SerializationOpCode.SerializeProperty:
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(((SerializationPropertyOp)op).Value.Type));
+                        break;
+                    default:
+                        continue;
+                }
+            }
+            
+            return serializers.AsReadOnly();
+        }
+
+        public static ObjectSerializerContext InterpretSerializer(in ObjectSerializationProgram serializeProgram, in ObjectSerializationProgram deserializeProgram)
+        {
+            // Make sure programs are valid.
+            AssertSerializationProgramIntegrity(serializeProgram, deserializeProgram);
+            
+            // Get serializers for the type.
+            var valueSerializers = GetProgramSerializers(serializeProgram);
+            
+            // Create dynamic serialization function.
+            var dynamicSerializeDelegate = CompileDynamicSerializeDelegate(serializeProgram);
+            
+            // Create dynamic deserialization function.
+            var dynamicDeserializeDelegate = CompileDynamicDeserializeDelegate(deserializeProgram);
+            
+            return new ObjectSerializerContext(
+                new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForRunType(null),
+                                               valueSerializers),
+                dynamicSerializeDelegate,
+                dynamicDeserializeDelegate
+            );
+        }
+
+        private static DynamicDeserializeDelegate CompileDynamicDeserializeDelegate(in ObjectSerializationProgram program)
+        {
+            var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
+                                            typeof(object), 
+                                            new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
+                                            true);
+            
+            var il = builder.GetILGenerator();
+            
+            return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
+        }
+
+        private static DynamicSerializeDelegate CompileDynamicSerializeDelegate(in ObjectSerializationProgram program)
+        {
+            var builder = new DynamicMethod($"Serialize{program.Type.Name}", 
+                                            typeof(void), 
+                                            new [] { typeof(ObjectSerializationContext), typeof(object), typeof(byte[]), typeof(int) }, 
+                                            true);
+            
+            var il = builder.GetILGenerator();
+            
+            return (DynamicSerializeDelegate)builder.CreateDelegate(typeof(DynamicSerializeDelegate));
         }
     }
 }

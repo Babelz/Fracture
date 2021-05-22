@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using Fracture.Common.Memory;
-
 namespace Fracture.Net.Serialization
 {
     // public sealed class PrimitiveArraySerializer<T> : ValueSerializer<T[]>
