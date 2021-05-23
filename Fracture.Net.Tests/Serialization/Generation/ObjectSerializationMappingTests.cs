@@ -161,6 +161,22 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+        
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class NullableTestClass
+        {
+            #region Fields
+            public int? MaybeNumber;
+            #endregion
+            
+            #region Properties
+            public byte? MaybeByte
+            {
+                get;
+                set;
+            }
+            #endregion
+        }
         #endregion
         
         [Fact]
@@ -392,6 +408,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "Foo1");
             Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "Foo2");
+        }
+        
+        [Fact]
+        public void Should_Nullable_Types()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NullableTestClass>()
+                                                   .PublicProperties()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            Assert.Contains(mapping.Values, f => f.Name == "MaybeNumber");
+            Assert.Contains(mapping.Values, f => f.Name == "MaybeByte");
         }
     }
 }

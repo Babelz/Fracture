@@ -385,7 +385,7 @@ namespace Fracture.Net.Serialization.Generation
                     
                     AssertFieldIsValidForSerialization(serializationTypeField, objectActivationHint.Value.Name, true);
                     
-                    yield return new SerializationValue(field: serializationTypeField);
+                    yield return new SerializationValue(serializationTypeField);
                 }
                 else
                 {
@@ -415,7 +415,7 @@ namespace Fracture.Net.Serialization.Generation
                 
                 AssertFieldIsValidForSerialization(serializationTypeField, serializationFieldHint.Name);
 
-                yield return new SerializationValue(field: serializationTypeField);
+                yield return new SerializationValue(serializationTypeField);
             }
         }
 
