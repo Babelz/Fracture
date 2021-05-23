@@ -34,7 +34,7 @@ namespace Fracture.Net.Serialization
         List,
         Dictionary
     }
-
+    
     /// <summary>
     /// Abstract base class for creating type free serializers for serializing single values. These values
     /// can be anything from single primitive to more complex classes and specific types like lists. 

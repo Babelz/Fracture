@@ -127,6 +127,9 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         public string Name => IsField ? Field.Name : Property.Name;
 
+        /// <summary>
+        /// Returns the property or field type.
+        /// </summary>
         public Type Type => IsField ? Field.FieldType : Property.PropertyType;
         
         /// <summary>
