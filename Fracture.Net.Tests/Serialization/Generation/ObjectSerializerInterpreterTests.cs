@@ -11,6 +11,43 @@ using Xunit;
 namespace Fracture.Net.Tests.Serialization.Generation
 {
     [Trait("Category", "Serialization")]
+    public class DynamicObjectSerializerProgramTests
+    {
+        #region Test types
+        private sealed class Foo
+        {
+            #region Fields
+            public int X;
+            #endregion
+        }
+        #endregion
+        
+        [Fact]
+        public void Constructor_Should_Throw_If_Program_Types_Differ()
+        {
+            var exception = Record.Exception(() => new DynamicObjectSerializerProgram(
+               new ObjectSerializationProgram(typeof(int), new List<ISerializationOp>().AsReadOnly()),
+               new ObjectSerializationProgram(typeof(float), new List<ISerializationOp>().AsReadOnly())
+            ));
+            
+            Assert.NotNull(exception);
+            Assert.Contains("are different", exception.Message);
+        }
+        
+        [Fact]
+        public void Constructor_Should_Throw_If_Program_Serializer_Counts_Differ()
+        {
+            var exception = Record.Exception(() => new DynamicObjectSerializerProgram(
+                new ObjectSerializationProgram(typeof(int), new List<ISerializationOp> { new SerializationFieldOp(new SerializationValue(typeof(Foo).GetField("X"))) }.AsReadOnly()),
+                new ObjectSerializationProgram(typeof(int), new List<ISerializationOp>().AsReadOnly())
+            ));
+            
+            Assert.NotNull(exception);
+            Assert.Contains("different count of value serializers", exception.Message);
+        }
+    }
+    
+    [Trait("Category", "Serialization")]
     public class ObjectSerializerInterpreterTests
     {
         #region Test types
@@ -60,31 +97,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
-        
-        [Fact]
-        public void Should_Throw_If_Program_Types_Differ()
-        {
-            var exception = Record.Exception(() => ObjectSerializerInterpreter.InterpretSerializer(
-                new ObjectSerializationProgram(typeof(int), new List<ISerializationOp>().AsReadOnly()),
-                new ObjectSerializationProgram(typeof(float), new List<ISerializationOp>().AsReadOnly())
-            ));
-            
-            Assert.NotNull(exception);
-            Assert.Contains("are different", exception.Message);
-        }
-        
-        [Fact]
-        public void Should_Throw_If_Program_Serializer_Counts_Differ()
-        {
-            var exception = Record.Exception(() => ObjectSerializerInterpreter.InterpretSerializer(
-                new ObjectSerializationProgram(typeof(int), new List<ISerializationOp> { new SerializationFieldOp(new SerializationValue(typeof(FieldTestClass).GetField("X"))) }.AsReadOnly()),
-                new ObjectSerializationProgram(typeof(int), new List<ISerializationOp>().AsReadOnly())
-            ));
-            
-            Assert.NotNull(exception);
-            Assert.Contains("different count of value serializers", exception.Message);
-        }
-        
+
         [Fact]
         public void Should_Serialize_Fields()
         {
@@ -93,10 +106,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializeProgram  = ObjectSerializerCompiler.CompileSerialize(mapping);
+            var serializeProgram  = ObjectSerializerCompiler.CompileSerializeProgram(mapping);
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(serializeProgram);
             var testObject        = new FieldTestClass() { X = 1500, Y = 37500 };
-            var context           = new ObjectSerializationContext(new NullSerializer(), ObjectSerializerInterpreter.GetProgramSerializers(serializeProgram));
+            var context           = new ObjectSerializationContext(new NullSerializer(), serializeProgram.GetProgramSerializers());
             var buffer            = new byte[8];
             
             serializeDelegate(context, testObject, buffer, 0);
@@ -113,11 +126,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicProperties()
                                                    .Map();
             
-            var serializeProgram  = ObjectSerializerCompiler.CompileSerialize(mapping);
+            var serializeProgram  = ObjectSerializerCompiler.CompileSerializeProgram(mapping);
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(serializeProgram);
             var testObject        = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
             var stringSerializer  = new StringSerializer();
-            var context           = new ObjectSerializationContext(new NullSerializer(), ObjectSerializerInterpreter.GetProgramSerializers(serializeProgram));
+            var context           = new ObjectSerializationContext(new NullSerializer(), serializeProgram.GetProgramSerializers());
             var buffer            = new byte[64];
             
             serializeDelegate(context, testObject, buffer, 0);
@@ -136,10 +149,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializeProgram  = ObjectSerializerCompiler.CompileSerialize(mapping);
+            var serializeProgram  = ObjectSerializerCompiler.CompileSerializeProgram(mapping);
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(serializeProgram);
             var testObject        = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
-            var context           = new ObjectSerializationContext(new NullSerializer(), ObjectSerializerInterpreter.GetProgramSerializers(serializeProgram));
+            var context           = new ObjectSerializationContext(new NullSerializer(), serializeProgram.GetProgramSerializers());
             var buffer            = new byte[64];
             
             serializeDelegate(context, testObject, buffer, 0);

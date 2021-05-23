@@ -10,14 +10,23 @@ using NLog;
 
 namespace Fracture.Net.Serialization.Generation
 {
+    /// <summary>
+    /// Structure that contains serialization context for single type.
+    /// </summary>
     public readonly struct ObjectSerializationContext
     {
         #region Properties
+        /// <summary>
+        /// Gets the null serializer for serializing nullable and null values.
+        /// </summary>
         public ValueSerializer NullSerializer
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the value serializers for the type.
+        /// </summary>
         public IReadOnlyList<ValueSerializer> ValueSerializers
         {
             get;
@@ -42,32 +51,51 @@ namespace Fracture.Net.Serialization.Generation
     /// </summary>
     public delegate object DynamicDeserializeDelegate(in ObjectSerializationContext context, byte[] buffer, int offset);
     
-    public readonly struct ObjectSerializerContext
+    /// <summary>
+    /// Delegate for wrapping functions for determining objects sizes from run types.
+    /// </summary>
+    public delegate ushort DynamicGetSizeFromValueDelegate(in ObjectSerializationContext context, object value);
+    
+    /// <summary>
+    /// Class that wraps dynamic serialization for single type and provides serialization.
+    /// </summary>
+    public sealed class DynamicObjectSerializer 
     {
-        #region Properties
-        public ObjectSerializationContext Context
-        {
-            get;
-        }
-        
-        public DynamicSerializeDelegate Serialize
-        {
-            get;
-        }
-        public DynamicDeserializeDelegate Deserialize
-        {
-            get;
-        }
+        #region Fields
+        private readonly ObjectSerializationContext context; 
+        private readonly DynamicSerializeDelegate serialize;
+        private readonly DynamicDeserializeDelegate deserialize;
+        private readonly DynamicGetSizeFromValueDelegate getSizeFromValue;
         #endregion
 
-        public ObjectSerializerContext(in ObjectSerializationContext context, 
+        public DynamicObjectSerializer(in ObjectSerializationContext context, 
                                        DynamicSerializeDelegate serialize,
-                                       DynamicDeserializeDelegate deserialize)
+                                       DynamicDeserializeDelegate deserialize,
+                                       DynamicGetSizeFromValueDelegate getSizeFromValue)
         {
-            Context     = context;
-            Serialize   = serialize ?? throw new ArgumentNullException(nameof(serialize));
-            Deserialize = deserialize ?? throw new ArgumentNullException(nameof(deserialize));
+            this.context          = context;
+            this.serialize        = serialize ?? throw new ArgumentNullException(nameof(serialize));
+            this.deserialize      = deserialize ?? throw new ArgumentNullException(nameof(deserialize));
+            this.getSizeFromValue = getSizeFromValue ?? throw new ArgumentNullException(nameof(getSizeFromValue));
         }
+        
+        /// <summary>
+        /// Serializers given object to given buffer using dynamically generated serializer.
+        /// </summary>
+        public void Serialize(object value, byte[] buffer, int offset)
+            => serialize(context, value, buffer, offset);
+        
+        /// <summary>
+        /// Deserializes object from given buffer using dynamically generated deserializer.
+        /// </summary>
+        public object Deserialize(byte[] buffer, int offset)
+            => deserialize(context, buffer, offset);
+        
+        /// <summary>
+        /// Returns the size of the object using dynamically generated resolver.
+        /// </summary>
+        public ushort GetSizeFromValue(object value)
+            => getSizeFromValue(context, value);
     }
     
     /// <summary>
@@ -78,14 +106,23 @@ namespace Fracture.Net.Serialization.Generation
         // Marker interface, nothing to implement.
     }
     
+    /// <summary>
+    /// Structure representing operation that causes object to be instantiated using specific parametrized constructor when being deserialized. 
+    /// </summary>
     public readonly struct ParametrizedActivationOp : ISerializationOp
     {
         #region Properties
+        /// <summary>
+        /// Gets the parametrized constructor used for object activation.
+        /// </summary>
         public ConstructorInfo Constructor
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the serialization values that are expected by the parametrized constructor.
+        /// </summary>
         public IReadOnlyCollection<SerializationValue> Parameters
         {
             get;
@@ -99,12 +136,18 @@ namespace Fracture.Net.Serialization.Generation
         }
     
         public override string ToString()
-            => $"{{ op: activate.parametrized, ctor: parametrized, params: {Parameters.Count} }}";
+            => $"{{ op: {nameof(ParametrizedActivationOp)}, ctor: parametrized, params: {Parameters.Count} }}";
     }
 
+    /// <summary>
+    /// Structure representing operation that causes object to be instantiated using default parameterless constructor when being deserialized.
+    /// </summary>
     public readonly struct DefaultActivationOp : ISerializationOp
     {
         #region Properties
+        /// <summary>
+        /// Gets the parameterless default constructor.
+        /// </summary>
         public ConstructorInfo Constructor
         {
             get;
@@ -117,19 +160,25 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         public override string ToString()
-            => $"{{ op: activation.default, ctor: default }}";
+            => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
     }
-
+    
+    /// <summary>
+    /// Structure representing serialization field operation. Depending on the context the operation is either interpreted as field read or write operation.
+    /// </summary>
     public readonly struct SerializationFieldOp : ISerializationOp
     {
         #region Properties
+        /// <summary>
+        /// Gets the serialization value associated with this field operation. This serialization value is guaranteed to be a field. 
+        /// </summary>
         public SerializationValue Value
         {
             get;
         }
         #endregion
 
-        public SerializationFieldOp(SerializationValue value)
+        public SerializationFieldOp(in SerializationValue value)
         {
             Value = value;
             
@@ -138,12 +187,18 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         public override string ToString()
-            => $"{{ op: serialize.field, prop: {Value.Name} }}";
+            => $"{{ op: {nameof(SerializationFieldOp)}, prop: {Value.Name} }}";
     }
-
+    
+    /// <summary>
+    /// Structure representing serialization property operation. Depending on the context the operation is either interpreted as property read or write operation.
+    /// </summary>
     public readonly struct SerializationPropertyOp : ISerializationOp
     {
         #region Properties
+        /// <summary>
+        /// Gets the serialization value associated with this property operation. This serialization value is guaranteed to be a property. 
+        /// </summary>
         public SerializationValue Value
         {
             get;
@@ -157,19 +212,29 @@ namespace Fracture.Net.Serialization.Generation
             if (!Value.IsProperty)
                 throw new InvalidEnumArgumentException("excepting property serialization value"); 
         }
-
+        
         public override string ToString()
-            => $"{{ op: serialize.property, prop: {Value.Name} }}";
+            => $"{{ op: {nameof(SerializationPropertyOp)}, prop: {Value.Name} }}";
     }
 
+    /// <summary>
+    /// Structure that represents a serialization program for specific type. Information used in this structure can be used for generating dynamic serializers
+    /// for objects. 
+    /// </summary>
     public readonly struct ObjectSerializationProgram
     {
         #region Properties
+        /// <summary>
+        /// Gets the type that this program is target. Dynamic serializer will be created for this type.
+        /// </summary>
         public Type Type
         {
             get;
         }
         
+        /// <summary>
+        /// Gets the instruction list for this program. Dynamic serializers are generated based on these instructions. 
+        /// </summary>
         public IReadOnlyList<ISerializationOp> Ops
         {
             get;
@@ -181,16 +246,88 @@ namespace Fracture.Net.Serialization.Generation
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Ops  = ops ?? throw new ArgumentNullException(nameof(ops));
         }
+        
+        /// <summary>
+        /// Returns list containing all value serializers that this program uses.
+        /// </summary>
+        public IReadOnlyList<ValueSerializer> GetProgramSerializers()
+        {
+            var serializers = new List<ValueSerializer>();
+            
+            foreach (var op in Ops)
+            {
+                switch (op)
+                {
+                    case ParametrizedActivationOp paop:
+                        serializers.AddRange(
+                            paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForRunType(p.Type))
+                        );
+                        break;
+                    case SerializationFieldOp sfop:
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(sfop.Value.Type));
+                        break;
+                    case SerializationPropertyOp spop:
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(spop.Value.Type));
+                        break;
+                    default:
+                        continue;
+                }
+            }
+            
+            return serializers.AsReadOnly();
+        }
     }
     
     /// <summary>
-    /// Static class that translates serialization run types to their serialization operation codes and outputs instructions how the type can be
-    /// serialized and deserialized. 
+    /// Structure that represents full serialization program. This structure contains instructions for generating both the serialize and deserialize functions.
+    /// </summary>
+    public readonly struct DynamicObjectSerializerProgram
+    {
+        #region Properties
+        /// <summary>
+        /// Gets the program for generating serialize function.
+        /// </summary>
+        public ObjectSerializationProgram SerializeProgram
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the program for generating deserialization function.
+        /// </summary>
+        public ObjectSerializationProgram DeserializeProgram
+        {
+            get;
+        }
+        #endregion
+
+        public DynamicObjectSerializerProgram(in ObjectSerializationProgram serializeProgram, in ObjectSerializationProgram deserializeProgram)
+        {
+            SerializeProgram   = serializeProgram;
+            DeserializeProgram = deserializeProgram;
+            
+            if (serializeProgram.Type != deserializeProgram.Type)
+                throw new InvalidOperationException($"serialization program type \"{deserializeProgram.Type.Name}\" and deserialization program type " +
+                                                    $"\"{serializeProgram.Type.Name}\" are different");
+            
+            var serializeProgramSerializers   = serializeProgram.GetProgramSerializers();
+            var deserializeProgramSerializers = deserializeProgram.GetProgramSerializers();
+            
+            if (serializeProgramSerializers.Count != deserializeProgramSerializers.Count) 
+                throw new InvalidOperationException($"serialization programs for type \"{serializeProgram.Type.Name}\" have different count of value serializers");
+        }   
+    }
+    
+    /// <summary>
+    /// Static class that translates serialization run types to operations and outputs instructions how the type can be serialized and deserialized. 
     /// </summary>
     public static class ObjectSerializerCompiler
-    {
+    {        
+        /// <summary>
+        /// Compiles deserialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationProgram CompileDeserialize(ObjectSerializationMapping mapping)
+        public static ObjectSerializationProgram CompileDeserializeProgram(in ObjectSerializationMapping mapping)
         {
             var ops = new List<ISerializationOp>();
             
@@ -204,17 +341,30 @@ namespace Fracture.Net.Serialization.Generation
             return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
         }
         
+        /// <summary>
+        /// Compiles serialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationProgram CompileSerialize(ObjectSerializationMapping mapping)
+        public static ObjectSerializationProgram CompileSerializeProgram(in ObjectSerializationMapping mapping)
         {
             var values = mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values);
             var ops    = values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)).ToList();
             
             return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
         }
+        
+        /// <summary>
+        /// Compiles both serialization and deserialization instructions from given mappings to <see cref="DynamicObjectSerializerProgram"/>.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DynamicObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
+            => new DynamicObjectSerializerProgram(CompileSerializeProgram(mapping), CompileDeserializeProgram(mapping));
     }
 
-    public sealed class ObjectSerializerMethodBuilder
+    /// <summary>
+    /// Class that provides dynamic functions building for dynamic serialization functions. 
+    /// </summary>
+    public sealed class DynamicSerializeDelegateBuilder
     {
         #region Static fields
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
@@ -226,15 +376,33 @@ namespace Fracture.Net.Serialization.Generation
         private readonly Type serializationType;
         #endregion
 
-        public ObjectSerializerMethodBuilder(DynamicMethod dynamicMethod, Type serializationType)
+        public DynamicSerializeDelegateBuilder(Type serializationType)
         {
-            this.dynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
             this.serializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
+         
+            dynamicMethod = new DynamicMethod(
+                $"Serialize{this.serializationType.Name}", 
+                typeof(void), 
+                new []
+                {
+                   typeof(ObjectSerializationContext).MakeByRefType(), // Argument 0.
+                   typeof(object),                                     // Argument 1.
+                   typeof(byte[]),                                     // Argument 2.
+                   typeof(int)                                         // Argument 3.
+                },
+                true
+            );
             
             locals = new Dictionary<Type, LocalBuilder>();
         }
         
-        private void EmitStoreNextSerializerToLocal(int serializationValueIndex)
+        /// <summary>
+        /// Emits instructions for getting the next value serializer for serialization.
+        ///
+        /// Translates roughly to:
+        ///     serializer = serializers[serializationValueIndex];
+        /// </summary>
+        private void EmitStoreNextSerializer(int serializationValueIndex)
         {
             var il = dynamicMethod.GetILGenerator();
             
@@ -250,7 +418,13 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);
         }
         
-        private void EmitSerializeFieldIncrementOffset(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
+        /// <summary>
+        /// Emits instructions for incrementing the offset value after field has been serialized.
+        ///
+        /// Translates roughly to:
+        ///     offset += serializer.GetSizeFromValue(actual.[op-field-name]);
+        /// </summary>
+        private void EmitIncrementFieldSerializationOffset(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
         {
             if (serializationValueIndex + 1 >= serializationValueCount) return;
             
@@ -264,6 +438,36 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldloc, locals[serializationType]);                                                          
             // Push last serialization value to stack.
             il.Emit(OpCodes.Ldfld, op.Value.Field);                                          
+            // Box serialization value.
+            il.Emit(OpCodes.Box, op.Value.Type);                                             
+            // Call 'GetSizeFromValue', push size to stack.
+            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.GetSizeFromValue))!); 
+            // Add offset + size.
+            il.Emit(OpCodes.Add);                                                              
+            // Store current offset to argument 'offset'.
+            il.Emit(OpCodes.Starg_S, 3);
+        }
+        
+        /// <summary>
+        /// Emits instructions for incrementing the offset value after property has been serialized.
+        ///
+        /// Translates roughly to:
+        ///     offset += serializer.GetSizeFromValue(actual.[op-property-name]);
+        /// </summary>
+        private void EmitIncrementPropertySerializationOffset(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
+        {
+            if (serializationValueIndex + 1 >= serializationValueCount) return;
+            
+            var il = dynamicMethod.GetILGenerator();
+
+            // Add last value serialized to the offset, push 'offset' to stack.
+            il.Emit(OpCodes.Ldarg_3);                                                          
+            // Push 'serializer' to stack.
+            il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);                                                          
+            // Push 'actual' to stack.
+            il.Emit(OpCodes.Ldloc, locals[serializationType]);                                                          
+            // Push last serialization value to stack.
+            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);                                          
             // Box serialization value.
             il.Emit(OpCodes.Box, op.Value.Type);                                             
             // Call 'GetSizeFromValue', push size to stack.
@@ -306,7 +510,7 @@ namespace Fracture.Net.Serialization.Generation
             
             // Branch value is not null, get next serializer.
             il.MarkLabel(hasValue);
-            EmitStoreNextSerializerToLocal(serializationValueIndex);
+            EmitStoreNextSerializer(serializationValueIndex);
             
             // Branch value is null.
             il.MarkLabel(isNull);
@@ -342,9 +546,15 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
         }
 
+        /// <summary>
+        /// Emits instructions for serializing single field.
+        ///
+        /// Translates roughly to:
+        ///     serializer.Serialize(actual.[op-field-name], buffer, offset);
+        /// </summary>
         public void EmitSerializeField(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
         {
-            EmitStoreNextSerializerToLocal(serializationValueIndex);
+            EmitStoreNextSerializer(serializationValueIndex);
          
             var il = dynamicMethod.GetILGenerator();
 
@@ -361,7 +571,7 @@ namespace Fracture.Net.Serialization.Generation
             // Call serialize.
             il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
             
-            EmitSerializeFieldIncrementOffset(op, serializationValueIndex, serializationValueCount);
+            EmitIncrementFieldSerializationOffset(op, serializationValueIndex, serializationValueCount);
         }
         
         public void EmitSerializeNonValueTypeProperty(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
@@ -373,10 +583,16 @@ namespace Fracture.Net.Serialization.Generation
         {
             throw new NotImplementedException();
         }
-
+        
+        /// <summary>
+        /// Emits instructions for serializing single property.
+        ///
+        /// Translates roughly to:
+        ///     serializer.Serialize(actual.[op-property-name], buffer, offset);
+        /// </summary>
         public void EmitSerializeProperty(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
         {
-            EmitStoreNextSerializerToLocal(serializationValueIndex);
+            EmitStoreNextSerializer(serializationValueIndex);
             
             var il = dynamicMethod.GetILGenerator();
             
@@ -391,29 +607,21 @@ namespace Fracture.Net.Serialization.Generation
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                                       
             // Call serialize.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!); 
+            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
             
-            if (serializationValueIndex + 1 >= serializationValueCount) return;
-            
-            // Add last value serialized to the offset, push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_3);                                                          
-            // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);                                                          
-            // Push 'actual' to stack.
-            il.Emit(OpCodes.Ldloc, locals[serializationType]);                                                          
-            // Push last serialization value to stack.
-            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);                                          
-            // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);                                             
-            // Call 'GetSizeFromValue', push size to stack.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.GetSizeFromValue))!); 
-            // Add offset + size.
-            il.Emit(OpCodes.Add);                                                              
-            // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 3);
+            EmitIncrementPropertySerializationOffset(op, serializationValueIndex, serializationValueCount);
         }
         
-        public void EmitSerializationLocals()
+        /// <summary>
+        /// Emits instructions that declares initial locals for serialization.
+        ///
+        /// This roughly translates to:
+        ///     var actual      = ([program-type])value;
+        ///     var serializers = context.ValueSerializers;
+        ///     var serializer  = default(ValueSerializer);
+        ///     var isNull      = false;
+        /// </summary>
+        public void EmitLocals()
         {
             var il = dynamicMethod.GetILGenerator();
             
@@ -441,7 +649,10 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Stloc, locals[typeof(IReadOnlyList<ValueSerializer>)]);
         }
         
-        public T Build<T>() where T : Delegate
+        /// <summary>
+        /// Attempts to build the dynamic serialize delegate based on instructions received. Throws in case building the dynamic method fails.
+        /// </summary>
+        public DynamicSerializeDelegate Build()
         {
             var il = dynamicMethod.GetILGenerator();
             
@@ -449,11 +660,11 @@ namespace Fracture.Net.Serialization.Generation
             
             try
             {
-                return (T)dynamicMethod.CreateDelegate(typeof(T));
+                return (DynamicSerializeDelegate)dynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
             } 
             catch (Exception e)
             {
-                log.Error(e, "error occurred while interpreting object serialization program");
+                log.Error(e, $"error occurred while building {nameof(DynamicSerializeDelegate)}");
                 
                 throw;
             }
@@ -468,68 +679,24 @@ namespace Fracture.Net.Serialization.Generation
         #region Static fields
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         #endregion
-        
-        private static void AssertSerializationProgramIntegrity(ObjectSerializationProgram serializeProgram, ObjectSerializationProgram deserializeProgram)
-        {
-            if (serializeProgram.Type != deserializeProgram.Type)
-                throw new InvalidOperationException($"serialization program type \"{deserializeProgram.Type.Name}\" and deserialization program type " +
-                                                    $"\"{serializeProgram.Type.Name}\" are different");
-            
-            var serializeProgramSerializers   = GetProgramSerializers(serializeProgram);
-            var deserializeProgramSerializers = GetProgramSerializers(deserializeProgram);
-            
-            if (serializeProgramSerializers.Count != deserializeProgramSerializers.Count) 
-                throw new InvalidOperationException($"serialization programs for type \"{serializeProgram.Type.Name}\" have different count of value serializers");
-        }
 
-        public static IReadOnlyList<ValueSerializer> GetProgramSerializers(ObjectSerializationProgram program)
+        public static DynamicObjectSerializer InterpretSerializer(in DynamicObjectSerializerProgram program)
         {
-            var serializers = new List<ValueSerializer>();
-            
-            foreach (var op in program.Ops)
-            {
-                switch (op)
-                {
-                    case ParametrizedActivationOp paop:
-                        serializers.AddRange(
-                            paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForRunType(p.Type))
-                        );
-                        break;
-                    case SerializationFieldOp sfop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(sfop.Value.Type));
-                        break;
-                    case SerializationPropertyOp spop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(spop.Value.Type));
-                        break;
-                    default:
-                        continue;
-                }
-            }
-            
-            return serializers.AsReadOnly();
-        }
-
-        public static ObjectSerializerContext InterpretSerializer(in ObjectSerializationProgram serializeProgram, in ObjectSerializationProgram deserializeProgram)
-        {
-            // Make sure programs are valid.
-            AssertSerializationProgramIntegrity(serializeProgram, deserializeProgram);
-            
-            // Get serializers for the type.
-            var valueSerializers = GetProgramSerializers(serializeProgram);
-            
             // Create dynamic serialization function.
-            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(serializeProgram);
+            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.SerializeProgram);
             
             // Create dynamic deserialization function.
-            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(deserializeProgram);
+            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(program.DeserializeProgram);
             
-            // TODO: generate dynamic SizeFromValue delegate.
+            // Create dynamic get size function. Instructions from serialize program should be usable when interpreting this function.
+            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.SerializeProgram);
             
-            return new ObjectSerializerContext(
+            return new DynamicObjectSerializer(
                 new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForRunType(null),
-                                               valueSerializers),
+                                               program.SerializeProgram.GetProgramSerializers()),
                 dynamicSerializeDelegate,
-                dynamicDeserializeDelegate
+                dynamicDeserializeDelegate,
+                dynamicGetSizeFromValueDelegate
             );
         }
         
@@ -599,24 +766,21 @@ namespace Fracture.Net.Serialization.Generation
                 return null;
             };
         }
+        
+        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationProgram program)
+        {
+            return delegate
+            {
+                return 0;
+            };
+        }
 
         public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationProgram program)
         {
-            var builder = new ObjectSerializerMethodBuilder(
-                new DynamicMethod($"Serialize{program.Type.Name}", 
-                                  typeof(void), 
-                                  new []
-                                  {
-                                      typeof(ObjectSerializationContext).MakeByRefType(), // Argument 0.
-                                      typeof(object),                                     // Argument 1.
-                                      typeof(byte[]),                                     // Argument 2.
-                                      typeof(int)                                         // Argument 3.
-                                  }, 
-                                  true),
-                program.Type);
+            var builder = new DynamicSerializeDelegateBuilder(program.Type);
             
             // Declare locals.
-            builder.EmitSerializationLocals();
+            builder.EmitLocals();
             
             // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
             for (var serializationValueIndex = 0; serializationValueIndex < program.Ops.Count; serializationValueIndex++)
@@ -647,7 +811,7 @@ namespace Fracture.Net.Serialization.Generation
                 }
             }
             
-            return builder.Build<DynamicSerializeDelegate>();
+            return builder.Build();
         }
     }
 }
