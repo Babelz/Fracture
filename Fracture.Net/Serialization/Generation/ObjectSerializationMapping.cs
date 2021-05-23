@@ -234,53 +234,12 @@ namespace Fracture.Net.Serialization.Generation
             Activator = activator;
         }
     }
-    
+
     /// <summary>
-    /// Interface for creating object serialization mappers. Mappers provide builder interface for mapping
+    /// Class for mapping objects to their intermediate serialization instructions. Mapper provides builder interface for mapping
     /// objects for serialization.
     /// </summary>
-    public interface IObjectSerializationMapper
-    {
-        /// <summary>
-        /// Directs the builder that given type is being mapped.
-        /// </summary>
-        IObjectSerializationMapper FromType(Type type);
-
-        /// <summary>
-        /// Directs the builder that given type is being mapped.
-        /// </summary>
-        IObjectSerializationMapper FromType<T>();
-        
-        /// <summary>
-        /// Directs the builder to map the types constructor that matches given hints.
-        /// </summary>
-        IObjectSerializationMapper ParametrizedActivation(params ObjectActivationHint[] hints);
-        
-        /// <summary>
-        /// Directs the builder to map types all fields and properties based on given hints.
-        /// </summary>
-        IObjectSerializationMapper Values(params SerializationValueHint[] values);
-        
-        /// <summary>
-        /// Directs the builder to map all public fields of the type.
-        /// </summary>
-        IObjectSerializationMapper PublicFields();
-        
-        /// <summary>
-        /// Directs the builder to map all public properties of the type.
-        /// </summary>
-        IObjectSerializationMapper PublicProperties();
-        
-        /// <summary>
-        /// Builds the mapping based on received configuration and returns it to the caller.
-        /// </summary>
-        public ObjectSerializationMapping Map();
-    }
-    
-    /// <summary>
-    /// Default implementation of <see cref="IObjectSerializationMapper"/>.
-    /// </summary>
-    public sealed class ObjectSerializationMapper : IObjectSerializationMapper
+    public sealed class ObjectSerializationMapper 
     {
         #region Fields
         private readonly List<SerializationValueHint> serializationValueHints;
@@ -467,7 +426,10 @@ namespace Fracture.Net.Serialization.Generation
         private void RemoveActivationValueHints()
             => serializationValueHints.RemoveAll(h => objectActivationHints.Any(a => a.Value.Name == h.Name));
         
-        public IObjectSerializationMapper FromType(Type type)
+        /// <summary>
+        /// Directs the builder that given type is being mapped.
+        /// </summary>
+        public ObjectSerializationMapper FromType(Type type)
         {
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
@@ -476,11 +438,17 @@ namespace Fracture.Net.Serialization.Generation
             
             return this;
         }
-    
-        public IObjectSerializationMapper FromType<T>()
+        
+        /// <summary>
+        /// Directs the builder that given type is being mapped.
+        /// </summary>
+        public ObjectSerializationMapper FromType<T>()
             => FromType(typeof(T));
         
-        public IObjectSerializationMapper ParametrizedActivation(params ObjectActivationHint[] hints)
+        /// <summary>
+        /// Directs the builder to map the types constructor that matches given hints.
+        /// </summary>
+        public ObjectSerializationMapper ParametrizedActivation(params ObjectActivationHint[] hints)
         {
             if (hints == null) 
                 throw new ArgumentNullException(nameof(hints));
@@ -490,7 +458,10 @@ namespace Fracture.Net.Serialization.Generation
             return this;
         }
         
-        public IObjectSerializationMapper Values(params SerializationValueHint[] values)
+        /// <summary>
+        /// Directs the builder to map types all fields and properties based on given hints.
+        /// </summary>
+        public ObjectSerializationMapper Values(params SerializationValueHint[] values)
         {
             if (values == null)
                 throw new ArgumentNullException(nameof(values));
@@ -500,20 +471,29 @@ namespace Fracture.Net.Serialization.Generation
             return this;
         }
         
-        public IObjectSerializationMapper PublicFields()
+        /// <summary>
+        /// Directs the builder to map all public fields of the type.
+        /// </summary>
+        public ObjectSerializationMapper PublicFields()
         {
             discoverPublicFields = true;
             
             return this;
         }
         
-        public IObjectSerializationMapper PublicProperties()
+        /// <summary>
+        /// Directs the builder to map all public properties of the type.
+        /// </summary>
+        public ObjectSerializationMapper PublicProperties()
         {
             discoverPublicProperties = true;
             
             return this;
         }
         
+        /// <summary>
+        /// Builds the mapping based on received configuration and returns it to the caller.
+        /// </summary>
         public ObjectSerializationMapping Map()
         {
             // Ensure type exists.
