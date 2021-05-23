@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text;
 using Fracture.Common.Memory;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
@@ -64,7 +65,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         
         [Fact]
-        public void Serializes_Fields_Properly()
+        public void Should_Serialize_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
                                                    .FromType<Vector2>()
@@ -80,6 +81,26 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             Assert.Equal(1500, MemoryMapper.ReadInt(buffer, 0));
             Assert.Equal(37500, MemoryMapper.ReadInt(buffer, sizeof(int)));
+        }
+        
+        [Fact]
+        public void Should_Serialize_Properties()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<Dialog>()
+                                                   .PublicProperties()
+                                                   .Map();
+            
+            var serializeProgram  = ObjectSerializerCompiler.CompileSerialize(mapping);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(serializeProgram);
+            var stringSerializer  = new StringSerializer();
+            var context           = new ObjectSerializationContext(new NullSerializer(), ObjectSerializerInterpreter.GetProgramSerializers(serializeProgram));
+            var buffer            = new byte[64];
+            
+            serializeDelegate(context, new Dialog() { Id = 255255, Greet = "Hello stranger!" }, buffer, 0);
+            
+            Assert.Equal(255255, MemoryMapper.ReadInt(buffer, 0));
+            Assert.Equal("Hello stranger!", stringSerializer.Deserialize(buffer, sizeof(int)));
         }
     }
 }
