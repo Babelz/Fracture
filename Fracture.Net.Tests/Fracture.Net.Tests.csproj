@@ -68,6 +68,10 @@
       <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
+      <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
+        <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
+        <Name>Fracture.Common</Name>
+      </ProjectReference>
       <ProjectReference Include="..\Fracture.Net\Fracture.Net.csproj">
         <Project>{8c8efbea-e0ad-4507-99ec-c79a0d8b556c}</Project>
         <Name>Fracture.Net</Name>

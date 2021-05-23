@@ -13,20 +13,10 @@ namespace Fracture.Net.Serialization
         private static readonly object Padlock = new object();
         #endregion
         
-        private StructureSerializer(Type runtimeType, params string[] properties) 
+        public StructureSerializer() 
             : base(SerializationType.Structure)
         {
-            // Manual map properties.
-            
-            // Create codegen backend if it does not exist.
-            
-            // Get codegen backend.
-        }
-        
-        private StructureSerializer(Type runtimeType)
-            : this(runtimeType, null)
-        {
-        }
+        }        
 
         public override bool SupportsType(Type type)
         {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Fracture.Common.Memory;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
@@ -14,8 +15,27 @@ namespace Fracture.Net.Tests.Serialization.Generation
         #region Test types
         private sealed class Vector2
         {
-            public float X;
-            public float Y;
+            #region Fields
+            public int X;
+            public int Y;
+            #endregion
+        }
+        
+        private sealed class Dialog
+        {
+            #region Properties
+            public int Id
+            {
+                get;
+                set;
+            }
+            
+            public string Greet
+            {
+                get;
+                set;
+            }
+            #endregion
         }
         #endregion
         
@@ -40,7 +60,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             ));
             
             Assert.NotNull(exception);
-            Assert.Contains(exception.Message, "are different");
+            Assert.Contains(exception.Message, "different count of value serializers");
         }
         
         [Fact]
@@ -51,12 +71,15 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializeProgram = ObjectSerializerCompiler.CompileSerialize(mapping);
-            
-            
+            var serializeProgram  = ObjectSerializerCompiler.CompileSerialize(mapping);
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(serializeProgram);
+            var context           = new ObjectSerializationContext(new NullSerializer(), ObjectSerializerInterpreter.GetProgramSerializers(serializeProgram));
+            var buffer            = new byte[8];
             
+            serializeDelegate(context, new Vector2() { X = 1500, Y = 37500 }, buffer, 0);
             
+            Assert.Equal(1500, MemoryMapper.ReadInt(buffer, 0));
+            Assert.Equal(37500, MemoryMapper.ReadInt(buffer, sizeof(int)));
         }
     }
 }

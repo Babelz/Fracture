@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using NLog;
 
 namespace Fracture.Net.Serialization
 {
@@ -143,7 +145,9 @@ namespace Fracture.Net.Serialization
     /// </summary>
     public static class ValueSerializerRegistry
     {
-        #region Staticfields
+        #region Static fields
+        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        
         private static readonly Dictionary<byte, ValueSerializer> serializationTypeMap;
         
         private static readonly List<ValueSerializer> serializers;
@@ -160,12 +164,25 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IEnumerable<Type> GetSerializerTypes()
-            => AppDomain.CurrentDomain.GetAssemblies()
-                                      .SelectMany(a => a.GetTypes())
-                                      .Where(t => !t.IsAbstract && 
-                                                  t.IsClass && 
-                                                  t.IsAssignableFrom(typeof(ValueSerializer)))
-                                      .OrderBy(t => t.Name);
+        {
+            var types = new List<Type>();
+            
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderBy(a => a.FullName))
+            {
+                try
+                {
+                    types.AddRange(assembly.GetTypes()
+                                           .Where(t => !t.IsAbstract && t.IsClass && typeof(ValueSerializer).IsAssignableFrom(t))
+                                           .OrderBy(t => t.Name));
+                }   
+                catch (ReflectionTypeLoadException e)
+                {
+                    log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
+                }
+            }
+            
+            return types;
+        }    
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ValueSerializer GetValueSerializerForRunType(Type type)
