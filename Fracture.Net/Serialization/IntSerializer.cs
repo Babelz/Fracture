@@ -23,7 +23,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteInt((int)value, buffer, offset);
+            MemoryMapper.WriteInt((int)value, buffer, offset);
         }
         
         /// <summary>
@@ -34,7 +34,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadInt(buffer, offset);
+            return MemoryMapper.ReadInt(buffer, offset);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteUint((uint)value, buffer, offset);
+            MemoryMapper.WriteUint((uint)value, buffer, offset);
         }
         
         /// <summary>
@@ -81,7 +81,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadUint(buffer, offset);
+            return MemoryMapper.ReadUint(buffer, offset);
         }
 
         /// <summary>

@@ -23,7 +23,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteLong(((TimeSpan)value).Ticks, buffer, offset);
+            MemoryMapper.WriteLong(((TimeSpan)value).Ticks, buffer, offset);
         }
         
         /// <summary>
@@ -34,7 +34,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return new TimeSpan(ByteUtils.ReadLong(buffer, offset));
+            return new TimeSpan(MemoryMapper.ReadLong(buffer, offset));
         }
         
         /// <summary>
@@ -75,7 +75,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteLong(((DateTime)value).Ticks, buffer, offset);
+            MemoryMapper.WriteLong(((DateTime)value).Ticks, buffer, offset);
         }
         
         /// <summary>
@@ -86,7 +86,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            var ticks = ByteUtils.ReadLong(buffer, offset);
+            var ticks = MemoryMapper.ReadLong(buffer, offset);
             
             // Clamp ticks to fit max representable date time value.
             if (ticks > 0)

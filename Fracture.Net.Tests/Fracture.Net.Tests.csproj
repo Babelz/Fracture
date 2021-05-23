@@ -59,6 +59,7 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Serialization\ArraySerializerTests.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMappingTests.cs" />
+        <Compile Include="Serialization\Generation\ObjectSerializerInterpreterTests.cs" />
         <Compile Include="Serialization\StructureSerializerTests.cs" />
         <Compile Include="Serialization\StringSerializerTests.cs" />
         <Compile Include="Serialization\ValueSerializerTests.cs" />

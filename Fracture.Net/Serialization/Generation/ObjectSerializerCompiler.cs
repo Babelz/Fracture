@@ -266,10 +266,12 @@ namespace Fracture.Net.Serialization.Generation
             var valueSerializers = GetProgramSerializers(serializeProgram);
             
             // Create dynamic serialization function.
-            var dynamicSerializeDelegate = CompileDynamicSerializeDelegate(serializeProgram);
+            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(serializeProgram);
             
             // Create dynamic deserialization function.
-            var dynamicDeserializeDelegate = CompileDynamicDeserializeDelegate(deserializeProgram);
+            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(deserializeProgram);
+            
+            // TODO: generate dynamic SizeFromValue delegate.
             
             return new ObjectSerializerContext(
                 new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForRunType(null),
@@ -293,27 +295,28 @@ namespace Fracture.Net.Serialization.Generation
         public static void SerializeTestEmit(ObjectSerializationContext objectSerializationContext, object value, byte[] buffer, int offset)
         {
             var actual = (Vector2)value;
+            var serializers = objectSerializationContext.ValueSerializers;
             
             // Serialize x, y.
-            var serializer = objectSerializationContext.ValueSerializers[0];
+            var serializer = serializers[0];
             serializer.Serialize(actual.X, buffer, offset);
             offset += serializer.GetSizeFromValue(actual.X);
             
-            serializer = objectSerializationContext.ValueSerializers[1];
+            serializer = serializers[1];
             serializer.Serialize(actual.Y, buffer, offset);
             offset += serializer.GetSizeFromValue(actual.Y);
 
             // Serialize i, j.
-            serializer = objectSerializationContext.ValueSerializers[2];
+            serializer = serializers[2];
             serializer.Serialize(actual.I, buffer, offset);
             offset += serializer.GetSizeFromValue(actual.I);
             
-            serializer = objectSerializationContext.ValueSerializers[3];
+            serializer = serializers[3];
             serializer.Serialize(actual.J, buffer, offset);
             offset += serializer.GetSizeFromValue(actual.J);
 
             // Serialize inner.
-            serializer = objectSerializationContext.ValueSerializers[4];
+            serializer = serializers[4];
             
             if (actual.Inner == null)
             {
@@ -325,89 +328,128 @@ namespace Fracture.Net.Serialization.Generation
             }
         }
 
-        private static DynamicDeserializeDelegate CompileDynamicDeserializeDelegate(in ObjectSerializationProgram program)
+        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationProgram program)
         {
-            var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
-                                            typeof(object), 
-                                            new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
-                                            true);
-            
-            var il = builder.GetILGenerator();
-            
-            return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
+            // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
+            //                                 typeof(object), 
+            //                                 new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
+            //                                 true);
+            //
+            // var il = builder.GetILGenerator();
+            //
+            // return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
+            return delegate
+            {
+                return null;
+            };
         }
 
-        private static DynamicSerializeDelegate CompileDynamicSerializeDelegate(in ObjectSerializationProgram program)
+        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationProgram program)
         {
             var builder = new DynamicMethod($"Serialize{program.Type.Name}", 
                                             typeof(void), 
-                                            new [] { typeof(ObjectSerializationContext), typeof(object), typeof(byte[]), typeof(int) }, 
+                                            new []
+                                            {
+                                                typeof(ObjectSerializationContext), // Argument 0.
+                                                typeof(object),                     // Argument 1.
+                                                typeof(byte[]),                     // Argument 2.
+                                                typeof(int)                         // Argument 3.
+                                            }, 
                                             true);
             
             var il = builder.GetILGenerator();
             
             // Declare locals.
-            var localType       = il.DeclareLocal(program.Type);            // Type we are serializing.
-            var localSerializer = il.DeclareLocal(typeof(ValueSerializer)); // Local for storing the current serializer.
-            var localV2         = il.DeclareLocal(typeof(bool));            // For possible null checks.
+            il.DeclareLocal(program.Type);                           // Local 0: type we are serializing.
+            il.DeclareLocal(typeof(IReadOnlyList<ValueSerializer>)); // Local 1: serializers.
+            il.DeclareLocal(typeof(ValueSerializer));                // Local 2: local for storing the current serializer.
+            il.DeclareLocal(typeof(bool));                           // Local 3: for possible null checks.
             
             // Cast value to actual value.
-            il.Emit(OpCodes.Ldarg_1);
-            il.Emit(program.Type.IsClass ? OpCodes.Castclass : OpCodes.Unbox, program.Type);
-            il.Emit(OpCodes.Stloc_0);
+            il.Emit(OpCodes.Ldarg_1);                                                        // Push argument 'value' to stack.
+            il.Emit(program.Type.IsClass ? OpCodes.Castclass : OpCodes.Unbox, program.Type); // Cast or unbox top of stack.
+            il.Emit(OpCodes.Stloc_0);                                                        // Store cast results from stack to local variable at index 0.
             
-            // Load value serializers to local and get initial serializer.
-            il.Emit(OpCodes.Ldarg_S, 0);
-            il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty("ValueSerializers")!.GetMethod);
-
+            // Get serializers to local.
+            il.Emit(OpCodes.Ldarg_0);                                                                          
+            // Push serializers to stack.
+            il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext.ValueSerializers))!.GetMethod); 
+            // Store serializers to local.
+            il.Emit(OpCodes.Stloc_1);
+            
             // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
             for (var i = 0; i < program.Ops.Count; i++)
             {
                 var op = program.Ops[i];
 
-                // Check if the value can be null and serialize null if the value is null.
+                // TODO: Check if the value can be null and serialize null if the value is null.
                 
-                // Get next serializer.
-                il.Emit(OpCodes.Ldc_I4_0);
+                // Load local 'serializers' to stack.
+                il.Emit(OpCodes.Ldloc_1);
+                // Get current value serializer, push current serializer index to stack.
+                il.Emit(OpCodes.Ldc_I4, i);
+                // Push serializer at index to stack.
                 il.Emit(OpCodes.Callvirt, typeof(IReadOnlyList<ValueSerializer>).GetProperties().First(p => p.GetIndexParameters().Length != 0).GetMethod);
-                il.Emit(OpCodes.Stloc_1);
+                // Store current serializer to local.
+                il.Emit(OpCodes.Stloc_2); 
 
                 switch (op)
                 {
                     case SerializationFieldOp sfop:
-                        // Emit serialize field.
-                        il.Emit(OpCodes.Ldloc_1);
-                        il.Emit(OpCodes.Ldloc_0);
-                        il.Emit(OpCodes.Ldfld, sfop.Value.Field);
-                        il.Emit(OpCodes.Box, sfop.Value.Type);
-                        il.Emit(OpCodes.Ldarg_2);
-                        il.Emit(OpCodes.Ldarg_3);
-                        il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod("Serialize")!);
+                        // Serialize field, push 'serializer' to stack from local.
+                        il.Emit(OpCodes.Ldloc_2);    
+                        // Push 'actual' to stack from local.
+                        il.Emit(OpCodes.Ldloc_0);                                                                       
+                        // Push serialization value to stack.
+                        il.Emit(OpCodes.Ldfld, sfop.Value.Field);                                                       
+                        // Box serialization value.
+                        il.Emit(OpCodes.Box, sfop.Value.Type);                                                          
+                        // Push 'buffer' to stack.
+                        il.Emit(OpCodes.Ldarg_2);                                                                       
+                        // Push 'offset' to stack.
+                        il.Emit(OpCodes.Ldarg_3);                                                                       
+                        // Call serialize.
+                        il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!); 
                         
                         if (i + 1 < program.Ops.Count)
                         {
-                            // Add last value serialized to the offset.
-                            il.Emit(OpCodes.Ldarg_3);
-                            il.Emit(OpCodes.Ldloc_1);
-                            il.Emit(OpCodes.Ldloc_0);
-                            il.Emit(OpCodes.Ldfld, sfop.Value.Field);
-                            il.Emit(OpCodes.Box, sfop.Value.Type);
-                            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod("GetSizeFromValue")!);
-                            il.Emit(OpCodes.Add);
-                            il.Emit(OpCodes.Starg_S, 3);
-                            
-                            // TODO: continue from IL_003d: starg.s offset - line 49
+                            // Add last value serialized to the offset, push 'offset' to stack.
+                            il.Emit(OpCodes.Ldarg_3);                                                          
+                            // Push 'serializer' to stack.
+                            il.Emit(OpCodes.Ldloc_2);                                                          
+                            // Push 'actual' to stack.
+                            il.Emit(OpCodes.Ldloc_0);                                                          
+                            // Push last serialization value to stack.
+                            il.Emit(OpCodes.Ldfld, sfop.Value.Field);                                          
+                            // Box serialization value.
+                            il.Emit(OpCodes.Box, sfop.Value.Type);                                             
+                            // Call 'GetSizeFromValue', push size to stack.
+                            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.GetSizeFromValue))!); 
+                            // Add offset + size.
+                            il.Emit(OpCodes.Add);                                                              
+                            // Store current offset to argument 'offset'.
+                            il.Emit(OpCodes.Starg_S, 3);                                                       
                         }
                         break;
                     case SerializationPropertyOp spop:
+                        // TODO: handle properties.
                         break;
                     default:
                         throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
-                                                            $"{program.Type.Name}: {op.ToString()}");
+                                                            $"{program.Type.Name}: {op}");
                 }
             }
-
-            return (DynamicSerializeDelegate)builder.CreateDelegate(typeof(DynamicSerializeDelegate));
+            
+            il.Emit(OpCodes.Ret);
+            
+            try
+            {
+                return (DynamicSerializeDelegate)builder.CreateDelegate(typeof(DynamicSerializeDelegate));
+            } 
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
     }
 }

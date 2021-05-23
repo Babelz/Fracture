@@ -38,7 +38,7 @@ namespace Fracture.Net.Serialization
 
             base.Serialize(null, buffer, offset);
             
-            ByteUtils.WriteByte(0, buffer, offset);
+            MemoryMapper.WriteByte(0, buffer, offset);
         }
 
         /// <summary>

@@ -38,7 +38,7 @@ namespace Fracture.Net.Serialization
             offset += Protocol.Message.Field.ContentSize.Size;
 
             // Write the actual data of the string.
-            ByteUtils.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
+            MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
         }
         
         /// <summary>
@@ -63,7 +63,7 @@ namespace Fracture.Net.Serialization
         /// field size header size.
         /// </summary>
         public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(ByteUtils.ReadUshort(buffer, offset) + Protocol.Message.Field.ContentSize.Size);
+            => (ushort)(MemoryMapper.ReadUshort(buffer, offset) + Protocol.Message.Field.ContentSize.Size);
 
         /// <summary>
         /// Returns size of the string from the value. This consists of the actual string length and the dynamic
@@ -94,7 +94,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteChar((char)value, buffer, offset);
+            MemoryMapper.WriteChar((char)value, buffer, offset);
         }
         
         /// <summary>
@@ -105,7 +105,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadChar(buffer, offset);
+            return MemoryMapper.ReadChar(buffer, offset);
         }
 
         /// <summary>

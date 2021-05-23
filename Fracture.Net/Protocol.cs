@@ -54,11 +54,11 @@ namespace Fracture.Net
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ProtocolHeader<ushort> Ushort()
-            => new ProtocolHeader<ushort>(ByteUtils.WriteUshort, ByteUtils.ReadUshort);
+            => new ProtocolHeader<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ProtocolHeader<uint> Uint()
-            => new ProtocolHeader<uint>(ByteUtils.WriteUint, ByteUtils.ReadUint);  
+            => new ProtocolHeader<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
     }
 
     /// <summary>

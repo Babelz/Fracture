@@ -69,7 +69,7 @@
         <Compile Include="Events\KeyEventScheduler.cs" />
         <Compile Include="Events\ScheduledEvent.cs" />
         <Compile Include="Exceptions.cs" />
-        <Compile Include="Memory\ByteUtils.cs" />
+        <Compile Include="Memory\MemoryMapper.cs" />
         <Compile Include="Memory\IClearable.cs" />
         <Compile Include="Memory\ICloneable.cs" />
         <Compile Include="Memory\ICopyable.cs" />

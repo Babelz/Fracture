@@ -23,7 +23,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteShort((short)value, buffer, offset);
+            MemoryMapper.WriteShort((short)value, buffer, offset);
         }
         
         /// <summary>
@@ -34,7 +34,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadShort(buffer, offset);
+            return MemoryMapper.ReadShort(buffer, offset);
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Fracture.Net.Serialization
         {
             base.Serialize(value, buffer, offset);
             
-            ByteUtils.WriteUshort((ushort)value, buffer, offset);
+            MemoryMapper.WriteUshort((ushort)value, buffer, offset);
         }
         
         /// <summary>
@@ -81,7 +81,7 @@ namespace Fracture.Net.Serialization
         {
             base.Deserialize(buffer, offset);
             
-            return ByteUtils.ReadUshort(buffer, offset);
+            return MemoryMapper.ReadUshort(buffer, offset);
         }
 
         /// <summary>

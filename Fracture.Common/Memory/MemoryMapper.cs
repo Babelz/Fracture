@@ -8,7 +8,7 @@ namespace Fracture.Common.Memory
     /// <summary>
     /// Unsafe utility class for writing and reading primitive values from byte arrays.
     /// </summary>
-    public static unsafe class ByteUtils
+    public static unsafe class MemoryMapper
     {
         #region Constant fields
         // After what amount of bytes Array.Copy will be faster than using SIMD.
