@@ -221,7 +221,7 @@ namespace Fracture.Net.Tests.Serialization
         
         [Theory()]
         [MemberData(nameof(DataSource.Serializes_To_Buffer_Correctly_Data_Source), MemberType = typeof(DataSource))]
-        public void Serializes_To_Buffer_Correctly(ValueSerializer serializer, 
+        public void Serializes_To_Buffer_Correctly(IValueSerializer serializer, 
                                                    object value, 
                                                    byte[] serializationBuffer, 
                                                    byte[] expectedSerializedBytes)
@@ -233,7 +233,7 @@ namespace Fracture.Net.Tests.Serialization
 
         [Theory()]
         [MemberData(nameof(DataSource.Deserializes_To_Value_Correctly_Data_Source), MemberType = typeof(DataSource))]
-        public void Deserializes_To_Value_Correctly(ValueSerializer serializer, 
+        public void Deserializes_To_Value_Correctly(IValueSerializer serializer, 
                                                     byte[] serializedBytes, 
                                                     object expectedValue)
         {
@@ -244,79 +244,16 @@ namespace Fracture.Net.Tests.Serialization
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Size_From_Value_Data_Source), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Value(ValueSerializer serializer, object value, ushort expectedSize)
+        public void Test_Size_From_Value(IValueSerializer serializer, object value, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromValue(value));
         }
         
         [Theory()]
         [MemberData(nameof(DataSource.Test_Size_From_Buffer_Data_Source), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Buffer(ValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
+        public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));
-        }
-    }
-    
-    [Trait("Category", "Serialization")]
-    public sealed class ValueSerializerBoundCheckTests
-    {
-        #region Data source
-        private static class DataSource
-        {
-            #region Properties
-            public static IEnumerable<object[]> Test_Serializers_Source => new []
-            {
-                new object[] { new SbyteSerializer() },
-                new object[] { new ByteSerializer() },
-                new object[] { new ShortSerializer() },
-                new object[] { new UshortSerializer() },
-                new object[] { new IntSerializer() },
-                new object[] { new UintSerializer() },
-                new object[] { new FloatSerializer() },
-                new object[] { new DoubleSerializer() },
-                new object[] { new StringSerializer() },
-                new object[] { new CharSerializer(), },
-                new object[] { new LongSerializer() },
-                new object[] { new UlongSerializer() },
-                new object[] { new NullSerializer() },
-                new object[] { new BoolSerializer() },
-                new object[] { new DateTimeSerializer() },
-                new object[] { new TimeSpanSerializer() }
-            };
-            #endregion
-        }
-        #endregion
-        
-        public ValueSerializerBoundCheckTests()
-        {
-        }
-        
-        [Theory()]
-        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Serialize_Throws_On_Buffer_Overflow(ValueSerializer serializer)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[16], 32));
-        }
-        
-        [Theory()]
-        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Deserialize_Throws_On_Buffer_Overflow(ValueSerializer serializer)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[8], 16));
-        }
-        
-        [Theory()]
-        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Serialize_Throws_On_Buffer_Underflow(ValueSerializer serializer)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Serialize(null, new byte[4], -20));
-        }
-        
-        [Theory()]
-        [MemberData(nameof(DataSource.Test_Serializers_Source), MemberType = typeof(DataSource))]
-        public void Deserialize_Throws_On_Buffer_Underflow(ValueSerializer serializer)
-        {
-            Assert.Throws<ArgumentOutOfRangeException>(() => serializer.Deserialize(new byte[5], -15));
         }
     }
 }

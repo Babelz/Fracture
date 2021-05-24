@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Fracture.Common.Memory;
@@ -8,26 +9,26 @@ namespace Fracture.Net
     /// <summary>
     /// Generic delegate for wrapping write calls to buffer.
     /// </summary>
-    public delegate void ProtocolHeaderWriteDelegate<in T>(T value, byte[] buffer, int offset);
+    public delegate void ProtocolLabelWriteDelegate<in T>(T value, byte[] buffer, int offset);
                   
     /// <summary>
     /// Generic delegate for wrapping read calls to buffer.
     /// </summary>
-    public delegate T ProtocolHeaderReadDelegate<out T>(byte[] buffer, int offset);
+    public delegate T ProtocolLabelReadDelegate<out T>(byte[] buffer, int offset);
     
     /// <summary>
-    /// Class providing generic wrapper for protocol header fields such as message type id and size fields.
+    /// Class providing generic wrapper for protocol labels such as message type id and size fields.
     /// </summary>
-    public sealed class ProtocolHeader<T>
+    public sealed class ProtocolLabel<T>
     {
         #region Fields
-        private readonly ProtocolHeaderReadDelegate<T> read;
-        private readonly ProtocolHeaderWriteDelegate<T> write;
+        private readonly ProtocolLabelReadDelegate<T> read;
+        private readonly ProtocolLabelWriteDelegate<T> write;
         #endregion
         
         #region Properties
         /// <summary>
-        /// Gets the size of the header inside a message buffer.
+        /// Gets the size of the label inside a message buffer.
         /// </summary>
         public ushort Size
         {
@@ -35,7 +36,7 @@ namespace Fracture.Net
         }
         #endregion
 
-        public ProtocolHeader(ProtocolHeaderWriteDelegate<T> write, ProtocolHeaderReadDelegate<T> read)
+        public ProtocolLabel(ProtocolLabelWriteDelegate<T> write, ProtocolLabelReadDelegate<T> read)
         {
             Size = (ushort)Marshal.SizeOf<T>();
             
@@ -50,48 +51,60 @@ namespace Fracture.Net
             => read(buffer, offset);
     }
     
-    public static class ProtocolHeader
-    {
+    public static class ProtocolLabel
+    {        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolHeader<ushort> Ushort()
-            => new ProtocolHeader<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
+        public static ProtocolLabel<byte> Byte()
+            => new ProtocolLabel<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);  
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolHeader<uint> Uint()
-            => new ProtocolHeader<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
+        public static ProtocolLabel<ushort> Ushort()
+            => new ProtocolLabel<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ProtocolLabel<uint> Uint()
+            => new ProtocolLabel<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
     }
 
     /// <summary>
-    /// Static utility class containing protocol specific constants and functions.
+    /// Static utility class containing serialization protocol specific constants and functions.
     /// </summary>
     public static class Protocol
     {
-        public static class Message
+        /// <summary>
+        /// Static class containing object specific labels.
+        /// </summary>
+        public static class Object
         {
-            #region Constants
+            #region Static fields
             /// <summary>
-            /// Size of the whole message.
+            /// Label denoting the type id of the object.
             /// </summary>
-            public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeader.Ushort();
+            public static readonly ProtocolLabel<ushort> TypeId = ProtocolLabel.Ushort();
             
             /// <summary>
-            /// Size of the type id of the message.
+            /// Label denoting the size of the whole header.
             /// </summary>
-            public static readonly ProtocolHeader<ushort> TypeId = ProtocolHeader.Ushort();
+            public static readonly ProtocolLabel<ushort> ContentSize = ProtocolLabel.Ushort();
             #endregion
-            
-            public static class Field
-            {
-                /// <summary>
-                /// Length of the field if the field size can vary.
-                /// </summary>
-                public static readonly ProtocolHeader<ushort> ContentSize = ProtocolHeader.Ushort();
+        }
+        
+        /// <summary>
+        /// Static class containing value specific protocol labels.
+        /// </summary>
+        public static class Value
+        {
+            #region Static fields
+            /// <summary>
+            /// Label denoting the dynamic content size of the field if the field size is varying.
+            /// </summary>
+            public static readonly ProtocolLabel<ushort> ContentSize = ProtocolLabel.Ushort();
                 
-                /// <summary>
-                /// Size of the type specialization id for the field if it has any. 
-                /// </summary>
-                public static readonly ProtocolHeader<ushort> TypeSpecializationId = ProtocolHeader.Ushort();
-            }
+            /// <summary>
+            /// Label denoting the type specialization id of the field if the type is specialized run type. 
+            /// </summary>
+            public static readonly ProtocolLabel<ushort> TypeSpecializationId = ProtocolLabel.Ushort();
+            #endregion
         }
     }
 }

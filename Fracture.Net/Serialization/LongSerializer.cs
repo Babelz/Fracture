@@ -6,23 +6,20 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="long"/>.
     /// </summary>
-    public sealed class LongSerializer : ValueSerializer
+    public sealed class LongSerializer : IValueSerializer
     {
         public LongSerializer()
-            : base(SerializationType.Long)
         {
         }
         
-        public override bool SupportsType(Type type)
+        public bool SupportsType(Type type)
             => type == typeof(long);
         
         /// <summary>
         /// Writes given int64 value to given buffer beginning at given offset.
         /// </summary>
-        public override void Serialize(object value, byte[] buffer, int offset)
+        public void Serialize(object value, byte[] buffer, int offset)
         {
-            base.Serialize(value, buffer, offset);
-            
             MemoryMapper.WriteLong((long)value, buffer, offset);
         }
         
@@ -30,46 +27,41 @@ namespace Fracture.Net.Serialization
         /// Reads next 8-bytes from given buffer beginning at given offset as int32
         /// and returns that value to the caller.
         /// </summary>
-        public override object Deserialize(byte[] buffer, int offset)
+        public object Deserialize(byte[] buffer, int offset)
         {
-            base.Deserialize(buffer, offset);
-            
             return MemoryMapper.ReadLong(buffer, offset);
         }
 
         /// <summary>
         /// Returns size of int64, should always be 8-bytes.
         /// </summary>
-        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(long);
         
         /// <summary>
         /// Returns size of int64, should always be 8-bytes.
         /// </summary>
-        public override ushort GetSizeFromValue(object value)
+        public ushort GetSizeFromValue(object value)
             => sizeof(long);
     }
     
     /// <summary>
     /// Value serializer that provides serialization for <see cref="ulong"/>.
     /// </summary>
-    public sealed class UlongSerializer : ValueSerializer
+    public sealed class UlongSerializer : IValueSerializer
     {
         public UlongSerializer()
-            : base(SerializationType.Ulong)
         {
         }
         
-        public override bool SupportsType(Type type)
+        public bool SupportsType(Type type)
             => type == typeof(ulong);
         
         /// <summary>
         /// Writes given uint64 value to given buffer beginning at given offset.
         /// </summary>
-        public override void Serialize(object value, byte[] buffer, int offset)
+        public void Serialize(object value, byte[] buffer, int offset)
         {
-            base.Serialize(value, buffer, offset);
-            
             MemoryMapper.WriteUlong((ulong)value, buffer, offset);
         }
         
@@ -77,23 +69,21 @@ namespace Fracture.Net.Serialization
         /// Reads next 8-bytes from given buffer beginning at given offset as uint32
         /// and returns that value to the caller.
         /// </summary>
-        public override object Deserialize(byte[] buffer, int offset)
+        public object Deserialize(byte[] buffer, int offset)
         {
-            base.Deserialize(buffer, offset);
-            
             return MemoryMapper.ReadUlong(buffer, offset);
         }
 
         /// <summary>
         /// Returns size of uint64, should always be 8-bytes.
         /// </summary>
-        public override ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(ulong);
         
         /// <summary>
         /// Returns size of uint64, should always be 8-bytes.
         /// </summary>
-        public override ushort GetSizeFromValue(object value)
+        public ushort GetSizeFromValue(object value)
             => sizeof(ulong);
     }
 }

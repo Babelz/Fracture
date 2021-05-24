@@ -19,7 +19,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Gets the null serializer for serializing nullable and null values.
         /// </summary>
-        public ValueSerializer NullSerializer
+        public IValueSerializer NullSerializer
         {
             get;
         }
@@ -27,14 +27,14 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Gets the value serializers for the type.
         /// </summary>
-        public IReadOnlyList<ValueSerializer> ValueSerializers
+        public IReadOnlyList<IValueSerializer> ValueSerializers
         {
             get;
         }
         #endregion
 
-        public ObjectSerializationContext(ValueSerializer nullSerializer, 
-                                          IReadOnlyList<ValueSerializer> valueSerializers)
+        public ObjectSerializationContext(IValueSerializer nullSerializer, 
+                                          IReadOnlyList<IValueSerializer> valueSerializers)
         {
             NullSerializer   = nullSerializer ?? throw new ArgumentNullException(nameof(nullSerializer));
             ValueSerializers = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
@@ -250,9 +250,9 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Returns list containing all value serializers that this program uses.
         /// </summary>
-        public IReadOnlyList<ValueSerializer> GetProgramSerializers()
+        public IReadOnlyList<IValueSerializer> GetProgramSerializers()
         {
-            var serializers = new List<ValueSerializer>();
+            var serializers = new List<IValueSerializer>();
             
             foreach (var op in Ops)
             {
@@ -260,14 +260,14 @@ namespace Fracture.Net.Serialization.Generation
                 {
                     case ParametrizedActivationOp paop:
                         serializers.AddRange(
-                            paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForRunType(p.Type))
+                            paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForType(p.Type))
                         );
                         break;
                     case SerializationFieldOp sfop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(sfop.Value.Type));
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForType(sfop.Value.Type));
                         break;
                     case SerializationPropertyOp spop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForRunType(spop.Value.Type));
+                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForType(spop.Value.Type));
                         break;
                     default:
                         continue;
@@ -407,15 +407,15 @@ namespace Fracture.Net.Serialization.Generation
             var il = dynamicMethod.GetILGenerator();
             
             // Load local 'serializers' to stack.
-            il.Emit(OpCodes.Ldloc, locals[typeof(IReadOnlyList<ValueSerializer>)]);
+            il.Emit(OpCodes.Ldloc, locals[typeof(IReadOnlyList<IValueSerializer>)]);
             // Get current value serializer, push current serializer index to stack.
             il.Emit(OpCodes.Ldc_I4, serializationValueIndex);
             // Push serializer at index to stack.
-            il.Emit(OpCodes.Callvirt, typeof(IReadOnlyList<ValueSerializer>).GetProperties().First(p => p.GetIndexParameters().Length != 0).GetMethod);
+            il.Emit(OpCodes.Callvirt, typeof(IReadOnlyList<IValueSerializer>).GetProperties().First(p => p.GetIndexParameters().Length != 0).GetMethod);
             // Store current serializer to local.
-            il.Emit(OpCodes.Stloc, locals[typeof(ValueSerializer)]); 
+            il.Emit(OpCodes.Stloc, locals[typeof(IValueSerializer)]); 
             // Serialize field, push 'serializer' to stack from local.
-            il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);
+            il.Emit(OpCodes.Ldloc, locals[typeof(IValueSerializer)]);
         }
         
         /// <summary>
@@ -433,7 +433,7 @@ namespace Fracture.Net.Serialization.Generation
             // Add last value serialized to the offset, push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                          
             // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);                                                          
+            il.Emit(OpCodes.Ldloc, locals[typeof(IValueSerializer)]);                                                          
             // Push 'actual' to stack.
             il.Emit(OpCodes.Ldloc, locals[serializationType]);                                                          
             // Push last serialization value to stack.
@@ -441,7 +441,7 @@ namespace Fracture.Net.Serialization.Generation
             // Box serialization value.
             il.Emit(OpCodes.Box, op.Value.Type);                                             
             // Call 'GetSizeFromValue', push size to stack.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.GetSizeFromValue))!); 
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!); 
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
@@ -463,7 +463,7 @@ namespace Fracture.Net.Serialization.Generation
             // Add last value serialized to the offset, push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                          
             // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc, locals[typeof(ValueSerializer)]);                                                          
+            il.Emit(OpCodes.Ldloc, locals[typeof(IValueSerializer)]);                                                          
             // Push 'actual' to stack.
             il.Emit(OpCodes.Ldloc, locals[serializationType]);                                                          
             // Push last serialization value to stack.
@@ -471,7 +471,7 @@ namespace Fracture.Net.Serialization.Generation
             // Box serialization value.
             il.Emit(OpCodes.Box, op.Value.Type);                                             
             // Call 'GetSizeFromValue', push size to stack.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.GetSizeFromValue))!); 
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!); 
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
@@ -543,7 +543,7 @@ namespace Fracture.Net.Serialization.Generation
             // Push argument 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);
             // Serialize the value.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
         }
 
         /// <summary>
@@ -569,7 +569,7 @@ namespace Fracture.Net.Serialization.Generation
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                                       
             // Call serialize.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
             
             EmitIncrementFieldSerializationOffset(op, serializationValueIndex, serializationValueCount);
         }
@@ -607,7 +607,7 @@ namespace Fracture.Net.Serialization.Generation
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                                       
             // Call serialize.
-            il.Emit(OpCodes.Callvirt, typeof(ValueSerializer).GetMethod(nameof(ValueSerializer.Serialize))!);
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
             
             EmitIncrementPropertySerializationOffset(op, serializationValueIndex, serializationValueCount);
         }
@@ -628,9 +628,9 @@ namespace Fracture.Net.Serialization.Generation
             // Local 0: type we are serializing, create common locals for serialization. These are required across all serialization emit functions.
             locals.Add(serializationType, il.DeclareLocal(serializationType));                                     
             // Local 1: serializers.
-            locals.Add(typeof(IReadOnlyList<ValueSerializer>), il.DeclareLocal(typeof(IReadOnlyList<ValueSerializer>))); 
+            locals.Add(typeof(IReadOnlyList<IValueSerializer>), il.DeclareLocal(typeof(IReadOnlyList<IValueSerializer>))); 
             // Local 2: local for storing the current serializer.
-            locals.Add(typeof(ValueSerializer), il.DeclareLocal(typeof(ValueSerializer)));                               
+            locals.Add(typeof(IValueSerializer), il.DeclareLocal(typeof(IValueSerializer)));                               
             // Local 3: for possible null checks.
             locals.Add(typeof(bool), il.DeclareLocal(typeof(bool)));                                                     
             
@@ -646,7 +646,7 @@ namespace Fracture.Net.Serialization.Generation
             // Push serializers to stack.
             il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext.ValueSerializers))!.GetMethod); 
             // Store serializers to local.
-            il.Emit(OpCodes.Stloc, locals[typeof(IReadOnlyList<ValueSerializer>)]);
+            il.Emit(OpCodes.Stloc, locals[typeof(IReadOnlyList<IValueSerializer>)]);
         }
         
         /// <summary>
@@ -692,7 +692,7 @@ namespace Fracture.Net.Serialization.Generation
             var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.SerializeProgram);
             
             return new DynamicObjectSerializer(
-                new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForRunType(null),
+                new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForType(null),
                                                program.SerializeProgram.GetProgramSerializers()),
                 dynamicSerializeDelegate,
                 dynamicDeserializeDelegate,
