@@ -17,13 +17,21 @@ namespace Fracture.Net.Serialization.Generation
     {
         #region Properties
         /// <summary>
-        /// Gets the null serializer for serializing nullable and null values.
+        /// Gets the count of nullable fields in this serialization context.
         /// </summary>
-        public IValueSerializer NullSerializer
+        public int NullableFieldsCount
         {
             get;
         }
-
+        
+        /// <summary>
+        /// Offset to value serializers index where the first nullable field is at.
+        /// </summary>
+        public int NullableFieldsOffset
+        {
+            get;
+        }
+        
         /// <summary>
         /// Gets the value serializers for the type.
         /// </summary>
@@ -33,11 +41,11 @@ namespace Fracture.Net.Serialization.Generation
         }
         #endregion
 
-        public ObjectSerializationContext(IValueSerializer nullSerializer, 
-                                          IReadOnlyList<IValueSerializer> valueSerializers)
+        public ObjectSerializationContext(IReadOnlyList<IValueSerializer> valueSerializers, int nullableFieldsCount, int nullableFieldsOffset)
         {
-            NullSerializer   = nullSerializer ?? throw new ArgumentNullException(nameof(nullSerializer));
-            ValueSerializers = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
+            ValueSerializers     = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
+            NullableFieldsCount  = nullableFieldsCount;
+            NullableFieldsOffset = nullableFieldsOffset;
         }
     }
     
@@ -57,9 +65,9 @@ namespace Fracture.Net.Serialization.Generation
     public delegate ushort DynamicGetSizeFromValueDelegate(in ObjectSerializationContext context, object value);
     
     /// <summary>
-    /// Class that wraps dynamic serialization for single type and provides serialization.
+    /// Class that wraps dynamic serialization context for single type and provides serialization.
     /// </summary>
-    public sealed class DynamicObjectSerializer 
+    public sealed class ObjectSerializer 
     {
         #region Fields
         private readonly ObjectSerializationContext context; 
@@ -68,10 +76,10 @@ namespace Fracture.Net.Serialization.Generation
         private readonly DynamicGetSizeFromValueDelegate getSizeFromValue;
         #endregion
 
-        public DynamicObjectSerializer(in ObjectSerializationContext context, 
-                                       DynamicSerializeDelegate serialize,
-                                       DynamicDeserializeDelegate deserialize,
-                                       DynamicGetSizeFromValueDelegate getSizeFromValue)
+        public ObjectSerializer(in ObjectSerializationContext context, 
+                                DynamicSerializeDelegate serialize,
+                                DynamicDeserializeDelegate deserialize,
+                                DynamicGetSizeFromValueDelegate getSizeFromValue)
         {
             this.context          = context;
             this.serialize        = serialize ?? throw new ArgumentNullException(nameof(serialize));
@@ -218,10 +226,9 @@ namespace Fracture.Net.Serialization.Generation
     }
 
     /// <summary>
-    /// Structure that represents a serialization program for specific type. Information used in this structure can be used for generating dynamic serializers
-    /// for objects. 
+    /// Structure that represents full serialization program. This structure contains instructions for generating both the serialize and deserialize functions.
     /// </summary>
-    public readonly struct ObjectSerializationProgram
+    public readonly struct ObjectSerializerProgram
     {
         #region Properties
         /// <summary>
@@ -233,89 +240,66 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
-        /// Gets the instruction list for this program. Dynamic serializers are generated based on these instructions. 
+        /// Gets the ops for generating serialize function.
         /// </summary>
-        public IReadOnlyList<ISerializationOp> Ops
+        public IReadOnlyList<ISerializationOp> SerializationOps
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the ops for generating deserialization function.
+        /// </summary>
+        public IReadOnlyList<ISerializationOp> DeserializationOps
+        {
+            get;
+        }
+        
+        /// <summary>
+        /// Gets the program serializers for the program.
+        /// </summary>
+        public IReadOnlyList<IValueSerializer> Serializers
         {
             get;
         }
         #endregion
 
-        public ObjectSerializationProgram(Type type, IReadOnlyList<ISerializationOp> ops)
+        public ObjectSerializerProgram(Type type, IEnumerable<ISerializationOp> serializationOps, IEnumerable<ISerializationOp> deserializationOps)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
-            Ops  = ops ?? throw new ArgumentNullException(nameof(ops));
-        }
-        
-        /// <summary>
-        /// Returns list containing all value serializers that this program uses.
-        /// </summary>
-        public IReadOnlyList<IValueSerializer> GetProgramSerializers()
-        {
-            var serializers = new List<IValueSerializer>();
+            Type               = type ?? throw new ArgumentNullException(nameof(type));
+            SerializationOps   = serializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(serializationOps));
+            DeserializationOps = deserializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(deserializationOps));
+
+            var serializationOpsSerializers   = GetOpSerializers(SerializationOps);
+            var deserializationOpsSerializers = GetOpSerializers(DeserializationOps);
             
-            foreach (var op in Ops)
+            Serializers = serializationOpsSerializers.Intersect(deserializationOpsSerializers).ToList();
+            
+            if (Serializers.Count != SerializationOps.Count) 
+                throw new InvalidOperationException($"serialization programs for type \"{Type.Name}\" have different count of value serializers");
+        }   
+        
+        public static IEnumerable<IValueSerializer> GetOpSerializers(IEnumerable<ISerializationOp> ops)
+        {
+            foreach (var op in ops)
             {
                 switch (op)
                 {
                     case ParametrizedActivationOp paop:
-                        serializers.AddRange(
-                            paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForType(p.Type))
-                        );
+                        foreach (var serializer in paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForType(p.Type)))
+                            yield return serializer;
                         break;
                     case SerializationFieldOp sfop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForType(sfop.Value.Type));
+                        yield return ValueSerializerRegistry.GetValueSerializerForType(sfop.Value.Type);
                         break;
                     case SerializationPropertyOp spop:
-                        serializers.Add(ValueSerializerRegistry.GetValueSerializerForType(spop.Value.Type));
+                        yield return ValueSerializerRegistry.GetValueSerializerForType(spop.Value.Type);
                         break;
                     default:
                         continue;
                 }
             }
-            
-            return serializers.AsReadOnly();
         }
-    }
-    
-    /// <summary>
-    /// Structure that represents full serialization program. This structure contains instructions for generating both the serialize and deserialize functions.
-    /// </summary>
-    public readonly struct DynamicObjectSerializerProgram
-    {
-        #region Properties
-        /// <summary>
-        /// Gets the program for generating serialize function.
-        /// </summary>
-        public ObjectSerializationProgram SerializeProgram
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets the program for generating deserialization function.
-        /// </summary>
-        public ObjectSerializationProgram DeserializeProgram
-        {
-            get;
-        }
-        #endregion
-
-        public DynamicObjectSerializerProgram(in ObjectSerializationProgram serializeProgram, in ObjectSerializationProgram deserializeProgram)
-        {
-            SerializeProgram   = serializeProgram;
-            DeserializeProgram = deserializeProgram;
-            
-            if (serializeProgram.Type != deserializeProgram.Type)
-                throw new InvalidOperationException($"serialization program type \"{deserializeProgram.Type.Name}\" and deserialization program type " +
-                                                    $"\"{serializeProgram.Type.Name}\" are different");
-            
-            var serializeProgramSerializers   = serializeProgram.GetProgramSerializers();
-            var deserializeProgramSerializers = deserializeProgram.GetProgramSerializers();
-            
-            if (serializeProgramSerializers.Count != deserializeProgramSerializers.Count) 
-                throw new InvalidOperationException($"serialization programs for type \"{serializeProgram.Type.Name}\" have different count of value serializers");
-        }   
     }
     
     /// <summary>
@@ -327,7 +311,7 @@ namespace Fracture.Net.Serialization.Generation
         /// Compiles deserialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationProgram CompileDeserializeProgram(in ObjectSerializationMapping mapping)
+        public static IEnumerable<ISerializationOp> CompileDeserializationOps(in ObjectSerializationMapping mapping)
         {
             var ops = new List<ISerializationOp>();
             
@@ -338,27 +322,25 @@ namespace Fracture.Net.Serialization.Generation
 
             ops.AddRange(mapping.Values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)));
 
-            return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
+            return ops;
         }
         
         /// <summary>
         /// Compiles serialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationProgram CompileSerializeProgram(in ObjectSerializationMapping mapping)
-        {
-            var values = mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values);
-            var ops    = values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)).ToList();
-            
-            return new ObjectSerializationProgram(mapping.Type, ops.AsReadOnly());
-        }
+        public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
+            => (mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
+                    v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)
+               ).ToList();
+        
         
         /// <summary>
-        /// Compiles both serialization and deserialization instructions from given mappings to <see cref="DynamicObjectSerializerProgram"/>.
+        /// Compiles both serialization and deserialization instructions from given mappings to <see cref="ObjectSerializerProgram"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DynamicObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
-            => new DynamicObjectSerializerProgram(CompileSerializeProgram(mapping), CompileDeserializeProgram(mapping));
+        public static ObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
+            => new ObjectSerializerProgram(mapping.Type, CompileSerializationOps(mapping), CompileDeserializationOps(mapping));
     }
 
     /// <summary>
@@ -517,7 +499,7 @@ namespace Fracture.Net.Serialization.Generation
             // Load serialization context to stack.
             il.Emit(OpCodes.Ldarg_0);
             // Get null serializer and push it to stack.
-            il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext.NullSerializer))!.GetMethod);
+            // il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext))!.GetMethod);
             
             // Jump to serialization.
             var serialize = il.DefineLabel();
@@ -680,20 +662,116 @@ namespace Fracture.Net.Serialization.Generation
         private static readonly Logger log = LogManager.GetCurrentClassLogger();
         #endregion
 
-        public static DynamicObjectSerializer InterpretSerializer(in DynamicObjectSerializerProgram program)
+        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(Type type, IReadOnlyList<ISerializationOp> ops)
+        {
+            // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
+            //                                 typeof(object), 
+            //                                 new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
+            //                                 true);
+            //
+            // var il = builder.GetILGenerator();
+            //
+            // return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
+            return delegate
+            {
+                return null;
+            };
+        }
+        
+        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(Type type, IReadOnlyList<ISerializationOp> ops)
+        {
+            return delegate
+            {
+                return 0;
+            };
+        }
+
+        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(Type type, IReadOnlyList<ISerializationOp> ops)
+        {
+            var builder = new DynamicSerializeDelegateBuilder(type);
+            
+            // Declare locals.
+            builder.EmitLocals();
+            
+            // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
+            for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
+            {
+                var op = ops[serializationValueIndex];
+
+                switch (op)
+                {
+                    case SerializationFieldOp sfop:
+                        if (!sfop.Value.Type.IsValueType) 
+                            builder.EmitSerializeNonValueTypeField(sfop, serializationValueIndex, ops.Count);
+                        else if (sfop.Value.Type == typeof(Nullable<>))
+                            builder.EmitSerializeNullableValueTypeField(sfop, serializationValueIndex, ops.Count);
+                        else
+                            builder.EmitSerializeField(sfop, serializationValueIndex, ops.Count);
+                        break;
+                    case SerializationPropertyOp spop:
+                        if (!spop.Value.Type.IsValueType) 
+                            builder.EmitSerializeNonValueTypeProperty(spop, serializationValueIndex, ops.Count);
+                        else if (spop.Value.Type == typeof(Nullable<>))
+                            builder.EmitSerializeNullableValueTypeProperty(spop, serializationValueIndex, ops.Count);
+                        else
+                            builder.EmitSerializeProperty(spop, serializationValueIndex, ops.Count);
+                        break;
+                    default:
+                        throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
+                                                            $"{type.Name}: {op}");
+                }
+            }
+            
+            return builder.Build();
+        }
+        
+        public static ObjectSerializationContext CreateObjectSerializationContext(IReadOnlyList<ISerializationOp> ops, IReadOnlyList<IValueSerializer> serializers)
+        {
+            var nullableValuesCount  = 0;
+            var nullableValuesOffset = -1;
+            
+            for (var i = 0; i < ops.Count; i++)
+            {
+                var op = ops[i];
+                
+                var serializationType = op switch
+                {
+                    SerializationFieldOp sfop    => sfop.Value.Type,
+                    SerializationPropertyOp spop => spop.Value.Type,
+                    _                            => null
+                };
+                
+                if (serializationType == null)
+                    continue;
+
+                if (serializationType.IsValueType && serializationType != typeof(Nullable<>)) 
+                    continue;
+                
+                if (nullableValuesOffset < 0) 
+                    nullableValuesOffset = i;
+                    
+                nullableValuesCount++;
+            }
+            
+            return new ObjectSerializationContext(serializers, nullableValuesCount, nullableValuesOffset);
+        }
+
+        public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
             // Create dynamic serialization function.
-            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.SerializeProgram);
+            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.Type, program.SerializationOps);
             
             // Create dynamic deserialization function.
-            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(program.DeserializeProgram);
+            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(program.Type, program.DeserializationOps);
             
             // Create dynamic get size function. Instructions from serialize program should be usable when interpreting this function.
-            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.SerializeProgram);
+            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.Type, program.SerializationOps);
             
-            return new DynamicObjectSerializer(
-                new ObjectSerializationContext(ValueSerializerRegistry.GetValueSerializerForType(null),
-                                               program.SerializeProgram.GetProgramSerializers()),
+            // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
+            var objectSerializationContext = CreateObjectSerializationContext(program.SerializationOps, program.Serializers);
+            
+            return new ObjectSerializer(
+                objectSerializationContext,
                 dynamicSerializeDelegate,
                 dynamicDeserializeDelegate,
                 dynamicGetSizeFromValueDelegate
@@ -712,22 +790,6 @@ namespace Fracture.Net.Serialization.Generation
         {
             var actual = (Vector2)value;
             var serializers = objectSerializationContext.ValueSerializers;
-            
-            // Serialize x, y.
-            var serializer = actual.X.HasValue ? serializers[0] : objectSerializationContext.NullSerializer;
-            serializer.Serialize(actual.X, buffer, offset);
-            offset += serializer.GetSizeFromValue(actual.X);
-            
-            serializer = actual.Y.HasValue ? serializers[1] : objectSerializationContext.NullSerializer;
-            serializer.Serialize(actual.Y, buffer, offset);
-            offset += serializer.GetSizeFromValue(actual.Y);
-            
-            serializer = serializers[2];
-            serializer.Serialize(actual.I, buffer, offset);
-            offset += serializer.GetSizeFromValue(actual.I);
-            
-            serializer = serializers[3];
-            serializer.Serialize(actual.J, buffer, offset);
             
             // // Serialize i, j.
             // serializer = serializers[2];
@@ -749,69 +811,6 @@ namespace Fracture.Net.Serialization.Generation
             // {
             //     serializer.Serialize(actual.Inner, buffer, offset);     
             // }
-        }
-        
-        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationProgram program)
-        {
-            // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
-            //                                 typeof(object), 
-            //                                 new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
-            //                                 true);
-            //
-            // var il = builder.GetILGenerator();
-            //
-            // return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
-            return delegate
-            {
-                return null;
-            };
-        }
-        
-        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationProgram program)
-        {
-            return delegate
-            {
-                return 0;
-            };
-        }
-
-        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationProgram program)
-        {
-            var builder = new DynamicSerializeDelegateBuilder(program.Type);
-            
-            // Declare locals.
-            builder.EmitLocals();
-            
-            // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
-            for (var serializationValueIndex = 0; serializationValueIndex < program.Ops.Count; serializationValueIndex++)
-            {
-                var op = program.Ops[serializationValueIndex];
-
-                switch (op)
-                {
-                    case SerializationFieldOp sfop:
-                        if (!sfop.Value.Type.IsValueType) 
-                            builder.EmitSerializeNonValueTypeField(sfop, serializationValueIndex, program.Ops.Count);
-                        else if (sfop.Value.Type == typeof(Nullable<>))
-                            builder.EmitSerializeNullableValueTypeField(sfop, serializationValueIndex, program.Ops.Count);
-                        else
-                            builder.EmitSerializeField(sfop, serializationValueIndex, program.Ops.Count);
-                        break;
-                    case SerializationPropertyOp spop:
-                        if (!spop.Value.Type.IsValueType) 
-                            builder.EmitSerializeNonValueTypeProperty(spop, serializationValueIndex, program.Ops.Count);
-                        else if (spop.Value.Type == typeof(Nullable<>))
-                            builder.EmitSerializeNullableValueTypeProperty(spop, serializationValueIndex, program.Ops.Count);
-                        else
-                            builder.EmitSerializeProperty(spop, serializationValueIndex, program.Ops.Count);
-                        break;
-                    default:
-                        throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
-                                                            $"{program.Type.Name}: {op}");
-                }
-            }
-            
-            return builder.Build();
         }
     }
 }

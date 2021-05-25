@@ -56,12 +56,12 @@
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializerCompiler.cs" />
+        <Compile Include="Serialization\Generation\ObjectSerializerInterpreter.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
         <Compile Include="Serialization\Generation\ObjectTypeSpecializationRegistry.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
         <Compile Include="Serialization\LongSerializer.cs" />
-        <Compile Include="Serialization\NullSerializer.cs" />
+        <Compile Include="Serialization\BitFieldSerializer.cs" />
         <Compile Include="Serialization\ShortSerializer.cs" />
         <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\StructureSerializer.cs" />

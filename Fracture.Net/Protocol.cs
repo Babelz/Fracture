@@ -104,6 +104,11 @@ namespace Fracture.Net
             /// Label denoting the type specialization id of the field if the type is specialized run type. 
             /// </summary>
             public static readonly ProtocolLabel<ushort> TypeSpecializationId = ProtocolLabel.Ushort();
+            
+            /// <summary>
+            /// Label denoting the size of the possible null bit field flags if the field can have null values.
+            /// </summary>
+            public static readonly ProtocolLabel<byte> NullBitFieldSize = ProtocolLabel.Byte(); 
             #endregion
         }
     }

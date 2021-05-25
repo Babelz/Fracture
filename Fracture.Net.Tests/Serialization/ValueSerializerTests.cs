@@ -25,7 +25,6 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new CharSerializer()) },
                 new object[] { new Action(() => new LongSerializer()) },
                 new object[] { new Action(() => new UlongSerializer()) },
-                new object[] { new Action(() => new NullSerializer()) },
                 new object[] { new Action(() => new TimeSpanSerializer()) },
                 new object[] { new Action(() => new DateTimeSerializer()) }
             };
@@ -94,16 +93,6 @@ namespace Fracture.Net.Tests.Serialization
                     new byte[sizeof(ulong)],
                     Enumerable.Repeat((byte)255, 8).ToArray()
                 },
-                new object[] 
-                { 
-                    new NullSerializer(),
-                    null,
-                    new byte[sizeof(byte)],
-                    new byte[]
-                    {
-                        0
-                    }
-                },
                 new object[]
                 {
                     new BoolSerializer(),
@@ -162,7 +151,6 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), new byte[] { 62, 38 }, '☾' },
                 new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray(), long.MaxValue },
                 new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), ulong.MaxValue },
-                new object[] { new NullSerializer(), new byte[] { 0 }, null },
                 new object[] { new BoolSerializer(), new byte[] { 1 }, true },
                 new object[] { new BoolSerializer(), new byte[] { 0 }, false },
                 new object[] { new TimeSpanSerializer(), Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray(), TimeSpan.MaxValue },
@@ -181,7 +169,6 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), 'a', 2 },
                 new object[] { new LongSerializer(), (long)-299918, 8, },
                 new object[] { new UlongSerializer(), (ulong)88277u, 8 },
-                new object[] { new NullSerializer(), null, 1 },
                 new object[] { new BoolSerializer(), true, 1 },
                 new object[] { new TimeSpanSerializer(), TimeSpan.MaxValue, 8 },
                 new object[] { new DateTimeSerializer(), DateTime.MaxValue, 8 }
@@ -199,7 +186,6 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new CharSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
                 new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
                 new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
-                new object[] { new NullSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
                 new object[] { new BoolSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
                 new object[] { new TimeSpanSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 8 },
                 new object[] { new DateTimeSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 8 }
