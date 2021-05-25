@@ -33,10 +33,10 @@ namespace Fracture.Net.Serialization
             => bytes = new byte[length];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int BitIndex(int index) => index % sizeof(byte);
+        private static int BitIndex(int index) => index % BitsInByte;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int ByteIndex(int index) => index / sizeof(byte);
+        private static int ByteIndex(int index) => index / BitsInByte;
         
         /// <summary>
         /// Gets bit value at given index.
@@ -46,7 +46,7 @@ namespace Fracture.Net.Serialization
             var byteIndex = ByteIndex(index);
             var bitIndex  = BitIndex(index);
             
-            return (bytes[byteIndex] & (1 << BitsInByte - bitIndex)) == 1;
+            return (bytes[byteIndex] >> ((BitsInByte - 1) - bitIndex) & 1) == 1;
         }
         
         /// <summary>
@@ -57,7 +57,7 @@ namespace Fracture.Net.Serialization
             var byteIndex = ByteIndex(index);
             var bitIndex  = BitIndex(index);
             
-            bytes[byteIndex] = (byte)(bytes[byteIndex] | (1 << BitsInByte - bitIndex));
+            bytes[byteIndex] = (byte)(bytes[byteIndex] | ((value ? 1 : 0) << (BitsInByte - 1) - bitIndex));
         }
         
         /// <summary>
@@ -76,7 +76,7 @@ namespace Fracture.Net.Serialization
         /// Copies buffer values to bit field beginning from given offset.
         /// </summary>
         public void CopyFrom(byte[] buffer, int offset)
-            => MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
+            => MemoryMapper.VectorizedCopy(buffer, offset, bytes, 0, bytes.Length);
     }
     
     /// <summary>
@@ -95,26 +95,26 @@ namespace Fracture.Net.Serialization
         {
             var actual = (BitField)value;
             
-            Protocol.Value.NullBitFieldSize.Write(checked((byte)buffer.Length), buffer, offset);
+            Protocol.Value.BitFieldSize.Write(checked((byte)actual.Length), buffer, offset);
             
-            actual.CopyTo(buffer, offset + Protocol.Value.NullBitFieldSize.Size);
+            actual.CopyTo(buffer, offset + Protocol.Value.BitFieldSize.Size);
         }
 
         public object Deserialize(byte[] buffer, int offset)
         {
-            var size = Protocol.Value.NullBitFieldSize.Read(buffer, offset);
+            var size = Protocol.Value.BitFieldSize.Read(buffer, offset);
             
             var value = new BitField(size);
             
-            value.CopyFrom(buffer, offset + Protocol.Value.NullBitFieldSize.Size);
+            value.CopyFrom(buffer, offset + Protocol.Value.BitFieldSize.Size);
             
             return value;
         }
 
         public ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => Protocol.Value.NullBitFieldSize.Read(buffer, offset);
+            => Protocol.Value.BitFieldSize.Read(buffer, offset);
 
         public ushort GetSizeFromValue(object value)
-            => (ushort)(Protocol.Value.NullBitFieldSize.Size + ((BitField)value).Length);
+            => (ushort)(Protocol.Value.BitFieldSize.Size + ((BitField)value).Length);
     }
 }
