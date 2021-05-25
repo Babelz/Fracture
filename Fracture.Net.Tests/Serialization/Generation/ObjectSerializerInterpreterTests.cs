@@ -48,6 +48,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
+        private sealed class NullableAndNullFieldTestClass
+        {
+            #region Fields
+            public int? X;
+            public int? Y;
+
+            public int I;
+            public int J;
+            #endregion
+        }
+        
         private sealed class PropertyTestClass
         {
             #region Properties
@@ -96,9 +107,33 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(FieldTestClass), serializationOps);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(FieldTestClass), serializationOps, 0);
             var testObject        = new FieldTestClass() { X = 1500, Y = 37500 };
             var buffer            = new byte[8];
+
+            var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            serializeDelegate(context, testObject, buffer, 0);
+            
+            Assert.Equal(testObject.X, MemoryMapper.ReadInt(buffer, 0));
+            Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, sizeof(int)));
+        }
+        
+        [Fact]
+        public void Should_Serialize_Nullable_Fields()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NullableAndNullFieldTestClass>()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullableAndNullFieldTestClass), serializationOps, 2);
+            var testObject        = new NullableAndNullFieldTestClass() { X = 300, I = 200};
+            var buffer            = new byte[64];
 
             var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
                 serializationOps, 
@@ -120,7 +155,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 0);
             var testObject        = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
             var stringSerializer  = new StringSerializer();
             var buffer            = new byte[64];
@@ -136,7 +171,6 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(int)));
         }
         
-                
         [Fact]
         public void Should_Serialize_Both_Properties_And_Fields()
         {
@@ -147,7 +181,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 0);
             var testObject        = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer            = new byte[64];
             

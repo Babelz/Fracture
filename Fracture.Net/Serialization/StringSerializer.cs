@@ -19,7 +19,7 @@ namespace Fracture.Net.Serialization
         }
         
         public bool SupportsType(Type type)
-            => type == typeof(string);
+            => type == typeof(string); 
         
         /// <summary>
         /// Writes given string value to given buffer beginning at given offset.

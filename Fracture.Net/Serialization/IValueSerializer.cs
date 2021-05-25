@@ -83,6 +83,7 @@ namespace Fracture.Net.Serialization
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IValueSerializer GetValueSerializerForType(Type type)
-            => serializers.First(v => v.SupportsType(type));
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? 
+                   serializers.First(v => v.SupportsType(type.GenericTypeArguments[0])) : serializers.First(v => v.SupportsType(type));
     }
 }
