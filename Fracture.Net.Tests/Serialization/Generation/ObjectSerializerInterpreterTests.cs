@@ -48,7 +48,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        private sealed class NullableAndNullFieldTestClass
+        private sealed class NullableFieldTestClass
         {
             #region Fields
             public int? X;
@@ -96,6 +96,15 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public byte B4;
             #endregion
         }
+        
+        public sealed class NonValueTypeFieldsTest
+        {
+            public string S1;
+            public string S2;
+            public string S3;
+            public int I;
+            public int J;
+        }
         #endregion
 
         [Fact]
@@ -126,13 +135,13 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Nullable_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableAndNullFieldTestClass>()
+                                                   .FromType<NullableFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullableAndNullFieldTestClass), serializationOps, 2);
-            var testObject        = new NullableAndNullFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullableFieldTestClass), serializationOps, 2);
+            var testObject        = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer            = new byte[64];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
@@ -150,6 +159,32 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
             // Field 'J' value.
             Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, sizeof(int) + sizeof(byte) * 2));
+        }
+        
+        [Fact]
+        public void Should_Serialize_Non_Value_Type_Fields()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NonValueTypeFieldsTest>()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypeFieldsTest), serializationOps, 2);
+            var testObject        = new NonValueTypeFieldsTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var buffer            = new byte[128];
+
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            serializeDelegate(context, testObject, buffer, 0);
+            
+            // Null mask size in bytes.
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
+            // Null mask values.
+            Assert.Equal(160, MemoryMapper.ReadByte(buffer, sizeof(byte)));
         }
         
         [Fact]
