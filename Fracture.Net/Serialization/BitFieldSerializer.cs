@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
 
@@ -58,6 +59,11 @@ namespace Fracture.Net.Serialization
             var bitIndex  = BitIndex(index);
             
             bytes[byteIndex] = (byte)(bytes[byteIndex] | ((value ? 1 : 0) << (BitsInByte - 1) - bitIndex));
+            
+            Debug.WriteLine("SET BIT: " + index + " " + value);
+            Debug.WriteLine("BYTE INDEX: " + byteIndex);
+            Debug.WriteLine("BIT INDEX: " + bitIndex);
+            Debug.WriteLine("BYTE VALUE: " + bytes[byteIndex]);
         }
         
         /// <summary>

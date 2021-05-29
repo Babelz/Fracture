@@ -132,7 +132,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullableAndNullFieldTestClass), serializationOps, 2);
-            var testObject        = new NullableAndNullFieldTestClass() { X = 300, I = 200};
+            var testObject        = new NullableAndNullFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer            = new byte[64];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
@@ -142,8 +142,14 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             serializeDelegate(context, testObject, buffer, 0);
             
-            Assert.Equal(testObject.X, MemoryMapper.ReadInt(buffer, 0));
-            Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, sizeof(int)));
+            // Null mask size in bytes.
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
+            // Null mask values.
+            Assert.Equal(192, MemoryMapper.ReadByte(buffer, sizeof(byte)));
+            // Field 'I' value.
+            Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
+            // Field 'J' value.
+            Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, sizeof(int) + sizeof(byte) * 2));
         }
         
         [Fact]
