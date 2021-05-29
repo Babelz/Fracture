@@ -358,6 +358,12 @@ namespace Fracture.Net.Serialization.Generation
             => new ObjectSerializerProgram(mapping.Type, CompileSerializationOps(mapping), CompileDeserializationOps(mapping));
     }
 
+    public enum StackMode : byte
+    {
+        Value = 0,
+        Address
+    }
+    
     /// <summary>
     /// Class that provides dynamic functions building for dynamic serialization functions. 
     /// </summary>
@@ -413,6 +419,17 @@ namespace Fracture.Net.Serialization.Generation
             nullables = new Dictionary<Type, LocalBuilder>();
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void EmitPushSerializationValueToStack(ILGenerator il, SerializationValue value, StackMode mode)
+        {
+            if (value.IsProperty)
+                il.Emit(OpCodes.Callvirt, value.Property.GetMethod);
+            else if (mode == StackMode.Address)
+                il.Emit(OpCodes.Ldflda, value.Field);
+            else
+                il.Emit(OpCodes.Ldfld, value.Field);
+        }
+        
         /// <summary>
         /// Emits instructions for getting the next value serializer for serialization.
         ///
@@ -432,44 +449,14 @@ namespace Fracture.Net.Serialization.Generation
             // Store current serializer to local.
             il.Emit(OpCodes.Stloc, locals[LocalCurrentSerializer]);
         }
-        
+
         /// <summary>
-        /// Emits instructions for incrementing the offset value after field has been serialized.
-        ///
-        /// Translates roughly to:
-        ///     offset += serializer.GetSizeFromValue(actual.[op-field-name]);
-        /// </summary>
-        private void EmitIncrementFieldSerializationOffset(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
-        {
-            if (serializationValueIndex + 1 >= serializationValueCount) return;
-            
-            var il = dynamicMethod.GetILGenerator();
-            
-            // Add last value serialized to the offset, push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_3);                                                          
-            // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);                                                          
-            // Push 'actual' to stack.
-            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);                                                          
-            // Push last serialization value to stack.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);                                          
-            // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);                                             
-            // Call 'GetSizeFromValue', push size to stack.
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!); 
-            // Add offset + size.
-            il.Emit(OpCodes.Add);                                                              
-            // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 3);
-        }
-        
-        /// <summary>
-        /// Emits instructions for incrementing the offset value after property has been serialized.
+        /// Emits instructions for incrementing the offset value after value has been serialized.
         ///
         /// Translates roughly to:
         ///     offset += serializer.GetSizeFromValue(actual.[op-property-name]);
         /// </summary>
-        private void EmitIncrementPropertySerializationOffset(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
+        private void EmitIncrementSerializationOffset(SerializationValue value, int serializationValueIndex, int serializationValueCount)
         {
             if (serializationValueIndex + 1 >= serializationValueCount) return;
             
@@ -480,11 +467,13 @@ namespace Fracture.Net.Serialization.Generation
             // Push 'serializer' to stack.
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);                                                          
             // Push 'actual' to stack.
-            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);                                                          
+            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);              
+            
             // Push last serialization value to stack.
-            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);                                          
+            EmitPushSerializationValueToStack(il, value, StackMode.Value);   
+            
             // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);                                             
+            il.Emit(OpCodes.Box, value.Type);                                             
             // Call 'GetSizeFromValue', push size to stack.
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!); 
             // Add offset + size.
@@ -494,17 +483,17 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
-        /// Emits instructions for serializing single field that is not value type.
+        /// Emits instructions for serializing single value that is not value type.
         ///
         /// Translates roughly to:
         ///     if (field != null) {
-        ///        serializer.Serialize(actual.[op-field-name], buffer, offset);
-        ///        offset += serializer.GetSizeFromValue(actual.[op-field-name]);
+        ///        serializer.Serialize(actual.[op-value-name], buffer, offset);
+        ///        offset += serializer.GetSizeFromValue(actual.[op-value-name]);
         ///     } else {
         ///        nullMask.SetBit(serializationValueIndex, true);
         ///     }
         /// </summary>
-        public void EmitSerializeNonValueTypeField(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
+        public void EmitSerializeNonValueTypeValue(SerializationValue value, int serializationValueIndex, int serializationValueCount)
         {
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
@@ -512,8 +501,10 @@ namespace Fracture.Net.Serialization.Generation
 
             // Push local 'actual' to stack.
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push serialization value to stack.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
+            EmitPushSerializationValueToStack(il, value, StackMode.Value);
+            
             // Push null to stack.
             il.Emit(OpCodes.Ldnull);
             // Check if serialization value is null.
@@ -527,9 +518,11 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             // Push local 'actual' to stack. 
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push value of the field to stack boxed.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType);
+            EmitPushSerializationValueToStack(il, value, StackMode.Value);
+            
+            il.Emit(OpCodes.Box, value.Type);
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
             il.Emit(OpCodes.Ldarg_2);
             il.Emit(OpCodes.Ldarg_3);
@@ -538,9 +531,11 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldarg_3);
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push value from the nullable field to stack boxed.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType);
+            EmitPushSerializationValueToStack(il, value, StackMode.Value);
+            
+            il.Emit(OpCodes.Box, value.Type);
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             // Advance offset by the size of the value.
             il.Emit(OpCodes.Add);
@@ -560,36 +555,38 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
-        /// Emits instructions for serializing single nullable field.
+        /// Emits instructions for serializing single nullable value.
         ///
         /// Translates roughly to:
         ///     if (field.HasValue) {
-        ///        serializer.Serialize(actual.[op-field-name].Value, buffer, offset);
-        ///        offset += serializer.GetSizeFromValue(actual.[op-field-name].Value);
+        ///        serializer.Serialize(actual.[op-value-name].Value, buffer, offset);
+        ///        offset += serializer.GetSizeFromValue(actual.[op-value-name].Value);
         ///     } else {
         ///        nullMask.SetBit(serializationValueIndex, true);
         ///     }
         /// </summary>
-        public void EmitSerializeNullableValueTypeField(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
+        public void EmitSerializeNullableValue(SerializationValue value, int serializationValueIndex, int serializationValueCount)
         {
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
             var il = dynamicMethod.GetILGenerator();
             
-            if (!nullables.TryGetValue(op.Value.Field.FieldType, out var localNullable))
+            if (!nullables.TryGetValue(value.Type, out var localNullable))
             {
                 // Declare new local for the new nullable type.
-                localNullable = il.DeclareLocal(op.Value.Field.FieldType);
+                localNullable = il.DeclareLocal(value.Type);
                 
-                nullables.Add(op.Value.Field.FieldType, localNullable);
+                nullables.Add(value.Type, localNullable);
             }
             
             // Push local 'actual' to stack.
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push serialization value to stack.
-            il.Emit(OpCodes.Ldflda, op.Value.Field);
+            EmitPushSerializationValueToStack(il, value, StackMode.Address);
+            
             // Get boolean declaring if the nullable is null.
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("HasValue")!.GetMethod);
+            il.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
 
             // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
             var notNull = il.DefineLabel();
@@ -599,10 +596,12 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             // Push local 'actual' to stack. 
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push value from the nullable field to stack boxed.
-            il.Emit(OpCodes.Ldflda, op.Value.Field);
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
+            EmitPushSerializationValueToStack(il, value, StackMode.Address);
+            
+            il.Emit(OpCodes.Call, value.Field.FieldType.GetProperty("Value")!.GetMethod);
+            il.Emit(OpCodes.Box, value.Field.FieldType.GenericTypeArguments[0]);
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
             il.Emit(OpCodes.Ldarg_2);
             il.Emit(OpCodes.Ldarg_3);
@@ -611,18 +610,20 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldarg_3);
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            
             // Push value from the nullable field to stack boxed.
-            il.Emit(OpCodes.Ldflda, op.Value.Field);
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
+            EmitPushSerializationValueToStack(il, value, StackMode.Address);
+            
+            il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
+            il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             // Advance offset by the size of the value.
             il.Emit(OpCodes.Add);
             il.Emit(OpCodes.Starg_S, 3);
             
             // Branch out from the serialization of this value.
-            var branchOut = il.DefineLabel();
-            il.Emit(OpCodes.Br_S, branchOut);
+            var setNullBit = il.DefineLabel();
+            il.Emit(OpCodes.Br_S, setNullBit);
             
             // Mask value to be null.
             il.MarkLabel(notNull);
@@ -630,56 +631,16 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldc_I4, nullableFieldIndex++);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
-            il.MarkLabel(branchOut);
+            il.MarkLabel(setNullBit);
         }
 
         /// <summary>
-        /// Emits instructions for serializing single field.
+        /// Emits instructions for serializing single value.
         ///
         /// Translates roughly to:
-        ///     serializer.Serialize(actual.[op-field-name], buffer, offset);
+        ///     serializer.Serialize(actual.[op-value-name], buffer, offset);
         /// </summary>
-        public void EmitSerializeField(SerializationFieldOp op, int serializationValueIndex, int serializationValueCount)
-        {
-            EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
-         
-            var il = dynamicMethod.GetILGenerator();
-            
-            // Push local 'currentSerializer' to stack from local.
-            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
-            // Push 'actual' to stack from local.
-            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]); 
-            // Push serialization value to stack.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);                                                       
-            // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);           
-            // Push 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_2);                                                                       
-            // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_3);                                                                       
-            // Call serialize.
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
-            
-            EmitIncrementFieldSerializationOffset(op, serializationValueIndex, serializationValueCount);
-        }
-        
-        public void EmitSerializeNonValueTypeProperty(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
-        {
-            throw new NotImplementedException();
-        }
-        
-        public void EmitSerializeNullableValueTypeProperty(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
-        {
-            throw new NotImplementedException();
-        }
-        
-        /// <summary>
-        /// Emits instructions for serializing single property.
-        ///
-        /// Translates roughly to:
-        ///     serializer.Serialize(actual.[op-property-name], buffer, offset);
-        /// </summary>
-        public void EmitSerializeProperty(SerializationPropertyOp op, int serializationValueIndex, int serializationValueCount)
+        public void EmitSerializeValue(SerializationValue value, int serializationValueIndex, int serializationValueCount)
         {
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
@@ -689,10 +650,12 @@ namespace Fracture.Net.Serialization.Generation
             il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             // Push 'actual' to stack from local.
             il.Emit(OpCodes.Ldloc_S, locals[LocalActual]); 
+            
             // Push serialization value to stack.
-            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);
+            EmitPushSerializationValueToStack(il, value, StackMode.Value);                                                    
+            
             // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);
+            il.Emit(OpCodes.Box, value.Type);
             // Push 'buffer' to stack.
             il.Emit(OpCodes.Ldarg_2);                                                                       
             // Push 'offset' to stack.
@@ -700,7 +663,7 @@ namespace Fracture.Net.Serialization.Generation
             // Call serialize.
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
             
-            EmitIncrementPropertySerializationOffset(op, serializationValueIndex, serializationValueCount);
+            EmitIncrementSerializationOffset(value, serializationValueIndex, serializationValueCount);
         }
         
         /// <summary>
@@ -875,28 +838,20 @@ namespace Fracture.Net.Serialization.Generation
             {
                 var op = ops[serializationValueIndex];
 
-                switch (op)
+                var value = op switch
                 {
-                    case SerializationFieldOp sfop:
-                        if (!sfop.Value.Type.IsValueType) 
-                            builder.EmitSerializeNonValueTypeField(sfop, serializationValueIndex, ops.Count);
-                        else if (sfop.Value.Type.IsGenericType && sfop.Value.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                            builder.EmitSerializeNullableValueTypeField(sfop, serializationValueIndex, ops.Count);
-                        else
-                            builder.EmitSerializeField(sfop, serializationValueIndex, ops.Count);
-                        break;
-                    case SerializationPropertyOp spop:
-                        if (!spop.Value.Type.IsValueType) 
-                            builder.EmitSerializeNonValueTypeProperty(spop, serializationValueIndex, ops.Count);
-                        else if (spop.Value.Type.IsGenericType && spop.Value.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
-                            builder.EmitSerializeNullableValueTypeProperty(spop, serializationValueIndex, ops.Count);
-                        else
-                            builder.EmitSerializeProperty(spop, serializationValueIndex, ops.Count);
-                        break;
-                    default:
-                        throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
-                                                            $"{type.Name}: {op}");
-                }
+                    SerializationFieldOp sfop => sfop.Value,
+                    SerializationPropertyOp spop => spop.Value,
+                    _ => throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
+                                                            $"{type.Name}: {op}")
+                };
+                
+                if (!value.Type.IsValueType) 
+                    builder.EmitSerializeNonValueTypeValue(value, serializationValueIndex, ops.Count);
+                else if (value.Type.IsGenericType && value.Type.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    builder.EmitSerializeNullableValue(value, serializationValueIndex, ops.Count);
+                else
+                    builder.EmitSerializeValue(value, serializationValueIndex, ops.Count);
             }
             
             return builder.Build(nullableValuesCount);
