@@ -181,10 +181,26 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             serializeDelegate(context, testObject, buffer, 0);
             
+            var offset = 0;
+            
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
+            
             // Null mask values.
-            Assert.Equal(160, MemoryMapper.ReadByte(buffer, sizeof(byte)));
+            Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
+            
+            Assert.Equal(testObject.S1, Encoding.Unicode.GetString(buffer, offset + sizeof(ushort), MemoryMapper.ReadUshort(buffer, offset)));
+            offset += sizeof(ushort) + testObject.S1.Length * 2;
+            
+            Assert.Equal(testObject.S3, Encoding.Unicode.GetString(buffer, offset + sizeof(ushort), MemoryMapper.ReadUshort(buffer, offset)));
+            offset += sizeof(ushort) + testObject.S3.Length * 2;
+            
+            Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, offset));
         }
         
         [Fact]
