@@ -58,6 +58,9 @@ namespace Fracture.Net.Serialization.Generation
             NullableValuesCount  = nullableValuesCount;
             NullableValuesOffset = nullableValuesOffset;
             BitFieldSerializer   = bitFieldSerializer;
+            
+            if (nullableValuesCount != 0 && bitFieldSerializer == null)
+                throw new InvalidOperationException("expecting utility serializers to present for null serialization");
         }
     }
     
@@ -422,15 +425,13 @@ namespace Fracture.Net.Serialization.Generation
             var il = dynamicMethod.GetILGenerator();
             
             // Load local 'serializers' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalSerializers]);
+            il.Emit(OpCodes.Ldloc_S, locals[LocalSerializers]);
             // Get current value serializer, push current serializer index to stack.
             il.Emit(OpCodes.Ldc_I4, serializationValueIndex);
             // Push serializer at index to stack.
             il.Emit(OpCodes.Callvirt, typeof(IReadOnlyList<IValueSerializer>).GetProperties().First(p => p.GetIndexParameters().Length != 0).GetMethod);
             // Store current serializer to local.
-            il.Emit(OpCodes.Stloc, locals[LocalCurrentSerializer]); 
-            // Serialize field, push 'serializer' to stack from local.
-            il.Emit(OpCodes.Ldloc, locals[LocalCurrentSerializer]);
+            il.Emit(OpCodes.Stloc, locals[LocalCurrentSerializer]);
         }
         
         /// <summary>
@@ -448,9 +449,9 @@ namespace Fracture.Net.Serialization.Generation
             // Add last value serialized to the offset, push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                          
             // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalCurrentSerializer]);                                                          
+            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);                                                          
             // Push 'actual' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]);                                                          
+            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);                                                          
             // Push last serialization value to stack.
             il.Emit(OpCodes.Ldfld, op.Value.Field);                                          
             // Box serialization value.
@@ -478,9 +479,9 @@ namespace Fracture.Net.Serialization.Generation
             // Add last value serialized to the offset, push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_3);                                                          
             // Push 'serializer' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalCurrentSerializer]);                                                          
+            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);                                                          
             // Push 'actual' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]);                                                          
+            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);                                                          
             // Push last serialization value to stack.
             il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);                                          
             // Box serialization value.
@@ -510,56 +511,56 @@ namespace Fracture.Net.Serialization.Generation
                 nullables.Add(op.Value.Field.FieldType, localNullable);
             }
             
-            // Push local 'actual' to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]);
-            // Push serialization value to stack.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
-            // Get boolean declaring if the nullable is null.
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("HasValue")!.GetMethod);
-            // Store to local 'isNull'.
-            il.Emit(OpCodes.Stloc_S, locals[LocalIsNull]); 
-            il.Emit(OpCodes.Ldloc_S, locals[LocalIsNull]); 
+            // // Push local 'actual' to stack.
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            // // Push serialization value to stack.
+            // il.Emit(OpCodes.Ldfld, op.Value.Field);
+            // // Get boolean declaring if the nullable is null.
+            // il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("HasValue")!.GetMethod);
+            // // Store to local 'isNull'.
+            // il.Emit(OpCodes.Stloc_S, locals[LocalIsNull]); 
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalIsNull]); 
             
-            // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
-            var notNull = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse_S, notNull);
-            
-            // Push current serializer to stack.
-            il.Emit(OpCodes.Ldloc, locals[LocalCurrentSerializer]);
-            // Push local 'actual' to stack. 
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]);
-            // Push value from the nullable field to stack boxed.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
-            // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
-            il.Emit(OpCodes.Ldarg_2);
-            il.Emit(OpCodes.Ldarg_3);
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
-            // Push arguments 'offset', 'currentSerializer' and 'actual' to stack.
-            il.Emit(OpCodes.Ldarg_3);
-            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
-            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
-            // Push value from the nullable field to stack boxed.
-            il.Emit(OpCodes.Ldfld, op.Value.Field);
-            il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
-            il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
-            // Advance offset by the size of the value.
-            il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Starg_S, 3);
-            
-            // Branch out from the serialization of this value.
-            var branchOut = il.DefineLabel();
-            il.Emit(OpCodes.Br_S, branchOut);
-            
-            // Mask value to be null.
-            il.MarkLabel(notNull);
-            il.Emit(OpCodes.Ldloc, locals[LocalBitFieldSerializer]);
-            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex++);
-            il.Emit(OpCodes.Ldc_I4_1);
-            il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
-            il.MarkLabel(branchOut);
+            // // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
+            // var notNull = il.DefineLabel();
+            // il.Emit(OpCodes.Brfalse_S, notNull);
+            //
+            // // Push current serializer to stack.
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
+            // // Push local 'actual' to stack. 
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            // // Push value from the nullable field to stack boxed.
+            // il.Emit(OpCodes.Ldfld, op.Value.Field);
+            // il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
+            // il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
+            // // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
+            // il.Emit(OpCodes.Ldarg_2);
+            // il.Emit(OpCodes.Ldarg_3);
+            // il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Serialize))!);
+            // // Push arguments 'offset', 'currentSerializer' and 'actual' to stack.
+            // il.Emit(OpCodes.Ldarg_3);
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalActual]);
+            // // Push value from the nullable field to stack boxed.
+            // il.Emit(OpCodes.Ldfld, op.Value.Field);
+            // il.Emit(OpCodes.Call, op.Value.Field.FieldType.GetProperty("Value")!.GetMethod);
+            // il.Emit(OpCodes.Box, op.Value.Field.FieldType.GenericTypeArguments[0]);
+            // il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            // // Advance offset by the size of the value.
+            // il.Emit(OpCodes.Add);
+            // il.Emit(OpCodes.Starg_S, 3);
+            //
+            // // Branch out from the serialization of this value.
+            // var branchOut = il.DefineLabel();
+            // il.Emit(OpCodes.Br_S, branchOut);
+            //
+            // // Mask value to be null.
+            // il.MarkLabel(notNull);
+            // il.Emit(OpCodes.Ldloc_S, locals[LocalBitFieldSerializer]);
+            // il.Emit(OpCodes.Ldc_I4, nullableFieldIndex++);
+            // il.Emit(OpCodes.Ldc_I4_1);
+            // il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
+            // il.MarkLabel(branchOut);
         }
 
         /// <summary>
@@ -573,13 +574,15 @@ namespace Fracture.Net.Serialization.Generation
             EmitStoreNextSerializer(serializationValueIndex);
          
             var il = dynamicMethod.GetILGenerator();
-
+            
+            // Push local 'currentSerializer' to stack from local.
+            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             // Push 'actual' to stack from local.
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]); 
+            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]); 
             // Push serialization value to stack.
             il.Emit(OpCodes.Ldfld, op.Value.Field);                                                       
             // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);                                                          
+            il.Emit(OpCodes.Box, op.Value.Type);           
             // Push 'buffer' to stack.
             il.Emit(OpCodes.Ldarg_2);                                                                       
             // Push 'offset' to stack.
@@ -612,12 +615,14 @@ namespace Fracture.Net.Serialization.Generation
             
             var il = dynamicMethod.GetILGenerator();
             
+            // Push local 'currentSerializer' to stack from local.
+            il.Emit(OpCodes.Ldloc_S, locals[LocalCurrentSerializer]);
             // Push 'actual' to stack from local.
-            il.Emit(OpCodes.Ldloc, locals[LocalActual]); 
+            il.Emit(OpCodes.Ldloc_S, locals[LocalActual]); 
             // Push serialization value to stack.
-            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);                                                       
+            il.Emit(OpCodes.Callvirt, op.Value.Property.GetMethod);
             // Box serialization value.
-            il.Emit(OpCodes.Box, op.Value.Type);                                                          
+            il.Emit(OpCodes.Box, op.Value.Type);
             // Push 'buffer' to stack.
             il.Emit(OpCodes.Ldarg_2);                                                                       
             // Push 'offset' to stack.
@@ -676,30 +681,29 @@ namespace Fracture.Net.Serialization.Generation
             // Add one additional byte to the field if we have any bits that don't fill all bytes.
             var bytesInBitField = (nullableValuesCount / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
                 
-            il.Emit(OpCodes.Ldloc, locals[LocalNullMask]);
+            il.Emit(OpCodes.Ldloca_S, locals[LocalNullMask]);
             il.Emit(OpCodes.Ldc_I4, bytesInBitField);
             il.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new [] { typeof(int) })!);
-            il.Emit(OpCodes.Stloc_S, locals[LocalNullMask]);
-                
+
+            // Store current offset to local 'nullMaskOffset'.
+            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Stloc_S, locals[LocalNullMaskOffset]);
+            
             // Store bit field serializer to local.
             il.Emit(OpCodes.Ldarg_0);
             il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext.BitFieldSerializer))!.GetMethod);
             il.Emit(OpCodes.Stloc_S, locals[LocalBitFieldSerializer]);
-            
-            // Store current offset to local 'nullMaskOffset'.
-            il.Emit(OpCodes.Ldarg_3);
-            il.Emit(OpCodes.Stloc_S, locals[LocalNullMaskOffset]);
 
             // Advance offset by the size of the bit field to leave space for it in front of the buffer.
-            il.Emit(OpCodes.Ldarg_3);                                                          
+            il.Emit(OpCodes.Ldarg_3);   
             // Push 'serializer' to stack.
             il.Emit(OpCodes.Ldloc_S, locals[LocalBitFieldSerializer]);                                                          
             // Push 'nullMask' to stack.
-            il.Emit(OpCodes.Stloc_S, locals[LocalNullMask]);
+            il.Emit(OpCodes.Ldloc_S, locals[LocalNullMask]);
             // Box 'nullMask'.
             il.Emit(OpCodes.Box, typeof(BitField));
             // Call 'GetSizeFromValue', push size to stack.
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!); 
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
@@ -811,7 +815,7 @@ namespace Fracture.Net.Serialization.Generation
             return builder.Build();
         }
         
-        public static ObjectSerializationContext CreateObjectSerializationContext(IReadOnlyList<ISerializationOp> ops, IReadOnlyList<IValueSerializer> serializers)
+        public static ObjectSerializationContext InterpretObjectSerializationContext(IReadOnlyList<ISerializationOp> ops, IReadOnlyList<IValueSerializer> serializers)
         {
             var nullableValuesCount  = 0;
             var nullableValuesOffset = -1;
@@ -829,16 +833,13 @@ namespace Fracture.Net.Serialization.Generation
                 
                 if (serializationType == null)
                     continue;
+                
+                if (serializationType.IsValueType)
+                {
+                    if (!serializationType.IsGenericType || serializationType.GetGenericTypeDefinition() != typeof(Nullable<>))
+                        continue;   
+                }
 
-                if (serializationType.IsValueType) 
-                    continue;
-                
-                if (!serializationType.IsGenericType)
-                    continue;
-                
-                if (serializationType.GetGenericTypeDefinition() != typeof(Nullable<>))
-                    continue;
-                
                 if (nullableValuesOffset < 0) 
                     nullableValuesOffset = i;
                     
@@ -854,7 +855,7 @@ namespace Fracture.Net.Serialization.Generation
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
             // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
-            var objectSerializationContext = CreateObjectSerializationContext(program.SerializationOps, program.Serializers);
+            var objectSerializationContext = InterpretObjectSerializationContext(program.SerializationOps, program.Serializers);
             
             // Create dynamic serialization function.
             var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.Type, 

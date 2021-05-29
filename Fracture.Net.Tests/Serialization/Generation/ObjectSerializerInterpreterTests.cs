@@ -111,7 +111,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject        = new FieldTestClass() { X = 1500, Y = 37500 };
             var buffer            = new byte[8];
 
-            var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -135,7 +135,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject        = new NullableAndNullFieldTestClass() { X = 300, I = 200};
             var buffer            = new byte[64];
 
-            var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -160,7 +160,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var stringSerializer  = new StringSerializer();
             var buffer            = new byte[64];
             
-            var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -185,7 +185,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject        = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer            = new byte[64];
             
-            var context = ObjectSerializerInterpreter.CreateObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
