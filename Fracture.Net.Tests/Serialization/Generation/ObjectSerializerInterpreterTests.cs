@@ -59,6 +59,33 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
+        private sealed class NullablePropertyTestClass
+        {
+            #region Fields
+            public int? X
+            {
+                get;
+                set;
+            }
+            public int? Y
+            {
+                get;
+                set;
+            }
+
+            public int I
+            {
+                get;
+                set;
+            }
+            public int J
+            {
+                get;
+                set;
+            }
+            #endregion
+        }
+        
         private sealed class PropertyTestClass
         {
             #region Properties
@@ -97,13 +124,46 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        public sealed class NonValueTypeFieldsTest
+        public sealed class NonValueTypeFieldTest
         {
+            #region Fields
             public string S1;
             public string S2;
             public string S3;
             public int I;
             public int J;
+            #endregion
+        }
+        
+        public sealed class NonValueTypePropertyTest
+        {
+            #region Properties
+            public string S1
+            {
+                get;
+                set;
+            }
+            public string S2
+            {
+                get;
+                set;
+            }
+            public string S3
+            {
+                get;
+                set;
+            }
+            public int I
+            {
+                get;
+                set;
+            }
+            public int J
+            {
+                get;
+                set;
+            }
+            #endregion
         }
         #endregion
 
@@ -165,13 +225,14 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Non_Value_Type_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypeFieldsTest>()
+                                                   .FromType<NonValueTypeFieldTest>()
                                                    .PublicFields()
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypeFieldsTest), serializationOps, 2);
-            var testObject        = new NonValueTypeFieldsTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypeFieldTest), serializationOps, 3);
+            var testObject        = new NonValueTypeFieldTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var stringSerializer  = new StringSerializer();
             var buffer            = new byte[128];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
@@ -191,11 +252,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
             offset += sizeof(byte);
             
-            Assert.Equal(testObject.S1, Encoding.Unicode.GetString(buffer, offset + sizeof(ushort), MemoryMapper.ReadUshort(buffer, offset)));
-            offset += sizeof(ushort) + testObject.S1.Length * 2;
+            Assert.Equal(testObject.S1, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromValue(testObject.S1);
             
-            Assert.Equal(testObject.S3, Encoding.Unicode.GetString(buffer, offset + sizeof(ushort), MemoryMapper.ReadUshort(buffer, offset)));
-            offset += sizeof(ushort) + testObject.S3.Length * 2;
+            Assert.Equal(testObject.S3, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromValue(testObject.S3);
             
             Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, offset));
             offset += sizeof(int);
@@ -212,7 +273,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 0);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 1);
             var testObject        = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
             var stringSerializer  = new StringSerializer();
             var buffer            = new byte[64];
@@ -224,8 +285,86 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             serializeDelegate(context, testObject, buffer, 0);
             
-            Assert.Equal(testObject.Id, MemoryMapper.ReadInt(buffer, 0));
-            Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(int)));
+            // Null mask size in bytes.
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
+            // Null mask values.
+            Assert.Equal(0, MemoryMapper.ReadByte(buffer, sizeof(byte)));
+            
+            Assert.Equal(testObject.Id, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
+            Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(int) + sizeof(byte) * 2));
+        }
+        
+                [Fact]
+        public void Should_Serialize_Nullable_Properties()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NullablePropertyTestClass>()
+                                                   .PublicProperties()
+                                                   .Map();
+            
+            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullablePropertyTestClass), serializationOps, 2);
+            var testObject        = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var buffer            = new byte[64];
+
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            serializeDelegate(context, testObject, buffer, 0);
+            
+            // Null mask size in bytes.
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
+            // Null mask values.
+            Assert.Equal(192, MemoryMapper.ReadByte(buffer, sizeof(byte)));
+            // Field 'I' value.
+            Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
+            // Field 'J' value.
+            Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, sizeof(int) + sizeof(byte) * 2));
+        }
+        
+        [Fact]
+        public void Should_Serialize_Non_Value_Type_Properties()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NonValueTypePropertyTest>()
+                                                   .PublicProperties()
+                                                   .Map();
+            
+            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypePropertyTest), serializationOps, 3);
+            var testObject        = new NonValueTypePropertyTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var stringSerializer  = new StringSerializer();
+            var buffer            = new byte[128];
+
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            serializeDelegate(context, testObject, buffer, 0);
+            
+            var offset = 0;
+            
+            // Null mask size in bytes.
+            Assert.Equal(1, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
+            
+            // Null mask values.
+            Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
+            
+            Assert.Equal(testObject.S1, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromValue(testObject.S1);
+            
+            Assert.Equal(testObject.S3, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromValue(testObject.S3);
+            
+            Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, offset));
         }
         
         [Fact]
@@ -238,7 +377,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 0);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(FieldAndPropertyTestClass), serializationOps, 0);
             var testObject        = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer            = new byte[64];
             
