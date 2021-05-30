@@ -9,7 +9,9 @@ namespace Fracture.Net.Serialization
 {
     /// <summary>
     /// Interface for for creating type free serializers for serializing single values. These values
-    /// can be anything from single primitive to more complex classes and specific types like lists. 
+    /// can be anything from single primitive to more complex classes and specific types like lists.
+    ///
+    /// TODO: for future this can be replaced with some annotations so we can skip boxing.
     /// </summary>
     public interface IValueSerializer
     {
