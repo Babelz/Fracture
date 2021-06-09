@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection.Emit;
 
 namespace Fracture.Net.Serialization.Generation.Delegates
 {
+    
     /// <summary>
     /// Delegate for wrapping functions for determining objects sizes from run types.
     /// </summary>
@@ -33,9 +35,9 @@ namespace Fracture.Net.Serialization.Generation.Delegates
                 },
                 true
             );
-            
-            locals = new LocalBuilder[MaxLocals];
-            temp   = new Dictionary<Type, LocalBuilder>();
+
+            var locals = new LocalBuilder[MaxLocals];
+            var temp   = new Dictionary<Type, LocalBuilder>();
         }
 
         public void EmitLocals(int nullableFieldsCount)

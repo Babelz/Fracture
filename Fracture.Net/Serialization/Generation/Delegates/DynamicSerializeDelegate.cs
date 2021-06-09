@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.Serialization;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation.Delegates
@@ -418,7 +419,19 @@ namespace Fracture.Net.Serialization.Generation.Delegates
             
             try
             {
-                return (DynamicSerializeDelegate)dynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
+                var method = (DynamicSerializeDelegate)dynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
+                
+                return (in ObjectSerializationContext context, object value, byte[] buffer, int offset) =>
+                {
+                    try
+                    {
+                        method(context, value, buffer, offset);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new DynamicSerializeException(serializationType, e, value);
+                    }
+                };
             } 
             catch (Exception e)
             {
