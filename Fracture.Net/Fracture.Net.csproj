@@ -56,9 +56,10 @@
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
-        <Compile Include="Serialization\Generation\Delegates\DynamicDeserializeDelegate.cs" />
-        <Compile Include="Serialization\Generation\Delegates\DynamicGetSizeFromValueDelegate.cs" />
-        <Compile Include="Serialization\Generation\Delegates\DynamicSerializeDelegate.cs" />
+        <Compile Include="Serialization\Generation\Delegates\DynamicDeserializeDelegateBuilder.cs" />
+        <Compile Include="Serialization\Generation\Delegates\DynamicGetSizeFromValueDelegateBuilder.cs" />
+        <Compile Include="Serialization\Generation\Delegates\DynamicSerializationDelegateBuilder.cs" />
+        <Compile Include="Serialization\Generation\Delegates\DynamicSerializeDelegateBuilder.cs" />
         <Compile Include="Serialization\Generation\Delegates\Exceptions.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializerInterpreter.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
