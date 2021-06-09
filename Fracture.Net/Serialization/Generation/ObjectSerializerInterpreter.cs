@@ -6,7 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
-using Fracture.Net.Serialization.Generation.Delegates;
+using Fracture.Net.Serialization.Generation.Builders;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation

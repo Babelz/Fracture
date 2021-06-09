@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 
-namespace Fracture.Net.Serialization.Generation.Delegates
+namespace Fracture.Net.Serialization.Generation.Builders
 {
     /// <summary>
     /// Delegate for wrapping functions for determining objects sizes from run types.

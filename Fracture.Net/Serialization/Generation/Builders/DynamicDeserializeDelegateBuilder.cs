@@ -1,4 +1,4 @@
-namespace Fracture.Net.Serialization.Generation.Delegates
+namespace Fracture.Net.Serialization.Generation.Builders
 {
     /// <summary>
     /// Delegate for wrapping deserialization functions.  

@@ -1,6 +1,6 @@
 using System;
 
-namespace Fracture.Net.Serialization.Generation.Delegates
+namespace Fracture.Net.Serialization.Generation.Builders
 {
     /// <summary>
     /// Exception thrown when dynamic object serialization throws an exception.
