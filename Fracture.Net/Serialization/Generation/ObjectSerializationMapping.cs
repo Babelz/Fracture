@@ -250,8 +250,8 @@ namespace Fracture.Net.Serialization.Generation
         private bool discoverPublicFields;
         private bool discoverPublicProperties;
         #endregion
-        
-        public ObjectSerializationMapper()
+
+        private ObjectSerializationMapper()
         {
             serializationValueHints = new List<SerializationValueHint>();
             objectActivationHints   = new List<ObjectActivationHint>();
@@ -333,8 +333,8 @@ namespace Fracture.Net.Serialization.Generation
             
             return constructor;
         }
-        
-        public IEnumerable<SerializationValue> GetObjectActivationValues()
+
+        private IEnumerable<SerializationValue> GetObjectActivationValues()
         {
             foreach (var objectActivationHint in objectActivationHints)
             {

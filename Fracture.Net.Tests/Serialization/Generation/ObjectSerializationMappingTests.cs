@@ -80,7 +80,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class StaticFieldTestClass
         {
             #region Fields
-            public static int j;
+            public static int J;
             #endregion
         }
 
@@ -112,11 +112,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class ParametrizedReadOnlyFieldTestClass
         {
             #region Fields
-            public readonly int x;
+            public readonly int X;
             #endregion
 
             public ParametrizedReadOnlyFieldTestClass(int x)
-                => this.x = x;
+                => this.X = x;
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
@@ -140,7 +140,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #region Fields
             private int x1;
 
-            public int x2;
+            public int X2;
             #endregion
         }
 

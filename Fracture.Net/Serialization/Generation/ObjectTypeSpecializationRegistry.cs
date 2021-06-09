@@ -1,8 +1,8 @@
+using System;
+using System.Collections.Generic;
+
 namespace Fracture.Net.Serialization.Generation
 {
-    using System;
-    using System.Collections.Generic;
-
     namespace Fracture.Net.Serialization.Generation
     {
         /// <summary>

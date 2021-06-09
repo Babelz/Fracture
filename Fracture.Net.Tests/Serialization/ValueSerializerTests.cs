@@ -13,7 +13,7 @@ namespace Fracture.Net.Tests.Serialization
         private static class DataSource
         {
             #region Properties
-            public static IEnumerable<object[]> Serializer_Ctor_Test_Data_Source => new []
+            public static IEnumerable<object[]> SerializerCtorTestDataSource => new []
             {
                 new object[] { new Action(() => new SbyteSerializer()) },
                 new object[] { new Action(() => new ByteSerializer()) },
@@ -29,7 +29,7 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new Action(() => new DateTimeSerializer()) }
             };
 
-            public static IEnumerable<object[]> Serializes_To_Buffer_Correctly_Data_Source => new []
+            public static IEnumerable<object[]> SerializesToBufferCorrectlyDataSource => new []
             {
                 new object[] { new SbyteSerializer(), (sbyte)-45, new byte[sizeof(sbyte)], new byte[] { 211 } },
                 new object[] { new ByteSerializer(), (byte)128, new byte[sizeof(byte)], new byte[] { 128 } },
@@ -139,7 +139,7 @@ namespace Fracture.Net.Tests.Serialization
                 }
             }; 
             
-            public static IEnumerable<object[]> Deserializes_To_Value_Correctly_Data_Source => new []
+            public static IEnumerable<object[]> DeserializesToValueCorrectlyDataSource => new []
             {
                 new object[] { new SbyteSerializer(), new byte[] { 234 }, (sbyte)-22 },
                 new object[] { new ByteSerializer(), new byte[] { 128 }, (byte)128 },
@@ -157,7 +157,7 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new DateTimeSerializer(), new byte[] { 255, 63, 55, 244, 117, 40, 202, 43 }, DateTime.MaxValue }
             };
             
-            public static IEnumerable<object[]> Test_Size_From_Value_Data_Source => new []
+            public static IEnumerable<object[]> TestSizeFromValueDataSource => new []
             {
                 new object[] { new SbyteSerializer(), (sbyte)-45, 1 },
                 new object[] { new ByteSerializer(), (byte)255, 1 },
@@ -174,7 +174,7 @@ namespace Fracture.Net.Tests.Serialization
                 new object[] { new DateTimeSerializer(), DateTime.MaxValue, 8 }
             };
             
-            public static IEnumerable<object[]> Test_Size_From_Buffer_Data_Source => new []
+            public static IEnumerable<object[]> TestSizeFromBufferDataSource => new []
             {
                 new object[] { new SbyteSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
                 new object[] { new ByteSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
@@ -199,14 +199,14 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Theory()]
-        [MemberData(nameof(DataSource.Serializer_Ctor_Test_Data_Source), MemberType = typeof(DataSource))]
+        [MemberData(nameof(DataSource.SerializerCtorTestDataSource), MemberType = typeof(DataSource))]
         public void Serializer_Ctor_Test(Action construct)
         {
             Assert.Null(Record.Exception(construct));
         }
         
         [Theory()]
-        [MemberData(nameof(DataSource.Serializes_To_Buffer_Correctly_Data_Source), MemberType = typeof(DataSource))]
+        [MemberData(nameof(DataSource.SerializesToBufferCorrectlyDataSource), MemberType = typeof(DataSource))]
         public void Serializes_To_Buffer_Correctly(IValueSerializer serializer, 
                                                    object value, 
                                                    byte[] serializationBuffer, 
@@ -218,7 +218,7 @@ namespace Fracture.Net.Tests.Serialization
         }
 
         [Theory()]
-        [MemberData(nameof(DataSource.Deserializes_To_Value_Correctly_Data_Source), MemberType = typeof(DataSource))]
+        [MemberData(nameof(DataSource.DeserializesToValueCorrectlyDataSource), MemberType = typeof(DataSource))]
         public void Deserializes_To_Value_Correctly(IValueSerializer serializer, 
                                                     byte[] serializedBytes, 
                                                     object expectedValue)
@@ -229,14 +229,14 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Theory()]
-        [MemberData(nameof(DataSource.Test_Size_From_Value_Data_Source), MemberType = typeof(DataSource))]
+        [MemberData(nameof(DataSource.TestSizeFromValueDataSource), MemberType = typeof(DataSource))]
         public void Test_Size_From_Value(IValueSerializer serializer, object value, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromValue(value));
         }
         
         [Theory()]
-        [MemberData(nameof(DataSource.Test_Size_From_Buffer_Data_Source), MemberType = typeof(DataSource))]
+        [MemberData(nameof(DataSource.TestSizeFromBufferDataSource), MemberType = typeof(DataSource))]
         public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
         {
             Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));

@@ -48,14 +48,14 @@ namespace Fracture.Net.Serialization
     public static class ValueSerializerRegistry
     {
         #region Static fields
-        private static readonly Logger log = LogManager.GetCurrentClassLogger();
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
-        private static readonly List<IValueSerializer> serializers;
+        private static readonly List<IValueSerializer> Serializers;
         #endregion
         
         static ValueSerializerRegistry()
         {
-            serializers = GetSerializerTypes().Select(t => (IValueSerializer)Activator.CreateInstance(t)).ToList();
+            Serializers = GetSerializerTypes().Select(t => (IValueSerializer)Activator.CreateInstance(t)).ToList();
         }
         
         /// <summary>
@@ -76,7 +76,7 @@ namespace Fracture.Net.Serialization
                 }   
                 catch (ReflectionTypeLoadException e)
                 {
-                    log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
+                    Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
                 }
             }
             
@@ -86,6 +86,6 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IValueSerializer GetValueSerializerForType(Type type)
             => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>) ? 
-                   serializers.First(v => v.SupportsType(type.GenericTypeArguments[0])) : serializers.First(v => v.SupportsType(type));
+                   Serializers.First(v => v.SupportsType(type.GenericTypeArguments[0])) : Serializers.First(v => v.SupportsType(type));
     }
 }
