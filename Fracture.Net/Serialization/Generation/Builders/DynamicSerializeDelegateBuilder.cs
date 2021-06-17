@@ -170,7 +170,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
                 il.Emit(OpCodes.Ldarg_3);
                 
-                EmitPushSerializationValueAddressToStack(il, value);
+                EmitPushCurrentSerializerToStack(il);
                 
                 EmitPushSerializationValueAddressToStack(il, value);
                 
@@ -271,7 +271,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             // Instantiate local 'nullMask' bit field.
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, ComputeNullMaskSize(nullableValuesCount));
+            il.Emit(OpCodes.Ldc_I4, BitField.ComputeBytesLength(nullableValuesCount));
             il.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new [] { typeof(int) })!);
 
             // Store current offset to local 'nullMaskOffset'.

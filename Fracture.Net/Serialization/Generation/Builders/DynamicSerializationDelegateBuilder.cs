@@ -64,16 +64,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             localSerializers       = AllocateNextLocalIndex();
             localActual            = AllocateNextLocalIndex();
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected static int ComputeNullMaskSize(int nullableValuesCount)
-        {
-            // Determine how big of a bit field we need and instantiate bit field local.
-            var moduloBitsInBitField = (nullableValuesCount % 8);
-
-            // Add one additional byte to the field if we have any bits that don't fill all bytes.
-            return (nullableValuesCount / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
-        }
 
         protected byte AllocateNextLocalIndex()
             => checked(localIndexCounter++);

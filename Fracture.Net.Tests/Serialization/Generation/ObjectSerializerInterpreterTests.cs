@@ -83,6 +83,12 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 get;
                 set;
             }
+            
+            public string S1
+            {
+                get;
+                set;
+            }
             #endregion
         }
         
@@ -342,7 +348,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullablePropertyTestClass), serializationOps, 2);
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullablePropertyTestClass), serializationOps, 3);
             var testObject        = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer            = new byte[64];
 
@@ -357,7 +363,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
             // Null mask values.
-            Assert.Equal(192, MemoryMapper.ReadByte(buffer, sizeof(byte)));
+            Assert.Equal(224, MemoryMapper.ReadByte(buffer, sizeof(byte)));
             // Field 'I' value.
             Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
             // Field 'J' value.

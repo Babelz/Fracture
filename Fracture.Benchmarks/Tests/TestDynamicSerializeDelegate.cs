@@ -6,7 +6,7 @@ using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Benchmarks.Tests
 {
-    internal sealed class Foo
+    public sealed class TestClass
     {
         #region Fields
         public int? X
@@ -43,6 +43,10 @@ namespace Fracture.Benchmarks.Tests
             set;
         }
         #endregion
+
+        public TestClass()
+        {
+        }
     }
     
     public sealed class FooSerializer
@@ -53,7 +57,7 @@ namespace Fracture.Benchmarks.Tests
         
         public void Serialize(in ObjectSerializationContext context, object value, byte[] buffer, int offset)
         {
-            var actual = (Foo)value;
+            var actual = (TestClass)value;
             var currentSerializer = context.ValueSerializers[0];
             var nullMask = new BitField(1);
             var nullMaskOffset = 0;
@@ -84,12 +88,12 @@ namespace Fracture.Benchmarks.Tests
             }
             
             currentSerializer = context.ValueSerializers[2];
-
+            
             currentSerializer.Serialize(actual.I, buffer, offset);
             offset += currentSerializer.GetSizeFromValue(actual.I);
             
             currentSerializer = context.ValueSerializers[3];
-
+            
             currentSerializer.Serialize(actual.J, buffer, offset);
             offset += currentSerializer.GetSizeFromValue(actual.J);
             
@@ -123,7 +127,7 @@ namespace Fracture.Benchmarks.Tests
     public class TestDynamicSerializeDelegate
     {
         #region Fields
-        private readonly Foo testObject;
+        private readonly TestClass testObject;
         
         private readonly ObjectSerializationContext context;
         private readonly DynamicSerializeDelegate serializeDelegate;
@@ -135,28 +139,28 @@ namespace Fracture.Benchmarks.Tests
         public TestDynamicSerializeDelegate()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<Foo>()
+                                                   .FromType<TestClass>()
                                                    .PublicFields()
                                                    .PublicProperties()
                                                    .Map();
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            testObject = new Foo()
+            testObject = new TestClass()
             {
                 X = 1500, 
                 Y = null,
                 I = 200,
                 J = 300,
                 S1 = null,
-                S2 = "hello world!"
+                S2 = null
             };
             
-            serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(Foo), serializationOps, 0);
+            serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(TestClass), serializationOps, 4);
             buffer            = new byte[256];
 
             context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(Foo),
+                typeof(TestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -171,7 +175,7 @@ namespace Fracture.Benchmarks.Tests
         }
         
         [Benchmark]
-        public void SerializeWithDirectStaticCall()
+        public void SerializeWithInstanceCall()
         {
             serializer.Serialize(context, testObject, buffer, 0);
         }

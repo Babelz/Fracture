@@ -83,6 +83,16 @@ namespace Fracture.Net.Serialization
         /// </summary>
         public void CopyFrom(byte[] buffer, int offset)
             => MemoryMapper.VectorizedCopy(buffer, offset, bytes, 0, bytes.Length);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int ComputeBytesLength(int bits)
+        {
+            // Determine how big of a bit field we need and instantiate bit field local.
+            var moduloBitsInBitField = (bits % 8);
+
+            // Add one additional byte to the field if we have any bits that don't fill all bytes.
+            return (bits / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
+        }
     }
     
     /// <summary>
