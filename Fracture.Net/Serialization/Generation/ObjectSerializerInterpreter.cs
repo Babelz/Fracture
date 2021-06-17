@@ -171,15 +171,15 @@ namespace Fracture.Net.Serialization.Generation
         public override string ToString()
             => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
     }
-    
+
     /// <summary>
-    /// Structure representing serialization field operation. Depending on the context the operation is either interpreted as field read or write operation.
+    /// Structure representing serialization value serialization operation. Depending on the context the operation is either interpreted as property/field read or write operation.
     /// </summary>
-    public readonly struct SerializationFieldOp : ISerializationOp
+    public readonly struct SerializeValueOp : ISerializationOp
     {
         #region Properties
         /// <summary>
-        /// Gets the serialization value associated with this field operation. This serialization value is guaranteed to be a field. 
+        /// Gets the serialization value associated with this serialization operation.
         /// </summary>
         public SerializationValue Value
         {
@@ -187,43 +187,13 @@ namespace Fracture.Net.Serialization.Generation
         }
         #endregion
 
-        public SerializationFieldOp(in SerializationValue value)
+        public SerializeValueOp(SerializationValue value)
         {
             Value = value;
-            
-            if (!Value.IsField)
-                throw new InvalidEnumArgumentException("excepting field serialization value"); 
-        }
-
-        public override string ToString()
-            => $"{{ op: {nameof(SerializationFieldOp)}, prop: {Value.Name} }}";
-    }
-    
-    /// <summary>
-    /// Structure representing serialization property operation. Depending on the context the operation is either interpreted as property read or write operation.
-    /// </summary>
-    public readonly struct SerializationPropertyOp : ISerializationOp
-    {
-        #region Properties
-        /// <summary>
-        /// Gets the serialization value associated with this property operation. This serialization value is guaranteed to be a property. 
-        /// </summary>
-        public SerializationValue Value
-        {
-            get;
-        }
-        #endregion
-
-        public SerializationPropertyOp(SerializationValue value)
-        {
-            Value = value;
-            
-            if (!Value.IsProperty)
-                throw new InvalidEnumArgumentException("excepting property serialization value"); 
         }
         
         public override string ToString()
-            => $"{{ op: {nameof(SerializationPropertyOp)}, prop: {Value.Name} }}";
+            => $"{{ op: {nameof(SerializeValueOp)}, value: {Value.Name}, path: {(Value.IsProperty ? "property" : "field")} }}";
     }
 
     /// <summary>
@@ -290,11 +260,8 @@ namespace Fracture.Net.Serialization.Generation
                         foreach (var serializer in paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForType(p.Type)))
                             yield return serializer;
                         break;
-                    case SerializationFieldOp sfop:
-                        yield return ValueSerializerRegistry.GetValueSerializerForType(sfop.Value.Type);
-                        break;
-                    case SerializationPropertyOp spop:
-                        yield return ValueSerializerRegistry.GetValueSerializerForType(spop.Value.Type);
+                    case SerializeValueOp svop:
+                        yield return ValueSerializerRegistry.GetValueSerializerForType(svop.Value.Type);
                         break;
                     default:
                         continue;
@@ -321,7 +288,7 @@ namespace Fracture.Net.Serialization.Generation
             else
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
 
-            ops.AddRange(mapping.Values.Select(v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)));
+            ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(v)));
 
             return ops;
         }
@@ -332,9 +299,8 @@ namespace Fracture.Net.Serialization.Generation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
             => (mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                    v => v.IsField ? (ISerializationOp)new SerializationFieldOp(v) : new SerializationPropertyOp(v)
+                v => (ISerializationOp)new SerializeValueOp(v)
                ).ToList();
-        
         
         /// <summary>
         /// Compiles both serialization and deserialization instructions from given mappings to <see cref="ObjectSerializerProgram"/>.
@@ -353,32 +319,24 @@ namespace Fracture.Net.Serialization.Generation
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
 
-        public static ObjectSerializationContext InterpretObjectSerializationContext(IReadOnlyList<ISerializationOp> ops, 
+        public static ObjectSerializationContext InterpretObjectSerializationContext(Type type,
+                                                                                     IEnumerable<ISerializationOp> ops, 
                                                                                      IReadOnlyList<IValueSerializer> serializers)
         {
             var nullableValuesCount  = 0;
             var nullableValuesOffset = -1;
+            var valueOps             = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
             
-            for (var i = 0; i < ops.Count; i++)
+            for (var i = 0; i < valueOps.Count; i++)
             {
-                var op = ops[i];
-                
-                var serializationType = op switch
-                {
-                    SerializationFieldOp sfop    => sfop.Value.Type,
-                    SerializationPropertyOp spop => spop.Value.Type,
-                    _                            => null
-                };
-                
-                if (serializationType == null)
-                    continue;
-                
-                if (serializationType.IsValueType)
-                {
-                    if (!serializationType.IsGenericType || serializationType.GetGenericTypeDefinition() != typeof(Nullable<>))
-                        continue;   
-                }
+                var op = valueOps[i];
 
+                if (op.Value.IsValueType)
+                {
+                    if (!op.Value.IsNullable)
+                        continue;
+                }
+                
                 if (nullableValuesOffset < 0) 
                     nullableValuesOffset = i;
                     
@@ -419,22 +377,14 @@ namespace Fracture.Net.Serialization.Generation
             
             for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
             {
-                var op = ops[serializationValueIndex];
+                var op = (SerializeValueOp)ops[serializationValueIndex];
 
-                var value = op switch
-                {
-                    SerializationFieldOp sfop    => sfop.Value,
-                    SerializationPropertyOp spop => spop.Value,
-                    _ => throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
-                                                             $"{type.Name}: {op}")
-                };
-                
-                if (!value.IsValueType) 
-                    builder.EmitGetSizeOfNonValueTypeValue(value, serializationValueIndex, ops.Count);
-                else if (value.IsNullable)
-                    builder.EmitGetSizeOfNullableValue(value, serializationValueIndex, ops.Count);
+                if (!op.Value.IsValueType) 
+                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, serializationValueIndex, ops.Count);
+                else if (op.Value.IsNullable)
+                    builder.EmitGetSizeOfNullableValue(op.Value, serializationValueIndex, ops.Count);
                 else
-                    builder.EmitGetSizeOfValue(value, serializationValueIndex, ops.Count);
+                    builder.EmitGetSizeOfValue(op.Value, serializationValueIndex, ops.Count);
             }
             
             return builder.Build();
@@ -452,22 +402,14 @@ namespace Fracture.Net.Serialization.Generation
             // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
             for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
             {
-                var op = ops[serializationValueIndex];
+                var op = (SerializeValueOp)ops[serializationValueIndex];
 
-                var value = op switch
-                {
-                    SerializationFieldOp sfop => sfop.Value,
-                    SerializationPropertyOp spop => spop.Value,
-                    _ => throw new InvalidOperationException($"unexpected op code encountered while interpreting dynamic object serializer for type " +
-                                                            $"{type.Name}: {op}")
-                };
-                
-                if (!value.IsValueType) 
-                    builder.EmitSerializeNonValueTypeValue(value, serializationValueIndex, ops.Count);
-                else if (value.IsNullable)
-                    builder.EmitSerializeNullableValue(value, serializationValueIndex, ops.Count);
+                if (!op.Value.IsValueType) 
+                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex, ops.Count);
+                else if (op.Value.IsNullable)
+                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex, ops.Count);
                 else
-                    builder.EmitSerializeValue(value, serializationValueIndex, ops.Count);
+                    builder.EmitSerializeValue(op.Value, serializationValueIndex, ops.Count);
             }
             
             return builder.Build(nullableValuesCount);
@@ -476,7 +418,7 @@ namespace Fracture.Net.Serialization.Generation
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
             // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
-            var objectSerializationContext = InterpretObjectSerializationContext(program.SerializationOps, program.Serializers);
+            var objectSerializationContext = InterpretObjectSerializationContext(program.Type, program.SerializationOps, program.Serializers);
             
             // Create dynamic serialization function.
             var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.Type, 

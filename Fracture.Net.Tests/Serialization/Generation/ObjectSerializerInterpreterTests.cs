@@ -27,7 +27,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             var exception = Record.Exception(() => new ObjectSerializerProgram(
                 typeof(int),
-                new List<ISerializationOp> { new SerializationFieldOp(new SerializationValue(typeof(Foo).GetField("X"))) }.AsReadOnly(),
+                new List<ISerializationOp> { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X"))) }.AsReadOnly(),
                 new List<ISerializationOp>().AsReadOnly())
             );
             
@@ -165,6 +165,41 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+        
+        public sealed class AllPropertyAndFieldKindsMixTest
+        {
+            #region Fields
+            public int? X;
+            public int Y;
+            
+            public string? S1;
+            public string S2;
+            #endregion
+
+            #region Properties
+            public int? I
+            {
+                get;
+                set;
+            }
+            public int J
+            {
+                get;
+                set;
+            }
+            
+            public string? S3
+            {
+                get;
+                set;
+            }
+            public string S4
+            {
+                get;
+                set;
+            }
+            #endregion
+        }
         #endregion
 
         [Fact]
@@ -181,6 +216,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[8];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(FieldTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -205,6 +241,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[64];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NullableFieldTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -236,6 +273,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[128];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NonValueTypeFieldTest),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -279,6 +317,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[64];
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(PropertyTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -294,7 +333,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(int) + sizeof(byte) * 2));
         }
         
-                [Fact]
+        [Fact]
         public void Should_Serialize_Nullable_Properties()
         {
             var mapping = ObjectSerializationMapper.Create()
@@ -308,6 +347,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[64];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NullablePropertyTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -339,6 +379,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[128];
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NonValueTypePropertyTest),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -382,6 +423,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var buffer            = new byte[64];
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(FieldAndPropertyTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
@@ -392,6 +434,42 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(testObject.B2, MemoryMapper.ReadByte(buffer, sizeof(byte)));
             Assert.Equal(testObject.B3, MemoryMapper.ReadByte(buffer, sizeof(byte) * 2));
             Assert.Equal(testObject.B4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 3));
+        }
+        
+        [Fact]
+        public void Should_Serialize_All_Supported_Field_And_Property_Kinds_Mixed()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<AllPropertyAndFieldKindsMixTest>()
+                                                   .PublicProperties()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(AllPropertyAndFieldKindsMixTest), serializationOps, 4);
+            var stringSerializer  = new StringSerializer();
+            
+            var testObject = new AllPropertyAndFieldKindsMixTest() 
+            {
+                Y = 200,
+                X = null,
+                S2 = "hello world!",
+                S1 = null,
+                J = 400,
+                I = null,
+                S3 = null,
+                S4 = "fuck you"
+            };
+            
+            var buffer = new byte[256];
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(AllPropertyAndFieldKindsMixTest),
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            serializeDelegate(context, testObject, buffer, 0);
         }
     }
 }

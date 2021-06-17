@@ -313,11 +313,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             var mapping = ObjectSerializationMapper.Create()
                                                    .FromType<ParametrizedReadOnlyFieldTestClass>()
-                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "x"))
+                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"))
                                                    .Map();
             
-            Assert.DoesNotContain(mapping.Values, f => f.Name == "x");
-            Assert.Contains(mapping.Activator.Values, f => f.Name == "x");
+            Assert.DoesNotContain(mapping.Values, f => f.Name == "X");
+            Assert.Contains(mapping.Activator.Values, f => f.Name == "X");
         }
         
         [Fact]
@@ -388,11 +388,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            Assert.Contains(mapping.Values, f => f.Name == "x2");
-            Assert.DoesNotContain(mapping.Values, f => f.Name == "x1");
+            Assert.Contains(mapping.Values, f => f.Name == "X2");
+            Assert.DoesNotContain(mapping.Values, f => f.Name == "X1");
             
-            Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "x1");
-            Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "x2");
+            Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "X1");
+            Assert.DoesNotContain(mapping.Activator.Values, f => f.Name == "X2");
         }
         
         [Fact]

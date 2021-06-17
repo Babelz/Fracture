@@ -156,6 +156,7 @@ namespace Fracture.Benchmarks.Tests
             buffer            = new byte[256];
 
             context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(Foo),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );

@@ -285,7 +285,7 @@ namespace Fracture.Net.Serialization.Generation
         private static void AssertFieldIsValidForSerialization(FieldInfo fieldInfo, string fieldNameHint, bool usedInActivation = false)
         {
             if (fieldInfo == null)
-                throw new InvalidOperationException($"no field matches serialization field hint \"{{fieldNameHint}}\"");
+                throw new InvalidOperationException($"no field matches serialization field hint \"{fieldNameHint}\"");
 
             if (fieldInfo.IsInitOnly && !usedInActivation)
                 throw new InvalidOperationException($"can't serialize readonly field \"{fieldInfo.Name}\"");
