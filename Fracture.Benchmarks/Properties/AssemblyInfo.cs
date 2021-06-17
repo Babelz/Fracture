@@ -1,20 +1,14 @@
 ﻿using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Security;
-
-// Performance tweaks for dynamic methods.
-[assembly: AllowPartiallyTrustedCallers]
-[assembly: SecurityTransparent]
-[assembly: SecurityRules(SecurityRuleSet.Level2, SkipVerificationInFullTrust=true)]
 
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Fracture.Net")]
+[assembly: AssemblyTitle("Fracture.Benchmarks")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("Fracture.Net")]
+[assembly: AssemblyProduct("Fracture.Benchmarks")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -25,7 +19,7 @@ using System.Security;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("8C8EFBEA-E0AD-4507-99EC-C79A0D8B556C")]
+[assembly: Guid("7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8")]
 
 // Version information for an assembly consists of the following four values:
 //

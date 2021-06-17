@@ -353,14 +353,6 @@ namespace Fracture.Net.Serialization.Generation
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsValueType(in SerializationValue value)
-            => value.Type.IsValueType;
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNullable(in SerializationValue value)
-            => value.Type.IsGenericType && value.Type.GetGenericTypeDefinition() == typeof(Nullable<>);
-        
         public static ObjectSerializationContext InterpretObjectSerializationContext(IReadOnlyList<ISerializationOp> ops, 
                                                                                      IReadOnlyList<IValueSerializer> serializers)
         {
@@ -437,9 +429,9 @@ namespace Fracture.Net.Serialization.Generation
                                                              $"{type.Name}: {op}")
                 };
                 
-                if (IsValueType(value)) 
+                if (!value.IsValueType) 
                     builder.EmitGetSizeOfNonValueTypeValue(value, serializationValueIndex, ops.Count);
-                else if (IsNullable(value))
+                else if (value.IsNullable)
                     builder.EmitGetSizeOfNullableValue(value, serializationValueIndex, ops.Count);
                 else
                     builder.EmitGetSizeOfValue(value, serializationValueIndex, ops.Count);
@@ -470,9 +462,9 @@ namespace Fracture.Net.Serialization.Generation
                                                             $"{type.Name}: {op}")
                 };
                 
-                if (IsValueType(value)) 
+                if (!value.IsValueType) 
                     builder.EmitSerializeNonValueTypeValue(value, serializationValueIndex, ops.Count);
-                else if (IsNullable(value))
+                else if (value.IsNullable)
                     builder.EmitSerializeNullableValue(value, serializationValueIndex, ops.Count);
                 else
                     builder.EmitSerializeValue(value, serializationValueIndex, ops.Count);

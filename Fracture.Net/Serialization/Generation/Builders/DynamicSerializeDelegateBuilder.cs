@@ -209,8 +209,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Push local 'currentSerializer' to stack from local.
-            EmitPushSerializationValueAddressToStack(il, value);
-
+            EmitPushCurrentSerializerToStack(il);
+                
             // Push serialization value to stack.
             EmitPushSerializationValueToStack(il, value);
             
@@ -229,7 +229,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Ldarg_3);                    
             
             // Push 'currentSerializer' to stack.
-            EmitPushSerializationValueAddressToStack(il, value);
+            EmitPushCurrentSerializerToStack(il);
             
             // Push last serialization value to stack.
             EmitPushSerializationValueToStack(il, value); 
@@ -268,16 +268,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             Locals[localBitFieldSerializer] = il.DeclareLocal(typeof(IValueSerializer));
             // Local 5: null mask offset in the buffer.
             Locals[localNullMaskOffset] = il.DeclareLocal(typeof(int));
-                
-            // Determine how big of a bit field we need and instantiate bit field local.
-            var moduloBitsInBitField = (nullableValuesCount % 8);
 
-            // Add one additional byte to the field if we have any bits that don't fill all bytes.
-            var bytesInBitField = (nullableValuesCount / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
-            
             // Instantiate local 'nullMask' bit field.
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, bytesInBitField);
+            il.Emit(OpCodes.Ldc_I4, ComputeNullMaskSize(nullableValuesCount));
             il.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new [] { typeof(int) })!);
 
             // Store current offset to local 'nullMaskOffset'.

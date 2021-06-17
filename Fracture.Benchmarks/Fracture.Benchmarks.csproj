@@ -5,14 +5,13 @@
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{8C8EFBEA-E0AD-4507-99EC-C79A0D8B556C}</ProjectGuid>
-        <OutputType>Library</OutputType>
+        <ProjectGuid>{7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8}</ProjectGuid>
+        <OutputType>Exe</OutputType>
         <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>Fracture.Net</RootNamespace>
-        <AssemblyName>Fracture.Net</AssemblyName>
+        <RootNamespace>Fracture.Benchmarks</RootNamespace>
+        <AssemblyName>Fracture.Benchmarks</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>8</LangVersion>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -23,7 +22,6 @@
         <DefineConstants>DEBUG;TRACE</DefineConstants>
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
-        <Prefer32bit>false</Prefer32bit>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
         <PlatformTarget>AnyCPU</PlatformTarget>
@@ -35,6 +33,10 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="BenchmarkDotNet, Version=0.13.0.0, Culture=neutral, PublicKeyToken=aa0ca2f9092cefc4">
+          <HintPath>..\packages\BenchmarkDotNet.0.13.0\lib\netstandard2.0\BenchmarkDotNet.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
         <Reference Include="BenchmarkDotNet.Annotations, Version=0.13.0.0, Culture=neutral, PublicKeyToken=aa0ca2f9092cefc4">
           <HintPath>..\packages\BenchmarkDotNet.Annotations.0.13.0\lib\netstandard2.0\BenchmarkDotNet.Annotations.dll</HintPath>
           <Private>True</Private>
@@ -59,7 +61,6 @@
           <HintPath>..\packages\Microsoft.CodeAnalysis.CSharp.2.10.0\lib\netstandard1.3\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="Microsoft.CSharp" />
         <Reference Include="Microsoft.Diagnostics.FastSerialization, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.61\lib\net45\Microsoft.Diagnostics.FastSerialization.dll</HintPath>
           <Private>True</Private>
@@ -85,10 +86,6 @@
           <Private>True</Private>
         </Reference>
         <Reference Include="mscorlib" />
-        <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
-          <HintPath>..\packages\NLog.4.7.8\lib\net45\NLog.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
         <Reference Include="OSExtensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>..\packages\Microsoft.Diagnostics.Tracing.TraceEvent.2.0.61\lib\net45\OSExtensions.dll</HintPath>
           <Private>True</Private>
@@ -111,7 +108,6 @@
           <Private>True</Private>
         </Reference>
         <Reference Include="System.ComponentModel.Composition" />
-        <Reference Include="System.Configuration" />
         <Reference Include="System.Console, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>..\packages\System.Console.4.3.0\lib\net46\System.Console.dll</HintPath>
           <Private>True</Private>
@@ -188,7 +184,6 @@
           <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.0.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Runtime.Serialization" />
         <Reference Include="System.Security.AccessControl, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>..\packages\System.Security.AccessControl.4.5.0\lib\net461\System.Security.AccessControl.dll</HintPath>
           <Private>True</Private>
@@ -213,7 +208,6 @@
           <HintPath>..\packages\System.Security.Principal.Windows.4.5.0\lib\net461\System.Security.Principal.Windows.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.ServiceModel" />
         <Reference Include="System.Text.Encoding.CodePages, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>..\packages\System.Text.Encoding.CodePages.4.3.0\lib\net46\System.Text.Encoding.CodePages.dll</HintPath>
           <Private>True</Private>
@@ -226,7 +220,6 @@
           <HintPath>..\packages\System.Threading.Thread.4.3.0\lib\net46\System.Threading.Thread.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Transactions" />
         <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
           <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
           <Private>True</Private>
@@ -255,36 +248,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Protocol.cs" />
-        <Compile Include="Serialization\ArraySerializer.cs" />
-        <Compile Include="Serialization\ByteSerializer.cs" />
-        <Compile Include="Serialization\DateTimeSerializer.cs" />
-        <Compile Include="Serialization\FloatSerializer.cs" />
-        <Compile Include="Serialization\Generation\Builders\DynamicDeserializeDelegateBuilder.cs" />
-        <Compile Include="Serialization\Generation\Builders\DynamicGetSizeFromValueDelegateBuilder.cs" />
-        <Compile Include="Serialization\Generation\Builders\DynamicSerializationDelegateBuilder.cs" />
-        <Compile Include="Serialization\Generation\Builders\DynamicSerializeDelegateBuilder.cs" />
-        <Compile Include="Serialization\Generation\Builders\Exceptions.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializerInterpreter.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
-        <Compile Include="Serialization\Generation\ObjectTypeSpecializationRegistry.cs" />
-        <Compile Include="Serialization\IntSerializer.cs" />
-        <Compile Include="Serialization\LongSerializer.cs" />
-        <Compile Include="Serialization\BitFieldSerializer.cs" />
-        <Compile Include="Serialization\ShortSerializer.cs" />
-        <Compile Include="Serialization\StringSerializer.cs" />
-        <Compile Include="Serialization\StructureSerializer.cs" />
-        <Compile Include="Serialization\IValueSerializer.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
-        <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
-        <Name>Fracture.Common</Name>
-      </ProjectReference>
-    </ItemGroup>
-    <ItemGroup>
-      <Content Include="README.md" />
+        <Compile Include="Tests\TestDynamicSerializeDelegate.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />
@@ -292,6 +258,24 @@
     <ItemGroup>
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
+        <Project>{e67b745c-dd7c-4e9b-85f8-2a96fd977de8}</Project>
+        <Name>Fracture.Common</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\Fracture.Content\Fracture.Content.csproj">
+        <Project>{9d7f1622-c3ba-4647-ae93-80be0e8a2def}</Project>
+        <Name>Fracture.Content</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\Fracture.Engine\Fracture.Engine.csproj">
+        <Project>{661e6bfc-6fbc-4c42-a52b-db45a59487ed}</Project>
+        <Name>Fracture.Engine</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\Fracture.Net\Fracture.Net.csproj">
+        <Project>{8c8efbea-e0ad-4507-99ec-c79a0d8b556c}</Project>
+        <Name>Fracture.Net</Name>
+      </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

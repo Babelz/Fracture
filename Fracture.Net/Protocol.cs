@@ -71,8 +71,26 @@ namespace Fracture.Net
     /// </summary>
     public static class Protocol
     {
+        #region Static fields
         /// <summary>
-        /// Static class containing object specific labels.
+        /// Label denoting size content inside the message in bytes. This header appears on all object values after their type id or with fields that can
+        /// vary in size.
+        /// </summary>
+        public static readonly ProtocolLabel<ushort> ContentLength = ProtocolLabel.Ushort();
+        
+        /// <summary>
+        /// Label denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on
+        /// collection values that can contain null values.
+        /// </summary>
+        public static readonly ProtocolLabel<byte> NullMaskLength = ProtocolLabel.Byte(); 
+        #endregion
+        
+        /// <summary>
+        /// Static class containing object specific labels. Objects are laid out in the byte stream as follows:
+        ///     - 0x00, type-id header
+        ///     - 0x02, content-length header
+        ///     - 0x04, optional null-mask-length header
+        ///     - 0x05, optional null-mask-length amount of bytes 
         /// </summary>
         public static class Object
         {
@@ -81,34 +99,29 @@ namespace Fracture.Net
             /// Label denoting the type id of the object.
             /// </summary>
             public static readonly ProtocolLabel<ushort> TypeId = ProtocolLabel.Ushort();
-            
-            /// <summary>
-            /// Label denoting the size of the whole header.
-            /// </summary>
-            public static readonly ProtocolLabel<ushort> ContentSize = ProtocolLabel.Ushort();
             #endregion
         }
         
         /// <summary>
-        /// Static class containing value specific protocol labels.
+        /// Static class containing value specific protocol labels. Values are laid out in the byte stream as follows:
+        ///     - 0x00, optional type-specialization-id header for generic and structure values
+        ///     - 0x02, optional null-mask-length header
+        ///     - 0x03, optional null-mask-length amount of bytes 
+        ///     - 0x05, optional content-length header for values that can vary in size
+        ///
+        /// If a value is null it will not be serialized to the buffer in any way. Instead if the object being serialized has fields that can be null,
+        /// specialized null mask bit field will be generated for the object. This is guaranteed to be generated every time if a type contains fields or
+        /// properties that can be null.
+        ///
+        /// The same masking will be applied to collections that can contain null values. 
         /// </summary>
         public static class Value
         {
             #region Static fields
             /// <summary>
-            /// Label denoting the dynamic content size of the field if the field size is varying.
-            /// </summary>
-            public static readonly ProtocolLabel<ushort> ContentSize = ProtocolLabel.Ushort();
-                
-            /// <summary>
             /// Label denoting the type specialization id of the field if the type is specialized run type. 
             /// </summary>
             public static readonly ProtocolLabel<ushort> TypeSpecializationId = ProtocolLabel.Ushort();
-            
-            /// <summary>
-            /// Label denoting the size of the possible bit field flags in bytes.
-            /// </summary>
-            public static readonly ProtocolLabel<byte> BitFieldSize = ProtocolLabel.Byte(); 
             #endregion
         }
     }

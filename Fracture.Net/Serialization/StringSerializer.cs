@@ -30,9 +30,9 @@ namespace Fracture.Net.Serialization
             var bytes = Encoding.GetBytes((string)value);
 
             // Write the dynamic fields size.
-            Protocol.Value.ContentSize.Write((ushort)bytes.Length, buffer, offset);
+            Protocol.ContentLength.Write((ushort)bytes.Length, buffer, offset);
             
-            offset += Protocol.Value.ContentSize.Size;
+            offset += Protocol.ContentLength.Size;
 
             // Write the actual data of the string.
             MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
@@ -45,9 +45,9 @@ namespace Fracture.Net.Serialization
         public object Deserialize(byte[] buffer, int offset)
         {
             // Get the dynamic field size.
-            var size = Protocol.Value.ContentSize.Read(buffer, offset);
+            var size = Protocol.ContentLength.Read(buffer, offset);
             
-            offset += Protocol.Value.ContentSize.Size;
+            offset += Protocol.ContentLength.Size;
             
             // Get the string itself.
             return Encoding.GetString(buffer, offset, size);
@@ -58,14 +58,14 @@ namespace Fracture.Net.Serialization
         /// field size header size.
         /// </summary>
         public ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(MemoryMapper.ReadUshort(buffer, offset) + Protocol.Value.ContentSize.Size);
+            => (ushort)(MemoryMapper.ReadUshort(buffer, offset) + Protocol.ContentLength.Size);
 
         /// <summary>
         /// Returns size of the string from the value. This consists of the actual string length and the dynamic
         /// field size header size.
         /// </summary>
         public ushort GetSizeFromValue(object value)
-            => (ushort)(Encoding.GetByteCount((string)value) + Protocol.Value.ContentSize.Size);
+            => (ushort)(Encoding.GetByteCount((string)value) + Protocol.ContentLength.Size);
     }
     
     /// <summary>

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 
 namespace Fracture.Net.Serialization.Generation.Builders
 {
@@ -64,9 +65,19 @@ namespace Fracture.Net.Serialization.Generation.Builders
             localActual            = AllocateNextLocalIndex();
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected static int ComputeNullMaskSize(int nullableValuesCount)
+        {
+            // Determine how big of a bit field we need and instantiate bit field local.
+            var moduloBitsInBitField = (nullableValuesCount % 8);
+
+            // Add one additional byte to the field if we have any bits that don't fill all bytes.
+            return (nullableValuesCount / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
+        }
+
         protected byte AllocateNextLocalIndex()
             => checked(localIndexCounter++);
-
+        
         protected void EmitPushCurrentSerializerToStack(ILGenerator il)
             => il.Emit(OpCodes.Ldloc_S, Locals[localCurrentSerializer]);
         
@@ -79,16 +90,16 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push local 'actual' to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localActual]);
             
-            if (!Temp.TryGetValue(value.Type, out var localNullable))
+            if ((!value.IsValueType || value.IsNullable) && !Temp.ContainsKey(value.Type))
             {
                 // Declare new local for the new nullable type.
-                localNullable = il.DeclareLocal(value.Type);
-                
-                Temp.Add(value.Type, localNullable);
+                Temp.Add(value.Type, il.DeclareLocal(value.Type));
             }
-            
+
             if (value.IsProperty)
             {
+                var localNullable = Temp[value.Type];
+                
                 il.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
                 
                 il.Emit(OpCodes.Stloc, localNullable);

@@ -141,6 +141,18 @@ namespace Fracture.Net.Serialization.Generation
         /// Returns boolean declaring whether this mapping points to a property.
         /// </summary>
         public bool IsProperty => Property != null;
+        
+        /// <summary>
+        /// Returns boolean declaring whether this value type is primitive value type.
+        /// </summary>
+        public bool IsValueType
+            => Type.IsValueType;
+        
+        /// <summary>
+        /// Returns boolean declaring whether this value type can be null.
+        /// </summary>
+        public bool IsNullable
+            => Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>);
         #endregion
 
         public SerializationValue(FieldInfo field = null, PropertyInfo property = null)

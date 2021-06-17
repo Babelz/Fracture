@@ -101,26 +101,26 @@ namespace Fracture.Net.Serialization
         {
             var actual = (BitField)value;
             
-            Protocol.Value.BitFieldSize.Write(checked((byte)actual.Length), buffer, offset);
+            Protocol.NullMaskLength.Write(checked((byte)actual.Length), buffer, offset);
             
-            actual.CopyTo(buffer, offset + Protocol.Value.BitFieldSize.Size);
+            actual.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
         }
 
         public object Deserialize(byte[] buffer, int offset)
         {
-            var size = Protocol.Value.BitFieldSize.Read(buffer, offset);
+            var size = Protocol.NullMaskLength.Read(buffer, offset);
             
             var value = new BitField(size);
             
-            value.CopyFrom(buffer, offset + Protocol.Value.BitFieldSize.Size);
+            value.CopyFrom(buffer, offset + Protocol.NullMaskLength.Size);
             
             return value;
         }
 
         public ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => Protocol.Value.BitFieldSize.Read(buffer, offset);
+            => Protocol.NullMaskLength.Read(buffer, offset);
 
         public ushort GetSizeFromValue(object value)
-            => (ushort)(Protocol.Value.BitFieldSize.Size + ((BitField)value).Length);
+            => (ushort)(Protocol.NullMaskLength.Size + ((BitField)value).Length);
     }
 }
