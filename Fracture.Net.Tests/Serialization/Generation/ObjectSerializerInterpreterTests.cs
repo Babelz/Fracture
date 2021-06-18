@@ -109,7 +109,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        private sealed class FieldAndPropertyTestClass
+        private sealed class FieldAndPropertyTestClassClass
         {
             #region Properties
             public byte B1
@@ -130,7 +130,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        public sealed class NonValueTypeFieldTest
+        public sealed class NonValueTypeFieldTestClass
         {
             #region Fields
             public string S1;
@@ -141,7 +141,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        public sealed class NonValueTypePropertyTest
+        public sealed class NonValueTypePropertyTestClass
         {
             #region Properties
             public string S1
@@ -172,7 +172,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        public sealed class AllPropertyAndFieldKindsMixTest
+        public sealed class AllPropertyAndFieldKindsMixTestClass
         {
             #region Fields
             public int? X;
@@ -207,7 +207,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         
-        public sealed class NonZeroNullValueOffsetMixedTest
+        public sealed class NonZeroNullValueOffsetMixedTestClass
         {
             #region Fields
             public int X;
@@ -357,26 +357,26 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Non_Value_Type_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypeFieldTest>()
+                                                   .FromType<NonValueTypeFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(NonValueTypeFieldTest),
+                typeof(NonValueTypeFieldTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
 
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                typeof(NonValueTypeFieldTest), 
+                typeof(NonValueTypeFieldTestClass), 
                 serializationOps, 
                 context.NullableValuesCount, 
                 context.NullableValuesOffset
             );
             
-            var testObject       = new NonValueTypeFieldTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var testObject       = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var stringSerializer = new StringSerializer();
             var buffer           = new byte[128];
             
@@ -484,26 +484,26 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Non_Value_Type_Properties()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypePropertyTest>()
+                                                   .FromType<NonValueTypePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(NonValueTypePropertyTest),
+                typeof(NonValueTypePropertyTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                typeof(NonValueTypePropertyTest), 
+                typeof(NonValueTypePropertyTestClass), 
                 serializationOps, 
                 context.NullableValuesCount, 
                 context.NullableValuesOffset
             );
             
-            var testObject       = new NonValueTypePropertyTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var testObject       = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var stringSerializer = new StringSerializer();
             var buffer           = new byte[128];
 
@@ -535,7 +535,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Both_Properties_And_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<FieldAndPropertyTestClass>()
+                                                   .FromType<FieldAndPropertyTestClassClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -543,19 +543,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(FieldAndPropertyTestClass),
+                typeof(FieldAndPropertyTestClassClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                typeof(FieldAndPropertyTestClass), 
+                typeof(FieldAndPropertyTestClassClass), 
                 serializationOps, 
                 context.NullableValuesCount, 
                 context.NullableValuesOffset
             );
             
-            var testObject = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
+            var testObject = new FieldAndPropertyTestClassClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer     = new byte[64];
 
             serializeDelegate(context, testObject, buffer, 0);
@@ -570,7 +570,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_Non_Zero_Null_Offset_Mixed_Value_Types()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonZeroNullValueOffsetMixedTest>()
+                                                   .FromType<NonZeroNullValueOffsetMixedTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -579,19 +579,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(NonZeroNullValueOffsetMixedTest),
+                typeof(NonZeroNullValueOffsetMixedTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                typeof(NonZeroNullValueOffsetMixedTest), 
+                typeof(NonZeroNullValueOffsetMixedTestClass), 
                 serializationOps, 
                 context.NullableValuesCount, 
                 context.NullableValuesOffset
             );
 
-            var testObject = new NonZeroNullValueOffsetMixedTest() { I = 200, J = 300, K = 400, X = 1, Y = 1, P9 = 500};
+            var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 1, Y = 1, P9 = 500};
             var buffer     = new byte[64];
 
             serializeDelegate(context, testObject, buffer, 0);
@@ -611,7 +611,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Serialize_All_Supported_Field_And_Property_Kinds_Mixed()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<AllPropertyAndFieldKindsMixTest>()
+                                                   .FromType<AllPropertyAndFieldKindsMixTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -619,19 +619,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(AllPropertyAndFieldKindsMixTest),
+                typeof(AllPropertyAndFieldKindsMixTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                typeof(AllPropertyAndFieldKindsMixTest), 
+                typeof(AllPropertyAndFieldKindsMixTestClass), 
                 serializationOps, 
                 context.NullableValuesCount, 
                 context.NullableValuesOffset
             );
             
-            var testObject = new AllPropertyAndFieldKindsMixTest() 
+            var testObject = new AllPropertyAndFieldKindsMixTestClass() 
             {
                 Y  = 200,
                 X  = null,

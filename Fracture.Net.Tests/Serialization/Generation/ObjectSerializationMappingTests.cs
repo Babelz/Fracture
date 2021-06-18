@@ -177,6 +177,40 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+        
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class MixedNullableTestClass
+        {
+            #region Fields
+            public int X1;
+            public int? X2;
+            public int X3;
+            public int? X4;
+            #endregion
+        }
+        
+        // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
+        private sealed class ActivationTestClass
+        {
+            #region Fields
+            // ReSharper disable once MemberCanBePrivate.Local
+            public int X;
+            // ReSharper disable once MemberCanBePrivate.Local
+            public int Y;
+            // ReSharper disable once MemberCanBePrivate.Local
+            public int? K;
+            
+            public int I;
+            public int J;
+            #endregion
+            
+            public ActivationTestClass(int x, int y, int? k)
+            {
+                X = x;
+                Y = y;
+                K = k;
+            }
+        }
         #endregion
         
         [Fact]
@@ -411,7 +445,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         
         [Fact]
-        public void Should_Nullable_Types()
+        public void Should_Map_Nullable_Types()
         {
             var mapping = ObjectSerializationMapper.Create()
                                                    .FromType<NullableTestClass>()
@@ -421,6 +455,16 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             Assert.Contains(mapping.Values, f => f.Name == "MaybeNumber");
             Assert.Contains(mapping.Values, f => f.Name == "MaybeByte");
+        }
+        
+        [Fact()]
+        public void Should_Map_Values_Based_On_Nullability()
+        {
+        }
+        
+        [Fact()]
+        public void Should_Order_Activation_Values_First()
+        {
         }
     }
 }
