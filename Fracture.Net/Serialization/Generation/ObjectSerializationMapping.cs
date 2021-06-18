@@ -520,14 +520,18 @@ namespace Fracture.Net.Serialization.Generation
             
             // Ensure activation is possible.
             var constructor            = GetObjectActivationConstructor();
-            var objectActivationValues = GetObjectActivationValues();
-            var objectActivator        = new ObjectActivator(constructor, objectActivationValues.ToList().AsReadOnly());
+            var objectActivationValues = GetObjectActivationValues().ToList();
+            var objectActivator        = new ObjectActivator(constructor, objectActivationValues.AsReadOnly());
             
             // Remove all fields and properties that are mapped by the object activator.
             RemoveActivationValueHints();
             
-            // Ensure properties and fields exist, contact all serialization values to single list. 
-            var serializationValues = GetSerializationPropertyValues().Concat(GetSerializationFieldValues()).OrderBy(v => !v.IsNullable).ToList().AsReadOnly();
+            // Ensure properties and fields exist, contact all serialization values to single list. Ensure that activation values are first to be serialized
+            // and they are in order.
+            var serializationPropertyValues = GetSerializationPropertyValues();
+            var serializationFieldValues    = GetSerializationFieldValues();
+            var serializationValues         = objectActivationValues.Concat(serializationPropertyValues.Concat(serializationFieldValues)
+                                                                                                       .OrderBy(v => !v.IsNullable)).ToList().AsReadOnly();
 
             return new ObjectSerializationMapping(serializationType,
                                                   serializationValues,
