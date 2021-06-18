@@ -64,7 +64,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///        nullMask.SetBit(serializationValueIndex, true);
         ///     }
         /// </summary>
-        public void EmitSerializeNonValueTypeValue(SerializationValue value, int serializationValueIndex, int serializationValueCount)
+        public void EmitSerializeNonValueTypeValue(SerializationValue value, int serializationValueIndex, int serializationValueCount, int nullableValuesOffset)
         {
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
@@ -118,10 +118,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Mask value to be null.
             il.MarkLabel(notNull);
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex++);
+            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex - nullableValuesOffset);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
             il.MarkLabel(branchOut);
+            
+            nullableFieldIndex++;
         }
         
         /// <summary>
@@ -135,7 +137,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///        nullMask.SetBit(serializationValueIndex, true);
         ///     }
         /// </summary>
-        public void EmitSerializeNullableValue(SerializationValue value, int serializationValueIndex, int serializationValueCount)
+        public void EmitSerializeNullableValue(SerializationValue value, int serializationValueIndex, int serializationValueCount, int nullableValuesOffset)
         {
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
@@ -189,10 +191,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Mask value to be null.
             il.MarkLabel(notNull);
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex++);
+            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex - nullableValuesOffset);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
             il.MarkLabel(setNullBit);
+            
+            nullableFieldIndex++;
         }
 
         /// <summary>

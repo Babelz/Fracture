@@ -206,6 +206,81 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+        
+        public sealed class NonZeroNullValueOffsetMixedTest
+        {
+            #region Fields
+            public int X;
+            public int Y;
+            public int I;
+            public int J;
+            #endregion
+
+            #region Properties
+            public int? V
+            {
+                get;
+                set;
+            }
+            
+            public int K
+            {
+                get;
+                set;
+            }
+            
+            public int? P1
+            {
+                get;
+                set;
+            }
+            
+            public int? P2
+            {
+                get;
+                set;
+            }
+            
+            public int? P3
+            {
+                get;
+                set;
+            }
+            
+            public int? P4
+            {
+                get;
+                set;
+            }
+            
+            public int? P5
+            {
+                get;
+                set;
+            }
+            public int? P6
+            {
+                get;
+                set;
+            }
+            public int? P7
+            {
+                get;
+                set;
+            }
+            public int? P8
+            {
+                get;
+                set;
+            }
+            
+            public int P9
+            {
+                get;
+                set;
+            }
+            #endregion
+        }
         #endregion
 
         [Fact]
@@ -216,17 +291,24 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(FieldTestClass), serializationOps, 0);
-            var testObject        = new FieldTestClass() { X = 1500, Y = 37500 };
-            var buffer            = new byte[8];
-
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(FieldTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(FieldTestClass), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject = new FieldTestClass() { X = 1500, Y = 37500 };
+            var buffer     = new byte[8];
+
             serializeDelegate(context, testObject, buffer, 0);
             
             Assert.Equal(testObject.X, MemoryMapper.ReadInt(buffer, 0));
@@ -240,11 +322,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .FromType<NullableFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
-            
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullableFieldTestClass), serializationOps, 2);
-            var testObject        = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
-            var buffer            = new byte[64];
+
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(NullableFieldTestClass),
@@ -252,6 +331,16 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(NullableFieldTestClass), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var buffer     = new byte[64];
+
             serializeDelegate(context, testObject, buffer, 0);
             
             // Null mask size in bytes.
@@ -271,18 +360,25 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .FromType<NonValueTypeFieldTest>()
                                                    .PublicFields()
                                                    .Map();
-            
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypeFieldTest), serializationOps, 3);
-            var testObject        = new NonValueTypeFieldTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
-            var stringSerializer  = new StringSerializer();
-            var buffer            = new byte[128];
 
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(NonValueTypeFieldTest),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
+
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(NonValueTypeFieldTest), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject       = new NonValueTypeFieldTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var stringSerializer = new StringSerializer();
+            var buffer           = new byte[128];
             
             serializeDelegate(context, testObject, buffer, 0);
             
@@ -316,17 +412,24 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicProperties()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(PropertyTestClass), serializationOps, 1);
-            var testObject        = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
-            var stringSerializer  = new StringSerializer();
-            var buffer            = new byte[64];
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(PropertyTestClass),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
+            
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(PropertyTestClass), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject       = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
+            var stringSerializer = new StringSerializer();
+            var buffer           = new byte[64];
             
             serializeDelegate(context, testObject, buffer, 0);
             
@@ -347,10 +450,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicProperties()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NullablePropertyTestClass), serializationOps, 3);
-            var testObject        = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
-            var buffer            = new byte[64];
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(NullablePropertyTestClass),
@@ -358,6 +458,16 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(NullablePropertyTestClass), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var buffer     = new byte[64];
+
             serializeDelegate(context, testObject, buffer, 0);
             
             // Null mask size in bytes.
@@ -378,18 +488,25 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicProperties()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(NonValueTypePropertyTest), serializationOps, 3);
-            var testObject        = new NonValueTypePropertyTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
-            var stringSerializer  = new StringSerializer();
-            var buffer            = new byte[128];
-
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(NonValueTypePropertyTest),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(NonValueTypePropertyTest), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject       = new NonValueTypePropertyTest() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var stringSerializer = new StringSerializer();
+            var buffer           = new byte[128];
+
             serializeDelegate(context, testObject, buffer, 0);
             
             var offset = 0;
@@ -423,10 +540,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(FieldAndPropertyTestClass), serializationOps, 0);
-            var testObject        = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
-            var buffer            = new byte[64];
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(FieldAndPropertyTestClass),
@@ -434,12 +548,63 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(FieldAndPropertyTestClass), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject = new FieldAndPropertyTestClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
+            var buffer     = new byte[64];
+
             serializeDelegate(context, testObject, buffer, 0);
             
             Assert.Equal(testObject.B1, MemoryMapper.ReadByte(buffer, 0));
             Assert.Equal(testObject.B2, MemoryMapper.ReadByte(buffer, sizeof(byte)));
             Assert.Equal(testObject.B3, MemoryMapper.ReadByte(buffer, sizeof(byte) * 2));
             Assert.Equal(testObject.B4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 3));
+        }
+        
+        [Fact]
+        public void Should_Serialize_Non_Zero_Null_Offset_Mixed_Value_Types()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NonZeroNullValueOffsetMixedTest>()
+                                                   .PublicProperties()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NonZeroNullValueOffsetMixedTest),
+                serializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+            );
+            
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(NonZeroNullValueOffsetMixedTest), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+
+            var testObject = new NonZeroNullValueOffsetMixedTest() { I = 200, J = 300, K = 400, X = 1, Y = 1, P9 = 500};
+            var buffer     = new byte[64];
+
+            serializeDelegate(context, testObject, buffer, 0);
+            
+            var offset = 0;
+            
+            // Null mask size in bytes.
+            Assert.Equal(2, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
+            
+            // Null mask values.
+            Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
+            offset += sizeof(byte);
         }
         
         [Fact]
@@ -451,30 +616,35 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .Map();
             
-            var serializationOps  = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(AllPropertyAndFieldKindsMixTest), serializationOps, 4);
-            var stringSerializer  = new StringSerializer();
-            
-            var testObject = new AllPropertyAndFieldKindsMixTest() 
-            {
-                Y = 200,
-                X = null,
-                S2 = "hello world!",
-                S1 = null,
-                J = 400,
-                I = null,
-                S3 = null,
-                S4 = "fuck you"
-            };
-            
-            var buffer = new byte[256];
-            
+            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
                 typeof(AllPropertyAndFieldKindsMixTest),
                 serializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
             );
             
+            var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                typeof(AllPropertyAndFieldKindsMixTest), 
+                serializationOps, 
+                context.NullableValuesCount, 
+                context.NullableValuesOffset
+            );
+            
+            var testObject = new AllPropertyAndFieldKindsMixTest() 
+            {
+                Y  = 200,
+                X  = null,
+                S2 = "hello world!",
+                S1 = null,
+                J  = 400,
+                I  = null,
+                S3 = null,
+                S4 = "fuck you"
+            };
+            
+            var buffer = new byte[256];
+
             serializeDelegate(context, testObject, buffer, 0);
         }
     }
