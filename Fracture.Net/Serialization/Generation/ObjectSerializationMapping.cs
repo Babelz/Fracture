@@ -168,6 +168,9 @@ namespace Fracture.Net.Serialization.Generation
             if (property != null && field != null)
                 throw new InvalidOperationException($"expecting only one of {nameof(field)} or {nameof(property)} to have value");
         }
+
+        public override string ToString()
+            => IsProperty ? $"property: {Property.PropertyType.Name} {Property.Name}" : $"field: {Field.FieldType.Name} {Field.Name}";
     }
     
     /// <summary>
@@ -524,7 +527,7 @@ namespace Fracture.Net.Serialization.Generation
             RemoveActivationValueHints();
             
             // Ensure properties and fields exist, contact all serialization values to single list. 
-            var serializationValues = GetSerializationPropertyValues().Concat(GetSerializationFieldValues()).ToList().AsReadOnly();
+            var serializationValues = GetSerializationPropertyValues().Concat(GetSerializationFieldValues()).OrderBy(v => !v.IsNullable).ToList().AsReadOnly();
 
             return new ObjectSerializationMapping(serializationType,
                                                   serializationValues,

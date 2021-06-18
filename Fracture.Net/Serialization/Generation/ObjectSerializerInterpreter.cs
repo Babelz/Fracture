@@ -32,15 +32,7 @@ namespace Fracture.Net.Serialization.Generation
         {
             get;
         }
-        
-        /// <summary>
-        /// Offset to value serializers index where the first nullable field is at.
-        /// </summary>
-        public int NullableValuesOffset
-        {
-            get;
-        }
-        
+
         /// <summary>
         /// Gets the value serializers for the type in order they are expected to be executed.
         /// </summary>
@@ -52,13 +44,11 @@ namespace Fracture.Net.Serialization.Generation
 
         public ObjectSerializationContext(IReadOnlyList<IValueSerializer> valueSerializers, 
                                           int nullableValuesCount, 
-                                          int nullableValuesOffset,
                                           IValueSerializer bitFieldSerializer)
         {
-            ValueSerializers        = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
-            NullableValuesCount     = nullableValuesCount;
-            NullableValuesOffset    = nullableValuesOffset;
-            BitFieldSerializer      = bitFieldSerializer;
+            ValueSerializers    = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
+            NullableValuesCount = nullableValuesCount;
+            BitFieldSerializer  = bitFieldSerializer;
 
             if (nullableValuesCount != 0 && bitFieldSerializer == null)
                 throw new InvalidOperationException("expecting utility serializers to present for null serialization");
@@ -323,43 +313,18 @@ namespace Fracture.Net.Serialization.Generation
                                                                                      IEnumerable<ISerializationOp> ops, 
                                                                                      IReadOnlyList<IValueSerializer> serializers)
         {
-            var nullableValuesOffset    = -1;
-            var valueOps                = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
-            var firstNullableValueIndex = int.MaxValue;
-            var lastNullableValueIndex  = int.MinValue;
-            
-            for (var i = 0; i < valueOps.Count; i++)
-            {
-                var op = valueOps[i];
+            var nullableValuesCount = ops.Where(o => o is SerializeValueOp)
+                                         .Cast<SerializeValueOp>()
+                                         .Count(op => !op.Value.IsValueType || op.Value.IsNullable);
 
-                if (op.Value.IsValueType)
-                {
-                    if (!op.Value.IsNullable)
-                        continue;
-                }
-                
-                if (nullableValuesOffset < 0) 
-                    nullableValuesOffset = i;
-                
-                if (firstNullableValueIndex > i)
-                    firstNullableValueIndex = i;
-                
-                if (lastNullableValueIndex < i)
-                    lastNullableValueIndex = i;
-            }
-            
-            var nullableValuesCount = lastNullableValueIndex < 0 ? 0 : (lastNullableValueIndex - firstNullableValueIndex) + 1;
-            
             return new ObjectSerializationContext(serializers, 
                                                   nullableValuesCount, 
-                                                  nullableValuesOffset,
                                                   nullableValuesCount != 0 ? ValueSerializerRegistry.GetValueSerializerForType(typeof(BitField)) : null);
         }
         
         public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(Type type, 
                                                                                      IReadOnlyList<ISerializationOp> ops, 
-                                                                                     int nullableValuesCount,
-                                                                                     int nullableValuesOffset)
+                                                                                     int nullableValuesCount)
         {
             // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
             //                                 typeof(object), 
@@ -400,8 +365,7 @@ namespace Fracture.Net.Serialization.Generation
 
         public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(Type type, 
                                                                                  IReadOnlyList<ISerializationOp> ops, 
-                                                                                 int nullableValuesCount,
-                                                                                 int nullableValuesOffset)
+                                                                                 int nullableValuesCount)
         {
             var builder = new DynamicSerializeDelegateBuilder(type);
  
@@ -414,9 +378,9 @@ namespace Fracture.Net.Serialization.Generation
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex, ops.Count, nullableValuesOffset);
+                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex, ops.Count);
                 else if (op.Value.IsNullable)
-                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex, ops.Count, nullableValuesOffset);
+                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex, ops.Count);
                 else
                     builder.EmitSerializeValue(op.Value, serializationValueIndex, ops.Count);
             }
@@ -432,14 +396,12 @@ namespace Fracture.Net.Serialization.Generation
             // Create dynamic serialization function.
             var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.Type, 
                                                                              program.SerializationOps, 
-                                                                             objectSerializationContext.NullableValuesCount,
-                                                                             objectSerializationContext.NullableValuesOffset);
+                                                                             objectSerializationContext.NullableValuesCount);
             
             // Create dynamic deserialization function.
             var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(program.Type, 
                                                                                  program.DeserializationOps, 
-                                                                                 objectSerializationContext.NullableValuesCount,
-                                                                                 objectSerializationContext.NullableValuesOffset);
+                                                                                 objectSerializationContext.NullableValuesCount);
             
             // Create dynamic get size function. Instructions from serialize program should be usable when interpreting this function.
             var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.Type, 
