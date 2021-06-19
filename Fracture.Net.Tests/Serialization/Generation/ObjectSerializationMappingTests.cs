@@ -1,6 +1,7 @@
 #pragma warning disable 649 - used for testing and the value is dynamically discovered
 #pragma warning disable 169 - used for testing and the value is dynamically discovered
 
+using System.Linq;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -193,15 +194,15 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class ActivationTestClass
         {
             #region Fields
+            public int I;
+            public int J;
+            
             // ReSharper disable once MemberCanBePrivate.Local
             public int X;
             // ReSharper disable once MemberCanBePrivate.Local
             public int Y;
             // ReSharper disable once MemberCanBePrivate.Local
             public int? K;
-            
-            public int I;
-            public int J;
             #endregion
             
             public ActivationTestClass(int x, int y, int? k)
@@ -458,13 +459,37 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         
         [Fact()]
-        public void Should_Map_Values_Based_On_Nullability()
+        public void Should_Order_Serialization_Values_Based_On_Nullability()
         {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<MixedNullableTestClass>()
+                                                   .PublicProperties()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            Assert.Equal("X2", mapping.Values.ElementAt(0).Name);
+            Assert.Equal("X4", mapping.Values.ElementAt(1).Name);
+            Assert.Equal("X1", mapping.Values.ElementAt(2).Name);
+            Assert.Equal("X3", mapping.Values.ElementAt(3).Name);
         }
         
         [Fact()]
         public void Should_Order_Activation_Values_First()
         {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<ActivationTestClass>()
+                                                   .PublicProperties()
+                                                   .PublicFields()
+                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
+                                                                           ObjectActivationHint.Field("y", "Y"),
+                                                                           ObjectActivationHint.Field("k", "K"))
+                                                   .Map();
+            
+            Assert.Equal("X", mapping.Activator.Values.ElementAt(0).Name);
+            Assert.Equal("Y", mapping.Activator.Values.ElementAt(1).Name);
+            Assert.Equal("K", mapping.Activator.Values.ElementAt(2).Name);
+            Assert.Equal("I", mapping.Values.ElementAt(0).Name);
+            Assert.Equal("J", mapping.Values.ElementAt(1).Name);
         }
     }
 }
