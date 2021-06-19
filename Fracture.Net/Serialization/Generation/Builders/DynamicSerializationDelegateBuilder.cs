@@ -45,15 +45,21 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             get;
         }
-        
+
+        public ObjectSerializationContext Context
+        {
+            get;
+        }
+
         protected Type SerializationType
         {
             get;
         }
         #endregion
         
-        public DynamicSerializationDelegateBuilder(Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
+        public DynamicSerializationDelegateBuilder(in ObjectSerializationContext context, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
         {
+            Context           = context;
             SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
             DynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
             
@@ -130,7 +136,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Stloc, Locals[localCurrentSerializer]);
         }
         
-        public virtual void EmitLocals(int nullableValuesCount)
+        public virtual void EmitLocals()
         {
             var il = DynamicMethod.GetILGenerator();
             

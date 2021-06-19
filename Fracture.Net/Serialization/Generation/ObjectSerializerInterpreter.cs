@@ -354,10 +354,9 @@ namespace Fracture.Net.Serialization.Generation
                                                   nullableValuesCount != 0 ? ValueSerializerRegistry.GetValueSerializerForType(typeof(BitField)) : null);
         }
         
-        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(Type type, 
-                                                                                     IReadOnlyList<ISerializationOp> ops, 
-                                                                                     int nullableValuesCount,
-                                                                                     int nullableValuesOffset)
+        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationContext context,
+                                                                                     Type type, 
+                                                                                     IReadOnlyList<ISerializationOp> ops)
         {
             // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
             //                                 typeof(object), 
@@ -373,38 +372,39 @@ namespace Fracture.Net.Serialization.Generation
             };
         }
 
-        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(Type type, 
-                                                                                               IReadOnlyList<ISerializationOp> ops, 
-                                                                                               int nullableValuesCount)
+        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationContext context,
+                                                                                               Type type, 
+                                                                                               IReadOnlyList<ISerializationOp> ops)
         {
-            var builder = new DynamicGetSizeFromValueDelegateBuilder(type);
+            var builder = new DynamicGetSizeFromValueDelegateBuilder(context, type);
             
-            builder.EmitLocals(nullableValuesCount);
+            builder.EmitLocals();
+            
+            builder.EmitSizeOfNullMask();
             
             for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
             {
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, serializationValueIndex, ops.Count);
+                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, serializationValueIndex);
                 else if (op.Value.IsNullable)
-                    builder.EmitGetSizeOfNullableValue(op.Value, serializationValueIndex, ops.Count);
+                    builder.EmitGetSizeOfNullableValue(op.Value, serializationValueIndex);
                 else
-                    builder.EmitGetSizeOfValue(op.Value, serializationValueIndex, ops.Count);
+                    builder.EmitGetSizeOfValue(op.Value, serializationValueIndex);
             }
             
             return builder.Build();
         }
 
-        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(Type type, 
-                                                                                 IReadOnlyList<ISerializationOp> ops, 
-                                                                                 int nullableValuesCount,
-                                                                                 int nullableValuesOffset)
+        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationContext context,
+                                                                                 Type type, 
+                                                                                 IReadOnlyList<ISerializationOp> ops)
         {
-            var builder = new DynamicSerializeDelegateBuilder(type);
+            var builder = new DynamicSerializeDelegateBuilder(context, type);
  
             // Declare locals.
-            builder.EmitLocals(nullableValuesCount);
+            builder.EmitLocals();
             
             // Start serialization. Keep track of the emitted field count using for loop to calculate offsets correctly.
             for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
@@ -412,14 +412,14 @@ namespace Fracture.Net.Serialization.Generation
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex, ops.Count, nullableValuesOffset);
+                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex);
                 else if (op.Value.IsNullable)
-                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex, ops.Count, nullableValuesOffset);
+                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex);
                 else
-                    builder.EmitSerializeValue(op.Value, serializationValueIndex, ops.Count);
+                    builder.EmitSerializeValue(op.Value, serializationValueIndex);
             }
             
-            return builder.Build(nullableValuesCount);
+            return builder.Build();
         }
 
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
@@ -428,21 +428,19 @@ namespace Fracture.Net.Serialization.Generation
             var objectSerializationContext = InterpretObjectSerializationContext(program.Type, program.SerializationOps, program.Serializers);
             
             // Create dynamic serialization function.
-            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(program.Type, 
-                                                                             program.SerializationOps, 
-                                                                             objectSerializationContext.NullableValuesCount,
-                                                                             objectSerializationContext.NullableValuesOffset);
+            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(objectSerializationContext,
+                                                                             program.Type, 
+                                                                             program.SerializationOps);
             
             // Create dynamic deserialization function.
-            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(program.Type, 
-                                                                                 program.DeserializationOps, 
-                                                                                 objectSerializationContext.NullableValuesCount,
-                                                                                 objectSerializationContext.NullableValuesOffset);
+            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(objectSerializationContext,
+                                                                                 program.Type, 
+                                                                                 program.DeserializationOps);
             
             // Create dynamic get size function. Instructions from serialize program should be usable when interpreting this function.
-            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(program.Type, 
-                                                                                           program.SerializationOps, 
-                                                                                           objectSerializationContext.NullableValuesCount);
+            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(objectSerializationContext,
+                                                                                           program.Type, 
+                                                                                           program.SerializationOps);
 
             return new ObjectSerializer(
                 objectSerializationContext,

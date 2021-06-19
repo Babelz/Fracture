@@ -300,10 +300,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(FieldTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject = new FieldTestClass() { X = 1500, Y = 37500 };
@@ -332,10 +331,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(NullableFieldTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
@@ -370,10 +368,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
 
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(NonValueTypeFieldTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject       = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
@@ -421,10 +418,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(PropertyTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject       = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
@@ -459,10 +455,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(NullablePropertyTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
@@ -497,10 +492,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(NonValueTypePropertyTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject       = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
@@ -549,10 +543,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(FieldAndPropertyTestClassClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject = new FieldAndPropertyTestClassClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
@@ -585,10 +578,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(NonZeroNullValueOffsetMixedTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
 
             var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
@@ -648,10 +640,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
+                context,
                 typeof(AllPropertyAndFieldKindsMixTestClass), 
-                serializationOps, 
-                context.NullableValuesCount, 
-                context.NullableValuesOffset
+                serializationOps
             );
             
             var testObject = new AllPropertyAndFieldKindsMixTestClass() 
