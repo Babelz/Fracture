@@ -153,6 +153,11 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         public bool IsNullable
             => Type.IsGenericType && Type.GetGenericTypeDefinition() == typeof(Nullable<>);
+
+        /// <summary>
+        /// Returns boolean declaring whether null can be assigned to this value.
+        /// </summary>
+        public bool IsNullAssignable => !IsValueType || IsNullable;
         #endregion
 
         public SerializationValue(FieldInfo field = null, PropertyInfo property = null)
@@ -201,8 +206,7 @@ namespace Fracture.Net.Serialization.Generation
         public bool IsDefaultConstructor => Values.Count == 0;
         #endregion
 
-        public ObjectActivator(ConstructorInfo constructor,
-                               IReadOnlyCollection<SerializationValue> values)
+        public ObjectActivator(ConstructorInfo constructor, IReadOnlyCollection<SerializationValue> values)
         {
             Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
             Values      = values;
@@ -530,7 +534,10 @@ namespace Fracture.Net.Serialization.Generation
             // and they are in order.
             var serializationPropertyValues = GetSerializationPropertyValues();
             var serializationFieldValues    = GetSerializationFieldValues();
-            var serializationValues         = serializationPropertyValues.Concat(serializationFieldValues).OrderBy(v => !v.IsNullable).ToList().AsReadOnly();
+            var serializationValues         = serializationPropertyValues.Concat(serializationFieldValues)
+                                                                         .OrderBy(v => !v.IsNullAssignable)
+                                                                         .ToList()
+                                                                         .AsReadOnly();
 
             return new ObjectSerializationMapping(serializationType,
                                                   serializationValues,

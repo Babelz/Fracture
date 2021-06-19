@@ -1,6 +1,7 @@
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
@@ -332,11 +333,8 @@ namespace Fracture.Net.Serialization.Generation
             {
                 var op = valueOps[i];
 
-                if (op.Value.IsValueType)
-                {
-                    if (!op.Value.IsNullable)
-                        continue;
-                }
+                if (!op.Value.IsNullAssignable)
+                    continue;
                 
                 if (nullableValuesOffset < 0) 
                     nullableValuesOffset = i;
