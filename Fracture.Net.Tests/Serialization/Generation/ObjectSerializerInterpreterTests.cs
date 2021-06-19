@@ -591,7 +591,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 context.NullableValuesOffset
             );
 
-            var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 1, Y = 1, P9 = 500};
+            var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
             var buffer     = new byte[64];
 
             serializeDelegate(context, testObject, buffer, 0);
@@ -603,8 +603,31 @@ namespace Fracture.Net.Tests.Serialization.Generation
             offset += sizeof(byte);
             
             // Null mask values.
-            Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
-            offset += sizeof(byte);
+            Assert.Equal(33023, MemoryMapper.ReadUshort(buffer, offset));
+            offset += sizeof(ushort);
+            
+            // K.
+            Assert.Equal(400, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // P9.
+            Assert.Equal(500, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // X.
+            Assert.Equal(2, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // Y.
+            Assert.Equal(1, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // I.
+            Assert.Equal(200, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // J.
+            Assert.Equal(300, MemoryMapper.ReadInt(buffer, offset));
         }
         
         [Fact]
