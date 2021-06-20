@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
+#pragma warning disable 649
+
 namespace Fracture.Net.Tests.Serialization.Generation
 {
     [Trait("Category", "Serialization")]

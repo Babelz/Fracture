@@ -1,5 +1,3 @@
-using System;
-
 namespace Fracture.Net.Serialization
 {
     // /// <summary>

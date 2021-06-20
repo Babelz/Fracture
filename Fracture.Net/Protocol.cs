@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.Design;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Fracture.Common.Memory;

@@ -1,7 +1,5 @@
-using System.ComponentModel;
 using Fracture.Net.Serialization;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Fracture.Net.Tests.Serialization
 {

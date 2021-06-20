@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection.Emit;
 using NLog;
@@ -137,7 +136,32 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
-            throw new NotImplementedException();
+            var il = DynamicMethod.GetILGenerator();
+            
+            // Push serialization value to stack.
+            EmitPushSerializationValueToStack(il, value);
+            
+            // Push null to stack.
+            il.Emit(OpCodes.Ldnull);
+            // Check if serialization value is null.
+            il.Emit(OpCodes.Cgt_Un);
+
+            // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
+            var notNull = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse_S, notNull);
+            
+            // Push current serializer to stack.
+            EmitPushCurrentSerializerToStack(il);
+
+            // Push value of the field to stack boxed.
+            EmitPushSerializationValueToStack(il, value);
+            
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            
+            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.MarkLabel(notNull);
         }
 
         /// <summary>
@@ -153,7 +177,29 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
-            throw new NotImplementedException();
+            var il = DynamicMethod.GetILGenerator();
+            
+            EmitPushSerializationValueAddressToStack(il, value);
+            
+            // Get boolean declaring if the nullable is null.
+            il.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
+
+            // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
+            var notNull = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse_S, notNull);
+            
+            EmitPushCurrentSerializerToStack(il);
+            
+            EmitPushSerializationValueAddressToStack(il, value);
+            
+            il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
+            il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            
+            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Add);
+            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.MarkLabel(notNull);
         }
 
         /// <summary>

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
-using System.Runtime.CompilerServices;
 
 namespace Fracture.Net.Serialization.Generation.Builders
 {
@@ -22,6 +21,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
         private readonly byte localActual;
         
         private byte localIndexCounter;
+        
+        // Temporary locals lookup.
+        private readonly Dictionary<Type, LocalBuilder> temp;
         #endregion
 
         #region Properties
@@ -33,20 +35,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
             get;
         }
         
-        /// <summary>
-        /// Get local temporary variables accessed by type.
-        /// </summary>
-        protected Dictionary<Type, LocalBuilder> Temp
-        {
-            get;
-        }
-        
         protected DynamicMethod DynamicMethod
         {
             get;
         }
 
-        public ObjectSerializationContext Context
+        protected ObjectSerializationContext Context
         {
             get;
         }
@@ -56,15 +50,15 @@ namespace Fracture.Net.Serialization.Generation.Builders
             get;
         }
         #endregion
-        
-        public DynamicSerializationDelegateBuilder(in ObjectSerializationContext context, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
+
+        protected DynamicSerializationDelegateBuilder(in ObjectSerializationContext context, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
         {
             Context           = context;
             SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
             DynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
             
             Locals = new LocalBuilder[MaxLocals + maxLocals];
-            Temp   = new Dictionary<Type, LocalBuilder>();
+            temp   = new Dictionary<Type, LocalBuilder>();
             
             localCurrentSerializer = AllocateNextLocalIndex();
             localSerializers       = AllocateNextLocalIndex();
@@ -86,15 +80,15 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push local 'actual' to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localActual]);
             
-            if ((!value.IsValueType || value.IsNullable) && !Temp.ContainsKey(value.Type))
+            if ((!value.IsValueType || value.IsNullable) && !temp.ContainsKey(value.Type))
             {
                 // Declare new local for the new nullable type.
-                Temp.Add(value.Type, il.DeclareLocal(value.Type));
+                temp.Add(value.Type, il.DeclareLocal(value.Type));
             }
 
             if (value.IsProperty)
             {
-                var localNullable = Temp[value.Type];
+                var localNullable = temp[value.Type];
                 
                 il.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
                 

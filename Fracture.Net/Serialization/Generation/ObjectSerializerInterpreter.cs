@@ -1,11 +1,7 @@
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Serialization.Generation.Builders;
 using NLog;

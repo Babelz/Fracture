@@ -1,12 +1,10 @@
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using Fracture.Common.Memory;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
+
+#pragma warning disable 8632
 
 namespace Fracture.Net.Tests.Serialization.Generation
 {
@@ -38,11 +36,13 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #region Fields
             public int? X
             {
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 get;
                 set;
             }
             public int? Y
             {
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 get;
                 set;
             }
@@ -103,8 +103,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public byte B4;
             #endregion
         }
-        
-        public sealed class NonValueTypeFieldTestClass
+
+        private sealed class NonValueTypeFieldTestClass
         {
             #region Fields
             public string S1;
@@ -114,8 +114,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public int J;
             #endregion
         }
-        
-        public sealed class NonValueTypePropertyTestClass
+
+        private sealed class NonValueTypePropertyTestClass
         {
             #region Properties
             public string S1
@@ -125,6 +125,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             public string S2
             {
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 get;
                 set;
             }
@@ -145,8 +146,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
-        
-        public sealed class AllPropertyAndFieldKindsMixTestClass
+
+        private sealed class AllPropertyAndFieldKindsMixTestClass
         {
             #region Fields
             public int? X;
@@ -159,6 +160,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #region Properties
             public int? I
             {
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 get;
                 set;
             }
@@ -170,6 +172,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             public string? S3
             {
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 get;
                 set;
             }
@@ -180,8 +183,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
-        
-        public sealed class NonZeroNullValueOffsetMixedTestClass
+
+        private sealed class NonZeroNullValueOffsetMixedTestClass
         {
             #region Fields
             public int X;
