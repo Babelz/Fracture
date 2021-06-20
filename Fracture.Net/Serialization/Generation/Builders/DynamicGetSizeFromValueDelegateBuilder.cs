@@ -42,7 +42,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                    serializationType,
                    new DynamicMethod(
                        $"GetSizeFromValue", 
-                       typeof(void), 
+                       typeof(ushort), 
                        new []
                        {
                            typeof(ObjectSerializationContext).MakeByRefType(), // Argument 0.
@@ -115,7 +115,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Load bit field size to stack.
-            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(Context.NullableValuesCount));
+            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(Context.NullableValuesCount) + Protocol.NullMaskLength.Size);
             // Load local size to stack.
             il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
             // Add local + bit field size.

@@ -56,10 +56,10 @@ namespace Fracture.Net.Serialization.Generation
                                           int nullableValuesOffset,
                                           IValueSerializer bitFieldSerializer)
         {
-            ValueSerializers        = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
-            NullableValuesCount     = nullableValuesCount;
-            NullableValuesOffset    = nullableValuesOffset;
-            BitFieldSerializer      = bitFieldSerializer;
+            ValueSerializers     = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
+            NullableValuesCount  = nullableValuesCount;
+            NullableValuesOffset = nullableValuesOffset;
+            BitFieldSerializer   = bitFieldSerializer;
 
             if (nullableValuesCount != 0 && bitFieldSerializer == null)
                 throw new InvalidOperationException("expecting utility serializers to present for null serialization");
@@ -374,9 +374,10 @@ namespace Fracture.Net.Serialization.Generation
 
         public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationContext context,
                                                                                                Type type, 
-                                                                                               IReadOnlyList<ISerializationOp> ops)
+                                                                                               IReadOnlyList<ISerializationOp> ops,
+                                                                                               DynamicGetSizeFromValueDelegateBuilder builder = null)
         {
-            var builder = new DynamicGetSizeFromValueDelegateBuilder(context, type);
+            builder ??= new DynamicGetSizeFromValueDelegateBuilder(context, type);
             
             builder.EmitLocals();
             
@@ -399,9 +400,10 @@ namespace Fracture.Net.Serialization.Generation
 
         public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationContext context,
                                                                                  Type type, 
-                                                                                 IReadOnlyList<ISerializationOp> ops)
+                                                                                 IReadOnlyList<ISerializationOp> ops,
+                                                                                 DynamicSerializeDelegateBuilder builder = null)
         {
-            var builder = new DynamicSerializeDelegateBuilder(context, type);
+            builder ??= new DynamicSerializeDelegateBuilder(context, type);
  
             // Declare locals.
             builder.EmitLocals();
