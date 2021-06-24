@@ -1,7 +1,102 @@
+using System.Linq;
+using Fracture.Common.Memory;
+using Fracture.Net.Serialization.Generation;
+using Xunit;
+
 namespace Fracture.Net.Tests.Serialization.Generation
 {
+    [Trait("Category", "Serialization")]
     public class DynamicDeserializeDelegateTests
     {
+        #region Test types
+        private sealed class FieldTestClass
+        {
+            #region Fields
+            public int X, Y;
+            #endregion
+        }
         
+        private sealed class PropertyTestClass
+        {
+            #region Properties
+            public int X
+            {
+                get;
+                set;
+            }
+            public int Y
+            {
+                get;
+                set;
+            }
+            #endregion
+        }
+        #endregion
+        
+        [Fact]
+        public void Should_Deserialize_Fields()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<FieldTestClass>()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(FieldTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(FieldTestClass), 
+                deserializationOps
+            );
+            
+            var buffer = new byte[32];
+            
+            MemoryMapper.WriteInt(100, buffer, 0);
+            MemoryMapper.WriteInt(200, buffer, sizeof(int));
+            
+            var results = (FieldTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(100, results.X);
+            Assert.Equal(200, results.Y);
+        }
+        
+        [Fact]
+        public void Should_Deserialize_Properties()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<PropertyTestClass>()
+                                                   .PublicProperties()
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(PropertyTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(PropertyTestClass), 
+                deserializationOps
+            );
+            
+            var buffer = new byte[32];
+            
+            MemoryMapper.WriteInt(300, buffer, 0);
+            MemoryMapper.WriteInt(400, buffer, sizeof(int));
+            
+            var results = (PropertyTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(300, results.X);
+            Assert.Equal(400, results.Y);
+        }
     }
 }

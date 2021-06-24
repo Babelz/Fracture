@@ -72,7 +72,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Push serialization value to stack.
-            EmitPushSerializationValueToStack(il, value);
+            EmitLoadSerializationValue(il, value);
             
             // Push null to stack.
             il.Emit(OpCodes.Ldnull);
@@ -84,10 +84,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Brfalse_S, notNull);
             
             // Push current serializer to stack.
-            EmitPushCurrentSerializerToStack(il);
+            EmitLoadCurrentSerializer(il);
 
             // Push value of the field to stack boxed.
-            EmitPushSerializationValueToStack(il, value);
+            EmitLoadSerializationValue(il, value);
             
             il.Emit(OpCodes.Box, value.Type);
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
@@ -100,10 +100,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
                 il.Emit(OpCodes.Ldarg_3);
                 
-                EmitPushCurrentSerializerToStack(il);
+                EmitLoadCurrentSerializer(il);
                 
                 // Push value from the nullable field to stack boxed.
-                EmitPushSerializationValueToStack(il, value);
+                EmitLoadSerializationValue(il, value);
             
                 il.Emit(OpCodes.Box, value.Type);
                 il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
@@ -145,7 +145,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
 
             // Push serialization value to stack.
-            EmitPushSerializationValueAddressToStack(il, value);
+            EmitLoadSerializationValueAddressToStack(il, value);
             
             // Get boolean declaring if the nullable is null.
             il.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
@@ -155,10 +155,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Brfalse_S, notNull);
             
             // Push current serializer to stack.
-            EmitPushCurrentSerializerToStack(il);
+            EmitLoadCurrentSerializer(il);
 
             // Push value from the nullable field to stack boxed.
-            EmitPushSerializationValueAddressToStack(il, value);
+            EmitLoadSerializationValueAddressToStack(il, value);
             
             il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
             il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
@@ -173,9 +173,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
                 il.Emit(OpCodes.Ldarg_3);
                 
-                EmitPushCurrentSerializerToStack(il);
+                EmitLoadCurrentSerializer(il);
                 
-                EmitPushSerializationValueAddressToStack(il, value);
+                EmitLoadSerializationValueAddressToStack(il, value);
                 
                 il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
                 il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
@@ -214,10 +214,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Push local 'currentSerializer' to stack from local.
-            EmitPushCurrentSerializerToStack(il);
+            EmitLoadCurrentSerializer(il);
                 
             // Push serialization value to stack.
-            EmitPushSerializationValueToStack(il, value);
+            EmitLoadSerializationValue(il, value);
             
             // Box serialization value.
             il.Emit(OpCodes.Box, value.Type);
@@ -234,10 +234,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Ldarg_3);                    
             
             // Push 'currentSerializer' to stack.
-            EmitPushCurrentSerializerToStack(il);
+            EmitLoadCurrentSerializer(il);
             
             // Push last serialization value to stack.
-            EmitPushSerializationValueToStack(il, value); 
+            EmitLoadSerializationValue(il, value); 
                 
             // Box serialization value.
             il.Emit(OpCodes.Box, value.Type);                                             
@@ -262,10 +262,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             base.EmitLocals();
 
+            var il = DynamicMethod.GetILGenerator();
+
+            EmitStoreArgumentValueToLocal(il);
+            
             // Declare locals for null checks and masking if any of exist.
             if (Context.NullableValuesCount == 0) return;
-            
-            var il = DynamicMethod.GetILGenerator();
             
             // Local 3: for masking null bit fields.
             Locals[localNullMask] = il.DeclareLocal(typeof(BitField));
@@ -331,7 +333,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             try
             {
-                var method = (DynamicSerializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate), new object());
+                var method = (DynamicSerializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
                 
                 return (in ObjectSerializationContext context, object value, byte[] buffer, int offset) =>
                 {

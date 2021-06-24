@@ -352,25 +352,24 @@ namespace Fracture.Net.Serialization.Generation
         
         public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationContext context,
                                                                                      Type type, 
-                                                                                     IReadOnlyList<ISerializationOp> ops)
+                                                                                     IEnumerable<ISerializationOp> ops)
         {
-            var builder = new DynamicDeserializeDelegateBuilder(context, type);
+            var serializationValueIndex = 0;
+            var builder                 = new DynamicDeserializeDelegateBuilder(context, type);
             
             builder.EmitLocals();
             
-            for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
+            foreach (var op in ops)
             {
-                var op = ops[serializationValueIndex];
-                
                 switch (op)
                 {
                     case SerializeValueOp svop:
                         if (!svop.Value.IsValueType) 
-                            builder.EmitDeserializeNonValueTypeValue(svop.Value, serializationValueIndex);
+                            builder.EmitDeserializeNonValueTypeValue(svop.Value, serializationValueIndex++);
                         else if (svop.Value.IsNullable)
-                            builder.EmitDeserializeNullableValue(svop.Value, serializationValueIndex);
+                            builder.EmitDeserializeNullableValue(svop.Value, serializationValueIndex++);
                         else
-                            builder.EmitDeserializeValue(svop.Value, serializationValueIndex);
+                            builder.EmitDeserializeValue(svop.Value, serializationValueIndex++);
                         break;
                     case DefaultActivationOp daop:
                         builder.EmitActivation(daop.Constructor);
@@ -379,11 +378,11 @@ namespace Fracture.Net.Serialization.Generation
                         foreach (var parameter in paop.Parameters)
                         {
                             if (!parameter.IsValueType) 
-                                builder.EmitLoadNonValueTypeValue(parameter, serializationValueIndex);
+                                builder.EmitLoadNonValueTypeValue(parameter, serializationValueIndex++);
                             else if (parameter.IsNullable)
-                                builder.EmitLoadNullableValue(parameter, serializationValueIndex);
+                                builder.EmitLoadNullableValue(parameter, serializationValueIndex++);
                             else
-                                builder.EmitLoadValue(parameter, serializationValueIndex);
+                                builder.EmitLoadValue(parameter, serializationValueIndex++);
                         }    
                         
                         builder.EmitActivation(paop.Constructor);
