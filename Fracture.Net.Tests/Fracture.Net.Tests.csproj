@@ -274,6 +274,7 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Serialization\ArraySerializerTests.cs" />
         <Compile Include="Serialization\BitFieldSerializerTests.cs" />
+        <Compile Include="Serialization\Generation\DynamicDeserializeDelegateTests.cs" />
         <Compile Include="Serialization\Generation\DynamicGetSizeFromValueDelegateTests.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMappingTests.cs" />
         <Compile Include="Serialization\Generation\DynamicSerializeDelegateTests.cs" />

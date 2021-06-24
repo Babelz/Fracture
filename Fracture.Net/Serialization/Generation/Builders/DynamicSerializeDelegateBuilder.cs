@@ -331,7 +331,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             try
             {
-                var method = (DynamicSerializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
+                var method = (DynamicSerializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate), new object());
                 
                 return (in ObjectSerializationContext context, object value, byte[] buffer, int offset) =>
                 {

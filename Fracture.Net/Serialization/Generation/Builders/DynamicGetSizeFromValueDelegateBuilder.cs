@@ -31,7 +31,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         #endregion
         
         #region Fields
-        private readonly byte LocalSize;
+        private readonly byte localSize;
         
         private bool valuesSizeIsConst;
         #endregion
@@ -53,7 +53,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             valuesSizeIsConst = true;
             
-            LocalSize = AllocateNextLocalIndex();
+            localSize = AllocateNextLocalIndex();
         }
         
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
@@ -66,7 +66,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 }
                 catch (Exception e)
                 {
-                    throw new DynamicSerializeException(SerializationType, e, value);
+                    throw new DynamicGetSizeFromValueException(SerializationType, e, value);
                 }
             };
         }
@@ -85,7 +85,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 }
                 catch (Exception e)
                 {
-                    throw new DynamicSerializeException(SerializationType, e, value);
+                    throw new DynamicGetSizeFromValueException(SerializationType, e, value);
                 }
 
                 return size;
@@ -116,11 +116,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Load bit field size to stack.
             il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(Context.NullableValuesCount) + Protocol.NullMaskLength.Size);
             // Load local size to stack.
-            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Ldloc, Locals[localSize]);
             // Add local + bit field size.
             il.Emit(OpCodes.Add);
             // Store result to local size.
-            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Stloc, Locals[localSize]);
         }
 
         /// <summary>
@@ -158,9 +158,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             
-            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Ldloc, Locals[localSize]);
             il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Stloc, Locals[localSize]);
             il.MarkLabel(notNull);
         }
 
@@ -196,9 +196,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             
-            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Ldloc, Locals[localSize]);
             il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Stloc, Locals[localSize]);
             il.MarkLabel(notNull);
         }
 
@@ -223,11 +223,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call get size from value.
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
             // Push local size to stack.
-            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Ldloc, Locals[localSize]);
             // Add local + value size.
             il.Emit(OpCodes.Add);
             // Store results to local size.
-            il.Emit(OpCodes.Stloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Stloc, Locals[localSize]);
         }
         
         public new void EmitLocals()
@@ -237,19 +237,19 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
 
             // Local 0: total size of the value.
-            Locals[LocalSize] = il.DeclareLocal(typeof(ushort));
+            Locals[localSize] = il.DeclareLocal(typeof(ushort));
         }
 
         public DynamicGetSizeFromValueDelegate Build()
         {            
             var il = DynamicMethod.GetILGenerator();
             
-            il.Emit(OpCodes.Ldloc, Locals[LocalSize]);
+            il.Emit(OpCodes.Ldloc, Locals[localSize]);
             il.Emit(OpCodes.Ret);
             
             try
             {
-                var method = (DynamicGetSizeFromValueDelegate)DynamicMethod.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate));
+                var method = (DynamicGetSizeFromValueDelegate)DynamicMethod.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate), new object());
                 
                 if (Context.NullableValuesCount == 0 && valuesSizeIsConst)
                     return CreateGetSizeFromValueAsConstClosure(method);

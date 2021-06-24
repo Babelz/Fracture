@@ -354,26 +354,51 @@ namespace Fracture.Net.Serialization.Generation
                                                                                      Type type, 
                                                                                      IReadOnlyList<ISerializationOp> ops)
         {
-            // var builder = new DynamicMethod($"Deserialize{program.Type.Name}", 
-            //                                 typeof(object), 
-            //                                 new [] { typeof(ObjectSerializationContext), typeof(byte[]), typeof(int) }, 
-            //                                 true);
-            //
-            // var il = builder.GetILGenerator();
-            //
-            // return (DynamicDeserializeDelegate)builder.CreateDelegate(typeof(DynamicDeserializeDelegate));
-            return delegate
+            var builder = new DynamicDeserializeDelegateBuilder(context, type);
+            
+            builder.EmitLocals();
+            
+            for (var serializationValueIndex = 0; serializationValueIndex < ops.Count; serializationValueIndex++)
             {
-                return null;
-            };
+                var op = ops[serializationValueIndex];
+                
+                switch (op)
+                {
+                    case SerializeValueOp svop:
+                        if (!svop.Value.IsValueType) 
+                            builder.EmitDeserializeNonValueTypeValue(svop.Value, serializationValueIndex);
+                        else if (svop.Value.IsNullable)
+                            builder.EmitDeserializeNullableValue(svop.Value, serializationValueIndex);
+                        else
+                            builder.EmitDeserializeValue(svop.Value, serializationValueIndex);
+                        break;
+                    case DefaultActivationOp daop:
+                        builder.EmitActivation(daop.Constructor);
+                        break;
+                    case ParametrizedActivationOp paop:
+                        foreach (var parameter in paop.Parameters)
+                        {
+                            if (!parameter.IsValueType) 
+                                builder.EmitLoadNonValueTypeValue(parameter, serializationValueIndex);
+                            else if (parameter.IsNullable)
+                                builder.EmitLoadNullableValue(parameter, serializationValueIndex);
+                            else
+                                builder.EmitLoadValue(parameter, serializationValueIndex);
+                        }    
+                        
+                        builder.EmitActivation(paop.Constructor);
+                        break;
+                }
+            }
+            
+            return builder.Build();
         }
 
         public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationContext context,
                                                                                                Type type, 
-                                                                                               IReadOnlyList<ISerializationOp> ops,
-                                                                                               DynamicGetSizeFromValueDelegateBuilder builder = null)
+                                                                                               IReadOnlyList<ISerializationOp> ops)
         {
-            builder ??= new DynamicGetSizeFromValueDelegateBuilder(context, type);
+            var builder = new DynamicGetSizeFromValueDelegateBuilder(context, type);
             
             builder.EmitLocals();
             
@@ -396,10 +421,9 @@ namespace Fracture.Net.Serialization.Generation
 
         public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationContext context,
                                                                                  Type type, 
-                                                                                 IReadOnlyList<ISerializationOp> ops,
-                                                                                 DynamicSerializeDelegateBuilder builder = null)
+                                                                                 IReadOnlyList<ISerializationOp> ops)
         {
-            builder ??= new DynamicSerializeDelegateBuilder(context, type);
+            var builder = new DynamicSerializeDelegateBuilder(context, type);
  
             // Declare locals.
             builder.EmitLocals();
@@ -446,53 +470,6 @@ namespace Fracture.Net.Serialization.Generation
                 dynamicDeserializeDelegate,
                 dynamicGetSizeFromValueDelegate
             );
-        }
-        
-        public sealed class Vector2
-        {
-            public float? X;
-            public float? Y;
-            public float I;
-            public float J;
-        }
-        
-        public static void SerializeTestEmit(in ObjectSerializationContext objectSerializationContext, object value, byte[] buffer, int offset)
-        {
-            var actual = (Vector2)value;
-            var serializers = objectSerializationContext.ValueSerializers;
-            var currentSerializer = default(IValueSerializer);
-            var bitFieldSerializer = new BitFieldSerializer();
-            var nullMask = new BitField(1);
-            var nullMaskOffset = offset;
-            
-            offset += bitFieldSerializer.GetSizeFromValue(nullMask);
-            
-            if (actual.X.HasValue)
-            {
-                currentSerializer.Serialize(actual.X.Value, buffer, offset);
-                offset += currentSerializer.GetSizeFromValue(actual.X.Value);
-            }
-            else
-            {
-                nullMask.SetBit(0, true);
-            }
-            
-            if (actual.Y.HasValue)
-            {
-                currentSerializer.Serialize(actual.Y.Value, buffer, offset);
-                offset += currentSerializer.GetSizeFromValue(actual.Y.Value);
-            }
-            else
-            {
-                nullMask.SetBit(1, true);
-            }
-            
-            currentSerializer.Serialize(actual.I, buffer, offset);
-            offset += currentSerializer.GetSizeFromValue(actual.I);
-            
-            currentSerializer.Serialize(actual.J, buffer, offset);
-            
-            bitFieldSerializer.Serialize(nullMask, buffer, nullMaskOffset);
         }
     }
 }
