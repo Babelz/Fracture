@@ -122,7 +122,7 @@ namespace Fracture.Net.Serialization
         }
 
         public ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => Protocol.NullMaskLength.Read(buffer, offset);
+            => (ushort)(Protocol.NullMaskLength.Size + Protocol.NullMaskLength.Read(buffer, offset));
 
         public ushort GetSizeFromValue(object value)
             => (ushort)(Protocol.NullMaskLength.Size + ((BitField)value).Length);

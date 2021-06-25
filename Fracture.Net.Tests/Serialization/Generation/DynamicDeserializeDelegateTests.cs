@@ -1,5 +1,6 @@
 using System.Linq;
 using Fracture.Common.Memory;
+using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -59,6 +60,45 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 X = x;
                 Y = y;
             }
+        }
+        
+        private sealed class NullableFieldTestClass
+        {
+            #region Fields
+            public int? X;
+            public int I;
+            public int? Y;
+            public int J;
+            #endregion
+        }
+        
+        private sealed class NullablePropertyTestClass
+        {
+            #region Properties
+            public int? Y
+            {
+                get;
+                set;
+            }
+            
+            public int I
+            {
+                get;
+                set;
+            }
+            
+            public int? X
+            {
+                get;
+                set;
+            }
+            
+            public int J
+            {
+                get;
+                set;
+            }
+            #endregion
         }
         #endregion
         
@@ -167,6 +207,87 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(20, results.Y);
             Assert.Equal(30, results.X2);
             Assert.Equal(40, results.Y2);
+        }
+        
+        [Fact]
+        public void Should_Deserialize_Nullable_Fields()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NullableFieldTestClass>()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NullableFieldTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(NullableFieldTestClass), 
+                deserializationOps
+            );
+            
+            var bitFieldSerializer = new BitFieldSerializer();
+            var nullMask           = new BitField(1);
+            
+            nullMask.SetBit(1, true);
+            
+            var buffer = new byte[32];
+            var offset = 0;
+            
+            bitFieldSerializer.Serialize(nullMask, buffer, offset);
+            offset += bitFieldSerializer.GetSizeFromValue(nullMask);
+            
+            MemoryMapper.WriteInt(25, buffer, offset);
+            offset += sizeof(int);
+                
+            MemoryMapper.WriteInt(50, buffer, offset);
+            offset += sizeof(int);
+
+            MemoryMapper.WriteInt(75, buffer, offset);
+
+            var results = (NullableFieldTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(25, results.X);
+            Assert.Equal(50, results.I);
+            Assert.Equal(50, results.J);
+        }
+        
+        [Fact]
+        public void Should_Deserialize_Nullable_Properties()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<ValueTypePropertyTestClass>()
+                                                   .PublicProperties()
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(ValueTypePropertyTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(ValueTypePropertyTestClass), 
+                deserializationOps
+            );
+            
+            var buffer = new byte[32];
+            
+            MemoryMapper.WriteInt(300, buffer, 0);
+            MemoryMapper.WriteInt(400, buffer, sizeof(int));
+            
+            var results = (ValueTypePropertyTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(300, results.X);
+            Assert.Equal(400, results.Y);
         }
     }
 }

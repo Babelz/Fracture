@@ -13,7 +13,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Constant fields
-        private const int MaxLocals = 1;
+        private const int MaxLocals = 2;
         #endregion
 
         #region Static fields
@@ -53,7 +53,18 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         public void EmitDeserializeNullableValue(in SerializationValue value, int serializationValueIndex)
         {
-            throw new NotImplementedException();
+            var il = DynamicMethod.GetILGenerator();
+         
+            // Check if null mask contains null for this value at this index.
+            il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
+            il.Emit(OpCodes.Ldc_I4, serializationValueIndex - Context.NullableValuesOffset);
+            il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
+            
+            var notNull = il.DefineLabel();
+            il.Emit(OpCodes.Brfalse, notNull);
+                
+            EmitDeserializeValue(value, serializationValueIndex);
+            il.MarkLabel(notNull);
         }
 
         public void EmitDeserializeValue(in SerializationValue value, int serializationValueIndex)
@@ -175,17 +186,19 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Dup);
             // Load argument 'buffer' to stack.
             il.Emit(OpCodes.Ldarg_1);
-            il.Emit(OpCodes.Dup);
             // Load argument 'offset' to stack.
             il.Emit(OpCodes.Ldarg_2);
-            il.Emit(OpCodes.Dup);
             // Call deserialize.
-            il.Emit(OpCodes.Call, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Deserialize))!);
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Deserialize))!);
             
             // Store deserialized bitfield to local 'nullMask'.
-            il.Emit(OpCodes.Unbox, typeof(BitField));
+            il.Emit(OpCodes.Unbox_Any, typeof(BitField));
             il.Emit(OpCodes.Stloc_S, Locals[localNullMask]);
             
+            // Load argument 'buffer' to stack.
+            il.Emit(OpCodes.Ldarg_1);
+            // Load argument 'offset' to stack.
+            il.Emit(OpCodes.Ldarg_2);
             // Call 'GetSizeFromBuffer', push size to stack.
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromBuffer))!);
             // Load argument 'offset' to stack.
