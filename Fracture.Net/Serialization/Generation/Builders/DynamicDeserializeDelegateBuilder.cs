@@ -61,8 +61,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
             
             var il = DynamicMethod.GetILGenerator();
-
-            // Push actual to stack for storing the deserialized value.
+            
+            // Push local 'value' to stack.
             EmitLoadLocalValue(il);
             
             // Push local 'currentSerializer' to stack from local.
@@ -75,17 +75,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call deserialize.
             il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Deserialize))!);
             
-            // Unbox deserialized value.
-            il.Emit(value.Type.IsValueType ? OpCodes.Unbox : OpCodes.Castclass, value.Type);
+            il.Emit(OpCodes.Unbox_Any, value.Type);
             
             // Store deserialized value to target value.
             if (value.IsField)
                 il.Emit(OpCodes.Stfld, value.Field);
             else
-            {
                 il.Emit(value.Property.SetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.SetMethod);
-            }
-
+            
             if (serializationValueIndex + 1 >= Context.ValueSerializers.Count) return;
             
             // Push local 'currentSerializer' to stack from local.

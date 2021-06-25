@@ -9,14 +9,14 @@ namespace Fracture.Net.Tests.Serialization.Generation
     public class DynamicDeserializeDelegateTests
     {
         #region Test types
-        private sealed class FieldTestClass
+        private sealed class ValueTypeFieldTestClass
         {
             #region Fields
             public int X, Y;
             #endregion
         }
         
-        private sealed class PropertyTestClass
+        private sealed class ValueTypePropertyTestClass
         {
             #region Properties
             public int X
@@ -34,24 +34,24 @@ namespace Fracture.Net.Tests.Serialization.Generation
         #endregion
         
         [Fact]
-        public void Should_Deserialize_Fields()
+        public void Should_Deserialize_Value_Type_Fields()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<FieldTestClass>()
+                                                   .FromType<ValueTypeFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(FieldTestClass),
+                typeof(ValueTypeFieldTestClass),
                 deserializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
                 context,
-                typeof(FieldTestClass), 
+                typeof(ValueTypeFieldTestClass), 
                 deserializationOps
             );
             
@@ -60,31 +60,31 @@ namespace Fracture.Net.Tests.Serialization.Generation
             MemoryMapper.WriteInt(100, buffer, 0);
             MemoryMapper.WriteInt(200, buffer, sizeof(int));
             
-            var results = (FieldTestClass)deserializeDelegate(context, buffer, 0);
+            var results = (ValueTypeFieldTestClass)deserializeDelegate(context, buffer, 0);
             
             Assert.Equal(100, results.X);
             Assert.Equal(200, results.Y);
         }
         
         [Fact]
-        public void Should_Deserialize_Properties()
+        public void Should_Deserialize_Value_Type_Properties()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<PropertyTestClass>()
+                                                   .FromType<ValueTypePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(PropertyTestClass),
+                typeof(ValueTypePropertyTestClass),
                 deserializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
                 context,
-                typeof(PropertyTestClass), 
+                typeof(ValueTypePropertyTestClass), 
                 deserializationOps
             );
             
@@ -93,7 +93,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             MemoryMapper.WriteInt(300, buffer, 0);
             MemoryMapper.WriteInt(400, buffer, sizeof(int));
             
-            var results = (PropertyTestClass)deserializeDelegate(context, buffer, 0);
+            var results = (ValueTypePropertyTestClass)deserializeDelegate(context, buffer, 0);
             
             Assert.Equal(300, results.X);
             Assert.Equal(400, results.Y);

@@ -133,7 +133,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         protected void EmitLoadLocalValue(ILGenerator il)
         {
-            il.Emit(OpCodes.Ldloc_S, Locals[localValue]);
+            il.Emit(!SerializationType.IsValueType ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, Locals[localValue]);
         }
         
         protected void EmitStoreValueToLocal(ILGenerator il)
