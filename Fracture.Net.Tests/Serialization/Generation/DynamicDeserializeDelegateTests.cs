@@ -31,6 +31,35 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+        
+        private sealed class ValueTypePropertyAndFieldWithParametrizedConstructorTestClass
+        {
+            #region Fields
+            public readonly int X;
+            public readonly int Y;
+            #endregion
+            
+            #region Properties
+            public int X2
+            {
+                get;
+            }
+
+            public int Y2
+            {
+                get;
+            }
+            #endregion
+
+            public ValueTypePropertyAndFieldWithParametrizedConstructorTestClass(int x, int y, int x2, int y2)
+            {
+                X2 = x2;
+                Y2 = y2;
+                
+                X = x;
+                Y = y;
+            }
+        }
         #endregion
         
         [Fact]
@@ -97,6 +126,47 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             Assert.Equal(300, results.X);
             Assert.Equal(400, results.Y);
+        }
+        
+        [Fact]
+        public void Should_Deserialize_Objects_Containing_Value_Type_Fields_And_Properties_With_Parametrized_Constructor()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<ValueTypePropertyAndFieldWithParametrizedConstructorTestClass>()
+                                                   .PublicProperties()
+                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
+                                                                           ObjectActivationHint.Field("y", "Y"),
+                                                                           ObjectActivationHint.Property("x2", "X2"),
+                                                                           ObjectActivationHint.Property("y2", "Y2"))
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(ValueTypePropertyAndFieldWithParametrizedConstructorTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(ValueTypePropertyAndFieldWithParametrizedConstructorTestClass), 
+                deserializationOps
+            );
+            
+            var buffer = new byte[32];
+            
+            MemoryMapper.WriteInt(10, buffer, 0);
+            MemoryMapper.WriteInt(20, buffer, sizeof(int));
+            MemoryMapper.WriteInt(30, buffer, sizeof(int) * 2);
+            MemoryMapper.WriteInt(40, buffer, sizeof(int) * 3);
+            
+            var results = (ValueTypePropertyAndFieldWithParametrizedConstructorTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(10, results.X);
+            Assert.Equal(20, results.Y);
+            Assert.Equal(30, results.X2);
+            Assert.Equal(40, results.Y2);
         }
     }
 }

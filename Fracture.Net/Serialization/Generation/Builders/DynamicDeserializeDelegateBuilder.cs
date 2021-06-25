@@ -122,8 +122,40 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
 
         public void EmitLoadValue(in SerializationValue value, int serializationValueIndex)
-        {
-            throw new NotImplementedException();
+        { 
+            EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
+            
+            var il = DynamicMethod.GetILGenerator();
+            
+            // Push local 'currentSerializer' to stack from local.
+            EmitLoadCurrentSerializer(il);
+            
+            // Push 'buffer' to stack. 
+            il.Emit(OpCodes.Ldarg_1);                                                                       
+            // Push 'offset' to stack.
+            il.Emit(OpCodes.Ldarg_2);      
+            // Call deserialize.
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.Deserialize))!);
+            
+            il.Emit(OpCodes.Unbox_Any, value.Type);
+            
+            if (serializationValueIndex + 1 >= Context.ValueSerializers.Count) return;
+            
+            // Push local 'currentSerializer' to stack from local.
+            EmitLoadCurrentSerializer(il);
+            
+            // Push 'buffer' to stack. 
+            il.Emit(OpCodes.Ldarg_1);                                                                       
+            // Push 'offset' to stack.
+            il.Emit(OpCodes.Ldarg_2);      
+            // Call 'GetSizeFromBuffer', push size to stack.
+            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromBuffer))!); 
+            // Push 'offset' to stack.
+            il.Emit(OpCodes.Ldarg_2); 
+            // Add offset + size.
+            il.Emit(OpCodes.Add);                                                              
+            // Store current offset to argument 'offset'.
+            il.Emit(OpCodes.Starg_S, 2);
         }
 
         public override void EmitLocals()
