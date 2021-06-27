@@ -139,7 +139,7 @@ namespace Fracture.Net.Tests.Serialization
                 4
             };
             
-            Assert.Equal(4, serializer.GetSizeFromBuffer(buffer, 0));
+            Assert.Equal(5, serializer.GetSizeFromBuffer(buffer, 0));
         }
     }
 }

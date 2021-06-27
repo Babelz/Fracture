@@ -45,12 +45,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             localValue    = AllocateNextLocalIndex();
             localNullMask = AllocateNextLocalIndex();
         }
-
-        public void EmitDeserializeNonValueTypeValue(in SerializationValue value, int serializationValueIndex)
-        {
-            throw new NotImplementedException();
-        }
-
+        
         public void EmitDeserializeNullableValue(in SerializationValue value, int serializationValueIndex)
         {
             var il = DynamicMethod.GetILGenerator();
@@ -60,11 +55,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Ldc_I4, serializationValueIndex - Context.NullableValuesOffset);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
             
-            var notNull = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse, notNull);
+            var isNull = il.DefineLabel();
+            il.Emit(OpCodes.Brtrue, isNull);
                 
             EmitDeserializeValue(value, serializationValueIndex);
-            il.MarkLabel(notNull);
+            il.MarkLabel(isNull);
         }
 
         public void EmitDeserializeValue(in SerializationValue value, int serializationValueIndex)
@@ -122,14 +117,20 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitStoreValueToLocal(il);
         }
 
-        public void EmitLoadNonValueTypeValue(in SerializationValue value, int serializationValueIndex)
-        {
-            throw new NotImplementedException();
-        }
-
         public void EmitLoadNullableValue(in SerializationValue value, int serializationValueIndex)
         {
-            throw new NotImplementedException();
+            var il = DynamicMethod.GetILGenerator();
+         
+            // Check if null mask contains null for this value at this index.
+            il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
+            il.Emit(OpCodes.Ldc_I4, serializationValueIndex - Context.NullableValuesOffset);
+            il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
+            
+            var isNull = il.DefineLabel();
+            il.Emit(OpCodes.Brtrue, isNull);
+                
+            EmitLoadValue(value, serializationValueIndex);
+            il.MarkLabel(isNull);
         }
 
         public void EmitLoadValue(in SerializationValue value, int serializationValueIndex)

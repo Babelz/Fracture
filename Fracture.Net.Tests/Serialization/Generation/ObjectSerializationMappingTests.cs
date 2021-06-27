@@ -457,22 +457,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Contains(mapping.Values, f => f.Name == "MaybeNumber");
             Assert.Contains(mapping.Values, f => f.Name == "MaybeByte");
         }
-        
-        [Fact()]
-        public void Should_Order_Serialization_Values_Based_On_Nullability()
-        {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<MixedNullableTestClass>()
-                                                   .PublicProperties()
-                                                   .PublicFields()
-                                                   .Map();
-            
-            Assert.Equal("X2", mapping.Values.ElementAt(0).Name);
-            Assert.Equal("X4", mapping.Values.ElementAt(1).Name);
-            Assert.Equal("X1", mapping.Values.ElementAt(2).Name);
-            Assert.Equal("X3", mapping.Values.ElementAt(3).Name);
-        }
-        
+
         [Fact()]
         public void Should_Order_Activation_Values_First()
         {

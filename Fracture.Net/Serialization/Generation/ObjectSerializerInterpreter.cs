@@ -364,9 +364,7 @@ namespace Fracture.Net.Serialization.Generation
                 switch (op)
                 {
                     case SerializeValueOp svop:
-                        if (!svop.Value.IsValueType) 
-                            builder.EmitDeserializeNonValueTypeValue(svop.Value, serializationValueIndex++);
-                        else if (svop.Value.IsNullable)
+                        if (svop.Value.IsNullAssignable) 
                             builder.EmitDeserializeNullableValue(svop.Value, serializationValueIndex++);
                         else
                             builder.EmitDeserializeValue(svop.Value, serializationValueIndex++);
@@ -377,9 +375,7 @@ namespace Fracture.Net.Serialization.Generation
                     case ParametrizedActivationOp paop:
                         foreach (var parameter in paop.Parameters)
                         {
-                            if (!parameter.IsValueType) 
-                                builder.EmitLoadNonValueTypeValue(parameter, serializationValueIndex++);
-                            else if (parameter.IsNullable)
+                            if (!parameter.IsNullAssignable) 
                                 builder.EmitLoadNullableValue(parameter, serializationValueIndex++);
                             else
                                 builder.EmitLoadValue(parameter, serializationValueIndex++);

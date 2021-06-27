@@ -534,10 +534,7 @@ namespace Fracture.Net.Serialization.Generation
             // and they are in order.
             var serializationPropertyValues = GetSerializationPropertyValues();
             var serializationFieldValues    = GetSerializationFieldValues();
-            var serializationValues         = serializationPropertyValues.Concat(serializationFieldValues)
-                                                                         .OrderBy(v => !v.IsNullAssignable)
-                                                                         .ToList()
-                                                                         .AsReadOnly();
+            var serializationValues         = serializationPropertyValues.Concat(serializationFieldValues).ToList().AsReadOnly();
 
             return new ObjectSerializationMapping(serializationType,
                                                   serializationValues,

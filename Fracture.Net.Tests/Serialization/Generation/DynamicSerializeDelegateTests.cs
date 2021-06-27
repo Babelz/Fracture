@@ -411,8 +411,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             // Null mask values.
             Assert.Equal(0, MemoryMapper.ReadByte(buffer, sizeof(byte)));
             
-            Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(byte) * 2));
-            Assert.Equal(testObject.Id, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2 + stringSerializer.GetSizeFromBuffer(buffer, sizeof(byte) * 2)));
+            Assert.Equal(testObject.Id, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
+            Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(byte) * 2 + sizeof(int)));
         }
         
         [Fact]
@@ -649,20 +649,21 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(216, MemoryMapper.ReadByte(buffer, offset));
             offset += sizeof(byte);
             
-            // S4.
-            Assert.Equal(testObject.S4, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
-            
-            // S2.
-            Assert.Equal(testObject.S2, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
-            
             // J.
             Assert.Equal(testObject.J, MemoryMapper.ReadInt(buffer, offset));
             offset += sizeof(int);
             
+            // S4.
+            Assert.Equal(testObject.S4, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
+            
             // Y.
             Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, offset));
+            offset += sizeof(int);
+            
+            // S2.
+            Assert.Equal(testObject.S2, stringSerializer.Deserialize(buffer, offset));
+            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
         }
     }
 }

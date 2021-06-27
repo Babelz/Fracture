@@ -234,7 +234,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var bitFieldSerializer = new BitFieldSerializer();
             var nullMask           = new BitField(1);
             
-            nullMask.SetBit(1, true);
+            nullMask.SetBit(0, true);
             
             var buffer = new byte[32];
             var offset = 0;
@@ -252,42 +252,57 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             var results = (NullableFieldTestClass)deserializeDelegate(context, buffer, 0);
             
-            Assert.Equal(25, results.X);
-            Assert.Equal(50, results.I);
-            Assert.Equal(50, results.J);
+            Assert.Equal(25, results.I);
+            Assert.Equal(50, results.Y);
+            Assert.Equal(75, results.J);
         }
         
         [Fact]
         public void Should_Deserialize_Nullable_Properties()
         {
             var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypePropertyTestClass>()
+                                                   .FromType<NullablePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
             var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
-                typeof(ValueTypePropertyTestClass),
+                typeof(NullablePropertyTestClass),
                 deserializationOps, 
                 ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
                 context,
-                typeof(ValueTypePropertyTestClass), 
+                typeof(NullablePropertyTestClass), 
                 deserializationOps
             );
             
+            var bitFieldSerializer = new BitFieldSerializer();
+            var nullMask           = new BitField(1);
+            
+            nullMask.SetBit(0, true);
+            
             var buffer = new byte[32];
+            var offset = 0;
             
-            MemoryMapper.WriteInt(300, buffer, 0);
-            MemoryMapper.WriteInt(400, buffer, sizeof(int));
+            bitFieldSerializer.Serialize(nullMask, buffer, offset);
+            offset += bitFieldSerializer.GetSizeFromValue(nullMask);
             
-            var results = (ValueTypePropertyTestClass)deserializeDelegate(context, buffer, 0);
+            MemoryMapper.WriteInt(50, buffer, offset);
+            offset += sizeof(int);
+                
+            MemoryMapper.WriteInt(75, buffer, offset);
+            offset += sizeof(int);
+
+            MemoryMapper.WriteInt(100, buffer, offset);
+
+            var results = (NullablePropertyTestClass)deserializeDelegate(context, buffer, 0);
             
-            Assert.Equal(300, results.X);
-            Assert.Equal(400, results.Y);
+            Assert.Equal(50, results.I);
+            Assert.Equal(75, results.X);
+            Assert.Equal(100, results.J);
         }
     }
 }
