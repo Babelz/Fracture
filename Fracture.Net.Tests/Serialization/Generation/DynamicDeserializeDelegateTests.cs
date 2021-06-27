@@ -100,6 +100,52 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
         }
+
+        private sealed class NonValueTypeFieldTestClass
+        {
+            #region Fields
+            public int X, Y;
+            
+            public string S1;
+            public string S2;
+
+            public string? Null;
+            #endregion    
+        }
+        
+        private sealed class NonValueTypePropertyTestClass
+        {
+            #region Properties
+            public int X
+            {
+                get;
+                set;
+            }
+            
+            public int Y
+            {
+                get;
+                set;
+            }
+            
+            public string S1
+            {
+                get;
+                set;
+            }            
+            public string S2
+            {
+                get;
+                set;
+            }
+            
+            public string? Null
+            {
+                get;
+                set;
+            }
+            #endregion    
+        }
         #endregion
         
         [Fact]
@@ -303,6 +349,62 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(50, results.I);
             Assert.Equal(75, results.X);
             Assert.Equal(100, results.J);
+        }
+        
+        [Fact]
+        public void Should_Deserialize_Non_Value_Type_Fields()
+        {
+            var mapping = ObjectSerializationMapper.Create()
+                                                   .FromType<NonValueTypeFieldTestClass>()
+                                                   .PublicFields()
+                                                   .Map();
+            
+            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
+            
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+                typeof(NonValueTypeFieldTestClass),
+                deserializationOps, 
+                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+            );
+            
+            var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
+                context,
+                typeof(NonValueTypeFieldTestClass), 
+                deserializationOps
+            );
+            
+            var stringSerializer   = new StringSerializer();
+            var bitFieldSerializer = new BitFieldSerializer();
+            var nullMask           = new BitField(1);
+            
+            nullMask.SetBit(0, true);
+            
+            var buffer = new byte[64];
+            var offset = 0;
+            
+            bitFieldSerializer.Serialize(nullMask, buffer, offset);
+            offset += bitFieldSerializer.GetSizeFromValue(nullMask);
+            
+            // X.
+            MemoryMapper.WriteInt(25, buffer, offset);
+            offset += sizeof(int);
+                
+            // Y.
+            MemoryMapper.WriteInt(50, buffer, offset);
+            offset += sizeof(int);
+            
+            // S2.
+            stringSerializer.Serialize("hello!", buffer, offset);
+            
+            var results = (NonValueTypeFieldTestClass)deserializeDelegate(context, buffer, 0);
+            
+            Assert.Equal(25, results.X);
+            Assert.Equal(50, results.Y);
+            Assert.Equal("hello!", results.S2);
+            
+            Assert.Null(results.S1);
+            
+            Assert.True(string.IsNullOrEmpty(results.Null));
         }
     }
 }

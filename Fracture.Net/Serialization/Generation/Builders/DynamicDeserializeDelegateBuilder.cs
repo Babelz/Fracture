@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using Microsoft.Diagnostics.Tracing.Parsers.Tpl;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
@@ -18,6 +21,21 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        
+        private static readonly Dictionary<Type, Action<ILGenerator>> EmitLoadDefaultValueMap = new Dictionary<Type, Action<ILGenerator>>
+        {
+            { typeof(sbyte),   il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(byte),    il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(short),   il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(ushort),  il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(int),     il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(uint),    il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(long),    il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(ulong),   il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(float),   il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(decimal), il => il.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(string),  il => il.Emit(OpCodes.Ldstr, string.Empty) }
+        };
         #endregion
         
         #region Fields
@@ -44,6 +62,18 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             localValue    = AllocateNextLocalIndex();
             localNullMask = AllocateNextLocalIndex();
+        }
+        
+        private static void EmitLoadDefaultValue(ILGenerator il, in SerializationValue value)
+        {
+            if (EmitLoadDefaultValueMap.TryGetValue(value.Type, out var emitLoadDefaultValue))
+            {
+                emitLoadDefaultValue(il);
+                
+                return;
+            }
+            
+            il.Emit(OpCodes.Ldnull);
         }
         
         public void EmitDeserializeNullableValue(in SerializationValue value, int serializationValueIndex)
@@ -131,6 +161,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 
             EmitLoadValue(value, serializationValueIndex);
             il.MarkLabel(isNull);
+            
+            // Load default value in case the value is marked null in the null mask.
+            EmitLoadDefaultValue(il, value);
         }
 
         public void EmitLoadValue(in SerializationValue value, int serializationValueIndex)
