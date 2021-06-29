@@ -9,7 +9,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping functions for determining objects sizes from run types.
     /// </summary>
-    public delegate ushort DynamicGetSizeFromValueDelegate(in ObjectSerializationContext context, object value);
+    public delegate ushort DynamicGetSizeFromValueDelegate(in ObjectSerializationValueRanges valueRanges, object value);
     
     public sealed class DynamicGetSizeFromValueDelegateBuilder : DynamicSerializationDelegateBuilder
     {
@@ -36,15 +36,15 @@ namespace Fracture.Net.Serialization.Generation.Builders
         private bool valuesSizeIsConst;
         #endregion
         
-        public DynamicGetSizeFromValueDelegateBuilder(in ObjectSerializationContext context, Type serializationType)
-            : base(context,
+        public DynamicGetSizeFromValueDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType)
+            : base(valueRanges,
                    serializationType,
                    new DynamicMethod(
                        $"GetSizeFromValue", 
                        typeof(ushort), 
                        new []
                        {
-                           typeof(ObjectSerializationContext).MakeByRefType(), // Argument 0.
+                           typeof(ObjectSerializationValueRanges).MakeByRefType(), // Argument 0.
                            typeof(object)                                      // Argument 1.
                        },
                        true
@@ -58,7 +58,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
         {
-            return (in ObjectSerializationContext context, object value) =>
+            return (in ObjectSerializationValueRanges context, object value) =>
             {    
                 try
                 {
@@ -75,7 +75,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             ushort size = 0;
             
-            return (in ObjectSerializationContext context, object value) =>
+            return (in ObjectSerializationValueRanges context, object value) =>
             {
                 if (size != 0u) return size;
                 
@@ -108,13 +108,13 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// </summary>
         public void EmitSizeOfNullMask()
         {
-            if (Context.NullableValuesCount == 0)
+            if (ValueRanges.NullableValuesCount == 0)
                 return;
             
             var il = DynamicMethod.GetILGenerator();
             
             // Load bit field size to stack.
-            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(Context.NullableValuesCount) + Protocol.NullMaskLength.Size);
+            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.NullMaskLength.Size);
             // Load local size to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             // Add local + bit field size.
@@ -130,12 +130,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///     if (actual.[op-value-name] != null)
         ///         size += serializer.GetSizeFromValue(actual.[op-value-name])
         /// </summary>
-        public void EmitGetSizeOfNonValueTypeValue(in SerializationValue value, int serializationValueIndex)
+        public void EmitGetSizeOfNonValueTypeValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
             UpdateValuesSizeIsConstFlag(value);
 
-            EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
-            
             var il = DynamicMethod.GetILGenerator();
             
             // Push serialization value to stack.
@@ -150,13 +148,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var notNull = il.DefineLabel();
             il.Emit(OpCodes.Brfalse_S, notNull);
             
-            // Push current serializer to stack.
-            EmitLoadCurrentSerializer(il);
-
             // Push value of the field to stack boxed.
             EmitLoadSerializationValue(il, value);
             
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType));
             
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             il.Emit(OpCodes.Add);
@@ -171,12 +166,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///     if (actual.[op-value-name].HasValue)
         ///         size += serializer.GetSizeFromValue(actual.[op-value-name].Value)
         /// </summary>
-        public void EmitGetSizeOfNullableValue(in SerializationValue value, int serializationValueIndex)
+        public void EmitGetSizeOfNullableValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
             UpdateValuesSizeIsConstFlag(value);
 
-            EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
-            
             var il = DynamicMethod.GetILGenerator();
             
             EmitLoadSerializationValueAddressToStack(il, value);
@@ -188,13 +181,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var notNull = il.DefineLabel();
             il.Emit(OpCodes.Brfalse_S, notNull);
             
-            EmitLoadCurrentSerializer(il);
-            
             EmitLoadSerializationValueAddressToStack(il, value);
             
             il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
-            il.Emit(OpCodes.Box, value.Type.GenericTypeArguments[0]);
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType));
             
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             il.Emit(OpCodes.Add);
@@ -208,20 +198,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// Translates roughly to:
         ///     size += serializer.GetSizeFromValue(actual.[op-value-name])
         /// </summary>
-        public void EmitGetSizeOfValue(in SerializationValue value, int serializationValueIndex)
+        public void EmitGetSizeOfValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            EmitStoreSerializerAtIndexToLocal(serializationValueIndex);
-            
             var il = DynamicMethod.GetILGenerator();
-            
-            EmitLoadCurrentSerializer(il);
             
             EmitLoadSerializationValue(il, value);
             
-            // Box serialization value.
-            il.Emit(OpCodes.Box, value.Type);
             // Call get size from value.
-            il.Emit(OpCodes.Callvirt, typeof(IValueSerializer).GetMethod(nameof(IValueSerializer.GetSizeFromValue))!);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType));
             // Push local size to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             // Add local + value size.
@@ -253,7 +237,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             {
                 var method = (DynamicGetSizeFromValueDelegate)DynamicMethod.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate));
                 
-                if (Context.NullableValuesCount == 0 && valuesSizeIsConst)
+                if (ValueRanges.NullableValuesCount == 0 && valuesSizeIsConst)
                     return CreateGetSizeFromValueAsConstClosure(method);
                 
                 return CreateGetSizeFromValueDelegate(method);

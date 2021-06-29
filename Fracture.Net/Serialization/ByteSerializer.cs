@@ -6,28 +6,28 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="byte"/>.
     /// </summary>
-    public sealed class ByteSerializer : IValueSerializer
+    [ValueSerializer(typeof(byte))]
+    public static class ByteSerializer
     {
-        public ByteSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(byte);
 
         /// <summary>
         /// Writes given byte value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(byte value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteByte((byte)value, buffer, offset);
+            MemoryMapper.WriteByte(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as byte
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static byte Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadByte(buffer, offset);
         }
@@ -35,41 +35,43 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of byte, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(byte);
         
         /// <summary>
         /// Returns size of byte, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(byte value)
             => sizeof(byte);
     }
     
     /// <summary>
     /// Value serializer that provides serialization for <see cref="sbyte"/>.
     /// </summary>
-    public sealed class SbyteSerializer : IValueSerializer
+    [ValueSerializer(typeof(sbyte))]
+    public static class SbyteSerializer
     {
-        public SbyteSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(sbyte);
 
         /// <summary>
         /// Writes given sbyte value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(sbyte value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteSByte((sbyte)value, buffer, offset);
+            MemoryMapper.WriteSByte(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as sbyte
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static sbyte Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadSByte(buffer, offset);
         }
@@ -77,41 +79,43 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of sbyte, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(sbyte);
         
         /// <summary>
         /// Returns size of sbyte, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(sbyte value)
             => sizeof(sbyte);
     }
     
     /// <summary>
     /// Value serializer that provides serialization <see cref="bool"/>.
     /// </summary>
-    public sealed class BoolSerializer : IValueSerializer
+    [ValueSerializer(typeof(bool))]
+    public static class BoolSerializer
     {
-        public BoolSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(bool);
 
         /// <summary>
         /// Writes given bool value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(bool value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteBool((bool)value, buffer, offset);
+            MemoryMapper.WriteBool(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as bool
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static bool Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadBool(buffer, offset);
         }
@@ -119,13 +123,15 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of bool, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(bool);
         
         /// <summary>
         /// Returns size of bool, should always be 1-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(bool value)
             => sizeof(bool);
     }
 }

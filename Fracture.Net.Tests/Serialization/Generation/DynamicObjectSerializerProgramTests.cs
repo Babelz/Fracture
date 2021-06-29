@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -22,9 +23,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Constructor_Should_Throw_If_Program_Serializer_Counts_Differ()
         {
             var exception = Record.Exception(() => new ObjectSerializerProgram(
-                                                 typeof(int),
-                                                 new List<ISerializationOp> { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X"))) }.AsReadOnly(),
-                                                 new List<ISerializationOp>().AsReadOnly())
+                    typeof(int),
+                    new List<ISerializationOp> { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X")), typeof(IntSerializer)) }.AsReadOnly(),
+                    new List<ISerializationOp>().AsReadOnly())
             );
             
             Assert.NotNull(exception);

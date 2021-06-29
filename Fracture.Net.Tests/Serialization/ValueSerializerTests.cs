@@ -13,31 +13,31 @@ namespace Fracture.Net.Tests.Serialization
         private static class DataSource
         {
             #region Properties
-            public static IEnumerable<object[]> SerializerCtorTestDataSource => new []
+            public static IEnumerable<object[]> SerializesToBufferCorrectlyDataSource => new[]
             {
-                new object[] { new Action(() => new SbyteSerializer()) },
-                new object[] { new Action(() => new ByteSerializer()) },
-                new object[] { new Action(() => new ShortSerializer()) },
-                new object[] { new Action(() => new UshortSerializer()) },
-                new object[] { new Action(() => new IntSerializer()) },
-                new object[] { new Action(() => new UintSerializer()) },
-                new object[] { new Action(() => new FloatSerializer()) },
-                new object[] { new Action(() => new CharSerializer()) },
-                new object[] { new Action(() => new LongSerializer()) },
-                new object[] { new Action(() => new UlongSerializer()) },
-                new object[] { new Action(() => new TimeSpanSerializer()) },
-                new object[] { new Action(() => new DateTimeSerializer()) }
-            };
-
-            public static IEnumerable<object[]> SerializesToBufferCorrectlyDataSource => new []
-            {
-                new object[] { new SbyteSerializer(), (sbyte)-45, new byte[sizeof(sbyte)], new byte[] { 211 } },
-                new object[] { new ByteSerializer(), (byte)128, new byte[sizeof(byte)], new byte[] { 128 } },
-                new object[] { new ShortSerializer(), (short)-7724, new byte[sizeof(ushort)], new byte[] { 212, 225 } },
-                new object[] { new UshortSerializer(), ushort.MaxValue, new byte[sizeof(short)], new byte[] { 255, 255 } },
                 new object[]
                 {
-                    new IntSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(SbyteSerializer)).CreateDelegate(typeof(SerializeDelegate<sbyte>)),
+                    (sbyte) -45, new byte[sizeof(sbyte)], new byte[] {211}
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(ByteSerializer)).CreateDelegate(typeof(SerializeDelegate<byte>)),
+                    (byte) 128, new byte[sizeof(byte)], new byte[] {128}
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(ShortSerializer)).CreateDelegate(typeof(SerializeDelegate<short>)),
+                    (short) -7724, new byte[sizeof(ushort)], new byte[] {212, 225}
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(UshortSerializer)).CreateDelegate(typeof(SerializeDelegate<ushort>)),
+                    ushort.MaxValue, new byte[sizeof(short)], new byte[] {255, 255}
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(IntSerializer)).CreateDelegate(typeof(SerializeDelegate<int>)),
                     -884752274,
                     new byte[sizeof(int)],
                     new byte[]
@@ -45,19 +45,19 @@ namespace Fracture.Net.Tests.Serialization
                         110,
                         192,
                         67,
-                        203,
+                        203
                     }
-                }, 
-                new object[]
-                {
-                    new UintSerializer(),
-                    4294967295u,
-                    new byte[sizeof(uint)],
-                    Enumerable.Repeat((byte)255, 4).ToArray()
                 },
                 new object[]
                 {
-                    new FloatSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(UintSerializer)).CreateDelegate(typeof(SerializeDelegate<uint>)),
+                    4294967295u,
+                    new byte[sizeof(uint)],
+                    Enumerable.Repeat((byte) 255, 4).ToArray()
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(FloatSerializer)).CreateDelegate(typeof(SerializeDelegate<float>)),
                     772842.0f,
                     new byte[sizeof(float)],
                     new byte[]
@@ -68,9 +68,9 @@ namespace Fracture.Net.Tests.Serialization
                         73
                     }
                 },
-                new object[] 
-                { 
-                    new CharSerializer(),
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(CharSerializer)).CreateDelegate(typeof(SerializeDelegate<char>)),
                     'C',
                     new byte[sizeof(char)],
                     new byte[]
@@ -79,23 +79,23 @@ namespace Fracture.Net.Tests.Serialization
                         0
                     }
                 },
-                new object[] 
-                { 
-                    new LongSerializer(),
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(LongSerializer)).CreateDelegate(typeof(SerializeDelegate<long>)),
                     long.MaxValue,
                     new byte[sizeof(long)],
-                    Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray()
-                },
-                new object[] 
-                { 
-                    new UlongSerializer(),
-                    ulong.MaxValue,
-                    new byte[sizeof(ulong)],
-                    Enumerable.Repeat((byte)255, 8).ToArray()
+                    Enumerable.Repeat((byte) 255, 7).Concat(new byte[] {127}).ToArray()
                 },
                 new object[]
                 {
-                    new BoolSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(UlongSerializer)).CreateDelegate(typeof(SerializeDelegate<ulong>)),
+                    ulong.MaxValue,
+                    new byte[sizeof(ulong)],
+                    Enumerable.Repeat((byte) 255, 8).ToArray()
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(BoolSerializer)).CreateDelegate(typeof(SerializeDelegate<bool>)),
                     true,
                     new byte[sizeof(bool)],
                     new byte[]
@@ -105,7 +105,7 @@ namespace Fracture.Net.Tests.Serialization
                 },
                 new object[]
                 {
-                    new BoolSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(BoolSerializer)).CreateDelegate(typeof(SerializeDelegate<bool>)),
                     false,
                     new byte[sizeof(bool)],
                     new byte[]
@@ -115,14 +115,14 @@ namespace Fracture.Net.Tests.Serialization
                 },
                 new object[]
                 {
-                    new TimeSpanSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(TimeSpanSerializer)).CreateDelegate(typeof(SerializeDelegate<TimeSpan>)),
                     TimeSpan.MaxValue,
                     new byte[sizeof(long)],
-                    Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray(),
+                    Enumerable.Repeat((byte) 255, 7).Concat(new byte[] {127}).ToArray()
                 },
                 new object[]
                 {
-                    new DateTimeSerializer(),
+                    ValueSerializerSchemaRegistry.GetSerializeMethodInfo(typeof(DateTimeSerializer)).CreateDelegate(typeof(SerializeDelegate<DateTime>)),
                     DateTime.MaxValue,
                     new byte[sizeof(long)],
                     new byte[]
@@ -137,58 +137,223 @@ namespace Fracture.Net.Tests.Serialization
                         43
                     }
                 }
-            }; 
-            
-            public static IEnumerable<object[]> DeserializesToValueCorrectlyDataSource => new []
-            {
-                new object[] { new SbyteSerializer(), new byte[] { 234 }, (sbyte)-22 },
-                new object[] { new ByteSerializer(), new byte[] { 128 }, (byte)128 },
-                new object[] { new ShortSerializer(), new byte[] { 255, 127 }, short.MaxValue },
-                new object[] { new UshortSerializer(), new byte[] { 225, 212 }, (ushort)54497u },
-                new object[] { new IntSerializer(), new byte[] { 146, 63, 188, 52 }, 884752274 },
-                new object[] { new UintSerializer(), new byte[] { 52, 0, 0, 0 }, 52u }, 
-                new object[] { new FloatSerializer(), new byte[] { 160, 174, 60, 73 }, 772842.0f },
-                new object[] { new CharSerializer(), new byte[] { 62, 38 }, '☾' },
-                new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray(), long.MaxValue },
-                new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), ulong.MaxValue },
-                new object[] { new BoolSerializer(), new byte[] { 1 }, true },
-                new object[] { new BoolSerializer(), new byte[] { 0 }, false },
-                new object[] { new TimeSpanSerializer(), Enumerable.Repeat((byte)255, 7).Concat(new byte[] { 127 }).ToArray(), TimeSpan.MaxValue },
-                new object[] { new DateTimeSerializer(), new byte[] { 255, 63, 55, 244, 117, 40, 202, 43 }, DateTime.MaxValue }
             };
-            
-            public static IEnumerable<object[]> TestSizeFromValueDataSource => new []
+
+            public static IEnumerable<object[]> DeserializesToValueCorrectlyDataSource => new[]
             {
-                new object[] { new SbyteSerializer(), (sbyte)-45, 1 },
-                new object[] { new ByteSerializer(), (byte)255, 1 },
-                new object[] { new ShortSerializer(), (short)-9942, 2 },
-                new object[] { new UshortSerializer(), (ushort)7724u, 2 },
-                new object[] { new IntSerializer(), 99482, 4 },
-                new object[] { new UintSerializer(), 42u, 4 },
-                new object[] { new FloatSerializer(), 88283.0f, 4 },
-                new object[] { new CharSerializer(), 'a', 2 },
-                new object[] { new LongSerializer(), (long)-299918, 8, },
-                new object[] { new UlongSerializer(), (ulong)88277u, 8 },
-                new object[] { new BoolSerializer(), true, 1 },
-                new object[] { new TimeSpanSerializer(), TimeSpan.MaxValue, 8 },
-                new object[] { new DateTimeSerializer(), DateTime.MaxValue, 8 }
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(SbyteSerializer)).CreateDelegate(typeof(DeserializeDelegate<sbyte>)),
+                    new byte[] {234}, (sbyte) -22
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(ByteSerializer)).CreateDelegate(typeof(DeserializeDelegate<byte>)),
+                    new byte[] {128}, (byte) 128
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(ShortSerializer)).CreateDelegate(typeof(DeserializeDelegate<short>)),
+                    new byte[] {255, 127}, short.MaxValue
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(UshortSerializer)).CreateDelegate(typeof(DeserializeDelegate<ushort>)),
+                    new byte[] {225, 212}, (ushort) 54497u
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(IntSerializer)).CreateDelegate(typeof(DeserializeDelegate<int>)),
+                    new byte[] {146, 63, 188, 52}, 884752274
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(UintSerializer)).CreateDelegate(typeof(DeserializeDelegate<uint>)),
+                    new byte[] {52, 0, 0, 0}, 52u
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(FloatSerializer)).CreateDelegate(typeof(DeserializeDelegate<float>)),
+                    new byte[] {160, 174, 60, 73}, 772842.0f
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(CharSerializer)).CreateDelegate(typeof(DeserializeDelegate<char>)),
+                    new byte[] {62, 38}, '☾'
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(LongSerializer)).CreateDelegate(typeof(DeserializeDelegate<long>)),
+                    Enumerable.Repeat((byte) 255, 7).Concat(new byte[] {127}).ToArray(), long.MaxValue
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(UlongSerializer)).CreateDelegate(typeof(DeserializeDelegate<ulong>)),
+                    Enumerable.Repeat((byte) 255, 8).ToArray(), ulong.MaxValue
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(BoolSerializer)).CreateDelegate(typeof(DeserializeDelegate<bool>)),
+                    new byte[] {1}, true
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(TimeSpanSerializer))
+                                                 .CreateDelegate(typeof(DeserializeDelegate<TimeSpan>)),
+                    Enumerable.Repeat((byte) 255, 7).Concat(new byte[] {127}).ToArray(), TimeSpan.MaxValue
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(DateTimeSerializer))
+                                                 .CreateDelegate(typeof(DeserializeDelegate<DateTime>)),
+                    new byte[] {255, 63, 55, 244, 117, 40, 202, 43},
+                    DateTime.MaxValue
+                }
             };
-            
-            public static IEnumerable<object[]> TestSizeFromBufferDataSource => new []
+
+            public static IEnumerable<object[]> TestSizeFromValueDataSource => new[]
             {
-                new object[] { new SbyteSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
-                new object[] { new ByteSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
-                new object[] { new ShortSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
-                new object[] { new UshortSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
-                new object[] { new IntSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
-                new object[] { new UintSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
-                new object[] { new FloatSerializer(), Enumerable.Repeat((byte)255, 4).ToArray(), 4 },
-                new object[] { new CharSerializer(), Enumerable.Repeat((byte)255, 2).ToArray(), 2 },
-                new object[] { new LongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
-                new object[] { new UlongSerializer(), Enumerable.Repeat((byte)255, 8).ToArray(), 8 },
-                new object[] { new BoolSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 1 },
-                new object[] { new TimeSpanSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 8 },
-                new object[] { new DateTimeSerializer(), Enumerable.Repeat((byte)255, 1).ToArray(), 8 }
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(SbyteSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<sbyte>)),
+                    (sbyte) -45, 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(ByteSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<byte>)),
+                    (byte) 255, 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(ShortSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<short>)),
+                    (short) -9942, 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(UshortSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<ushort>)),
+                    (ushort) 7724u, 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(IntSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<int>)),
+                    99482, 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(UintSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<uint>)),
+                    42u, 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(FloatSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<float>)),
+                    88283.0f, 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(CharSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<char>)),
+                    'a', 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(LongSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<long>)),
+                    (long) -299918, 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(UlongSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<ulong>)),
+                    (ulong) 88277u, 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(BoolSerializer)).CreateDelegate(typeof(GetSizeFromValueDelegate<bool>)),
+                    true, 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(TimeSpanSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<TimeSpan>)),
+                    TimeSpan.MaxValue, 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(typeof(DateTimeSerializer))
+                                                 .CreateDelegate(typeof(GetSizeFromValueDelegate<DateTime>)),
+                    DateTime.MaxValue, 8
+                }
+            };
+
+            public static IEnumerable<object[]> TestSizeFromBufferDataSource => new[]
+            {
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(SbyteSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 1).ToArray(), 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(ByteSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 1).ToArray(), 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(ShortSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 2).ToArray(), 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(UshortSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 2).ToArray(), 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(IntSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 4).ToArray(), 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(UintSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 4).ToArray(), 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(FloatSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 4).ToArray(), 4
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(CharSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 2).ToArray(), 2
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(LongSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 8).ToArray(), 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(UlongSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 8).ToArray(), 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(BoolSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 1).ToArray(), 1
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(TimeSpanSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 1).ToArray(), 8
+                },
+                new object[]
+                {
+                    ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(DateTimeSerializer)).CreateDelegate(typeof(GetSizeFromBufferDelegate)),
+                    Enumerable.Repeat((byte) 255, 1).ToArray(), 8
+                }
             };
             #endregion
         }
@@ -197,49 +362,42 @@ namespace Fracture.Net.Tests.Serialization
         public PrimitiveValueSerializerTests()
         {
         }
-        
-        [Theory()]
-        [MemberData(nameof(DataSource.SerializerCtorTestDataSource), MemberType = typeof(DataSource))]
-        public void Serializer_Ctor_Test(Action construct)
-        {
-            Assert.Null(Record.Exception(construct));
-        }
-        
-        [Theory()]
+
+        [Theory]
         [MemberData(nameof(DataSource.SerializesToBufferCorrectlyDataSource), MemberType = typeof(DataSource))]
-        public void Serializes_To_Buffer_Correctly(IValueSerializer serializer, 
-                                                   object value, 
-                                                   byte[] serializationBuffer, 
+        public void Serializes_To_Buffer_Correctly(Delegate serializeDelegate,
+                                                   object value,
+                                                   byte[] serializationBuffer,
                                                    byte[] expectedSerializedBytes)
         {
-            serializer.Serialize(value, serializationBuffer, 0);
-            
+            serializeDelegate.DynamicInvoke(value, serializationBuffer, 0);
+
             Assert.Equal(expectedSerializedBytes, serializationBuffer);
         }
 
-        [Theory()]
+        [Theory]
         [MemberData(nameof(DataSource.DeserializesToValueCorrectlyDataSource), MemberType = typeof(DataSource))]
-        public void Deserializes_To_Value_Correctly(IValueSerializer serializer, 
-                                                    byte[] serializedBytes, 
+        public void Deserializes_To_Value_Correctly(Delegate deserializeDelegate,
+                                                    byte[] serializedBytes,
                                                     object expectedValue)
         {
-            var value = serializer.Deserialize(serializedBytes, 0);
-            
+            var value = deserializeDelegate.DynamicInvoke(serializedBytes, 0);
+
             Assert.Equal(expectedValue, value);
         }
-        
-        [Theory()]
+
+        [Theory]
         [MemberData(nameof(DataSource.TestSizeFromValueDataSource), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Value(IValueSerializer serializer, object value, ushort expectedSize)
+        public void Test_Size_From_Value(Delegate getSizeFromValueDelegate, object value, ushort expectedSize)
         {
-            Assert.Equal(expectedSize, serializer.GetSizeFromValue(value));
+            Assert.Equal(expectedSize, getSizeFromValueDelegate.DynamicInvoke(value));
         }
-        
-        [Theory()]
+
+        [Theory]
         [MemberData(nameof(DataSource.TestSizeFromBufferDataSource), MemberType = typeof(DataSource))]
-        public void Test_Size_From_Buffer(IValueSerializer serializer, byte[] serializedBytes, ushort expectedSize)
+        public void Test_Size_From_Buffer(Delegate getSizeFromBufferDelegate, byte[] serializedBytes, ushort expectedSize)
         {
-            Assert.Equal(expectedSize, serializer.GetSizeFromBuffer(serializedBytes, 0));
+            Assert.Equal(expectedSize, getSizeFromBufferDelegate.DynamicInvoke(serializedBytes, 0));
         }
     }
 }

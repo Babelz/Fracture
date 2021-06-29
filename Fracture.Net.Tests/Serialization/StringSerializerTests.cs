@@ -6,13 +6,8 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class StringSerializerTests 
     {
-        #region Fields
-        private readonly StringSerializer serializer;
-        #endregion
-        
         public StringSerializerTests()
         {
-            serializer = new StringSerializer();
         }
         
         [Fact()]
@@ -20,7 +15,7 @@ namespace Fracture.Net.Tests.Serialization
         {
             var buffer = new byte[128];
             
-            serializer.Serialize("Hello!", buffer, 0);
+            StringSerializer.Serialize("Hello!", buffer, 0);
             
             Assert.Equal(12, Protocol.ContentLength.Read(buffer, 0));
         }
@@ -32,22 +27,22 @@ namespace Fracture.Net.Tests.Serialization
             
             var buffer = new byte[128];
             
-            serializer.Serialize(TestUnicodeString, buffer, 0);
+            StringSerializer.Serialize(TestUnicodeString, buffer, 0);
             
-            Assert.Equal(TestUnicodeString, serializer.Deserialize(buffer, 0));
+            Assert.Equal(TestUnicodeString, StringSerializer.Deserialize(buffer, 0));
         }
         
         [Fact()]
         public void Get_Size_From_Value_Returns_String_Size_In_And_Size_Field_Bytes()
         {
-            Assert.Equal(10, serializer.GetSizeFromValue("hell"));
-            Assert.Equal(14, serializer.GetSizeFromValue("      "));
+            Assert.Equal(10, StringSerializer.GetSizeFromValue("hell"));
+            Assert.Equal(14, StringSerializer.GetSizeFromValue("      "));
         }
         
         [Fact()]
         public void Get_Size_From_Buffer_Returns_String_Size_And_Size_Field_In_Bytes()
         {
-            Assert.Equal(10, serializer.GetSizeFromBuffer(new byte[] { 8, 0, 0, 0 }, 0));
+            Assert.Equal(10, StringSerializer.GetSizeFromBuffer(new byte[] { 8, 0, 0, 0 }, 0));
         }
     }
 }

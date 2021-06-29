@@ -55,13 +55,13 @@ namespace Fracture.Benchmarks.Tests
         {
         }
         
-        public void Serialize(in ObjectSerializationContext context, object value, byte[] buffer, int offset)
+        public void Serialize(in ObjectSerializationValueRanges valueRanges, object value, byte[] buffer, int offset)
         {
             var actual = (TestClass)value;
-            var currentSerializer = context.ValueSerializers[0];
+            var currentSerializer = valueRanges.ValueSerializerTypes[0];
             var nullMask = new BitField(1);
             var nullMaskOffset = 0;
-            var bitFieldSerializer = context.BitFieldSerializer;
+            var bitFieldSerializer = valueRanges.BitFieldSerializer;
             
             offset += 1;
             
@@ -75,7 +75,7 @@ namespace Fracture.Benchmarks.Tests
                 nullMask.SetBit(0, true);
             }
             
-            currentSerializer = context.ValueSerializers[1];
+            currentSerializer = valueRanges.ValueSerializerTypes[1];
             
             if (actual.Y.HasValue)
             {
@@ -87,17 +87,17 @@ namespace Fracture.Benchmarks.Tests
                 nullMask.SetBit(1, true);
             }
             
-            currentSerializer = context.ValueSerializers[2];
+            currentSerializer = valueRanges.ValueSerializerTypes[2];
             
             currentSerializer.Serialize(actual.I, buffer, offset);
             offset += currentSerializer.GetSizeFromValue(actual.I);
             
-            currentSerializer = context.ValueSerializers[3];
+            currentSerializer = valueRanges.ValueSerializerTypes[3];
             
             currentSerializer.Serialize(actual.J, buffer, offset);
             offset += currentSerializer.GetSizeFromValue(actual.J);
             
-            currentSerializer = context.ValueSerializers[4];
+            currentSerializer = valueRanges.ValueSerializerTypes[4];
             
             if (actual.S1 != null)
             {
@@ -109,7 +109,7 @@ namespace Fracture.Benchmarks.Tests
                 nullMask.SetBit(2, true);
             }
             
-            currentSerializer = context.ValueSerializers[5];
+            currentSerializer = valueRanges.ValueSerializerTypes[5];
             
             if (actual.S2 != null)
             {
@@ -129,7 +129,7 @@ namespace Fracture.Benchmarks.Tests
         #region Fields
         private readonly TestClass testObject;
         
-        private readonly ObjectSerializationContext context;
+        private readonly ObjectSerializationValueRanges valueRanges;
         private readonly DynamicSerializeDelegate serializeDelegate;
         private readonly byte[] buffer;
         
@@ -159,10 +159,10 @@ namespace Fracture.Benchmarks.Tests
             serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(typeof(TestClass), serializationOps, 4);
             buffer            = new byte[256];
 
-            context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(TestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             serializer = new FooSerializer();
@@ -171,13 +171,13 @@ namespace Fracture.Benchmarks.Tests
         [Benchmark]
         public void SerializeWithDynamicDelegate()
         {            
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
         }
         
         [Benchmark]
         public void SerializeWithInstanceCall()
         {
-            serializer.Serialize(context, testObject, buffer, 0);
+            serializer.Serialize(valueRanges, testObject, buffer, 0);
         }
     }
 }

@@ -145,10 +145,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NonValueTypeTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
@@ -172,10 +172,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NullableNonValueTypeTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
@@ -195,10 +195,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NullableFieldTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
@@ -222,10 +222,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NullablePropertyTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
@@ -254,10 +254,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(ValueTypeTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
@@ -283,10 +283,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(ValueTypeParametrizedActivationTestClass),
                 serializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(serializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
             );
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(

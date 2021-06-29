@@ -6,28 +6,28 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="float"/>.
     /// </summary>
-    public sealed class FloatSerializer : IValueSerializer
+    [ValueSerializer(typeof(float))]
+    public static class FloatSerializer 
     {
-        public FloatSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(float);
         
         /// <summary>
         /// Writes given float value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(float value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteFloat((float)value, buffer, offset);
+            MemoryMapper.WriteFloat(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as float
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static float Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadFloat(buffer, offset);
         }
@@ -35,41 +35,43 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of float, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(float);
 
         /// <summary>
         /// Returns size of float, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(float value)
             => sizeof(float);
     }
     
     /// <summary>
     /// Value serializer that provides serialization for <see cref="double"/>.
     /// </summary>
-    public sealed class DoubleSerializer : IValueSerializer
+    [ValueSerializer(typeof(double))]
+    public static class DoubleSerializer
     {
-        public DoubleSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(double);
         
         /// <summary>
         /// Writes given double value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(double value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteDouble((double)value, buffer, offset);
+            MemoryMapper.WriteDouble(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as double
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static double Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadDouble(buffer, offset);
         }
@@ -77,13 +79,15 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of double, should always be 8-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(double);
 
         /// <summary>
         /// Returns size of double, should always be 8-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(double value)
             => sizeof(double);
     }
 }

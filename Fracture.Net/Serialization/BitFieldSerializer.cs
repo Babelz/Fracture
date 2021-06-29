@@ -92,25 +92,25 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="BitField"/>.
     /// </summary>
-    public sealed class BitFieldSerializer : IValueSerializer
+    [ValueSerializer(typeof(BitField))]
+    public static class BitFieldSerializer
     {
-        public BitFieldSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(BitField);
 
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(BitField value, byte[] buffer, int offset)
         {
-            var actual = (BitField)value;
+            var actual = value;
             
             Protocol.NullMaskLength.Write(checked((byte)actual.Length), buffer, offset);
             
             actual.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
         }
 
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static BitField Deserialize(byte[] buffer, int offset)
         {
             var size = Protocol.NullMaskLength.Read(buffer, offset);
             
@@ -121,10 +121,12 @@ namespace Fracture.Net.Serialization
             return value;
         }
 
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => (ushort)(Protocol.NullMaskLength.Size + Protocol.NullMaskLength.Read(buffer, offset));
 
-        public ushort GetSizeFromValue(object value)
-            => (ushort)(Protocol.NullMaskLength.Size + ((BitField)value).Length);
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(BitField value)
+            => (ushort)(Protocol.NullMaskLength.Size + value.Length);
     }
 }

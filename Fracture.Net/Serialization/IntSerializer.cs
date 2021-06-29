@@ -6,28 +6,28 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Value serializer that provides serialization for <see cref="int"/>.
     /// </summary>
-    public sealed class IntSerializer : IValueSerializer
+    [ValueSerializer(typeof(int))]
+    public static class IntSerializer
     {
-        public IntSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(int);
         
         /// <summary>
         /// Writes given int32 value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(int value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteInt((int)value, buffer, offset);
+            MemoryMapper.WriteInt(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as int32
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static int Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadInt(buffer, offset);
         }
@@ -35,41 +35,43 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of int32, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(int);
         
         /// <summary>
         /// Returns size of int32, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(int value)
             => sizeof(int);
     }
     
     /// <summary>
     /// Value serializer that provides serialization for <see cref="uint"/>.
     /// </summary>
-    public sealed class UintSerializer : IValueSerializer
+    [ValueSerializer(typeof(uint))]
+    public static class UintSerializer 
     {
-        public UintSerializer()
-        {
-        }
-        
-        public bool SupportsType(Type type)
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
             => type == typeof(uint);
         
         /// <summary>
         /// Writes given uint32 value to given buffer beginning at given offset.
         /// </summary>
-        public void Serialize(object value, byte[] buffer, int offset)
+        [ValueSerializer.Serialize]
+        public static void Serialize(uint value, byte[] buffer, int offset)
         {
-            MemoryMapper.WriteUint((uint)value, buffer, offset);
+            MemoryMapper.WriteUint(value, buffer, offset);
         }
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as uint32
         /// and returns that value to the caller.
         /// </summary>
-        public object Deserialize(byte[] buffer, int offset)
+        [ValueSerializer.Deserialize]
+        public static uint Deserialize(byte[] buffer, int offset)
         {
             return MemoryMapper.ReadUint(buffer, offset);
         }
@@ -77,13 +79,15 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Returns size of uint32, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromBuffer(byte[] buffer, int offset)
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(uint);
         
         /// <summary>
         /// Returns size of uint32, should always be 4-bytes.
         /// </summary>
-        public ushort GetSizeFromValue(object value)
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue(uint value)
             => sizeof(uint);
     }
 }

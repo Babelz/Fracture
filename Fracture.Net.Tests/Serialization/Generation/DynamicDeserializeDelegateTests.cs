@@ -158,10 +158,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(ValueTypeFieldTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
@@ -191,10 +191,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(ValueTypePropertyTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
@@ -228,10 +228,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(ValueTypePropertyAndFieldWithParametrizedConstructorTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
@@ -265,10 +265,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NullableFieldTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
@@ -313,10 +313,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NullablePropertyTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
@@ -361,10 +361,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationContext(
+            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
                 typeof(NonValueTypeFieldTestClass),
                 deserializationOps, 
-                ObjectSerializerProgram.GetOpSerializers(deserializationOps).ToList().AsReadOnly()
+                ObjectSerializerProgram.GetOpValueSerializerTypes(deserializationOps).ToList().AsReadOnly()
             );
             
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(

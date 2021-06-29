@@ -41,7 +41,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             get;
         }
 
-        protected ObjectSerializationContext Context
+        protected ObjectSerializationValueRanges ValueRanges
         {
             get;
         }
@@ -52,25 +52,20 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
         #endregion
 
-        protected DynamicSerializationDelegateBuilder(in ObjectSerializationContext context, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
+        protected DynamicSerializationDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
         {
-            Context           = context;
+            ValueRanges   = valueRanges;
             SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
             DynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
             
             Locals = new LocalBuilder[MaxLocals + maxLocals];
             temp   = new Dictionary<Type, LocalBuilder>();
             
-            localCurrentSerializer = AllocateNextLocalIndex();
-            localSerializers       = AllocateNextLocalIndex();
-            localValue            = AllocateNextLocalIndex();
+            localValue = AllocateNextLocalIndex();
         }
 
         protected byte AllocateNextLocalIndex()
             => checked(localIndexCounter++);
-        
-        protected void EmitLoadCurrentSerializer(ILGenerator il)
-            => il.Emit(OpCodes.Ldloc_S, Locals[localCurrentSerializer]);
         
         /// <summary>
         /// Emits instructions for loading serialization value from object that is on top of the stack. The value can loaded from property and from field
@@ -110,26 +105,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             else 
                 il.Emit(OpCodes.Ldfld, value.Field);
         }
-        
-        /// <summary>
-        /// Emits instructions for getting the next value serializer for serialization.
-        ///
-        /// Translates roughly to:
-        ///     serializer = serializers[serializationValueIndex];
-        /// </summary>
-        protected void EmitStoreSerializerAtIndexToLocal(int serializationValueIndex)
-        {
-            var il = DynamicMethod.GetILGenerator();
-            
-            // Load local 'serializers' to stack.
-            il.Emit(OpCodes.Ldloc_S, Locals[localSerializers]);
-            // Get current value serializer, push current serializer index to stack.
-            il.Emit(OpCodes.Ldc_I4, serializationValueIndex);
-            // Push serializer at index to stack.
-            il.Emit(OpCodes.Callvirt, typeof(IReadOnlyList<IValueSerializer>).GetProperties().First(p => p.GetIndexParameters().Length != 0).GetMethod);
-            // Store current serializer to local.
-            il.Emit(OpCodes.Stloc_S, Locals[localCurrentSerializer]);
-        }
 
         protected void EmitLoadLocalValue(ILGenerator il)
         {
@@ -156,16 +131,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Local 0: type we are serializing, create common locals for serialization. These are required across all serialization emit functions.
-            Locals[localValue] = il.DeclareLocal(SerializationType);                                     
-            // Local 1: serializers.
-            Locals[localSerializers] = il.DeclareLocal(typeof(IReadOnlyList<IValueSerializer>)); 
-            // Local 2: local for storing the current serializer.
-            Locals[localCurrentSerializer] = il.DeclareLocal(typeof(IValueSerializer));                               
-            
-            // Get serializers to local, store serializers to local 'serializers'.
-            il.Emit(OpCodes.Ldarg_0);
-            il.Emit(OpCodes.Call, typeof(ObjectSerializationContext).GetProperty(nameof(ObjectSerializationContext.ValueSerializers))!.GetMethod);
-            il.Emit(OpCodes.Stloc_S, Locals[localSerializers]);
+            Locals[localValue] = il.DeclareLocal(SerializationType);
         }
     }
 }

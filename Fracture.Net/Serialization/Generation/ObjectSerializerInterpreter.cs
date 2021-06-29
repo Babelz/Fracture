@@ -4,24 +4,17 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Serialization.Generation.Builders;
+using Microsoft.Diagnostics.Tracing.Stacks;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation
 {
     /// <summary>
-    /// Structure that contains serialization context for single type.
+    /// Structure that contains serialization value ranges for single type.
     /// </summary>
-    public readonly struct ObjectSerializationContext
+    public readonly struct ObjectSerializationValueRanges
     {
         #region Properties
-        /// <summary>
-        /// Gets optional utility bit field serializer if the serializer needs to serialize null values.
-        /// </summary>
-        public IValueSerializer BitFieldSerializer
-        {
-            get;
-        }
-        
         /// <summary>
         /// Gets the count of nullable fields in this serialization context.
         /// </summary>
@@ -39,26 +32,19 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
-        /// Gets the value serializers for the type in order they are expected to be executed.
+        /// Gets the total count of expected serialization values count.
         /// </summary>
-        public IReadOnlyList<IValueSerializer> ValueSerializers
+        public int SerializationValuesCount
         {
             get;
         }
         #endregion
 
-        public ObjectSerializationContext(IReadOnlyList<IValueSerializer> valueSerializers, 
-                                          int nullableValuesCount, 
-                                          int nullableValuesOffset,
-                                          IValueSerializer bitFieldSerializer)
+        public ObjectSerializationValueRanges(int nullableValuesCount, int nullableValuesOffset, int serializationValuesCount)
         {
-            ValueSerializers     = valueSerializers ?? throw new ArgumentNullException(nameof(valueSerializers));
-            NullableValuesCount  = nullableValuesCount;
-            NullableValuesOffset = nullableValuesOffset;
-            BitFieldSerializer   = bitFieldSerializer;
-
-            if (nullableValuesCount != 0 && bitFieldSerializer == null)
-                throw new InvalidOperationException("expecting utility serializers to present for null serialization");
+            NullableValuesCount      = nullableValuesCount;
+            NullableValuesOffset     = nullableValuesOffset;
+            SerializationValuesCount = serializationValuesCount;
         }
     }
 
@@ -68,18 +54,18 @@ namespace Fracture.Net.Serialization.Generation
     public sealed class ObjectSerializer 
     {
         #region Fields
-        private readonly ObjectSerializationContext context; 
+        private readonly ObjectSerializationValueRanges valueRanges; 
         private readonly DynamicSerializeDelegate serialize;
         private readonly DynamicDeserializeDelegate deserialize;
         private readonly DynamicGetSizeFromValueDelegate getSizeFromValue;
         #endregion
 
-        public ObjectSerializer(in ObjectSerializationContext context, 
+        public ObjectSerializer(in ObjectSerializationValueRanges valueRanges, 
                                 DynamicSerializeDelegate serialize,
                                 DynamicDeserializeDelegate deserialize,
                                 DynamicGetSizeFromValueDelegate getSizeFromValue)
         {
-            this.context          = context;
+            this.valueRanges          = valueRanges;
             this.serialize        = serialize ?? throw new ArgumentNullException(nameof(serialize));
             this.deserialize      = deserialize ?? throw new ArgumentNullException(nameof(deserialize));
             this.getSizeFromValue = getSizeFromValue ?? throw new ArgumentNullException(nameof(getSizeFromValue));
@@ -89,19 +75,19 @@ namespace Fracture.Net.Serialization.Generation
         /// Serializers given object to given buffer using dynamically generated serializer.
         /// </summary>
         public void Serialize(object value, byte[] buffer, int offset)
-            => serialize(context, value, buffer, offset);
+            => serialize(valueRanges, value, buffer, offset);
         
         /// <summary>
         /// Deserializes object from given buffer using dynamically generated deserializer.
         /// </summary>
         public object Deserialize(byte[] buffer, int offset)
-            => deserialize(context, buffer, offset);
+            => deserialize(valueRanges, buffer, offset);
         
         /// <summary>
         /// Returns the size of the object using dynamically generated resolver.
         /// </summary>
         public ushort GetSizeFromValue(object value)
-            => getSizeFromValue(context, value);
+            => getSizeFromValue(valueRanges, value);
     }
     
     /// <summary>
@@ -129,20 +115,20 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Gets the serialization values that are expected by the parametrized constructor.
         /// </summary>
-        public IReadOnlyCollection<SerializationValue> Parameters
+        public IReadOnlyCollection<SerializeValueOp> ParameterValueOps
         {
             get;
         }
         #endregion
 
-        public ParametrizedActivationOp(ConstructorInfo constructor, IReadOnlyCollection<SerializationValue> parameters)
+        public ParametrizedActivationOp(ConstructorInfo constructor, IReadOnlyCollection<SerializeValueOp> parameters)
         {
-            Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
-            Parameters  = parameters ?? throw new ArgumentNullException(nameof(parameters));
+            Constructor       = constructor ?? throw new ArgumentNullException(nameof(constructor));
+            ParameterValueOps = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
     
         public override string ToString()
-            => $"{{ op: {nameof(ParametrizedActivationOp)}, ctor: parametrized, params: {Parameters.Count} }}";
+            => $"{{ op: {nameof(ParametrizedActivationOp)}, ctor: parametrized, params: {ParameterValueOps.Count} }}";
     }
 
     /// <summary>
@@ -182,11 +168,20 @@ namespace Fracture.Net.Serialization.Generation
         {
             get;
         }
+        
+        /// <summary>
+        /// Gets the value serializer type for serializing and deserializing value associated with this operation.
+        /// </summary>
+        public Type ValueSerializerType
+        {
+            get;
+        }
         #endregion
 
-        public SerializeValueOp(SerializationValue value)
+        public SerializeValueOp(SerializationValue value, Type valueSerializerType)
         {
-            Value = value;
+            Value               = value;
+            ValueSerializerType = valueSerializerType ?? throw new ArgumentNullException(nameof(valueSerializerType));
         }
         
         public override string ToString()
@@ -226,7 +221,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Gets the program serializers for the program.
         /// </summary>
-        public IReadOnlyList<IValueSerializer> Serializers
+        public IReadOnlyList<Type> ValueSerializerTypes
         {
             get;
         }
@@ -238,27 +233,27 @@ namespace Fracture.Net.Serialization.Generation
             SerializationOps   = serializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(serializationOps));
             DeserializationOps = deserializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(deserializationOps));
 
-            var serializationOpsSerializers   = GetOpSerializers(SerializationOps);
-            var deserializationOpsSerializers = GetOpSerializers(DeserializationOps);
+            var serializationOpsSerializers   = GetOpValueSerializerTypes(SerializationOps);
+            var deserializationOpsSerializers = GetOpValueSerializerTypes(DeserializationOps);
             
-            Serializers = serializationOpsSerializers.Intersect(deserializationOpsSerializers).ToList();
+            ValueSerializerTypes = serializationOpsSerializers.Intersect(deserializationOpsSerializers).ToList();
             
-            if (Serializers.Count != SerializationOps.Count) 
+            if (ValueSerializerTypes.Count != SerializationOps.Count) 
                 throw new InvalidOperationException($"serialization programs for type \"{Type.Name}\" have different count of value serializers");
         }   
         
-        public static IEnumerable<IValueSerializer> GetOpSerializers(IEnumerable<ISerializationOp> ops)
+        public static IEnumerable<Type> GetOpValueSerializerTypes(IEnumerable<ISerializationOp> ops)
         {
             foreach (var op in ops)
             {
                 switch (op)
                 {
                     case ParametrizedActivationOp paop:
-                        foreach (var serializer in paop.Parameters.Select(p => ValueSerializerRegistry.GetValueSerializerForType(p.Type)))
+                        foreach (var serializer in paop.ParameterValueOps.Select(p => p.ValueSerializerType))
                             yield return serializer;
                         break;
                     case SerializeValueOp svop:
-                        yield return ValueSerializerRegistry.GetValueSerializerForType(svop.Value.Type);
+                        yield return ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(svop.Value.Type);
                         break;
                     default:
                         continue;
@@ -281,11 +276,21 @@ namespace Fracture.Net.Serialization.Generation
             var ops = new List<ISerializationOp>();
             
             if (!mapping.Activator.IsDefaultConstructor)
-                ops.Add(new ParametrizedActivationOp(mapping.Activator.Constructor, mapping.Activator.Values));
+                ops.Add(new ParametrizedActivationOp(
+                            mapping.Activator.Constructor, 
+                            mapping.Activator.Values.Select(v => new SerializeValueOp(
+                                v, 
+                                ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))).ToList().AsReadOnly()
+                            )
+                );
             else
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
 
-            ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(v)));
+            ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
+                    v, 
+                    ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))
+                )
+            );
 
             return ops;
         }
@@ -296,7 +301,7 @@ namespace Fracture.Net.Serialization.Generation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
             => (mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                v => (ISerializationOp)new SerializeValueOp(v)
+                v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))
                ).ToList();
         
         /// <summary>
@@ -316,9 +321,7 @@ namespace Fracture.Net.Serialization.Generation
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
 
-        public static ObjectSerializationContext InterpretObjectSerializationContext(Type type,
-                                                                                     IEnumerable<ISerializationOp> ops, 
-                                                                                     IReadOnlyList<IValueSerializer> serializers)
+        public static ObjectSerializationValueRanges InterpretObjectSerializationNullContext(Type type, IEnumerable<ISerializationOp> ops)
         {
             var nullableValuesOffset    = -1;
             var valueOps                = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
@@ -344,18 +347,15 @@ namespace Fracture.Net.Serialization.Generation
             
             var nullableValuesCount = lastNullableValueIndex < 0 ? 0 : (lastNullableValueIndex - firstNullableValueIndex) + 1;
             
-            return new ObjectSerializationContext(serializers, 
-                                                  nullableValuesCount, 
-                                                  nullableValuesOffset,
-                                                  nullableValuesCount != 0 ? ValueSerializerRegistry.GetValueSerializerForType(typeof(BitField)) : null);
+            return new ObjectSerializationValueRanges(nullableValuesCount, nullableValuesOffset, valueOps.Count);
         }
         
-        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationContext context,
+        public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationValueRanges valueRanges,
                                                                                      Type type, 
                                                                                      IEnumerable<ISerializationOp> ops)
         {
             var serializationValueIndex = 0;
-            var builder                 = new DynamicDeserializeDelegateBuilder(context, type);
+            var builder                 = new DynamicDeserializeDelegateBuilder(valueRanges, type);
             
             builder.EmitLocals();
             
@@ -365,20 +365,20 @@ namespace Fracture.Net.Serialization.Generation
                 {
                     case SerializeValueOp svop:
                         if (svop.Value.IsNullAssignable) 
-                            builder.EmitDeserializeNullableValue(svop.Value, serializationValueIndex++);
+                            builder.EmitDeserializeNullableValue(svop.Value, svop.ValueSerializerType, serializationValueIndex++);
                         else
-                            builder.EmitDeserializeValue(svop.Value, serializationValueIndex++);
+                            builder.EmitDeserializeValue(svop.Value, svop.ValueSerializerType, serializationValueIndex++);
                         break;
                     case DefaultActivationOp daop:
                         builder.EmitActivation(daop.Constructor);
                         break;
                     case ParametrizedActivationOp paop:
-                        foreach (var parameter in paop.Parameters)
+                        foreach (var parameter in paop.ParameterValueOps)
                         {
-                            if (!parameter.IsNullAssignable) 
-                                builder.EmitLoadNullableValue(parameter, serializationValueIndex++);
+                            if (!parameter.Value.IsNullAssignable) 
+                                builder.EmitLoadNullableValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
                             else
-                                builder.EmitLoadValue(parameter, serializationValueIndex++);
+                                builder.EmitLoadValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
                         }    
                         
                         builder.EmitActivation(paop.Constructor);
@@ -389,11 +389,11 @@ namespace Fracture.Net.Serialization.Generation
             return builder.Build();
         }
 
-        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationContext context,
+        public static DynamicGetSizeFromValueDelegate InterpretDynamicGetSizeFromValueDelegate(in ObjectSerializationValueRanges valueRanges,
                                                                                                Type type, 
                                                                                                IReadOnlyList<ISerializationOp> ops)
         {
-            var builder = new DynamicGetSizeFromValueDelegateBuilder(context, type);
+            var builder = new DynamicGetSizeFromValueDelegateBuilder(valueRanges, type);
             
             builder.EmitLocals();
             
@@ -404,21 +404,21 @@ namespace Fracture.Net.Serialization.Generation
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, serializationValueIndex);
+                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, op.ValueSerializerType, serializationValueIndex);
                 else if (op.Value.IsNullable)
-                    builder.EmitGetSizeOfNullableValue(op.Value, serializationValueIndex);
+                    builder.EmitGetSizeOfNullableValue(op.Value, op.ValueSerializerType, serializationValueIndex);
                 else
-                    builder.EmitGetSizeOfValue(op.Value, serializationValueIndex);
+                    builder.EmitGetSizeOfValue(op.Value, op.ValueSerializerType, serializationValueIndex);
             }
             
             return builder.Build();
         }
 
-        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationContext context,
+        public static DynamicSerializeDelegate InterpretDynamicSerializeDelegate(in ObjectSerializationValueRanges valueRanges,
                                                                                  Type type, 
                                                                                  IReadOnlyList<ISerializationOp> ops)
         {
-            var builder = new DynamicSerializeDelegateBuilder(context, type);
+            var builder = new DynamicSerializeDelegateBuilder(valueRanges, type);
  
             // Declare locals.
             builder.EmitLocals();
@@ -429,11 +429,11 @@ namespace Fracture.Net.Serialization.Generation
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitSerializeNonValueTypeValue(op.Value, serializationValueIndex);
+                    builder.EmitSerializeNonValueTypeValue(op.Value, op.ValueSerializerType, serializationValueIndex);
                 else if (op.Value.IsNullable)
-                    builder.EmitSerializeNullableValue(op.Value, serializationValueIndex);
+                    builder.EmitSerializeNullableValue(op.Value, op.ValueSerializerType, serializationValueIndex);
                 else
-                    builder.EmitSerializeValue(op.Value, serializationValueIndex);
+                    builder.EmitSerializeValue(op.Value, op.ValueSerializerType, serializationValueIndex);
             }
             
             return builder.Build();
@@ -442,7 +442,7 @@ namespace Fracture.Net.Serialization.Generation
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
             // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
-            var objectSerializationContext = InterpretObjectSerializationContext(program.Type, program.SerializationOps, program.Serializers);
+            var objectSerializationContext = InterpretObjectSerializationNullContext(program.Type, program.SerializationOps);
             
             // Create dynamic serialization function.
             var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(objectSerializationContext,

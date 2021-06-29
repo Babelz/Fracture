@@ -264,6 +264,7 @@
         <Compile Include="Serialization\ArraySerializer.cs" />
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />
+        <Compile Include="Serialization\Exceptions.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
         <Compile Include="Serialization\Generation\Builders\DynamicDeserializeDelegateBuilder.cs" />
         <Compile Include="Serialization\Generation\Builders\DynamicGetSizeFromValueDelegateBuilder.cs" />
@@ -279,7 +280,7 @@
         <Compile Include="Serialization\ShortSerializer.cs" />
         <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\StructureSerializer.cs" />
-        <Compile Include="Serialization\IValueSerializer.cs" />
+        <Compile Include="Serialization\ValueSerializer.cs" />
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\Fracture.Common\Fracture.Common.csproj">
