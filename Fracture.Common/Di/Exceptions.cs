@@ -24,23 +24,16 @@ namespace Fracture.Common.Di
     [Serializable]
     public sealed class DependencyBinderException : Exception
     {
-        #region Properties
-        public Type Type
-        {
-            get;
-        }
-        #endregion
-        
         public DependencyBinderException(Type type, string message)
             : base(message)
         {
-            Type = type;
+            Data["Type"] = type;
         }
 
         public DependencyBinderException(Type type, string message, Exception innerException)
             : base(message, innerException)
         {
-            Type = type;
+            Data["Type"] = type;
         }
 
         private DependencyBinderException(SerializationInfo info, StreamingContext context) 
