@@ -7,7 +7,7 @@ using Xunit;
 namespace Fracture.Net.Tests.Serialization.Generation
 {
     [Trait("Category", "Serialization")]
-    public class DynamicGetSizeFromValueDelegateTests
+    public class DynamicGetSizeFromValueTests
     {
         #region Test types
         private sealed class NullablePropertyTestClass
@@ -39,34 +39,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public int? Z;
             #endregion
         }
-        
-        private sealed class MixedFieldAndPropertyTypeTestClass
-        {
-            #region Fields
-            public int FX;
-            public int? FY;
-            public int? FZ;
-            #endregion
-            
-            #region Properties
-            public int PX
-            {
-                get;
-                set;
-            }
-            public int? PY
-            {
-                get;
-                set;
-            }
-            public int? PZ
-            {
-                get;
-                set;
-            }
-            #endregion
-        }
-        
+
         private sealed class ValueTypeTestClass
         {
             #region Fields
@@ -145,21 +118,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NonValueTypeTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NonValueTypeTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(NonValueTypeTestClass), 
                 serializationOps
             );
             
-            Assert.Equal(10, getSizeFromValueDelegate(context, new NonValueTypeTestClass()));
-            Assert.Equal(38, getSizeFromValueDelegate(context, new NonValueTypeTestClass() { PS = "hello, world!" }));
-            Assert.Equal(50, getSizeFromValueDelegate(context, new NonValueTypeTestClass() { PS = "hello, world!", FS = "hello" }));
+            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass()));
+            Assert.Equal(38, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass() { PS = "hello, world!" }));
+            Assert.Equal(50, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass() { PS = "hello, world!", FS = "hello" }));
         }
         
         [Fact]
@@ -172,17 +141,18 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NullableNonValueTypeTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NullableNonValueTypeTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(NullableNonValueTypeTestClass), 
                 serializationOps
             );
+            
+            Assert.Equal(2, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass()));
+            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { FS = "hello" }));
+            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { PX = 200 }));
+            Assert.Equal(16, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { FS = "s1", FX = 100, PS = "s2", PX = 200 }));
         }
         
         [Fact]
@@ -195,21 +165,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NullableFieldTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NullableFieldTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(NullableFieldTestClass), 
                 serializationOps
             );
             
-            Assert.Equal(6, getSizeFromValueDelegate(context, new NullableFieldTestClass() { X = 0 }));
-            Assert.Equal(10, getSizeFromValueDelegate(context, new NullableFieldTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(14, getSizeFromValueDelegate(context, new NullableFieldTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0 }));
+            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0, Y = 200 }));
+            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0, Y = 200, Z = 400 }));
         }
         
         [Fact]
@@ -222,28 +188,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NullablePropertyTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NullablePropertyTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(NullablePropertyTestClass), 
                 serializationOps
             );
             
-            Assert.Equal(6, getSizeFromValueDelegate(context, new NullablePropertyTestClass() { X  = 0 }));
-            Assert.Equal(10, getSizeFromValueDelegate(context, new NullablePropertyTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(14, getSizeFromValueDelegate(context, new NullablePropertyTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X  = 0 }));
+            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X = 0, Y = 200 }));
+            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X = 0, Y = 200, Z = 400 }));
         }
-        
-        [Fact]
-        public void Should_Compute_Size_Of_All_Mixed_Nullable_Field_And_Property_Kinds()
-        {
-        }
-        
+
         [Fact]
         public void Should_Compute_Size_Of_Value_Type_Structure_Correctly()
         {
@@ -254,21 +211,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(ValueTypeTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(ValueTypeTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(ValueTypeTestClass), 
                 serializationOps
             );
             
             var testObject = new ValueTypeTestClass();
             
-            Assert.Equal(12, getSizeFromValueDelegate(context, testObject));
+            Assert.Equal(12, getSizeFromValueDelegate(valueRanges, testObject));
         }
         
         [Fact]
@@ -283,21 +236,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(ValueTypeParametrizedActivationTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(ValueTypeParametrizedActivationTestClass), serializationOps);
             
             var getSizeFromValueDelegate = ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                context,
+                valueRanges,
                 typeof(ValueTypeParametrizedActivationTestClass), 
                 serializationOps
             );
             
             var testObject = new ValueTypeParametrizedActivationTestClass(0, 0);
             
-            Assert.Equal(12, getSizeFromValueDelegate(context, testObject));
+            Assert.Equal(12, getSizeFromValueDelegate(valueRanges, testObject));
         }
     }
 }

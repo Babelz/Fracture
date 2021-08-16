@@ -15,13 +15,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
     public sealed class DynamicSerializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Constant fields
-        private const int MaxLocals = 3;
+        private const int MaxLocals = 2;
         #endregion
         
         #region Fields
         private readonly byte localNullMask;
         private readonly byte localNullMaskOffset;
-        private readonly byte localBitFieldSerializer;
         #endregion
         
         #region Static fields
@@ -49,9 +48,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
                    ),
                    MaxLocals)
         {
-            localNullMask           = AllocateNextLocalIndex();
-            localNullMaskOffset     = AllocateNextLocalIndex();
-            localBitFieldSerializer = AllocateNextLocalIndex();
+            localNullMask       = AllocateNextLocalIndex();
+            localNullMaskOffset = AllocateNextLocalIndex();
         }
 
         /// <summary>
@@ -254,9 +252,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Stloc_S, Locals[localNullMaskOffset]);
 
             // Advance offset by the size of the bit field to leave space for it in front of the buffer.
-            il.Emit(OpCodes.Ldarg_3);   
-            // Push local 'bitFieldSerializer' to stack.
-            il.Emit(OpCodes.Ldloc_S, Locals[localBitFieldSerializer]);                                                          
+            il.Emit(OpCodes.Ldarg_3);                                                            
             // Push local 'nullMask' to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localNullMask]);
             // Call 'GetSizeFromValue', push size to stack.
@@ -276,8 +272,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             if (ValueRanges.NullableValuesCount != 0)
             {
-                // Serialize bit field, push local 'bitFieldSerializer' to stack.
-                il.Emit(OpCodes.Ldloc_S, Locals[localBitFieldSerializer]);
                 // Push local 'nullMask' to stack.
                 il.Emit(OpCodes.Ldloc_S, Locals[localNullMask]);
                 // Push argument 'buffer' to stack.

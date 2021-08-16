@@ -321,7 +321,7 @@ namespace Fracture.Net.Serialization.Generation
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
 
-        public static ObjectSerializationValueRanges InterpretObjectSerializationNullContext(Type type, IEnumerable<ISerializationOp> ops)
+        public static ObjectSerializationValueRanges InterpretObjectSerializationValueRanges(Type type, IEnumerable<ISerializationOp> ops)
         {
             var nullableValuesOffset    = -1;
             var valueOps                = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
@@ -375,7 +375,7 @@ namespace Fracture.Net.Serialization.Generation
                     case ParametrizedActivationOp paop:
                         foreach (var parameter in paop.ParameterValueOps)
                         {
-                            if (!parameter.Value.IsNullAssignable) 
+                            if (parameter.Value.IsNullAssignable) 
                                 builder.EmitLoadNullableValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
                             else
                                 builder.EmitLoadValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
@@ -442,7 +442,7 @@ namespace Fracture.Net.Serialization.Generation
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
             // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
-            var objectSerializationContext = InterpretObjectSerializationNullContext(program.Type, program.SerializationOps);
+            var objectSerializationContext = InterpretObjectSerializationValueRanges(program.Type, program.SerializationOps);
             
             // Create dynamic serialization function.
             var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(objectSerializationContext,

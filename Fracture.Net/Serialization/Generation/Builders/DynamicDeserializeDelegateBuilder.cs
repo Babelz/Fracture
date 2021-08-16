@@ -51,8 +51,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        new []
                        {
                            typeof(ObjectSerializationValueRanges).MakeByRefType(), // Argument 0.
-                           typeof(byte[]),                                     // Argument 1.
-                           typeof(int)                                         // Argument 2.
+                           typeof(byte[]),                                         // Argument 1.
+                           typeof(int)                                             // Argument 2.
                        },
                        true
                    ),
@@ -103,6 +103,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType));
             
+            // Load nullable value to stack if needed. This used to work before without this because of the boxing operations happening.
+            if (value.IsNullable)
+                il.Emit(OpCodes.Newobj, value.Type.GetConstructor(new [] { value.Type.GetGenericArguments()[0] })!);
+           
             // Store deserialized value to target value.
             if (value.IsField)
                 il.Emit(OpCodes.Stfld, value.Field);
@@ -163,8 +167,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Ldarg_2);      
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType));
-            
-            if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
             
             // Push 'buffer' to stack. 
             il.Emit(OpCodes.Ldarg_1);                                                                       

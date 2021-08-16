@@ -302,7 +302,7 @@ namespace Fracture.Net.Serialization
                         continue;
                 
                     if ((bool)methodInfo.Invoke(null, new object[] { serializationType }))
-                        return serializationType;
+                        return valueSerializerType;
                 }   
             }
 

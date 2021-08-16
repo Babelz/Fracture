@@ -9,7 +9,7 @@ using Xunit;
 namespace Fracture.Net.Tests.Serialization.Generation
 {
     [Trait("Category", "Serialization")]
-    public class DynamicSerializeDelegateTests
+    public class DynamicSerializeTests
     {
         #region Test types
         private sealed class FieldTestClass
@@ -270,14 +270,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(FieldTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(FieldTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(FieldTestClass), 
                 serializationOps
             );
@@ -285,7 +281,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new FieldTestClass() { X = 1500, Y = 37500 };
             var buffer     = new byte[8];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             Assert.Equal(testObject.X, MemoryMapper.ReadInt(buffer, 0));
             Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, sizeof(int)));
@@ -301,14 +297,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NullableFieldTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NullableFieldTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(NullableFieldTestClass), 
                 serializationOps
             );
@@ -316,7 +308,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -338,23 +330,18 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NonValueTypeFieldTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NonValueTypeFieldTestClass), serializationOps);
 
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(NonValueTypeFieldTestClass), 
                 serializationOps
             );
             
-            var testObject       = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
-            var stringSerializer = new StringSerializer();
-            var buffer           = new byte[128];
+            var testObject = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var buffer     = new byte[128];
             
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             var offset = 0;
             
@@ -366,11 +353,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
             offset += sizeof(byte);
             
-            Assert.Equal(testObject.S1, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromValue(testObject.S1);
+            Assert.Equal(testObject.S1, StringSerializer.Deserialize(buffer, offset));
+            offset += StringSerializer.GetSizeFromValue(testObject.S1);
             
-            Assert.Equal(testObject.S3, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromValue(testObject.S3);
+            Assert.Equal(testObject.S3, StringSerializer.Deserialize(buffer, offset));
+            offset += StringSerializer.GetSizeFromValue(testObject.S3);
             
             Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, offset));
             offset += sizeof(int);
@@ -388,23 +375,18 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(PropertyTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(PropertyTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(PropertyTestClass), 
                 serializationOps
             );
             
-            var testObject       = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
-            var stringSerializer = new StringSerializer();
-            var buffer           = new byte[64];
+            var testObject = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
+            var buffer     = new byte[64];
             
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -412,7 +394,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(0, MemoryMapper.ReadByte(buffer, sizeof(byte)));
             
             Assert.Equal(testObject.Id, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2));
-            Assert.Equal(testObject.Greet, stringSerializer.Deserialize(buffer, sizeof(byte) * 2 + sizeof(int)));
+            Assert.Equal(testObject.Greet, StringSerializer.Deserialize(buffer, sizeof(byte) * 2 + sizeof(int)));
         }
         
         [Fact]
@@ -425,14 +407,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NullablePropertyTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NullablePropertyTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(NullablePropertyTestClass), 
                 serializationOps
             );
@@ -440,7 +418,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -462,23 +440,18 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NonValueTypePropertyTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NonValueTypePropertyTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(NonValueTypePropertyTestClass), 
                 serializationOps
             );
             
-            var testObject       = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
-            var stringSerializer = new StringSerializer();
-            var buffer           = new byte[128];
+            var testObject = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var buffer     = new byte[128];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             var offset = 0;
             
@@ -490,11 +463,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Equal(64, MemoryMapper.ReadByte(buffer, offset));
             offset += sizeof(byte);
             
-            Assert.Equal(testObject.S1, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromValue(testObject.S1);
+            Assert.Equal(testObject.S1, StringSerializer.Deserialize(buffer, offset));
+            offset += StringSerializer.GetSizeFromValue(testObject.S1);
             
-            Assert.Equal(testObject.S3, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromValue(testObject.S3);
+            Assert.Equal(testObject.S3, StringSerializer.Deserialize(buffer, offset));
+            offset += StringSerializer.GetSizeFromValue(testObject.S3);
             
             Assert.Equal(testObject.I, MemoryMapper.ReadInt(buffer, offset));
             offset += sizeof(int);
@@ -513,14 +486,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(FieldAndPropertyTestClassClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(FieldAndPropertyTestClassClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(FieldAndPropertyTestClassClass), 
                 serializationOps
             );
@@ -528,7 +497,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new FieldAndPropertyTestClassClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer     = new byte[64];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             Assert.Equal(testObject.B1, MemoryMapper.ReadByte(buffer, 0));
             Assert.Equal(testObject.B2, MemoryMapper.ReadByte(buffer, sizeof(byte)));
@@ -548,14 +517,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
             
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(NonZeroNullValueOffsetMixedTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(NonZeroNullValueOffsetMixedTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(NonZeroNullValueOffsetMixedTestClass), 
                 serializationOps
             );
@@ -563,7 +528,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
             var buffer     = new byte[64];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
             var offset = 0;
             
@@ -610,14 +575,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
-            var context = ObjectSerializerInterpreter.InterpretObjectSerializationNullContext(
-                typeof(AllPropertyAndFieldKindsMixTestClass),
-                serializationOps, 
-                ObjectSerializerProgram.GetOpValueSerializerTypes(serializationOps).ToList().AsReadOnly()
-            );
+            var valueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllPropertyAndFieldKindsMixTestClass), serializationOps);
             
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                context,
+                valueRanges,
                 typeof(AllPropertyAndFieldKindsMixTestClass), 
                 serializationOps
             );
@@ -636,10 +597,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var buffer = new byte[256];
 
-            serializeDelegate(context, testObject, buffer, 0);
+            serializeDelegate(valueRanges, testObject, buffer, 0);
             
-            var offset           = 0;
-            var stringSerializer = new StringSerializer();
+            var offset = 0;
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, offset));
@@ -654,16 +614,15 @@ namespace Fracture.Net.Tests.Serialization.Generation
             offset += sizeof(int);
             
             // S4.
-            Assert.Equal(testObject.S4, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
+            Assert.Equal(testObject.S4, StringSerializer.Deserialize(buffer, offset));
+            offset += StringSerializer.GetSizeFromBuffer(buffer, offset);
             
             // Y.
             Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, offset));
             offset += sizeof(int);
             
             // S2.
-            Assert.Equal(testObject.S2, stringSerializer.Deserialize(buffer, offset));
-            offset += stringSerializer.GetSizeFromBuffer(buffer, offset);
+            Assert.Equal(testObject.S2, StringSerializer.Deserialize(buffer, offset));
         }
     }
 }
