@@ -22,10 +22,11 @@ Fracture serializer provides serialization for the following types:
 - [x] Booleans
 - [x] Date times and timespans
 - [x] Null values
+- [x] Bit fields
 - [ ] Enums
-- [ ] Structures
-    - [ ] Auto mapped
-    - [ ] Manually mapped
+- [x] Structures
+    - [x] Auto mapped
+    - [x] Manually mapped
 - [ ] Arrays 
 - [ ] Lists
 - [ ] Dictionaries

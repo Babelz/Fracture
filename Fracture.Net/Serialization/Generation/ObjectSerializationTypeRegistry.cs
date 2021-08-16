@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Class that handles specialized type mappings from run time types to serialization specialization types.
         /// </summary>
-        public sealed class ObjectTypeSpecializationRegistry
+        public sealed class ObjectSerializationTypeRegistry
         {
             #region Fields
             private readonly Dictionary<ushort, Type> serializationTypeMapping;
@@ -18,17 +18,20 @@ namespace Fracture.Net.Serialization.Generation
             private ushort nextSpecializationTypeId;
             #endregion
 
-            public ObjectTypeSpecializationRegistry()
+            public ObjectSerializationTypeRegistry()
             {
                 serializationTypeMapping = new Dictionary<ushort, Type>();
                 runTypeMapping           = new Dictionary<Type, ushort>();
             }
         
-            public void SpecializeRunType(Type type)
+            public void Specialize(Type type)
             {
                 if (type == null)
                     throw new ArgumentNullException(nameof(type));
             
+                if (runTypeMapping.ContainsKey(type)) 
+                    throw new SerializationTypeException("type is already specialized", type);
+                
                 serializationTypeMapping.Add(nextSpecializationTypeId, type);
                 runTypeMapping.Add(type, nextSpecializationTypeId);
             
@@ -38,14 +41,14 @@ namespace Fracture.Net.Serialization.Generation
             public bool IsSpecializedRunType(Type type)
                 => runTypeMapping.ContainsKey(type);
         
-            public bool IsSpecializedSerializationType(ushort specializationTypeId)
-                => serializationTypeMapping.ContainsKey(specializationTypeId);
-        
-            public ushort GetSpecializedRunTypeSerializationTypeId(Type type)
+            public bool IsSpecializedSerializationType(ushort serializationTypeId)
+                => serializationTypeMapping.ContainsKey(serializationTypeId);
+
+            public ushort GetSerializationTypeId(Type type)
                 => runTypeMapping[type];
-        
-            public Type GetSpecializedSerializationRunType(ushort specializationTypeId)
-                => serializationTypeMapping[specializationTypeId];
+            
+            public Type GetRunType(ushort serializationType)
+                => serializationTypeMapping[serializationType];
         }
     }
 }

@@ -54,7 +54,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         protected DynamicSerializationDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
         {
-            ValueRanges   = valueRanges;
+            ValueRanges       = valueRanges;
             SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
             DynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
             

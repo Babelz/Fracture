@@ -130,7 +130,7 @@ namespace Fracture.Net.Serialization
             return types;
         }    
         
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateNonGenericValueSerializerSchema(Type valueSerializerType, ValueSerializerAttribute valueSerializerAttribute)
         {            
             if (Delegate.CreateDelegate(typeof(SupportsTypeDelegate), GetSupportsTypeMethodInfo(valueSerializerType), false) == null)
@@ -219,6 +219,10 @@ namespace Fracture.Net.Serialization
             
             return methodInfo;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MethodInfo GetSerializeMethodInfo(Type valueSerializerType, Type serializationType)
+            => GetSerializeMethodInfo(valueSerializerType).MakeGenericMethod(serializationType);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetDeserializeMethodInfo(Type valueSerializerType)
@@ -232,7 +236,7 @@ namespace Fracture.Net.Serialization
             
             return methodInfo;
         }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSizeFromBufferMethodInfo(Type valueSerializerType)
         {
@@ -296,14 +300,14 @@ namespace Fracture.Net.Serialization
 
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
-                foreach (var methodInfo in valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public))
-                {
-                    if (methodInfo.GetCustomAttribute<ValueSerializer.SupportsTypeAttribute>() == null)
-                        continue;
+                var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                                                    .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.SupportsTypeAttribute>() != null);
                 
-                    if ((bool)methodInfo.Invoke(null, new object[] { serializationType }))
-                        return valueSerializerType;
-                }   
+                if (methodInfo == null)
+                    continue;
+            
+                if ((bool)methodInfo.Invoke(null, new object[] { serializationType }))
+                    return valueSerializerType;
             }
 
             throw new SerializationTypeException("no value serializer type was found for serialization type", serializationType);
