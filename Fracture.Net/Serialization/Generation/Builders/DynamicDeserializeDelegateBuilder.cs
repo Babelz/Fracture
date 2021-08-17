@@ -11,7 +11,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping deserialization functions.  
     /// </summary>
-    public delegate object DynamicDeserializeDelegate(in ObjectSerializationValueRanges valueRanges, byte[] buffer, int offset);
+    public delegate object DynamicDeserializeDelegate(byte[] buffer, int offset);
     
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
@@ -50,9 +50,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        typeof(object), 
                        new []
                        {
-                           typeof(ObjectSerializationValueRanges).MakeByRefType(), // Argument 0.
-                           typeof(byte[]),                                         // Argument 1.
-                           typeof(int)                                             // Argument 2.
+                           typeof(byte[]), // Argument 0.
+                           typeof(int)     // Argument 1.
                        },
                        true
                    ),
@@ -97,9 +96,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadLocalValue(il);
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_1);                                                                       
+            il.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
@@ -116,17 +115,17 @@ namespace Fracture.Net.Serialization.Generation.Builders
             if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_1);                                                                       
+            il.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);      
+            il.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2); 
+            il.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 2);
+            il.Emit(OpCodes.Starg_S, 1);
         }
 
         public void EmitActivation(ConstructorInfo constructor)
@@ -162,24 +161,24 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_1);                                                                       
+            il.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_1);                                                                       
+            il.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);      
+            il.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2); 
+            il.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 2);
+            il.Emit(OpCodes.Starg_S, 1);
         }
 
         public override void EmitLocals()
@@ -193,9 +192,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             Locals[localNullMask] = il.DeclareLocal(typeof(BitField));
             
             // Load argument 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_0);
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(BitFieldSerializer)));
             
@@ -203,17 +202,17 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Stloc_S, Locals[localNullMask]);
             
             // Load argument 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_0);
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_1);
             // Call 'GetSizeFromBuffer', push size to stack.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(BitFieldSerializer)));
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);
+            il.Emit(OpCodes.Ldarg_1);
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 2);
+            il.Emit(OpCodes.Starg_S, 1);
         }
 
         public DynamicDeserializeDelegate Build()
@@ -228,11 +227,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             {
                 var method = (DynamicDeserializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicDeserializeDelegate));
                 
-                return (in ObjectSerializationValueRanges context, byte[] buffer, int offset) =>
+                return (buffer, offset) =>
                 {
                     try
                     {
-                        return method(context, buffer, offset);
+                        return method(buffer, offset);
                     }
                     catch (Exception e)
                     {

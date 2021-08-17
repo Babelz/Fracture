@@ -9,7 +9,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping functions for determining objects sizes from run types.
     /// </summary>
-    public delegate ushort DynamicGetSizeFromValueDelegate(in ObjectSerializationValueRanges valueRanges, object value);
+    public delegate ushort DynamicGetSizeFromValueDelegate(object value);
     
     public sealed class DynamicGetSizeFromValueDelegateBuilder : DynamicSerializationDelegateBuilder
     {
@@ -44,8 +44,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        typeof(ushort), 
                        new []
                        {
-                           typeof(ObjectSerializationValueRanges).MakeByRefType(), // Argument 0.
-                           typeof(object)                                          // Argument 1.
+                           typeof(object) // Argument 0.
                        },
                        true
                    ),
@@ -58,11 +57,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
         
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
         {
-            return (in ObjectSerializationValueRanges context, object value) =>
+            return value =>
             {    
                 try
                 {
-                    return method(context, value);
+                    return method(value);
                 }
                 catch (Exception e)
                 {
@@ -75,13 +74,13 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             ushort size = 0;
             
-            return (in ObjectSerializationValueRanges context, object value) =>
+            return value =>
             {
                 if (size != 0u) return size;
                 
                 try
                 {
-                    size = method(context, value);
+                    size = method(value);
                 }
                 catch (Exception e)
                 {

@@ -17,8 +17,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
         #endregion
         
         #region Fields
-        private readonly byte localCurrentSerializer;
-        private readonly byte localSerializers;
         private readonly byte localValue;
         
         private byte localIndexCounter;
@@ -119,7 +117,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         protected void EmitStoreArgumentValueToLocal(ILGenerator il)
         {
             // Cast value to actual value, push argument 'value' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            il.Emit(OpCodes.Ldarg_0);
             // Cast or unbox value.
             il.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox, SerializationType);
             

@@ -7,7 +7,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping serialization functions.
     /// </summary>
-    public delegate void DynamicSerializeDelegate(in ObjectSerializationValueRanges valueRanges, object value, byte[] buffer, int offset);
+    public delegate void DynamicSerializeDelegate(object value, byte[] buffer, int offset);
     
     /// <summary>
     /// Class that provides dynamic functions building for dynamic serialization functions. 
@@ -39,10 +39,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        typeof(void), 
                        new []
                        {
-                           typeof(ObjectSerializationValueRanges).MakeByRefType(), // Argument 0.
-                           typeof(object),                                         // Argument 1.
-                           typeof(byte[]),                                         // Argument 2.
-                           typeof(int)                                             // Argument 3.
+                           typeof(object), // Argument 0.
+                           typeof(byte[]), // Argument 1.
+                           typeof(int)     // Argument 2.
                        },
                        true
                    ),
@@ -83,14 +82,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadSerializationValue(il, value);
             
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
+            il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Ldarg_2);
-            il.Emit(OpCodes.Ldarg_3);
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSerializeMethodInfo(valueSerializerType, value.Type));
 
             if (serializationValueIndex + 1 < ValueRanges.SerializationValuesCount)
             {
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
-                il.Emit(OpCodes.Ldarg_3);
+                il.Emit(OpCodes.Ldarg_2);
                 
                 // Push value from the nullable field to stack boxed.
                 EmitLoadSerializationValue(il, value);
@@ -98,7 +97,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
                 // Advance offset by the size of the value.
                 il.Emit(OpCodes.Add);
-                il.Emit(OpCodes.Starg_S, 3);
+                il.Emit(OpCodes.Starg_S, 2);
             }
 
             // Branch out from the serialization of this value.
@@ -146,15 +145,15 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
+            il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Ldarg_2);
-            il.Emit(OpCodes.Ldarg_3);
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSerializeMethodInfo(valueSerializerType, value.Type));
             
             // Push value from the nullable field to stack boxed, increment serialization offset.
             if (serializationValueIndex + 1 < ValueRanges.SerializationValuesCount)
             {
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
-                il.Emit(OpCodes.Ldarg_3);
+                il.Emit(OpCodes.Ldarg_2);
                 
                 EmitLoadSerializationValueAddressToStack(il, value);
                 
@@ -162,7 +161,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
                 // Advance offset by the size of the value.
                 il.Emit(OpCodes.Add);
-                il.Emit(OpCodes.Starg_S, 3);
+                il.Emit(OpCodes.Starg_S, 2);
             }
             
             // Branch out from the serialization of this value.
@@ -195,16 +194,16 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadSerializationValue(il, value);
             
             // Push 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_2);                                                                       
+            il.Emit(OpCodes.Ldarg_1);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Ldarg_2);
             // Call serialize.
             il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSerializeMethodInfo(valueSerializerType, value.Type));
             
             if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
             
             // Add last value serialized to the offset, push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_3);                    
+            il.Emit(OpCodes.Ldarg_2);                    
 
             // Push last serialization value to stack.
             EmitLoadSerializationValue(il, value); 
@@ -214,7 +213,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 3);
+            il.Emit(OpCodes.Starg_S, 2);
         }
         
         /// <summary>
@@ -248,11 +247,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new [] { typeof(int) })!);
 
             // Store current offset to local 'nullMaskOffset'.
-            il.Emit(OpCodes.Ldarg_3);
+            il.Emit(OpCodes.Ldarg_2);
             il.Emit(OpCodes.Stloc_S, Locals[localNullMaskOffset]);
 
             // Advance offset by the size of the bit field to leave space for it in front of the buffer.
-            il.Emit(OpCodes.Ldarg_3);                                                            
+            il.Emit(OpCodes.Ldarg_2);                                                            
             // Push local 'nullMask' to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localNullMask]);
             // Call 'GetSizeFromValue', push size to stack.
@@ -260,7 +259,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Add offset + size.
             il.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 3);
+            il.Emit(OpCodes.Starg_S, 2);
         }
         
         /// <summary>
@@ -275,7 +274,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 // Push local 'nullMask' to stack.
                 il.Emit(OpCodes.Ldloc_S, Locals[localNullMask]);
                 // Push argument 'buffer' to stack.
-                il.Emit(OpCodes.Ldarg_2);                                                                       
+                il.Emit(OpCodes.Ldarg_1);                                                                       
                 // Push local 'nullMaskOffset' to stack.
                 il.Emit(OpCodes.Ldloc_S, Locals[localNullMaskOffset]);                                                                       
                 // Call serialize.
@@ -288,11 +287,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
             {
                 var method = (DynamicSerializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicSerializeDelegate));
                 
-                return (in ObjectSerializationValueRanges context, object value, byte[] buffer, int offset) =>
+                return (value, buffer, offset) =>
                 {
                     try
                     {
-                        method(context, value, buffer, offset);
+                        method(value, buffer, offset);
                     }
                     catch (Exception e)
                     {

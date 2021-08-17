@@ -327,4 +327,50 @@ namespace Fracture.Net.Serialization
             throw new SerializationTypeException("no value serializer type was found for serialization type", serializationType);
         }
     }
+    
+    /// <summary>
+    /// Class that handles specialized type mappings from run time types to serialization specialization types.
+    /// </summary>
+    public sealed class ValueSerializerTypeRegistry
+    {
+        #region Fields
+        private readonly Dictionary<ushort, Type> serializationTypeMapping;
+        private readonly Dictionary<Type, ushort> runTypeMapping; 
+        
+        // Specialization type id counter used for generating new specialization ids.
+        private ushort nextSerializationTypeId;
+        #endregion
+
+        public ValueSerializerTypeRegistry()
+        {
+            serializationTypeMapping = new Dictionary<ushort, Type>();
+            runTypeMapping           = new Dictionary<Type, ushort>();
+        }
+        
+        public ushort Specialize(Type type)
+        {
+            if (type == null)
+                throw new ArgumentNullException(nameof(type));
+            
+            if (runTypeMapping.ContainsKey(type)) 
+                throw new SerializationTypeException("type is already specialized", type);
+                
+            serializationTypeMapping.Add(nextSerializationTypeId, type);
+            runTypeMapping.Add(type, nextSerializationTypeId);
+            
+            return nextSerializationTypeId++;
+        }
+        
+        public bool IsSpecializedRunType(Type type)
+            => runTypeMapping.ContainsKey(type);
+        
+        public bool IsSpecializedSerializationType(ushort serializationTypeId)
+            => serializationTypeMapping.ContainsKey(serializationTypeId);
+
+        public ushort GetSerializationTypeId(Type type)
+            => runTypeMapping[type];
+            
+        public Type GetRunType(ushort serializationType)
+            => serializationTypeMapping[serializationType];
+    }
 }

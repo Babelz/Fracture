@@ -274,7 +274,6 @@
         <Compile Include="Serialization\Generation\Builders\Exceptions.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializerInterpreter.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializationTypeRegistry.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />
         <Compile Include="Serialization\LongSerializer.cs" />
         <Compile Include="Serialization\BitFieldSerializer.cs" />
