@@ -4,6 +4,10 @@ using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
+// Fields and properties are read and written dynamically, warning disabled for testing.
+#pragma warning disable 649
+#pragma warning disable 8632
+
 namespace Fracture.Net.Tests.Serialization.Generation
 {
     [Trait("Category", "Serialization")]
@@ -23,11 +27,13 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public int X
             {
                 get;
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 set;
             }
             public int Y
             {
                 get;
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 set;
             }
             #endregion
@@ -105,7 +111,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             #region Fields
             public int X, Y;
-            
+
             public string S1;
             public string S2;
 

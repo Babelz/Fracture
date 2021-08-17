@@ -1,7 +1,9 @@
 using System.Linq;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
+#pragma warning disable 8632
 
+// Fields and properties are read and written dynamically, warning disabled for testing.
 #pragma warning disable 649
 
 namespace Fracture.Net.Tests.Serialization.Generation

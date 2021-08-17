@@ -151,11 +151,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push value of the field to stack boxed.
             EmitLoadSerializationValue(il, value);
             
-            var getSizeFromValueMethodInfo = ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType);
-            
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.IsGenericValueSerializer(valueSerializerType) ? getSizeFromValueMethodInfo.MakeGenericMethod(value.Type) : 
-                                                                                                                getSizeFromValueMethodInfo);
-            
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             il.Emit(OpCodes.Add);
             il.Emit(OpCodes.Stloc_S, Locals[localSize]);
@@ -187,12 +183,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadSerializationValueAddressToStack(il, value);
             
             il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
-            
-            var getSizeFromValueMethodInfo = ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType);
-            
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.IsGenericValueSerializer(valueSerializerType) ? getSizeFromValueMethodInfo.MakeGenericMethod(value.Type) : 
-                                                                                                                getSizeFromValueMethodInfo);
-            
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             il.Emit(OpCodes.Add);
             il.Emit(OpCodes.Stloc_S, Locals[localSize]);
@@ -212,10 +203,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadSerializationValue(il, value);
             
             // Call get size from value.
-            var getSizeFromValueMethodInfo = ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType);
-            
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.IsGenericValueSerializer(valueSerializerType) ? getSizeFromValueMethodInfo.MakeGenericMethod(value.Type) : 
-                                                                                                                getSizeFromValueMethodInfo);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             
             // Push local size to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);

@@ -99,13 +99,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'buffer' to stack. 
             il.Emit(OpCodes.Ldarg_1);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2);      
-            
+            il.Emit(OpCodes.Ldarg_2);
             // Call deserialize.
-            var deserializeMethodInfo = ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType);
-            
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.IsGenericValueSerializer(valueSerializerType) ? deserializeMethodInfo.MakeGenericMethod(value.Type) :
-                                                                                                                deserializeMethodInfo);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Load nullable value to stack if needed. This used to work before without this because of the boxing operations happening.
             if (value.IsNullable)
@@ -168,13 +164,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'buffer' to stack. 
             il.Emit(OpCodes.Ldarg_1);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_2); 
-            
+            il.Emit(OpCodes.Ldarg_2);
             // Call deserialize.
-            var deserializeMethodInfo = ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType);
-            
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.IsGenericValueSerializer(valueSerializerType) ? deserializeMethodInfo.MakeGenericMethod(value.Type) :
-                                                                                                                deserializeMethodInfo);
+            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Push 'buffer' to stack. 
             il.Emit(OpCodes.Ldarg_1);                                                                       

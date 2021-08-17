@@ -264,6 +264,7 @@
         <Compile Include="Serialization\ArraySerializer.cs" />
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />
+        <Compile Include="Serialization\EnumSerializer.cs" />
         <Compile Include="Serialization\Exceptions.cs" />
         <Compile Include="Serialization\FloatSerializer.cs" />
         <Compile Include="Serialization\Generation\Builders\DynamicDeserializeDelegateBuilder.cs" />

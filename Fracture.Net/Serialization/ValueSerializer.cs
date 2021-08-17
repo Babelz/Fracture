@@ -208,7 +208,7 @@ namespace Fracture.Net.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MethodInfo GetSerializeMethodInfo(Type valueSerializerType)
+        public static MethodInfo GetSerializeMethodInfo(Type valueSerializerType, Type serializationValueType = null)
         {
             var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
                                                 .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.SerializeAttribute>() != null);
@@ -217,15 +217,17 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.SerializeAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
             
-            return methodInfo;
+            if (serializationValueType == null) return methodInfo;
+            
+            if (!IsGenericValueSerializer(serializationValueType))
+                throw new ArgumentNullException(nameof(serializationValueType), $"value serializer {valueSerializerType.Name} is not generic, can't" +
+                                                                                $"create generic method for serialization type {serializationValueType.Name}"); 
+                
+            return methodInfo.MakeGenericMethod(serializationValueType);
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MethodInfo GetSerializeMethodInfo(Type valueSerializerType, Type serializationType)
-            => GetSerializeMethodInfo(valueSerializerType).MakeGenericMethod(serializationType);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MethodInfo GetDeserializeMethodInfo(Type valueSerializerType)
+        public static MethodInfo GetDeserializeMethodInfo(Type valueSerializerType, Type serializationValueType = null)
         {
             var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
                                                 .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.DeserializeAttribute>() != null);
@@ -233,8 +235,14 @@ namespace Fracture.Net.Serialization
             if (methodInfo == null) 
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.DeserializeAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
+
+            if (serializationValueType == null) return methodInfo;
             
-            return methodInfo;
+            if (!IsGenericValueSerializer(serializationValueType))
+                throw new ArgumentNullException(nameof(serializationValueType), $"value serializer {valueSerializerType.Name} is not generic, can't" +
+                                                                                $"create generic method for serialization type {serializationValueType.Name}"); 
+                
+            return methodInfo.MakeGenericMethod(serializationValueType);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -251,7 +259,7 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MethodInfo GetSizeFromValueMethodInfo(Type valueSerializerType)
+        public static MethodInfo GetSizeFromValueMethodInfo(Type valueSerializerType, Type serializationValueType = null)
         {
             var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
                                                 .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.GetSizeFromValueAttribute>() != null);
@@ -260,7 +268,13 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.GetSizeFromValueAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
             
-            return methodInfo;
+            if (serializationValueType == null) return methodInfo;
+            
+            if (!IsGenericValueSerializer(serializationValueType))
+                throw new ArgumentNullException(nameof(serializationValueType), $"value serializer {valueSerializerType.Name} is not generic, can't" +
+                                                                                $"create generic method for serialization type {serializationValueType.Name}"); 
+                
+            return methodInfo.MakeGenericMethod(serializationValueType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,9 +1,10 @@
-#pragma warning disable 649 - used for testing and the value is dynamically discovered
-#pragma warning disable 169 - used for testing and the value is dynamically discovered
-
 using System.Linq;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
+
+// Used for testing and the value is dynamically discovered.
+#pragma warning disable 649
+#pragma warning disable 169
 
 namespace Fracture.Net.Tests.Serialization.Generation
 {
