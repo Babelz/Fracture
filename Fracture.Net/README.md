@@ -24,9 +24,9 @@ Fracture serializer provides serialization for the following types:
 - [x] Null values
 - [x] Bit fields
 - [x] Enums
-- [X] Structures
-    - [x] Auto mapped
-    - [x] Manually mapped
+- [x] Structures
+-- [x] Auto mapped
+-- [x] Manually mapped
 - [ ] Arrays 
 - [ ] Lists
 - [ ] Dictionaries
