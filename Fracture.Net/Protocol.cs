@@ -79,7 +79,8 @@ namespace Fracture.Net
     /// Values are laid out in the byte stream as follows:
     ///     - 0x00, optional type-specialization-id header for generic and structure values
     ///     - 0x02, optional null-mask-length header
-    ///     - 0x03, optional null-mask-length amount of bytes 
+    ///     - 0x03, optional null-mask-length amount of bytes
+    ///     - 0x04, optional type-data that contains type specific serialization data 
     ///     - 0x05, optional content-length header for values that can vary in size
     ///
     /// When talking about values in context of serialization we are talking about single values such as integers and strings that on their own make little sense. 
@@ -105,9 +106,9 @@ namespace Fracture.Net
         public static readonly Header<ushort> ContentLength = Header.Ushort();
         
         /// <summary>
-        /// Header containing small content length. Used in place of content length header if the size of an object can fit to 8-bytes.
+        /// Header containing small optional serialization data field used by some serialization types to store additional information about the serialized objects.
         /// </summary>
-        public static readonly Header<byte> SmallContentLength = Header.Byte();
+        public static readonly Header<byte> TypeData = Header.Byte();
 
         /// <summary>
         /// Header denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on

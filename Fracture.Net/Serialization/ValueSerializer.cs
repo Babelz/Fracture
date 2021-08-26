@@ -136,6 +136,11 @@ namespace Fracture.Net.Serialization
                 throw new ArgumentNullException(nameof(serializationValueType), $"value serializer {valueSerializerType.Name} is not generic, can't" +
                                                                                 $"create generic method for serialization type {serializationValueType.Name}"); 
             
+            // Handle special case with arrays as they are not handled as generic types.
+            if (serializationValueType.IsArray)
+                return methodInfo.MakeGenericMethod(serializationValueType.GetElementType());
+            
+            // Make method info generic based on serialization type.
             return serializationValueType.IsGenericType ? methodInfo.MakeGenericMethod(serializationValueType.GetGenericArguments()) :
                                                           methodInfo.MakeGenericMethod(serializationValueType);
         }

@@ -17,7 +17,45 @@ namespace Fracture.Net.Serialization
     /// </summary>
     [GenericValueSerializer]
     public static class EnumSerializer 
-    {
+    {   
+        #region Static fields
+        private static readonly Dictionary<Type, byte> UnderlyingTypeSizes = new Dictionary<Type, byte>()
+        {
+            { typeof(sbyte),  sizeof(sbyte)  },
+            { typeof(byte),   sizeof(byte)   },
+            { typeof(short),  sizeof(short)  },
+            { typeof(ushort), sizeof(ushort) },
+            { typeof(int),    sizeof(int)    },
+            { typeof(uint),   sizeof(uint)   },
+            { typeof(long),   sizeof(long)   },
+            { typeof(ulong),  sizeof(ulong)  }
+        };
+        
+        private static readonly Dictionary<Type, SerializeDelegate<object>> SerializeDelegates = new Dictionary<Type, SerializeDelegate<object>>()
+        {
+            { typeof(sbyte),  (value, buffer, offset) => MemoryMapper.WriteSByte((sbyte)value, buffer, offset)   },
+            { typeof(byte),   (value, buffer, offset) => MemoryMapper.WriteByte((byte)value, buffer, offset)     },
+            { typeof(short),  (value, buffer, offset) => MemoryMapper.WriteShort((short)value, buffer, offset)   },
+            { typeof(ushort), (value, buffer, offset) => MemoryMapper.WriteUshort((ushort)value, buffer, offset) },
+            { typeof(int),    (value, buffer, offset) => MemoryMapper.WriteInt((int)value, buffer, offset)       },
+            { typeof(uint),   (value, buffer, offset) => MemoryMapper.WriteUint((uint)value, buffer, offset)     },
+            { typeof(long),   (value, buffer, offset) => MemoryMapper.WriteLong((long)value, buffer, offset)     },
+            { typeof(ulong),  (value, buffer, offset) => MemoryMapper.WriteUlong((ulong)value, buffer, offset)   }
+        };
+        
+        private static readonly Dictionary<Type, DeserializeDelegate<object>> DeserializeDelegates = new Dictionary<Type, DeserializeDelegate<object>>()
+        {
+            { typeof(sbyte),  (buffer, offset) => MemoryMapper.ReadSByte(buffer, offset)  },
+            { typeof(byte),   (buffer, offset) => MemoryMapper.ReadByte(buffer, offset)   },
+            { typeof(short),  (buffer, offset) => MemoryMapper.ReadShort(buffer, offset)  },
+            { typeof(ushort), (buffer, offset) => MemoryMapper.ReadUshort(buffer, offset) },
+            { typeof(int),    (buffer, offset) => MemoryMapper.ReadInt(buffer, offset)    },
+            { typeof(uint),   (buffer, offset) => MemoryMapper.ReadUint(buffer, offset)   },
+            { typeof(long),   (buffer, offset) => MemoryMapper.ReadLong(buffer, offset)   },
+            { typeof(ulong),  (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset)  }
+        };
+        #endregion
+        
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
             => type.IsEnum;
@@ -28,22 +66,14 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T value, byte[] buffer, int offset) where T : struct, Enum
         {
-            var type = typeof(T).GetEnumUnderlyingType();
-            var size = (byte)Marshal.SizeOf(type);
+            var underlyingType = typeof(T).GetEnumUnderlyingType();
             
             // Write size of the enum as type mask.
-            Protocol.SmallContentLength.Write(size, buffer, offset);
+            Protocol.TypeData.Write(UnderlyingTypeSizes[underlyingType], buffer, offset);
             
-            offset += Protocol.SmallContentLength.Size;
+            offset += Protocol.TypeData.Size;
             
-            if      (type == typeof(sbyte))  MemoryMapper.WriteSByte((sbyte)(object)value, buffer, offset);
-            else if (type == typeof(byte))   MemoryMapper.WriteByte((byte)(object)value, buffer, offset);
-            else if (type == typeof(short))  MemoryMapper.WriteShort((short)(object)value, buffer, offset);
-            else if (type == typeof(ushort)) MemoryMapper.WriteUshort((ushort)(object)value, buffer, offset);
-            else if (type == typeof(int))    MemoryMapper.WriteInt((int)(object)value, buffer, offset);
-            else if (type == typeof(uint))   MemoryMapper.WriteUint((uint)(object)value, buffer, offset);
-            else if (type == typeof(long))   MemoryMapper.WriteLong((long)(object)value, buffer, offset);
-            else                             MemoryMapper.WriteUlong((ulong)(object)value, buffer, offset);
+            SerializeDelegates[underlyingType](value, buffer, offset);
         }
             
         /// <summary>
@@ -53,34 +83,24 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static T Deserialize<T>(byte[] buffer, int offset) where T : struct, Enum
         {
-            var type = typeof(T);
-            
             // Read size of the enum as type mask.
-            offset += Protocol.SmallContentLength.Size;
+            offset += Protocol.TypeData.Size;
             
-            if (type == typeof(sbyte))  return (T)(object)MemoryMapper.ReadSByte(buffer, offset);
-            if (type == typeof(byte))   return (T)(object)MemoryMapper.ReadByte(buffer, offset);
-            if (type == typeof(short))  return (T)(object)MemoryMapper.ReadShort(buffer, offset);
-            if (type == typeof(ushort)) return (T)(object)MemoryMapper.ReadUshort(buffer, offset);
-            if (type == typeof(int))    return (T)(object)MemoryMapper.ReadInt(buffer, offset);
-            if (type == typeof(uint))   return (T)(object)MemoryMapper.ReadUint(buffer, offset);
-            if (type == typeof(long))   return (T)(object)MemoryMapper.ReadLong(buffer, offset);
-            
-            return (T)(object)MemoryMapper.ReadUlong(buffer, offset);
+            return (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
         }
 
         /// <summary>
-        /// Returns size of uint32, should always be 4-bytes.
+        /// Returns size of enum, can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(Protocol.SmallContentLength.Read(buffer, offset) + Protocol.SmallContentLength.Size);
+            => (ushort)(Protocol.TypeData.Size + Protocol.TypeData.Read(buffer, offset));
 
         /// <summary>
-        /// Returns size of enumeration value, size can vary.
+        /// Returns size of enumeration value, size can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T value) where T : struct, Enum
-            => (ushort)(Protocol.SmallContentLength.Size + Marshal.SizeOf(typeof(T).GetEnumUnderlyingType()));
+            => (ushort)(Protocol.TypeData.Size + UnderlyingTypeSizes[typeof(T).GetEnumUnderlyingType()]);
     }
 }
