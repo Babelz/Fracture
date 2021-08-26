@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(long value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteLong(value, buffer, offset);
-        }
+            => MemoryMapper.WriteLong(value, buffer, offset);
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as int32
@@ -28,10 +26,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static long Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadLong(buffer, offset);
-        }
-
+            => MemoryMapper.ReadLong(buffer, offset);
+        
         /// <summary>
         /// Returns size of int64, should always be 8-bytes.
         /// </summary>
@@ -62,9 +58,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(ulong value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteUlong(value, buffer, offset);
-        }
+            => MemoryMapper.WriteUlong(value, buffer, offset);
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as uint32
@@ -72,10 +66,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static ulong Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadUlong(buffer, offset);
-        }
-
+            => MemoryMapper.ReadUlong(buffer, offset);
+        
         /// <summary>
         /// Returns size of uint64, should always be 8-bytes.
         /// </summary>

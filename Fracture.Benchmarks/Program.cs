@@ -1,5 +1,5 @@
 ﻿using BenchmarkDotNet.Running;
-using Fracture.Benchmarks.Tests;
+using Fracture.Benchmarks.Serialization;
 
 namespace Fracture.Benchmarks
 {
@@ -7,7 +7,7 @@ namespace Fracture.Benchmarks
     {
         private static void Main(string[] args)
         {
-            BenchmarkRunner.Run<TestDynamicSerializeDelegate>();
+            BenchmarkRunner.Run<BenchmarkMemoryMapper>();
         }
     }
 }

@@ -8,21 +8,21 @@ namespace Fracture.Net
     /// <summary>
     /// Generic delegate for wrapping write calls to buffer.
     /// </summary>
-    public delegate void ProtocolLabelWriteDelegate<in T>(T value, byte[] buffer, int offset);
+    public delegate void HeaderWriteDelegate<in T>(T value, byte[] buffer, int offset);
                   
     /// <summary>
     /// Generic delegate for wrapping read calls to buffer.
     /// </summary>
-    public delegate T ProtocolLabelReadDelegate<out T>(byte[] buffer, int offset);
+    public delegate T HeaderReadDelegate<out T>(byte[] buffer, int offset);
     
     /// <summary>
     /// Class providing generic wrapper for protocol labels such as message type id and size fields.
     /// </summary>
-    public sealed class ProtocolLabel<T>
+    public sealed class Header<T>
     {
         #region Fields
-        private readonly ProtocolLabelReadDelegate<T> read;
-        private readonly ProtocolLabelWriteDelegate<T> write;
+        private readonly HeaderReadDelegate<T> read;
+        private readonly HeaderWriteDelegate<T> write;
         #endregion
         
         #region Properties
@@ -35,7 +35,7 @@ namespace Fracture.Net
         }
         #endregion
 
-        public ProtocolLabel(ProtocolLabelWriteDelegate<T> write, ProtocolLabelReadDelegate<T> read)
+        public Header(HeaderWriteDelegate<T> write, HeaderReadDelegate<T> read)
         {
             Size = (ushort)Marshal.SizeOf<T>();
             
@@ -50,19 +50,19 @@ namespace Fracture.Net
             => read(buffer, offset);
     }
     
-    public static class ProtocolLabel
+    public static class Header
     {        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolLabel<byte> Byte()
-            => new ProtocolLabel<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);  
+        public static Header<byte> Byte()
+            => new Header<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);  
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolLabel<ushort> Ushort()
-            => new ProtocolLabel<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
+        public static Header<ushort> Ushort()
+            => new Header<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ProtocolLabel<uint> Uint()
-            => new ProtocolLabel<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
+        public static Header<uint> Uint()
+            => new Header<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
     }
 
     /// <summary>
@@ -94,21 +94,26 @@ namespace Fracture.Net
     {
         #region Static fields
         /// <summary>
-        /// Label denoting the type id of the object. This type id can denote a single value or structure in the byte stream.
+        /// Header denoting the type id of the object. This type id can denote a single value or structure in the byte stream.
         /// </summary>
-        public static readonly ProtocolLabel<ushort> SerializationTypeId = ProtocolLabel.Ushort();
+        public static readonly Header<ushort> SerializationTypeId = Header.Ushort();
         
         /// <summary>
-        /// Label denoting size content inside the message in bytes. This header appears on all object values after their type id or with fields that can
+        /// Header denoting size content inside the message in bytes. This header appears on all object values after their type id or with fields that can
         /// vary in size.
         /// </summary>
-        public static readonly ProtocolLabel<ushort> ContentLength = ProtocolLabel.Ushort();
+        public static readonly Header<ushort> ContentLength = Header.Ushort();
         
         /// <summary>
-        /// Label denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on
+        /// Header containing small content length. Used in place of content length header if the size of an object can fit to 8-bytes.
+        /// </summary>
+        public static readonly Header<byte> SmallContentLength = Header.Byte();
+
+        /// <summary>
+        /// Header denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on
         /// collection values that can contain null values.
         /// </summary>
-        public static readonly ProtocolLabel<byte> NullMaskLength = ProtocolLabel.Byte(); 
+        public static readonly Header<byte> NullMaskLength = Header.Byte(); 
         #endregion
     }
 }

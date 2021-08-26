@@ -250,7 +250,8 @@
     <ItemGroup>
         <Compile Include="Program.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Tests\TestDynamicSerializeDelegate.cs" />
+        <Compile Include="Serialization\BenchmarkDynamicSerializeDelegate.cs" />
+        <Compile Include="Serialization\BenchmarkMemoryMapper.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />

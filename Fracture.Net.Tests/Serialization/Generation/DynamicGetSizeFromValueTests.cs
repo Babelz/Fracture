@@ -128,9 +128,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass()));
-            Assert.Equal(38, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass() { PS = "hello, world!" }));
-            Assert.Equal(50, getSizeFromValueDelegate(valueRanges, new NonValueTypeTestClass() { PS = "hello, world!", FS = "hello" }));
+            Assert.Equal(10, getSizeFromValueDelegate(new NonValueTypeTestClass()));
+            Assert.Equal(38, getSizeFromValueDelegate(new NonValueTypeTestClass() { PS = "hello, world!" }));
+            Assert.Equal(50, getSizeFromValueDelegate(new NonValueTypeTestClass() { PS = "hello, world!", FS = "hello" }));
         }
         
         [Fact]
@@ -151,10 +151,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(2, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass()));
-            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { FS = "hello" }));
-            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { PX = 200 }));
-            Assert.Equal(16, getSizeFromValueDelegate(valueRanges, new NullableNonValueTypeTestClass() { FS = "s1", FX = 100, PS = "s2", PX = 200 }));
+            Assert.Equal(2, getSizeFromValueDelegate(new NullableNonValueTypeTestClass()));
+            Assert.Equal(14, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { FS = "hello" }));
+            Assert.Equal(6, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { PX = 200 }));
+            Assert.Equal(16, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { FS = "s1", FX = 100, PS = "s2", PX = 200 }));
         }
         
         [Fact]
@@ -175,9 +175,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0 }));
-            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullableFieldTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(6, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0 }));
+            Assert.Equal(10, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0, Y = 200 }));
+            Assert.Equal(14, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0, Y = 200, Z = 400 }));
         }
         
         [Fact]
@@ -198,9 +198,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(6, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X  = 0 }));
-            Assert.Equal(10, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(14, getSizeFromValueDelegate(valueRanges, new NullablePropertyTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(6, getSizeFromValueDelegate(new NullablePropertyTestClass() { X  = 0 }));
+            Assert.Equal(10, getSizeFromValueDelegate(new NullablePropertyTestClass() { X = 0, Y = 200 }));
+            Assert.Equal(14, getSizeFromValueDelegate(new NullablePropertyTestClass() { X = 0, Y = 200, Z = 400 }));
         }
 
         [Fact]
@@ -223,7 +223,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var testObject = new ValueTypeTestClass();
             
-            Assert.Equal(12, getSizeFromValueDelegate(valueRanges, testObject));
+            Assert.Equal(12, getSizeFromValueDelegate(testObject));
         }
         
         [Fact]
@@ -248,7 +248,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var testObject = new ValueTypeParametrizedActivationTestClass(0, 0);
             
-            Assert.Equal(12, getSizeFromValueDelegate(valueRanges, testObject));
+            Assert.Equal(12, getSizeFromValueDelegate(testObject));
         }
     }
 }

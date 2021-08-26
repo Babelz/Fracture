@@ -4,7 +4,7 @@ using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Fracture.Net.Serialization.Generation.Builders;
 
-namespace Fracture.Benchmarks.Tests
+namespace Fracture.Benchmarks.Serialization
 {
     public sealed class TestClass
     {
@@ -49,9 +49,9 @@ namespace Fracture.Benchmarks.Tests
         }
     }
     
-    public sealed class FooSerializer
+    public sealed class TestClassSerializer
     {
-        public FooSerializer()
+        public TestClassSerializer()
         {
         }
         
@@ -112,7 +112,7 @@ namespace Fracture.Benchmarks.Tests
         }
     }
     
-    public class TestDynamicSerializeDelegate
+    public class BenchmarkDynamicSerializeDelegate
     {
         #region Fields
         private readonly TestClass testObject;
@@ -121,10 +121,10 @@ namespace Fracture.Benchmarks.Tests
         private readonly DynamicSerializeDelegate serializeDelegate;
         private readonly byte[] buffer;
         
-        private readonly FooSerializer serializer;
+        private readonly TestClassSerializer serializer;
         #endregion
         
-        public TestDynamicSerializeDelegate()
+        public BenchmarkDynamicSerializeDelegate()
         {
             var mapping = ObjectSerializationMapper.Create()
                                                    .FromType<TestClass>()
@@ -148,19 +148,15 @@ namespace Fracture.Benchmarks.Tests
             serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(in valueRanges, typeof(TestClass), serializationOps);
             buffer            = new byte[256];
 
-            serializer = new FooSerializer();
+            serializer = new TestClassSerializer();
         }
 
         [Benchmark]
         public void SerializeWithDynamicDelegate()
-        {            
-            serializeDelegate(valueRanges, testObject, buffer, 0);
-        }
+            => serializeDelegate(testObject, buffer, 0);
         
         [Benchmark]
         public void SerializeWithInstanceCall()
-        {
-            serializer.Serialize(valueRanges, testObject, buffer, 0);
-        }
+            => serializer.Serialize(valueRanges, testObject, buffer, 0);
     }
 }

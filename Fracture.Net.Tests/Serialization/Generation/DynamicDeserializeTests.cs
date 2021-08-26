@@ -177,7 +177,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             MemoryMapper.WriteInt(100, buffer, 0);
             MemoryMapper.WriteInt(200, buffer, sizeof(int));
             
-            var results = (ValueTypeFieldTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (ValueTypeFieldTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(100, results.X);
             Assert.Equal(200, results.Y);
@@ -206,7 +206,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             MemoryMapper.WriteInt(300, buffer, 0);
             MemoryMapper.WriteInt(400, buffer, sizeof(int));
             
-            var results = (ValueTypePropertyTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (ValueTypePropertyTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(300, results.X);
             Assert.Equal(400, results.Y);
@@ -244,7 +244,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             MemoryMapper.WriteInt(30, buffer, sizeof(int) * 2);
             MemoryMapper.WriteInt(40, buffer, sizeof(int) * 3);
             
-            var results = (ValueTypePropertyAndFieldWithParametrizedConstructorTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (ValueTypePropertyAndFieldWithParametrizedConstructorTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(10, results.X);
             Assert.Equal(20, results.Y);
@@ -288,7 +288,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             MemoryMapper.WriteInt(75, buffer, offset);
 
-            var results = (NullableFieldTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (NullableFieldTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(25, results.I);
             Assert.Equal(50, results.Y);
@@ -331,7 +331,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             MemoryMapper.WriteInt(100, buffer, offset);
 
-            var results = (NullablePropertyTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (NullablePropertyTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(50, results.I);
             Assert.Equal(75, results.X);
@@ -377,7 +377,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             // S2.
             StringSerializer.Serialize("hello!", buffer, offset);
             
-            var results = (NonValueTypeFieldTestClass)deserializeDelegate(valueRanges, buffer, 0);
+            var results = (NonValueTypeFieldTestClass)deserializeDelegate(buffer, 0);
             
             Assert.Equal(25, results.X);
             Assert.Equal(50, results.Y);

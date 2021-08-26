@@ -62,9 +62,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(sbyte value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteSByte(value, buffer, offset);
-        }
+            => MemoryMapper.WriteSByte(value, buffer, offset);
         
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as sbyte
@@ -72,10 +70,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static sbyte Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadSByte(buffer, offset);
-        }
-
+            => MemoryMapper.ReadSByte(buffer, offset);
+        
         /// <summary>
         /// Returns size of sbyte, should always be 1-bytes.
         /// </summary>
@@ -106,9 +102,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(bool value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteBool(value, buffer, offset);
-        }
+            => MemoryMapper.WriteBool(value, buffer, offset);
         
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as bool
@@ -116,9 +110,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static bool Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadBool(buffer, offset);
-        }
+            => MemoryMapper.ReadBool(buffer, offset);
 
         /// <summary>
         /// Returns size of bool, should always be 1-bytes.

@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(int value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteInt(value, buffer, offset);
-        }
+            => MemoryMapper.WriteInt(value, buffer, offset);
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as int32
@@ -28,10 +26,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static int Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadInt(buffer, offset);
-        }
-
+            => MemoryMapper.ReadInt(buffer, offset);
+        
         /// <summary>
         /// Returns size of int32, should always be 4-bytes.
         /// </summary>
@@ -62,9 +58,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(uint value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteUint(value, buffer, offset);
-        }
+            => MemoryMapper.WriteUint(value, buffer, offset);
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as uint32
@@ -72,10 +66,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static uint Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadUint(buffer, offset);
-        }
-
+            => MemoryMapper.ReadUint(buffer, offset);
+        
         /// <summary>
         /// Returns size of uint32, should always be 4-bytes.
         /// </summary>

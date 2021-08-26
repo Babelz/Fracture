@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(float value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteFloat(value, buffer, offset);
-        }
+            => MemoryMapper.WriteFloat(value, buffer, offset);
         
         /// <summary>
         /// Reads next 4-bytes from given buffer beginning at given offset as float
@@ -28,9 +26,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static float Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadFloat(buffer, offset);
-        }
+            => MemoryMapper.ReadFloat(buffer, offset);
         
         /// <summary>
         /// Returns size of float, should always be 4-bytes.
@@ -62,9 +58,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(double value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteDouble(value, buffer, offset);
-        }
+            => MemoryMapper.WriteDouble(value, buffer, offset);
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as double
@@ -72,9 +66,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static double Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadDouble(buffer, offset);
-        }
+            => MemoryMapper.ReadDouble(buffer, offset);
         
         /// <summary>
         /// Returns size of double, should always be 8-bytes.

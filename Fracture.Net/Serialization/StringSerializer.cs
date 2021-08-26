@@ -59,7 +59,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(MemoryMapper.ReadUshort(buffer, offset) + Protocol.ContentLength.Size);
+            => (ushort)(Protocol.ContentLength.Read(buffer, offset) + Protocol.ContentLength.Size);
 
         /// <summary>
         /// Returns size of the string from the value. This consists of the actual string length and the dynamic
@@ -85,20 +85,16 @@ namespace Fracture.Net.Serialization
         /// Writes given char value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(char value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteChar(value, buffer, offset);
-        }
-        
+        public static void Serialize(char value, byte[] buffer, int offset) 
+            => MemoryMapper.WriteChar(value, buffer, offset);
+
         /// <summary>
         /// Reads next 2-bytes from given buffer beginning at given offset as char
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static char Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadChar(buffer, offset);
-        }
+        public static char Deserialize(byte[] buffer, int offset) 
+            => MemoryMapper.ReadChar(buffer, offset);
 
         /// <summary>
         /// Returns size of char, should always be 2-bytes.

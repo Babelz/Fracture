@@ -90,6 +90,7 @@
         <Compile Include="Reflection\DynamicConstructorBinder.cs" />
         <Compile Include="Reflection\DynamicPropertyBinder.cs" />
         <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
+        <Compile Include="Reflection\ReflectionUtil.cs" />
         <Compile Include="Util\HashUtil.cs" />
     </ItemGroup>
     <ItemGroup>

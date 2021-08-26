@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(short value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteShort(value, buffer, offset);
-        }
+            => MemoryMapper.WriteShort(value, buffer, offset);
         
         /// <summary>
         /// Reads next 2-bytes from given buffer beginning at given offset as int16
@@ -28,9 +26,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static short Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadShort(buffer, offset);
-        }
+            => MemoryMapper.ReadShort(buffer, offset);
 
         /// <summary>
         /// Returns size of int16, should always be 2-bytes.
@@ -62,9 +58,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(ushort value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteUshort(value, buffer, offset);
-        }
+            => MemoryMapper.WriteUshort(value, buffer, offset);
         
         /// <summary>
         /// Reads next 2-bytes from given buffer beginning at given offset as uint16
@@ -72,10 +66,8 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static ushort Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadUshort(buffer, offset);
-        }
-
+            => MemoryMapper.ReadUshort(buffer, offset);
+        
         /// <summary>
         /// Returns size of uint16, should always be 2-bytes.
         /// </summary>

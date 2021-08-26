@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(TimeSpan value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteLong(value.Ticks, buffer, offset);
-        }
+            => MemoryMapper.WriteLong(value.Ticks, buffer, offset);
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as time span
@@ -28,9 +26,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static TimeSpan Deserialize(byte[] buffer, int offset)
-        {
-            return new TimeSpan(MemoryMapper.ReadLong(buffer, offset));
-        }
+            => new TimeSpan(MemoryMapper.ReadLong(buffer, offset));
         
         /// <summary>
         /// Returns size of time span, should always be 8-bytes.
@@ -67,9 +63,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(DateTime value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteLong(value.Ticks, buffer, offset);
-        }
+            => MemoryMapper.WriteLong(value.Ticks, buffer, offset);
         
         /// <summary>
         /// Reads next 8-bytes from given buffer beginning at given offset as date time

@@ -102,11 +102,9 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize(BitField value, byte[] buffer, int offset)
         {
-            var actual = value;
+            Protocol.NullMaskLength.Write(checked((byte)value.Length), buffer, offset);
             
-            Protocol.NullMaskLength.Write(checked((byte)actual.Length), buffer, offset);
-            
-            actual.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
+            value.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
         }
 
         [ValueSerializer.Deserialize]

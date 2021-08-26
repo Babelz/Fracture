@@ -54,18 +54,15 @@ namespace Fracture.Net.Serialization.Generation
     public sealed class ObjectSerializer 
     {
         #region Fields
-        private readonly ObjectSerializationValueRanges valueRanges; 
         private readonly DynamicSerializeDelegate serialize;
         private readonly DynamicDeserializeDelegate deserialize;
         private readonly DynamicGetSizeFromValueDelegate getSizeFromValue;
         #endregion
 
-        public ObjectSerializer(in ObjectSerializationValueRanges valueRanges, 
-                                DynamicSerializeDelegate serialize,
+        public ObjectSerializer(DynamicSerializeDelegate serialize,
                                 DynamicDeserializeDelegate deserialize,
                                 DynamicGetSizeFromValueDelegate getSizeFromValue)
         {
-            this.valueRanges          = valueRanges;
             this.serialize        = serialize ?? throw new ArgumentNullException(nameof(serialize));
             this.deserialize      = deserialize ?? throw new ArgumentNullException(nameof(deserialize));
             this.getSizeFromValue = getSizeFromValue ?? throw new ArgumentNullException(nameof(getSizeFromValue));
@@ -75,19 +72,19 @@ namespace Fracture.Net.Serialization.Generation
         /// Serializers given object to given buffer using dynamically generated serializer.
         /// </summary>
         public void Serialize(object value, byte[] buffer, int offset)
-            => serialize(valueRanges, value, buffer, offset);
+            => serialize(value, buffer, offset);
         
         /// <summary>
         /// Deserializes object from given buffer using dynamically generated deserializer.
         /// </summary>
         public object Deserialize(byte[] buffer, int offset)
-            => deserialize(valueRanges, buffer, offset);
+            => deserialize(buffer, offset);
         
         /// <summary>
         /// Returns the size of the object using dynamically generated resolver.
         /// </summary>
         public ushort GetSizeFromValue(object value)
-            => getSizeFromValue(valueRanges, value);
+            => getSizeFromValue(value);
     }
     
     /// <summary>
@@ -253,7 +250,7 @@ namespace Fracture.Net.Serialization.Generation
                             yield return serializer;
                         break;
                     case SerializeValueOp svop:
-                        yield return ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(svop.Value.Type);
+                        yield return ValueSerializerRegistry.GetValueSerializerForRunType(svop.Value.Type);
                         break;
                     default:
                         continue;
@@ -280,7 +277,7 @@ namespace Fracture.Net.Serialization.Generation
                             mapping.Activator.Constructor, 
                             mapping.Activator.Values.Select(v => new SerializeValueOp(
                                 v, 
-                                ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))).ToList().AsReadOnly()
+                                ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))).ToList().AsReadOnly()
                             )
                 );
             else
@@ -288,7 +285,7 @@ namespace Fracture.Net.Serialization.Generation
 
             ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
                     v, 
-                    ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))
+                    ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
                 )
             );
 
@@ -301,7 +298,7 @@ namespace Fracture.Net.Serialization.Generation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
             => (mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerSchemaRegistry.GetValueSerializerForSerializationType(v.Type))
+                v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
                ).ToList();
         
         /// <summary>
@@ -460,7 +457,6 @@ namespace Fracture.Net.Serialization.Generation
                                                                                            program.SerializationOps);
 
             return new ObjectSerializer(
-                objectSerializationContext,
                 dynamicSerializeDelegate,
                 dynamicDeserializeDelegate,
                 dynamicGetSizeFromValueDelegate

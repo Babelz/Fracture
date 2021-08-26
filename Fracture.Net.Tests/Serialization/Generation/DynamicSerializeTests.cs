@@ -281,7 +281,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new FieldTestClass() { X = 1500, Y = 37500 };
             var buffer     = new byte[8];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             Assert.Equal(testObject.X, MemoryMapper.ReadInt(buffer, 0));
             Assert.Equal(testObject.Y, MemoryMapper.ReadInt(buffer, sizeof(int)));
@@ -308,7 +308,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -341,7 +341,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var buffer     = new byte[128];
             
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             var offset = 0;
             
@@ -386,7 +386,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
             var buffer     = new byte[64];
             
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -418,7 +418,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
             Assert.Equal(1, MemoryMapper.ReadByte(buffer, 0));
@@ -451,7 +451,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var buffer     = new byte[128];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             var offset = 0;
             
@@ -497,7 +497,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new FieldAndPropertyTestClassClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer     = new byte[64];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             Assert.Equal(testObject.B1, MemoryMapper.ReadByte(buffer, 0));
             Assert.Equal(testObject.B2, MemoryMapper.ReadByte(buffer, sizeof(byte)));
@@ -528,7 +528,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
             var buffer     = new byte[64];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             var offset = 0;
             
@@ -597,7 +597,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var buffer = new byte[256];
 
-            serializeDelegate(valueRanges, testObject, buffer, 0);
+            serializeDelegate(testObject, buffer, 0);
             
             var offset = 0;
             

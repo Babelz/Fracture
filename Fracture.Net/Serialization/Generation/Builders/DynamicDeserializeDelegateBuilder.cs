@@ -100,7 +100,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Load nullable value to stack if needed. This used to work before without this because of the boxing operations happening.
             if (value.IsNullable)
@@ -119,7 +119,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
@@ -165,14 +165,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Push 'buffer' to stack. 
             il.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
@@ -196,7 +196,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Load argument 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetDeserializeMethodInfo(typeof(BitFieldSerializer)));
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(typeof(BitFieldSerializer)));
             
             // Store deserialized bitfield to local 'nullMask'.
             il.Emit(OpCodes.Stloc_S, Locals[localNullMask]);
@@ -206,7 +206,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Load argument 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerSchemaRegistry.GetSizeFromBufferMethodInfo(typeof(BitFieldSerializer)));
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(typeof(BitFieldSerializer)));
             // Load argument 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);
             // Add offset + size.

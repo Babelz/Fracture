@@ -39,7 +39,7 @@ namespace Fracture.Common.Memory
         }
         
         /// <summary>
-        /// Unsafe write for arrays, see <see cref="Write{T}(T,byte[],int)"/>.
+        /// Unsafe write for arrays, see <see cref="Write{T}"/>.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteArray<T>(byte[] destination, int destinationIndex, T[] source, int sourceIndex, int count) where T : struct
