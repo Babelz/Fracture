@@ -4,7 +4,7 @@ Contains low level networking related code for clients and servers.
 ## Serialization
 Fracture serializer provides fast and compact serialization format for serializing objects to binary. However it does
 not attempt to be the best fastest or most compact serializer available. Serialization is developed with online games in
-mind and more precisely the Shattered World MMO. Serialization uses code generation to avoid overhead from reflection
+mind and more precisely the Shattered World MMO. Serialization uses dynamic code generation to avoid overhead from reflection
 when serializing and deserializing messages. 
 
 Serialization of objects has the following constraints:
