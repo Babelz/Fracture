@@ -12,7 +12,7 @@ Serialization of objects has the following constraints:
 * Objects with no default constructor can be serialized 
 * Both properties and fields can be serialized
 * Serializer can be instructed how to serialize third party types
-* All types the serializer comes across must have instructions how to serialize them
+* All structure types the serializer comes across must have instructions how to serialize them
 
 Fracture serializer provides serialization for the following types:
 - [x] Signed primitives (sbyte, short, int, long)
