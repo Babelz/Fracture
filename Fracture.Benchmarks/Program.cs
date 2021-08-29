@@ -7,7 +7,7 @@ namespace Fracture.Benchmarks
     {
         private static void Main(string[] args)
         {
-            BenchmarkRunner.Run<BenchmarkMemoryMapper>();
+            BenchmarkRunner.Run<BenchmarkMemoryMapperArrayTypes>();
         }
     }
 }

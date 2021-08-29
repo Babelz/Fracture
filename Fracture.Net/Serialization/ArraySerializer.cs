@@ -6,6 +6,10 @@ namespace Fracture.Net.Serialization
     [GenericValueSerializer]
     public static class ArraySerializer
     {
+        #region Fields
+        
+        #endregion
+        
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
             => type.IsArray;

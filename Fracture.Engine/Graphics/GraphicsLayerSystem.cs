@@ -474,18 +474,6 @@ namespace Fracture.Engine.Graphics
    /// </summary>
    public interface IGraphicsLayerSystem : IObjectManagementSystem, IEnumerable<GraphicsElementLayer>
    {
-      #region Events
-      /// <summary>
-      /// Event invoked when a layer was deleted.
-      /// </summary>
-      event EventHandler<GraphicsElementLayerEventArgs> Deleted;
-      
-      /// <summary>
-      /// Event invoked when a layer was created.
-      /// </summary>
-      event EventHandler<GraphicsElementLayerEventArgs> Created;
-      #endregion
-      
       /// <summary>
       /// Creates new layer with given name and order and
       /// returns it to the caller.
@@ -505,11 +493,6 @@ namespace Fracture.Engine.Graphics
    {
       #region Fields
       private readonly List<GraphicsElementLayer> layers;
-      #endregion
-      
-      #region Events
-      public event EventHandler<GraphicsElementLayerEventArgs> Deleted;
-      public event EventHandler<GraphicsElementLayerEventArgs> Created;
       #endregion
       
       public GraphicsLayerSystem() 
@@ -534,9 +517,7 @@ namespace Fracture.Engine.Graphics
                return xo > yo ? 1 : 0;
             });  
          }
-         
-         Created?.Invoke(this, new GraphicsElementLayerEventArgs(layer));
-         
+
          return layer;
       }
 
@@ -546,9 +527,7 @@ namespace Fracture.Engine.Graphics
             throw new ArgumentNullException(nameof(layer));
          
          if (!layers.Remove(layer))
-            throw new InvalidOperationException($"could not delete layer {layer.Name}"); 
-         
-         Deleted?.Invoke(this, new GraphicsElementLayerEventArgs(layer));
+            throw new InvalidOperationException($"could not delete layer {layer.Name}");
       }
       
       public void Clear()
