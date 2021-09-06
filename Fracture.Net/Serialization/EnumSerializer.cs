@@ -19,42 +19,40 @@ namespace Fracture.Net.Serialization
     public static class EnumSerializer 
     {   
         #region Static fields
-        private static readonly Dictionary<Type, GetSizeFromValueDelegate<object>> GetSizeFromValueDelegates = new Dictionary<Type, GetSizeFromValueDelegate<object>>()
+        private static readonly Dictionary<Type, byte> SizeOfUnderlyingTypes = new Dictionary<Type, byte>()
         {
-            // These usually just translate to constant values at runtime so the boxing is bit stupid. This could be replaced with constant values but if the 
-            // schematics for serialization changes this would break likely.
-            { typeof(sbyte),  (value) => SbyteSerializer.GetSizeFromValue((sbyte)value)   },
-            { typeof(byte),   (value) => ByteSerializer.GetSizeFromValue((byte)value)     },
-            { typeof(short),  (value) => ShortSerializer.GetSizeFromValue((short)value)   },
-            { typeof(ushort), (value) => UshortSerializer.GetSizeFromValue((ushort)value) },
-            { typeof(int),    (value) => IntSerializer.GetSizeFromValue((int)value)       },
-            { typeof(uint),   (value) => UintSerializer.GetSizeFromValue((uint)value)     },
-            { typeof(long),   (value) => LongSerializer.GetSizeFromValue((long)value)     },
-            { typeof(ulong),  (value) => UlongSerializer.GetSizeFromValue((ulong)value)   }
+            { typeof(sbyte),  sizeof(sbyte)  },
+            { typeof(byte),   sizeof(byte)   },
+            { typeof(short),  sizeof(short)  },
+            { typeof(ushort), sizeof(ushort) },
+            { typeof(int),    sizeof(int)    },
+            { typeof(uint),   sizeof(uint)   },
+            { typeof(long),   sizeof(long)   },
+            { typeof(ulong),  sizeof(ulong)  }
         };
         
         private static readonly Dictionary<Type, SerializeDelegate<object>> SerializeDelegates = new Dictionary<Type, SerializeDelegate<object>>()
         {
-            { typeof(sbyte),  (value, buffer, offset) => SbyteSerializer.Serialize((sbyte)value, buffer, offset)   },
-            { typeof(byte),   (value, buffer, offset) => ByteSerializer.Serialize((byte)value, buffer, offset)     },
-            { typeof(short),  (value, buffer, offset) => ShortSerializer.Serialize((short)value, buffer, offset)   },
-            { typeof(ushort), (value, buffer, offset) => UshortSerializer.Serialize((ushort)value, buffer, offset) },
-            { typeof(int),    (value, buffer, offset) => IntSerializer.Serialize((int)value, buffer, offset)       },
-            { typeof(uint),   (value, buffer, offset) => UintSerializer.Serialize((uint)value, buffer, offset)     },
-            { typeof(long),   (value, buffer, offset) => LongSerializer.Serialize((long)value, buffer, offset)     },
-            { typeof(ulong),  (value, buffer, offset) => UlongSerializer.Serialize((ulong)value, buffer, offset)   }
+            { typeof(sbyte),  (value, buffer, offset) => MemoryMapper.WriteSByte((sbyte)value, buffer, offset)   },
+            { typeof(byte),   (value, buffer, offset) => MemoryMapper.WriteByte((byte)value, buffer, offset)     },
+            { typeof(short),  (value, buffer, offset) => MemoryMapper.WriteShort((short)value, buffer, offset)   },
+            { typeof(ushort), (value, buffer, offset) => MemoryMapper.WriteUshort((ushort)value, buffer, offset) },
+            { typeof(int),    (value, buffer, offset) => MemoryMapper.WriteInt((int)value, buffer, offset)       },
+            { typeof(uint),   (value, buffer, offset) => MemoryMapper.WriteUint((uint)value, buffer, offset)     },
+            { typeof(long),   (value, buffer, offset) => MemoryMapper.WriteLong((long)value, buffer, offset)     },
+            { typeof(ulong),  (value, buffer, offset) => MemoryMapper.WriteUlong((ulong)value, buffer, offset)   }
         };
         
         private static readonly Dictionary<Type, DeserializeDelegate<object>> DeserializeDelegates = new Dictionary<Type, DeserializeDelegate<object>>()
         {
-            { typeof(sbyte),  (buffer, offset) => SbyteSerializer.Deserialize(buffer, offset)  },
-            { typeof(byte),   (buffer, offset) => ByteSerializer.Deserialize(buffer, offset)   },
-            { typeof(short),  (buffer, offset) => ShortSerializer.Deserialize(buffer, offset)  },
-            { typeof(ushort), (buffer, offset) => UshortSerializer.Deserialize(buffer, offset) },
-            { typeof(int),    (buffer, offset) => IntSerializer.Deserialize(buffer, offset)    },
-            { typeof(uint),   (buffer, offset) => UintSerializer.Deserialize(buffer, offset)   },
-            { typeof(long),   (buffer, offset) => LongSerializer.Deserialize(buffer, offset)   },
-            { typeof(ulong),  (buffer, offset) => UlongSerializer.Deserialize(buffer, offset)  }
+            { typeof(sbyte),  (buffer, offset) => MemoryMapper.ReadSByte(buffer, offset)  },
+            { typeof(byte),   (buffer, offset) => MemoryMapper.ReadByte(buffer, offset)   },
+            { typeof(short),  (buffer, offset) => MemoryMapper.ReadShort(buffer, offset)  },
+            { typeof(ushort), (buffer, offset) => MemoryMapper.ReadUshort(buffer, offset) },
+            { typeof(int),    (buffer, offset) => MemoryMapper.ReadInt(buffer, offset)    },
+            { typeof(uint),   (buffer, offset) => MemoryMapper.ReadUint(buffer, offset)   },
+            { typeof(long),   (buffer, offset) => MemoryMapper.ReadLong(buffer, offset)   },
+            { typeof(ulong),  (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset)  }
         };
         #endregion
         
@@ -71,7 +69,7 @@ namespace Fracture.Net.Serialization
             var underlyingType = typeof(T).GetEnumUnderlyingType();
             
             // Write size of the enum as type mask.
-            Protocol.TypeData.Write((byte)GetSizeFromValueDelegates[underlyingType](value), buffer, offset);
+            Protocol.TypeData.Write(SizeOfUnderlyingTypes[underlyingType], buffer, offset);
             
             offset += Protocol.TypeData.Size;
             
@@ -103,6 +101,6 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T value) where T : struct, Enum
-            => (ushort)(Protocol.TypeData.Size + GetSizeFromValueDelegates[typeof(T).GetEnumUnderlyingType()](value));
+            => (ushort)(Protocol.TypeData.Size + SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()]);
     }
 }
