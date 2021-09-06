@@ -47,7 +47,7 @@ namespace Fracture.Net.Serialization
     /// Value serializer that provides serialization for <see cref="ulong"/>.
     /// </summary>
     [ValueSerializer(typeof(ulong))]
-    public sealed class UlongSerializer
+    public static class UlongSerializer
     {
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)

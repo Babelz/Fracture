@@ -1,8 +1,5 @@
-using System;
-using System.Linq;
 using BenchmarkDotNet.Attributes;
 using Fracture.Common.Memory;
-using Fracture.Net;
 
 namespace Fracture.Benchmarks.Serialization
 {

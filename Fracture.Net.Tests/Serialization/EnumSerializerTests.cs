@@ -1,4 +1,3 @@
-using System;
 using Fracture.Common.Memory;
 using Fracture.Net.Serialization;
 using Xunit;

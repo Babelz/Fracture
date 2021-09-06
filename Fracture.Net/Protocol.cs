@@ -100,10 +100,15 @@ namespace Fracture.Net
         public static readonly Header<ushort> SerializationTypeId = Header.Ushort();
         
         /// <summary>
-        /// Header denoting size content inside the message in bytes. This header appears on all object values after their type id or with fields that can
+        /// Header denoting content size inside the message in bytes. This header appears on all object values after their type id or with fields that can
         /// vary in size.
         /// </summary>
         public static readonly Header<ushort> ContentLength = Header.Ushort();
+        
+        /// <summary>
+        /// Header denoting collection length in elements. This header appears on all collection type objects.
+        /// </summary>
+        public static readonly Header<ushort> CollectionLength = Header.Ushort();
         
         /// <summary>
         /// Header containing small optional serialization data field used by some serialization types to store additional information about the serialized objects.

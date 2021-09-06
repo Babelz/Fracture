@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Serialization.Generation.Builders;
-using Microsoft.Diagnostics.Tracing.Stacks;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation
