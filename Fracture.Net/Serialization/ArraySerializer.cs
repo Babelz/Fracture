@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Fracture.Net.Serialization
@@ -151,40 +152,191 @@ namespace Fracture.Net.Serialization
             => type == typeof(List<>);
         
         /// <summary>
-        /// Writes given list to given buffer beginning at given offset.
+        /// Writes given list to given buffer beginning at given offset. This function allocates new array because it uses the array serializer and will
+        /// include some overhead because of that. To avoid this use more optimized types.
+        ///
+        /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize<T>(List<T> value, byte[] buffer, int offset) 
-        {
-            throw new NotImplementedException();
-        }
-            
+            => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
+
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as list
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
         public static List<T> Deserialize<T>(byte[] buffer, int offset)
-        {
-            throw new NotImplementedException();
-        }
+            => new List<T>(ArraySerializer.Deserialize<T>(buffer, offset));
 
         /// <summary>
         /// Returns size of list, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-        {
-            throw new NotImplementedException();
-        }
+            => ArraySerializer.GetSizeFromBuffer(buffer, offset);
 
         /// <summary>
-        /// Returns size of list value, size will vary.
+        /// Returns size of list value, size will vary. This function allocates new array because it uses the array serializer and will include some
+        /// overhead because of that. To avoid this use more optimized types.
+        ///
+        /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(List<T> value)
+            => ArraySerializer.GetSizeFromValue(value.ToArray());
+    }
+    
+    [GenericValueSerializer]
+    public static class KeyValuePairSerializer
+    {
+        #region Static fields
+        private static readonly Dictionary<Type, Delegate> SerializeDelegates        = new Dictionary<Type, Delegate>();
+        private static readonly Dictionary<Type, Delegate> DeserializeDelegates      = new Dictionary<Type, Delegate>();
+        private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates = new Dictionary<Type, Delegate>();
+        #endregion
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsNewType(Type type)
+            => !SerializeDelegates.ContainsKey(type);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void RegisterTypeSerializer(Type serializationType)
         {
-            throw new NotImplementedException();
+            SerializeDelegates.Add(serializationType, 
+                                   ValueSerializerRegistry.CreateSerializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
+            );
+            
+            DeserializeDelegates.Add(serializationType, 
+                                     ValueSerializerRegistry.CreateDeserializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
+            );
+          
+            GetSizeFromValueDelegates.Add(serializationType, 
+                                          ValueSerializerRegistry.CreateGetSizeFromValueDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
+            );
         }
+        
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type == typeof(KeyValuePair<,>);
+        
+        /// <summary>
+        /// Writes given key value pair value to given buffer beginning at given offset.
+        /// </summary>
+        [ValueSerializer.Serialize]
+        public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte[] buffer, int offset)
+        {
+            var keyType = value.Key.GetType();
+            
+            if (IsNewType(keyType))
+                RegisterTypeSerializer(keyType);
+
+            var valueType = value.Value.GetType();
+            
+            if (IsNewType(valueType))
+                RegisterTypeSerializer(valueType);
+            
+            // Leave 2-bytes from the beginning of the object for content length.
+            var contentLengthOffset = offset;
+            offset += Protocol.ContentLength.Size;
+            
+            var keySerializeDelegate   = (SerializeDelegate<TKey>)SerializeDelegates[keyType];
+            var valueSerializeDelegate = (SerializeDelegate<TValue>)SerializeDelegates[valueType];
+            
+            keySerializeDelegate(value.Key, buffer, offset);
+            valueSerializeDelegate(value.Value, buffer, offset + ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[valueType])(value.Key));
+            
+            // Write content length.
+            Protocol.ContentLength.Write(GetSizeFromValue(value), buffer, contentLengthOffset);
+        }
+
+        /// <summary>
+        /// Reads next n-bytes from given buffer beginning at given offset as key value pair value
+        /// and returns that value to the caller.
+        /// </summary>
+        [ValueSerializer.Deserialize]
+        public static KeyValuePair<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
+        {
+            var keyType = typeof(TKey);
+            
+            if (IsNewType(keyType))
+                RegisterTypeSerializer(keyType);
+
+            var valueType = typeof(TValue);
+            
+            if (IsNewType(valueType))
+                RegisterTypeSerializer(valueType);
+            
+            // Skip to serialization values.
+            offset += Protocol.ContentLength.Size;
+            
+            var keyDeserializeDelegate   = (DeserializeDelegate<TKey>)DeserializeDelegates[keyType];
+            var valueDeserializeDelegate = (DeserializeDelegate<TValue>)DeserializeDelegates[valueType];
+            
+            var key   = keyDeserializeDelegate(buffer, offset);
+            var value = valueDeserializeDelegate(buffer, offset + ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[valueType])(key));
+            
+            return new KeyValuePair<TKey, TValue>(key, value);
+        }
+        
+        /// <summary>
+        /// Returns size of key value pair value, size will vary.
+        /// </summary>
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
+            => (ushort)(Protocol.ContentLength.Read(buffer, offset) + Protocol.ContentLength.Size);
+
+        /// <summary>
+        /// Returns size of key value pair value, size will vary.
+        /// </summary>
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue<TKey, TValue>(KeyValuePair<TKey, TValue> value)
+            => (ushort)((((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[typeof(TKey)])(value.Key) + 
+                         ((GetSizeFromValueDelegate<TValue>)GetSizeFromValueDelegates[typeof(TValue)])(value.Value)));
+    }
+    
+    [GenericValueSerializer]
+    public static class DictionarySerializer
+    {
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type == typeof(Dictionary<,>);
+        
+        /// <summary>
+        /// Writes given dictionary to given buffer beginning at given offset. This function allocates new array because it uses the array serializer
+        /// and will include some overhead because of that. To avoid this use more optimized types.
+        ///
+        /// TODO: fix the possible performance issue if needed.
+        /// </summary>
+        [ValueSerializer.Serialize]
+        public static void Serialize<TKey, TValue>(Dictionary<TKey, TValue> value, byte[] buffer, int offset) 
+            => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
+
+        /// <summary>
+        /// Reads next n-bytes from given buffer beginning at given offset as dictionary and returns that value to the caller. This function allocates new
+        /// array because it uses the array serializer and will include some overhead because of that. To avoid this use more optimized types.
+        ///
+        /// TODO: fix the possible performance issue if needed.
+        /// </summary>
+        [ValueSerializer.Deserialize]
+        public static Dictionary<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
+            => ArraySerializer.Deserialize<KeyValuePair<TKey, TValue>>(buffer, offset).ToDictionary(k => k.Key, v => v.Value);
+        
+        /// <summary>
+        /// Returns size of dictionary, size will vary.
+        /// </summary>
+        [ValueSerializer.GetSizeFromBuffer]
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
+            => ArraySerializer.GetSizeFromBuffer(buffer, offset);
+
+        /// <summary>
+        /// Returns size of dictionary value, size will vary. This function allocates new array because it uses the array serializer and will include some
+        /// overhead because of that. To avoid this use more optimized types.
+        ///
+        /// TODO: fix the possible performance issue if needed.
+        /// </summary>
+        [ValueSerializer.GetSizeFromValue]
+        public static ushort GetSizeFromValue<TValue, TKey>(Dictionary<TValue, TKey> value)
+            => ArraySerializer.GetSizeFromValue(value.ToArray());
     }
 }
