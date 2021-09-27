@@ -5,7 +5,7 @@ using System.Reflection.Emit;
 namespace Fracture.Net.Serialization.Generation.Builders
 {
     /// <summary>
-    /// Abstract base class for implement dynamic serialization delegate builders. This class provides common schematics across all serialization generators
+    /// Abstract base class for implement dynamic serialization delegate builders. This class provides common schematics across all serialization builders
     /// such as common locals and common intermediate language emit operations. 
     /// </summary>
     public abstract class DynamicSerializationDelegateBuilder

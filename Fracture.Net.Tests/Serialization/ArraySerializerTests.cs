@@ -22,7 +22,7 @@ namespace Fracture.Net.Tests.Serialization
             => Assert.NotNull(Record.Exception(() => ArraySerializer.GetSizeFromValue(new Assembly[1])));
 
         [Fact]
-        public void Serializes_Primitive_Types_To_Buffer_Correctly()
+        public void Serializes_Primitive_Types_Back_And_Forth_Correctly()
         {
             var numbers = new int[4]
             {
@@ -54,23 +54,6 @@ namespace Fracture.Net.Tests.Serialization
             offset += IntSerializer.GetSizeFromValue(256);
 
             Assert.Equal(int.MaxValue, IntSerializer.Deserialize(buffer, offset));
-        }
-    
-        [Fact]
-        public void Deserializes_Primitive_Types_To_Value_Correctly()
-        {
-        }
-        
-        [Fact]
-        public void Serializes_Structures_To_Buffer_Correctly()
-        {
-            throw new XunitException("not implemented, implement when structure serialization works");
-        }
-    
-        [Fact]
-        public void Deserializes_Structures_Types_To_Value_Correctly()
-        {
-            throw new XunitException("not implemented, implement when structure serialization works");
         }
     }
 }

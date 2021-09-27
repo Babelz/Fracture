@@ -13,7 +13,7 @@ namespace Fracture.Common.Reflection
     public static class ReflectionUtil
     {
         /// <summary>
-        /// Creates <see cref="Delegate"/> from given method info with correct signature.
+        /// Creates <see cref="Delegate"/> from given method info with correct signature. Underlying delegate type is selected by Expression.GetDelegateType.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDelegate(MethodInfo methodInfo)
@@ -22,7 +22,7 @@ namespace Fracture.Common.Reflection
                                                                               .ToArray()));
         
         /// <summary>
-        /// Creates <see cref="Delegate"/> from given method info using given delegate type.
+        /// Creates delegate from given method info using given delegate type.
         ///
         /// This is mainly used for crossing generic delegate boundaries by creating generic
         /// delegate of type <see cref="delegateType"/> for which the generic arguments are
@@ -55,7 +55,7 @@ namespace Fracture.Common.Reflection
                     genericTypeArguments.Add(methodInfoParameters[i].ParameterType);
             }
                 
-            if (delegateType.GetMethod("Invoke")!.ReturnType.ContainsGenericParameters && methodInfo.ReturnType != delegateType.GetMethod("Invoke")!.ReturnType)
+            if (delegateType.GetMethod("Invoke")!.ReturnType.ContainsGenericParameters)
                 genericTypeArguments.Add(methodInfo.ReturnType);
             
             return methodInfo.CreateDelegate(delegateType.MakeGenericType(genericTypeArguments.ToArray()));

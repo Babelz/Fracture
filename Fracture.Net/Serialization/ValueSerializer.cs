@@ -126,17 +126,18 @@ namespace Fracture.Net.Serialization
             => valueSerializerType.GetCustomAttribute<GenericValueSerializerAttribute>() != null;
         
         /// <summary>
-        /// TODO: comment.
+        /// Specializes given method info based on the value serializer type.    
         /// </summary>
-        /// <param name="methodInfo"></param>
-        /// <param name="valueSerializerType"></param>
-        /// <param name="serializationValueType"></param>
         /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MethodInfo SpecializeMethodInfo(MethodInfo methodInfo, Type valueSerializerType, Type serializationValueType)
         {
+            // No serialization value type hint was provided so assuming the method should be good to go as it is for delegate creation.
+            if (serializationValueType == null)
+                return methodInfo;
+            
             // Nothing to specialize, just return the method info.
-            if (!IsGenericValueSerializer(serializationValueType))
+            if (!IsGenericValueSerializer(valueSerializerType))
                 return methodInfo;
             
             // Handle special case with arrays as they are not handled as generic types.
@@ -162,7 +163,7 @@ namespace Fracture.Net.Serialization
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateGetSizeFromBufferDelegate(Type valueSerializerType)
-            => ReflectionUtil.CreateDelegate(GetSizeFromBufferMethodInfo(valueSerializerType), typeof(GetSizeFromBufferDelegate));
+            => ReflectionUtil.CreateDelegate(GetSizeFromBufferMethodInfo(valueSerializerType));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSupportsTypeMethodInfo(Type valueSerializerType)
@@ -187,7 +188,7 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.SerializeAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
             
-            return serializationValueType == null ? methodInfo : SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
+            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -200,7 +201,7 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.DeserializeAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
 
-            return serializationValueType == null ? methodInfo : SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
+            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -226,7 +227,7 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.GetSizeFromValueAttribute)} for " +
                                                          $"value serializer", valueSerializerType);
             
-            return serializationValueType == null ? methodInfo : SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
+            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
         }
 
         public static Type GetValueSerializerForRunType(Type serializationType)
@@ -253,10 +254,10 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Static utility class that provides validation rules for value serializers.
     /// </summary>
-    public static class ValueSerializerValidator
+    public static class ValueSerializerSchemaValidator
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ValidateNonGenericValueSerializerSchema(Type valueSerializerType, ValueSerializerAttribute valueSerializerAttribute)
+        private static void ValidateNonGenericSchema(Type valueSerializerType, ValueSerializerAttribute valueSerializerAttribute)
         {            
             if (Delegate.CreateDelegate(typeof(SupportsTypeDelegate), ValueSerializerRegistry.GetSupportsTypeMethodInfo(valueSerializerType), false) == null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.SupportsTypeAttribute)} does not match the " +
@@ -288,7 +289,7 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ValidateGenericValueSerializerSchema(Type valueSerializerType, GenericValueSerializerAttribute valueSerializerAttribute)
+        private static void ValidateGenericSchema(Type valueSerializerType, GenericValueSerializerAttribute valueSerializerAttribute)
         {
             if (Delegate.CreateDelegate(typeof(SupportsTypeDelegate), ValueSerializerRegistry.GetSupportsTypeMethodInfo(valueSerializerType), false) == null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.SupportsTypeAttribute)} does not match the " +
@@ -319,7 +320,7 @@ namespace Fracture.Net.Serialization
                                                          valueSerializerType);
         }
         
-        public static void ValidateValueSerializerSchema(Type valueSerializerType)
+        public static void ValidateSchema(Type valueSerializerType)
         {
             var valueSerializerAttribute        = valueSerializerType.GetCustomAttribute<ValueSerializerAttribute>();
             var genericValueSerializerAttribute = valueSerializerType.GetCustomAttribute<GenericValueSerializerAttribute>();
@@ -331,15 +332,15 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException("value serializers are expected to be static classes", valueSerializerType);
             
             if (valueSerializerAttribute != null)
-                ValidateNonGenericValueSerializerSchema(valueSerializerType, valueSerializerAttribute);
+                ValidateNonGenericSchema(valueSerializerType, valueSerializerAttribute);
             else
-                ValidateGenericValueSerializerSchema(valueSerializerType, genericValueSerializerAttribute);
+                ValidateGenericSchema(valueSerializerType, genericValueSerializerAttribute);
         }
         
-        public static void ValidateValueSerializerSchemas(IEnumerable<Type> valueSerializerTypes)
+        public static void ValidateSchemas(IEnumerable<Type> valueSerializerTypes)
         {
             foreach (var valueSerializerType in valueSerializerTypes)
-                ValidateValueSerializerSchema(valueSerializerType);
+                ValidateSchema(valueSerializerType);
         }
     }
     
@@ -350,16 +351,16 @@ namespace Fracture.Net.Serialization
     {
         #region Fields
         private readonly Dictionary<ushort, Type> serializationTypeMapping;
-        private readonly Dictionary<Type, ushort> RunTypeMapping; 
+        private readonly Dictionary<Type, ushort> runTypeMapping; 
         
         // Specialization type id counter used for generating new specialization ids.
-        private ushort NextSerializationTypeId;
+        private ushort nextSerializationTypeId;
         #endregion
 
         public SerializationTypeRegistry()
         {
             serializationTypeMapping = new Dictionary<ushort, Type>();
-            RunTypeMapping           = new Dictionary<Type, ushort>();
+            runTypeMapping           = new Dictionary<Type, ushort>();
         }
         
         public ushort Register(Type type)
@@ -367,23 +368,23 @@ namespace Fracture.Net.Serialization
             if (type == null)
                 throw new ArgumentNullException(nameof(type));
             
-            if (RunTypeMapping.ContainsKey(type)) 
+            if (runTypeMapping.ContainsKey(type)) 
                 throw new SerializationTypeException("type is already specialized", type);
                 
-            serializationTypeMapping.Add(NextSerializationTypeId, type);
-            RunTypeMapping.Add(type, NextSerializationTypeId);
+            serializationTypeMapping.Add(nextSerializationTypeId, type);
+            runTypeMapping.Add(type, nextSerializationTypeId);
             
-            return NextSerializationTypeId++;
+            return nextSerializationTypeId++;
         }
         
         public bool IsRegisteredRunType(Type type)
-            => RunTypeMapping.ContainsKey(type);
+            => runTypeMapping.ContainsKey(type);
         
         public bool IsRegisteredSerializationType(ushort serializationTypeId)
             => serializationTypeMapping.ContainsKey(serializationTypeId);
 
         public ushort GetSerializationTypeId(Type type)
-            => RunTypeMapping[type];
+            => runTypeMapping[type];
             
         public Type GetRunType(ushort serializationType)
             => serializationTypeMapping[serializationType];
