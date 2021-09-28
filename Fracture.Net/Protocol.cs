@@ -93,6 +93,13 @@ namespace Fracture.Net
     /// </summary>
     public static class Protocol
     {
+        #region Constant fields
+        /// <summary>
+        /// Maximum transmission unit size defined for the protocol.
+        /// </summary>
+        public const ushort Mtu = ushort.MaxValue;
+        #endregion
+        
         #region Static fields
         /// <summary>
         /// Header denoting the type id of the object. This type id can denote a single value or structure in the byte stream.
@@ -101,7 +108,7 @@ namespace Fracture.Net
         
         /// <summary>
         /// Header denoting content size inside the message in bytes. This header appears on all object values after their type id or with fields that can
-        /// vary in size.
+        /// vary in size. This is used for storing for example collection package size in streams and string lengths.
         /// </summary>
         public static readonly Header<ushort> ContentLength = Header.Ushort();
         
@@ -119,7 +126,7 @@ namespace Fracture.Net
         /// Header denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on
         /// collection values that can contain null values.
         /// </summary>
-        public static readonly Header<byte> NullMaskLength = Header.Byte(); 
+        public static readonly Header<ushort> NullMaskLength = Header.Ushort(); 
         #endregion
     }
 }

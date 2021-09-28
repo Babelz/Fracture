@@ -58,6 +58,7 @@ namespace Fracture.Net.Serialization
             }
         }
         
+
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class GetSizeFromBufferAttribute : Attribute 
         {
@@ -73,6 +74,10 @@ namespace Fracture.Net.Serialization
             {
             }
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Type GetUnderlyingSerializationType(Type serializationType)
+            => serializationType.GetGenericTypeDefinition() == typeof(Nullable<>) ? serializationType.GetGenericArguments()[0] : serializationType;
     }
     
     public delegate bool SupportsTypeDelegate(Type type);
@@ -232,8 +237,7 @@ namespace Fracture.Net.Serialization
 
         public static Type GetValueSerializerForRunType(Type serializationType)
         {
-            serializationType = serializationType.IsGenericType && serializationType.GetGenericTypeDefinition() == typeof(Nullable<>) ? 
-                                serializationType.GenericTypeArguments[0] : serializationType;
+            serializationType = ValueSerializer.GetUnderlyingSerializationType(serializationType);
 
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
