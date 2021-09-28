@@ -22,7 +22,7 @@ namespace Fracture.Net.Tests.Serialization
             => Assert.NotNull(Record.Exception(() => ArraySerializer.GetSizeFromValue(new Assembly[1])));
 
         [Fact]
-        public void Serializes_Primitive_Types_To_Buffer_Correctly()
+        public void Serializes_Non_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
             var numbers = new int[4]
             {
@@ -63,7 +63,7 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Fact]
-        public void Serializes_Primitive_Nullable_Types_To_Buffer_Correctly()
+        public void Serializes_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
             var numbers = new int?[8]
             {
@@ -84,27 +84,46 @@ namespace Fracture.Net.Tests.Serialization
             var offset = 0;
             
             // Content length.
-            Assert.Equal(21, Protocol.ContentLength.Read(buffer, offset));
+            Assert.Equal(28, Protocol.ContentLength.Read(buffer, offset));
             offset += Protocol.ContentLength.Size;
             
-            // Collection length + omitted sparse collection flag.
-            Assert.Equal(4, Protocol.CollectionLength.Read(buffer, offset));
-            offset += Protocol.CollectionLength.Size + Protocol.TypeData.Size;
+            // Collection length.
+            Assert.Equal(8, Protocol.CollectionLength.Read(buffer, offset));
+            offset += Protocol.CollectionLength.Size;
             
-            // First element int.MinValue.
-            Assert.Equal(int.MinValue, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(int.MinValue);
+            // Sparse collection flag.
+            Assert.Equal(1, Protocol.TypeData.Read(buffer, offset));
+            offset += Protocol.TypeData.Size;
             
-            // Second element 128.
-            Assert.Equal(128, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(128);
+            // Validate null mask.
+            var nullMask = BitFieldSerializer.Deserialize(buffer, offset);
             
-            // Third element 256.
-            Assert.Equal(256, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(256);
+            Assert.Equal(8, nullMask.Length);
+            Assert.False(nullMask.GetBit(0));
+            Assert.False(nullMask.GetBit(1));
+            Assert.False(nullMask.GetBit(2));
+            Assert.True(nullMask.GetBit(3));
+            Assert.False(nullMask.GetBit(4));
+            Assert.True(nullMask.GetBit(5));
+            Assert.True(nullMask.GetBit(6));
+            Assert.False(nullMask.GetBit(7));
+            
+            offset += BitFieldSerializer.GetSizeFromBuffer(buffer, offset);
 
-            // Last element int.MaxValue.
-            Assert.Equal(int.MaxValue, IntSerializer.Deserialize(buffer, offset));
+            // Validate values that are not null.
+            Assert.Equal(0, IntSerializer.Deserialize(buffer, offset));
+            offset += IntSerializer.GetSizeFromValue(0);
+            
+            Assert.Equal(1, IntSerializer.Deserialize(buffer, offset));
+            offset += IntSerializer.GetSizeFromValue(1);
+            
+            Assert.Equal(2, IntSerializer.Deserialize(buffer, offset));
+            offset += IntSerializer.GetSizeFromValue(2);
+            
+            Assert.Equal(4, IntSerializer.Deserialize(buffer, offset));
+            offset += IntSerializer.GetSizeFromValue(4);
+
+            Assert.Equal(7, IntSerializer.Deserialize(buffer, offset));
         }
     }
 }

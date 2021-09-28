@@ -34,21 +34,12 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void RegisterArrayTypeSerializer(Type serializationType)
         {
-            SerializeDelegates.Add(serializationType, 
-                                   ValueSerializerRegistry.CreateSerializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
+            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
-            DeserializeDelegates.Add(serializationType, 
-                                     ValueSerializerRegistry.CreateDeserializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
-            
-            GetSizeFromBufferDelegates.Add(serializationType, 
-                                           ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
-            
-            GetSizeFromValueDelegates.Add(serializationType, 
-                                          ValueSerializerRegistry.CreateGetSizeFromValueDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
+            SerializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, serializationType));
+            DeserializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, serializationType));
+            GetSizeFromValueDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, serializationType));
+            GetSizeFromBufferDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(valueSerializerType));
         }
 
         [ValueSerializer.SupportsType]
@@ -61,7 +52,7 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T[] values, byte[] buffer, int offset) 
         {
-            var elementType = ValueSerializer.GetUnderlyingSerializationType(typeof(T));
+            var elementType = typeof(T);
 
             if (IsNewArrayType(elementType))
                 RegisterArrayTypeSerializer(elementType);
@@ -81,7 +72,7 @@ namespace Fracture.Net.Serialization
             Protocol.TypeData.Write((byte)(isSparseCollection ? 1 : 0), buffer, offset);
             offset += Protocol.TypeData.Size;
             
-            var nullMaskOffset = isSparseCollection ? offset + Protocol.NullMaskLength.Size : 0;
+            var nullMaskOffset = offset;
             var nullMask       = isSparseCollection ? new BitField(checked((ushort)(values.Length))) : default;
 
             // Leave space for the null mask.
@@ -96,9 +87,13 @@ namespace Fracture.Net.Serialization
             for (var i = 0; i < values.Length; i++)
             {
                 if (isSparseCollection && values[i] == null)
+                {
                     nullMask.SetBit(i, true);
-                else
-                    serializeDelegate(values[i], buffer, offset);
+                    
+                    continue;
+                }
+                
+                serializeDelegate(values[i], buffer, offset);
                 
                 var valueSize = getSizeFromValueDelegate(values[i]);
                 
@@ -121,7 +116,7 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static T[] Deserialize<T>(byte[] buffer, int offset)
         {
-            var elementType = ValueSerializer.GetUnderlyingSerializationType(typeof(T));
+            var elementType = typeof(T);
             
             if (IsNewArrayType(elementType))
                 RegisterArrayTypeSerializer(elementType);
@@ -169,7 +164,7 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T[] values)
         {
-            var elementType = ValueSerializer.GetUnderlyingSerializationType(typeof(T));
+            var elementType = typeof(T);
             
             if (IsNewArrayType(elementType))
                 RegisterArrayTypeSerializer(elementType);
@@ -245,17 +240,11 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void RegisterTypeSerializer(Type serializationType)
         {
-            SerializeDelegates.Add(serializationType, 
-                                   ValueSerializerRegistry.CreateSerializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
+            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
-            DeserializeDelegates.Add(serializationType, 
-                                     ValueSerializerRegistry.CreateDeserializeDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
-          
-            GetSizeFromValueDelegates.Add(serializationType, 
-                                          ValueSerializerRegistry.CreateGetSizeFromValueDelegate(ValueSerializerRegistry.GetValueSerializerForRunType(serializationType))
-            );
+            SerializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, serializationType));
+            DeserializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, serializationType));
+            GetSizeFromValueDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, serializationType));
         }
         
         [ValueSerializer.SupportsType]
@@ -268,12 +257,12 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte[] buffer, int offset)
         {
-            var keyType = ValueSerializer.GetUnderlyingSerializationType(value.Key.GetType());
+            var keyType = value.Key.GetType();
             
             if (IsNewType(keyType))
                 RegisterTypeSerializer(keyType);
 
-            var valueType = ValueSerializer.GetUnderlyingSerializationType(value.Value.GetType());
+            var valueType = value.Value.GetType();
             
             if (IsNewType(valueType))
                 RegisterTypeSerializer(valueType);
@@ -299,12 +288,12 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static KeyValuePair<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
         {
-            var keyType = ValueSerializer.GetUnderlyingSerializationType(typeof(TKey));
+            var keyType = typeof(TKey);
             
             if (IsNewType(keyType))
                 RegisterTypeSerializer(keyType);
 
-            var valueType = ValueSerializer.GetUnderlyingSerializationType(typeof(TValue));
+            var valueType = typeof(TValue);
             
             if (IsNewType(valueType))
                 RegisterTypeSerializer(valueType);
