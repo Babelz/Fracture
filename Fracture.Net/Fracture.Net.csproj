@@ -277,6 +277,7 @@
         <Compile Include="Serialization\IntSerializer.cs" />
         <Compile Include="Serialization\LongSerializer.cs" />
         <Compile Include="Serialization\BitFieldSerializer.cs" />
+        <Compile Include="Serialization\NullableSerializer.cs" />
         <Compile Include="Serialization\ShortSerializer.cs" />
         <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\StructureSerializer.cs" />

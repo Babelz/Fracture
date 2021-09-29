@@ -111,7 +111,7 @@ namespace Fracture.Net.Tests.Serialization
             
             var bf = BitFieldSerializer.Deserialize(buffer, 0);
             
-            Assert.Equal(4, bf.Length);
+            Assert.Equal(4, bf.BytesLength);
             Assert.Equal(1, bf.GetByteAtIndex(0));
             Assert.Equal(2, bf.GetByteAtIndex(1));
             Assert.Equal(3, bf.GetByteAtIndex(2));

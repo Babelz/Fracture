@@ -179,9 +179,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var notNull = il.DefineLabel();
             il.Emit(OpCodes.Brfalse_S, notNull);
             
-            EmitLoadSerializationValueAddressToStack(il, value);
+            EmitLoadSerializationValue(il, value);
             
-            il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
             il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             il.Emit(OpCodes.Add);

@@ -19,18 +19,6 @@ namespace Fracture.Net.Serialization
     public static class EnumSerializer 
     {   
         #region Static fields
-        private static readonly Dictionary<Type, byte> SizeOfUnderlyingTypes = new Dictionary<Type, byte>()
-        {
-            { typeof(sbyte),  sizeof(sbyte)  },
-            { typeof(byte),   sizeof(byte)   },
-            { typeof(short),  sizeof(short)  },
-            { typeof(ushort), sizeof(ushort) },
-            { typeof(int),    sizeof(int)    },
-            { typeof(uint),   sizeof(uint)   },
-            { typeof(long),   sizeof(long)   },
-            { typeof(ulong),  sizeof(ulong)  }
-        };
-        
         private static readonly Dictionary<Type, SerializeDelegate<object>> SerializeDelegates = new Dictionary<Type, SerializeDelegate<object>>()
         {
             { typeof(sbyte),  (value, buffer, offset) => MemoryMapper.WriteSByte((sbyte)value, buffer, offset)   },
@@ -54,6 +42,18 @@ namespace Fracture.Net.Serialization
             { typeof(long),   (buffer, offset) => MemoryMapper.ReadLong(buffer, offset)   },
             { typeof(ulong),  (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset)  }
         };
+        
+        private static readonly Dictionary<Type, ushort> SizeOfUnderlyingTypes = new Dictionary<Type, ushort>()
+        {
+            { typeof(sbyte),  sizeof(sbyte)  },
+            { typeof(byte),   sizeof(byte)   },
+            { typeof(short),  sizeof(short)  },
+            { typeof(ushort), sizeof(ushort) },
+            { typeof(int),    sizeof(int)    },
+            { typeof(uint),   sizeof(uint)   },
+            { typeof(long),   sizeof(long)   },
+            { typeof(ulong),  sizeof(ulong)  }
+        };
         #endregion
         
         [ValueSerializer.SupportsType]
@@ -65,42 +65,28 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T value, byte[] buffer, int offset) where T : struct, Enum
-        {
-            var underlyingType = typeof(T).GetEnumUnderlyingType();
-            
-            // Write size of the enum as type mask.
-            Protocol.TypeData.Write(SizeOfUnderlyingTypes[underlyingType], buffer, offset);
-            
-            offset += Protocol.TypeData.Size;
-            
-            SerializeDelegates[underlyingType](value, buffer, offset);
-        }
-            
+            => SerializeDelegates[typeof(T).GetEnumUnderlyingType()](value, buffer, offset);
+
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as enum type
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
         public static T Deserialize<T>(byte[] buffer, int offset) where T : struct, Enum
-        {
-            // Read size of the enum as type mask.
-            offset += Protocol.TypeData.Size;
-            
-            return (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
-        }
-
+            => (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
+        
         /// <summary>
         /// Returns size of enum, can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(Protocol.TypeData.Size + Protocol.TypeData.Read(buffer, offset));
+        public static ushort GetSizeFromBuffer<T>(byte[] buffer, int offset) where T : struct, Enum
+            => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
 
         /// <summary>
         /// Returns size of enumeration value, size can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T value) where T : struct, Enum
-            => (ushort)(Protocol.TypeData.Size + SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()]);
+            => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
     }
 }

@@ -91,7 +91,9 @@ namespace Fracture.Net.Serialization
     public delegate T DeserializeDelegate<out T>(byte[] buffer, int offset);
 
     public delegate ushort GetSizeFromBufferDelegate(byte[] buffer, int offset);
-        
+
+    public delegate ushort GetSizeFromBufferDelegate<in T>(byte[] buffer, int offset);
+
     public delegate ushort GetSizeFromValueDelegate<in T>(T value);
 
     /// <summary>
@@ -154,38 +156,26 @@ namespace Fracture.Net.Serialization
                 return methodInfo.MakeGenericMethod(serializationValueType.GetElementType());
             
             // Make method info generic based on serialization type.
-            return serializationValueType.IsGenericType ? methodInfo.MakeGenericMethod(serializationValueType.GetGenericArguments()) :
+            return serializationValueType.IsGenericType ? methodInfo.MakeGenericMethod(serializationValueType.GetGenericArguments()) : 
                                                           methodInfo.MakeGenericMethod(serializationValueType);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateSerializeDelegate(Type valueSerializerType, Type serializationValueType)
-        {
-            var methodInfo = GetSerializeMethodInfo(valueSerializerType, serializationValueType);
-            
-            return ValueSerializer.IsNullableSerializationType(serializationValueType) ? 
-                   ReflectionUtil.CreateNullableDelegate(typeof(SerializeDelegate<>).MakeGenericType(serializationValueType), methodInfo) : 
-                   ReflectionUtil.CreateDelegate(methodInfo, typeof(SerializeDelegate<>));
-        }
+            => ReflectionUtil.CreateCrossGenericDelegate(GetSerializeMethodInfo(valueSerializerType, serializationValueType), typeof(SerializeDelegate<>));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDeserializeDelegate(Type valueSerializerType, Type serializationValueType)
-            => ReflectionUtil.CreateDelegate(GetDeserializeMethodInfo(valueSerializerType, serializationValueType), typeof(DeserializeDelegate<>));
+            => ReflectionUtil.CreateCrossGenericDelegate(GetDeserializeMethodInfo(valueSerializerType, serializationValueType), typeof(DeserializeDelegate<>));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateGetSizeFromValueDelegate(Type valueSerializerType, Type serializationValueType)
-        {
-            var methodInfo = GetSizeFromValueMethodInfo(valueSerializerType, serializationValueType);
-            
-            return ValueSerializer.IsNullableSerializationType(serializationValueType) ? 
-                   ReflectionUtil.CreateNullableDelegate(typeof(GetSizeFromValueDelegate<>).MakeGenericType(serializationValueType), methodInfo) : 
-                   ReflectionUtil.CreateDelegate(methodInfo, typeof(GetSizeFromValueDelegate<>));
-        }
-            
+            => ReflectionUtil.CreateCrossGenericDelegate(GetSizeFromValueMethodInfo(valueSerializerType, serializationValueType), typeof(GetSizeFromValueDelegate<>));
+           
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Delegate CreateGetSizeFromBufferDelegate(Type valueSerializerType)
-            => ReflectionUtil.CreateDelegate(GetSizeFromBufferMethodInfo(valueSerializerType));
-
+        public static Delegate CreateGetSizeFromBufferDelegate(Type valueSerializerType, Type serializationValueType)
+            => ReflectionUtil.CreateDelegate(GetSizeFromBufferMethodInfo(valueSerializerType, serializationValueType), typeof(GetSizeFromBufferDelegate));
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSupportsTypeMethodInfo(Type valueSerializerType)
         {
@@ -239,7 +229,7 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MethodInfo GetSizeFromBufferMethodInfo(Type valueSerializerType)
+        public static MethodInfo GetSizeFromBufferMethodInfo(Type valueSerializerType, Type serializationValueType = null)
         {
             var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
                                                 .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.GetSizeFromBufferAttribute>() != null);
@@ -248,12 +238,12 @@ namespace Fracture.Net.Serialization
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.GetSizeFromBufferAttribute)} " +
                                                          $"for value serializer", valueSerializerType);
             
-            return methodInfo;
+            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
         }
 
         public static Type GetValueSerializerForRunType(Type serializationType)
         {
-            serializationType = ValueSerializer.GetUnderlyingSerializationType(serializationType);
+            //serializationType = ValueSerializer.GetUnderlyingSerializationType(serializationType);
 
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
@@ -328,9 +318,9 @@ namespace Fracture.Net.Serialization
                                                          $"make sure the generic method is left open",
                                                          valueSerializerType);
             
-            if (Delegate.CreateDelegate(typeof(GetSizeFromBufferDelegate), ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType), false) == null)
+            if (Delegate.CreateDelegate(typeof(GetSizeFromBufferDelegate<>), ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType), false) == null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.GetSizeFromBufferAttribute)} does not match the " +
-                                                         $"required method signature of {typeof(GetSizeFromBufferDelegate)}",
+                                                         $"required method signature of {typeof(GetSizeFromBufferDelegate<>)}",
                                                          valueSerializerType);
             
             if (Delegate.CreateDelegate(typeof(GetSizeFromValueDelegate<>), ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType), false) == null)

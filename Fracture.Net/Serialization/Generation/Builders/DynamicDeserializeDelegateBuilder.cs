@@ -100,9 +100,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
+            // TODO: wtf why is this not needed anymore?
             // Load nullable value to stack if needed. This used to work before without this because of the boxing operations happening.
-            if (value.IsNullable)
-                il.Emit(OpCodes.Newobj, value.Type.GetConstructor(new [] { value.Type.GetGenericArguments()[0] })!);
+            // if (value.IsNullable)
+            //     il.Emit(OpCodes.Newobj, value.Type.GetConstructor(new [] { value.Type.GetGenericArguments()[0] })!);
            
             // Store deserialized value to target value.
             if (value.IsField)
@@ -117,7 +118,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
+            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType, value.Type)); 
             // Push 'offset' to stack.
             il.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.

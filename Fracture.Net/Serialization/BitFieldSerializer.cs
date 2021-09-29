@@ -21,15 +21,15 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Gets the length of the bit field in bytes.
         /// </summary>
-        public int Length => bytes.Length;
+        public int BytesLength => bytes.Length;
         #endregion
 
         /// <summary>
         /// Creates new instance of <see cref="BitField"/> with given length.
         /// </summary>
-        /// <param name="length">how many bytes does the bit field consist of</param>
-        public BitField(int length)
-            => bytes = new byte[length];
+        /// <param name="bytesLength">how many bytes does the bit field consist of</param>
+        public BitField(int bytesLength)
+            => this.bytes = new byte[bytesLength];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int BitIndex(int index) => index % BitsInByte;
@@ -101,7 +101,7 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize(BitField value, byte[] buffer, int offset)
         {
-            Protocol.NullMaskLength.Write(checked((byte)value.Length), buffer, offset);
+            Protocol.NullMaskLength.Write(checked((byte)value.BytesLength), buffer, offset);
             
             value.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
         }
@@ -124,6 +124,6 @@ namespace Fracture.Net.Serialization
 
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue(BitField value)
-            => (ushort)(Protocol.NullMaskLength.Size + value.Length);
+            => (ushort)(Protocol.NullMaskLength.Size + value.BytesLength);
     }
 }

@@ -141,9 +141,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             il.Emit(OpCodes.Brfalse_S, notNull);
             
             // Push value from the nullable field to stack boxed.
-            EmitLoadSerializationValueAddressToStack(il, value);
+            EmitLoadSerializationValue(il, value);
             
-            il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
             // Push argument 'buffer' to stack, push argument 'offset' to stack and then serialize the value.
             il.Emit(OpCodes.Ldarg_1);
             il.Emit(OpCodes.Ldarg_2);
@@ -155,9 +154,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 // Push argument 'offset', locals 'currentSerializer' and 'actual' to stack.
                 il.Emit(OpCodes.Ldarg_2);
                 
-                EmitLoadSerializationValueAddressToStack(il, value);
+                EmitLoadSerializationValue(il, value);
                 
-                il.Emit(OpCodes.Call, value.Type.GetProperty("Value")!.GetMethod);
                 il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
                 // Advance offset by the size of the value.
                 il.Emit(OpCodes.Add);

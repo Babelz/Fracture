@@ -98,7 +98,7 @@ namespace Fracture.Net.Tests.Serialization
             // Validate null mask.
             var nullMask = BitFieldSerializer.Deserialize(buffer, offset);
             
-            Assert.Equal(8, nullMask.Length);
+            Assert.Equal(1, nullMask.BytesLength);
             Assert.False(nullMask.GetBit(0));
             Assert.False(nullMask.GetBit(1));
             Assert.False(nullMask.GetBit(2));
@@ -124,6 +124,50 @@ namespace Fracture.Net.Tests.Serialization
             offset += IntSerializer.GetSizeFromValue(4);
 
             Assert.Equal(7, IntSerializer.Deserialize(buffer, offset));
+        }
+        
+        [Fact]
+        public void Deserializes_Non_Nullable_Primitive_Types_Correctly()
+        {
+            var numbersIn = new int[4]
+            {
+                int.MinValue,
+                128,
+                256,
+                int.MaxValue
+            };
+            
+            var buffer = new byte[128];
+            
+            ArraySerializer.Serialize(numbersIn, buffer, 0);
+            
+            var numbersOut = ArraySerializer.Deserialize<int>(buffer, 0);
+            
+            Assert.Equal(numbersIn, numbersOut);
+        }
+        
+        [Fact]
+        public void Deserializes_Nullable_Primitive_Types_Correctly()
+        {
+            var numbersIn = new int?[8]
+            {
+                0,
+                1,
+                2,
+                null,
+                4,
+                null,
+                null,
+                7
+            };
+            
+            var buffer = new byte[128];
+            
+            ArraySerializer.Serialize(numbersIn, buffer, 0);
+            
+            var numbersOut = ArraySerializer.Deserialize<int?>(buffer, 0);
+            
+            Assert.Equal(numbersIn, numbersOut);
         }
     }
 }
