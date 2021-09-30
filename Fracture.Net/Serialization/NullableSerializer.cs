@@ -7,7 +7,7 @@ using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
 {
-    public static class NullableDestructor
+    public static class NullableReducer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Delegate CreateNullableSerializeDelegate<T>(Delegate serializationDelegate) where T : struct
@@ -81,7 +81,7 @@ namespace Fracture.Net.Serialization
             AssertNullableTypeParameter(nullableType);
             
             return UnwindNullableSerializationDelegate(
-                typeof(NullableDestructor).GetMethod(nameof(CreateNullableSerializeDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
+                typeof(NullableReducer).GetMethod(nameof(CreateNullableSerializeDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
                 serializeDelegate, 
                 nullableType
             );
@@ -93,7 +93,7 @@ namespace Fracture.Net.Serialization
             AssertNullableTypeParameter(nullableType);
             
             return UnwindNullableSerializationDelegate(
-                typeof(NullableDestructor).GetMethod(nameof(CreateNullableDeserializeDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
+                typeof(NullableReducer).GetMethod(nameof(CreateNullableDeserializeDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
                 deserializeDelegate, 
                 nullableType
             );
@@ -105,7 +105,7 @@ namespace Fracture.Net.Serialization
             AssertNullableTypeParameter(nullableType);
             
             return UnwindNullableSerializationDelegate(
-                typeof(NullableDestructor).GetMethod(nameof(CreateNullableGetSizeFromValueDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
+                typeof(NullableReducer).GetMethod(nameof(CreateNullableGetSizeFromValueDelegate), BindingFlags.Static | BindingFlags.NonPublic), 
                 getSizeFromValueDelegate, 
                 nullableType
             );
@@ -134,20 +134,20 @@ namespace Fracture.Net.Serialization
             
             SerializeDelegates.Add(
                 serializationType, 
-                NullableDestructor.UnwindSerializeDelegate(ValueSerializerRegistry.CreateSerializeDelegate(underlyingValueSerializerType, serializationType), 
-                                                           serializationType)
+                NullableReducer.UnwindSerializeDelegate(ValueSerializerRegistry.CreateSerializeDelegate(underlyingValueSerializerType, serializationType), 
+                                                        serializationType)
             );
             
             DeserializeDelegates.Add(
                 serializationType, 
-                NullableDestructor.UnwindDeserializeDelegate(ValueSerializerRegistry.CreateDeserializeDelegate(underlyingValueSerializerType, serializationType), 
-                                                             serializationType)
+                NullableReducer.UnwindDeserializeDelegate(ValueSerializerRegistry.CreateDeserializeDelegate(underlyingValueSerializerType, serializationType), 
+                                                          serializationType)
             );
             
             GetSizeFromValueDelegates.Add(
                 serializationType, 
-                NullableDestructor.UnwindGetSizeFromValueDelegate(ValueSerializerRegistry.CreateGetSizeFromValueDelegate(underlyingValueSerializerType, serializationType), 
-                                                                  serializationType)
+                NullableReducer.UnwindGetSizeFromValueDelegate(ValueSerializerRegistry.CreateGetSizeFromValueDelegate(underlyingValueSerializerType, serializationType), 
+                                                               serializationType)
             );
             
             GetSizeFromBufferDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(underlyingValueSerializerType, serializationType));
