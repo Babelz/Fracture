@@ -211,7 +211,7 @@ namespace Fracture.Net.Serialization
     {
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
-            => type == typeof(List<>);
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
         
         /// <summary>
         /// Writes given list to given buffer beginning at given offset. This function allocates new array because it uses the array serializer and will
@@ -361,10 +361,12 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<TKey, TValue>(KeyValuePair<TKey, TValue> value)
-            => (ushort)((((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[typeof(TKey)])(value.Key) + 
-                         ((GetSizeFromValueDelegate<TValue>)GetSizeFromValueDelegates[typeof(TValue)])(value.Value) +
-                         Protocol.ContentLength.Size +
-                         Protocol.TypeData.Size));
+        {
+            var valueSize = value.Value != null ? ((GetSizeFromValueDelegate<TValue>)GetSizeFromValueDelegates[typeof(TValue)])(value.Value) : 0;
+            var keySize   = ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[typeof(TKey)])(value.Key);
+            
+            return (ushort)(valueSize + keySize + Protocol.ContentLength.Size + Protocol.TypeData.Size);
+        }
     }
     
     [GenericValueSerializer]
@@ -372,7 +374,7 @@ namespace Fracture.Net.Serialization
     {
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
-            => type == typeof(Dictionary<,>);
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
         
         /// <summary>
         /// Writes given dictionary to given buffer beginning at given offset. This function allocates new array because it uses the array serializer

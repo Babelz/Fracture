@@ -278,6 +278,7 @@
         <Compile Include="Serialization\EnumSerializerTests.cs" />
         <Compile Include="Serialization\Generation\DynamicDeserializeTests.cs" />
         <Compile Include="Serialization\Generation\DynamicGetSizeFromValueTests.cs" />
+        <Compile Include="Serialization\Generation\DynamicSerializationTests.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMappingTests.cs" />
         <Compile Include="Serialization\Generation\DynamicSerializeTests.cs" />
         <Compile Include="Serialization\Generation\DynamicObjectSerializerProgramTests.cs" />

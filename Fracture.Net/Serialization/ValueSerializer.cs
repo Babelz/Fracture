@@ -247,8 +247,6 @@ namespace Fracture.Net.Serialization
 
         public static Type GetValueSerializerForRunType(Type serializationType)
         {
-            //serializationType = ValueSerializer.GetUnderlyingSerializationType(serializationType);
-
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
                 var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)

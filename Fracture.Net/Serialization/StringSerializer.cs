@@ -45,7 +45,7 @@ namespace Fracture.Net.Serialization
         public static string Deserialize(byte[] buffer, int offset)
         {
             // Get the dynamic field size. Remove content length bytes count from the actual size to get the string length.
-            var size = Protocol.ContentLength.Read(buffer, offset) - Protocol.ContentLength.Size;
+            var size = checked((ushort)(Protocol.ContentLength.Read(buffer, offset) - Protocol.ContentLength.Size));
             offset += Protocol.ContentLength.Size;
             
             // Get the string itself.

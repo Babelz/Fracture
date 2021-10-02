@@ -100,11 +100,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call deserialize.
             il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
-            // TODO: wtf why is this not needed anymore?
-            // Load nullable value to stack if needed. This used to work before without this because of the boxing operations happening.
-            // if (value.IsNullable)
-            //     il.Emit(OpCodes.Newobj, value.Type.GetConstructor(new [] { value.Type.GetGenericArguments()[0] })!);
-           
             // Store deserialized value to target value.
             if (value.IsField)
                 il.Emit(OpCodes.Stfld, value.Field);
