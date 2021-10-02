@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Fracture.Net.Tests.Serialization.Generation
@@ -134,9 +135,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             serializeDelegate(testObjectIn, buffer, 0);
             
-            var bf = BitFieldSerializer.Deserialize(buffer, 0);
-            
             var testObjectOut = (AllFieldTypesTestClass)deserializeDelegate(buffer, 0);
+            
+            // This is bit hacky but least painful way i came up quickly to check for object equality without writing custom comparer. 
+            Assert.Equal(JsonConvert.SerializeObject(testObjectIn), JsonConvert.SerializeObject(testObjectOut)); 
         }
     }
 }
