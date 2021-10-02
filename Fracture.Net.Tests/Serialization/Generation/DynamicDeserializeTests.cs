@@ -90,18 +90,21 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public int I
             {
                 get;
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 set;
             }
             
             public int? X
             {
                 get;
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 set;
             }
             
             public int J
             {
                 get;
+                // ReSharper disable once UnusedAutoPropertyAccessor.Local
                 set;
             }
             #endregion
@@ -122,7 +125,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class NonValueTypePropertyTestClass
         {
             #region Properties
-            public int X
+            public int X 
             {
                 get;
                 set;
