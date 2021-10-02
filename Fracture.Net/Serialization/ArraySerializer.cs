@@ -282,12 +282,12 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte[] buffer, int offset)
         {
-            var keyType = value.Key.GetType();
+            var keyType = typeof(TKey);
             
             if (IsNewType(keyType))
                 RegisterTypeSerializer(keyType);
 
-            var valueType = value.Value.GetType();
+            var valueType = typeof(TValue);
             
             if (IsNewType(valueType))
                 RegisterTypeSerializer(valueType);
