@@ -1,7 +1,11 @@
+using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Fracture.Net.Serialization;
 using Iced.Intel;
 using Xunit;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace Fracture.Net.Tests.Serialization
@@ -9,6 +13,13 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class ArraySerializerTests
     {
+        #region Fields
+        private readonly ITestOutputHelper output;
+        #endregion
+        
+        public ArraySerializerTests(ITestOutputHelper output)
+            => this.output = output;
+        
         [Fact]
         public void Serialize_Throws_If_Array_Type_Is_Unsupported()
             => Assert.NotNull(Record.Exception(() => ArraySerializer.Serialize(new Assembly[1], new byte[1], 0)));
@@ -26,10 +37,10 @@ namespace Fracture.Net.Tests.Serialization
         {
             var numbers = new int[4]
             {
-                int.MinValue,
-                128,
-                256,
-                int.MaxValue
+                16,
+                32,
+                64,
+                128
             };
             
             var buffer = new byte[128];
@@ -39,27 +50,18 @@ namespace Fracture.Net.Tests.Serialization
             var offset = 0;
             
             // Content length.
-            Assert.Equal(21, Protocol.ContentLength.Read(buffer, offset));
+            Assert.Equal(16, Protocol.ContentLength.Read(buffer, offset));
             offset += Protocol.ContentLength.Size;
             
             // Collection length + omitted sparse collection flag.
             Assert.Equal(4, Protocol.CollectionLength.Read(buffer, offset));
             offset += Protocol.CollectionLength.Size + Protocol.TypeData.Size;
             
-            // First element int.MinValue.
-            Assert.Equal(int.MinValue, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(int.MinValue);
-            
-            // Second element 128.
-            Assert.Equal(128, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(128);
-            
-            // Third element 256.
-            Assert.Equal(256, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(256);
-
-            // Last element int.MaxValue.
-            Assert.Equal(int.MaxValue, IntSerializer.Deserialize(buffer, offset));
+            for (var i = 0; i < numbers.Length; i++)
+            {
+                Assert.Equal(numbers[i], IntSerializer.Deserialize(buffer, offset));
+                offset += IntSerializer.GetSizeFromValue(numbers[i]);   
+            }
         }
         
         [Fact]
@@ -84,7 +86,7 @@ namespace Fracture.Net.Tests.Serialization
             var offset = 0;
             
             // Content length.
-            Assert.Equal(28, Protocol.ContentLength.Read(buffer, offset));
+            Assert.Equal(23, Protocol.ContentLength.Read(buffer, offset));
             offset += Protocol.ContentLength.Size;
             
             // Collection length.
@@ -111,19 +113,11 @@ namespace Fracture.Net.Tests.Serialization
             offset += BitFieldSerializer.GetSizeFromBuffer(buffer, offset);
 
             // Validate values that are not null.
-            Assert.Equal(0, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(0);
-            
-            Assert.Equal(1, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(1);
-            
-            Assert.Equal(2, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(2);
-            
-            Assert.Equal(4, IntSerializer.Deserialize(buffer, offset));
-            offset += IntSerializer.GetSizeFromValue(4);
-
-            Assert.Equal(7, IntSerializer.Deserialize(buffer, offset));
+            foreach (var number in numbers.Where(n => n != null).Select(n => n.Value))
+            {
+                Assert.Equal(number, IntSerializer.Deserialize(buffer, offset));
+                offset += IntSerializer.GetSizeFromValue(number);
+            }
         }
         
         [Fact]
@@ -167,7 +161,10 @@ namespace Fracture.Net.Tests.Serialization
             
             var numbersOut = ArraySerializer.Deserialize<int?>(buffer, 0);
             
-            Assert.Equal(numbersIn, numbersOut);
+            Assert.Equal(numbersIn.Length, numbersOut.Length);
+            
+            for (var i = 0; i < numbersIn.Length; i++)
+                Assert.Equal(numbersIn[i], numbersOut[i]);
         }
     }
 }

@@ -192,6 +192,10 @@ namespace Fracture.Common.Memory
         public static void WriteUlong(ulong value, byte[] bytes, int index)
             => WriteLong((long)value, bytes, index);
 
+        /// <summary>
+        /// Performs optimized copying operation for byte based arrays using SIMD operations. This function is not suitable for doing array shifts, if you are
+        /// looking to do that use the Copy method of <see cref="Array"/>.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void VectorizedCopy(byte[] source, int sourceIndex, byte[] destination, int destinationIndex, int count)
         {

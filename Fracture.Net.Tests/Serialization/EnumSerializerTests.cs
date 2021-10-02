@@ -38,19 +38,6 @@ namespace Fracture.Net.Tests.Serialization
         }
 
         [Fact]
-        public void Serialized_Enum_Contains_Small_Content_Length()
-        {
-            var buffer = new byte[32];
-            
-            EnumSerializer.Serialize(EnumWithExplicitUIntType.FooBar, buffer, 0);
-            
-            EnumSerializer.Serialize(EnumWithExplicitByteType.FooBar, buffer, EnumSerializer.GetSizeFromValue(EnumWithExplicitUIntType.FooBar));
-
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, 0));
-            Assert.Equal(1, MemoryMapper.ReadByte(buffer, EnumSerializer.GetSizeFromValue(EnumWithExplicitUIntType.FooBar)));
-        }
-        
-        [Fact]
         public void Serializes_Implicit_Enums_Correctly()
         {
             var buffer = new byte[32];
@@ -66,17 +53,10 @@ namespace Fracture.Net.Tests.Serialization
             
             EnumSerializer.Serialize(EnumWithImplicitIntType.FooBar, buffer, offset);
 
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, 0));
-            Assert.Equal(0, MemoryMapper.ReadInt(buffer, sizeof(byte)));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) + sizeof(int)));
-            Assert.Equal(1, MemoryMapper.ReadInt(buffer, sizeof(byte) * 2 + sizeof(int)));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 2 + sizeof(int) * 2));
-            Assert.Equal(2, MemoryMapper.ReadInt(buffer, sizeof(byte) * 3 + sizeof(int) * 2));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 3 + sizeof(int) * 3));
-            Assert.Equal(3, MemoryMapper.ReadInt(buffer, sizeof(byte) * 4 + sizeof(int) * 3));
+            Assert.Equal(0, MemoryMapper.ReadInt(buffer, 0));
+            Assert.Equal(1, MemoryMapper.ReadInt(buffer, sizeof(int)));
+            Assert.Equal(2, MemoryMapper.ReadInt(buffer, sizeof(int) * 2));
+            Assert.Equal(3, MemoryMapper.ReadInt(buffer, sizeof(int) * 3));
         }
 
         [Fact]
@@ -95,17 +75,10 @@ namespace Fracture.Net.Tests.Serialization
             
             EnumSerializer.Serialize(EnumWithExplicitUIntType.FooBar, buffer, offset);
 
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, 0));
-            Assert.Equal(uint.MinValue, MemoryMapper.ReadUint(buffer, sizeof(byte)));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) + sizeof(uint)));
-            Assert.Equal(1u, MemoryMapper.ReadUint(buffer, sizeof(byte) * 2 + sizeof(uint)));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 2 + sizeof(uint) * 2));
-            Assert.Equal(2u, MemoryMapper.ReadUint(buffer, sizeof(byte) * 3 + sizeof(uint) * 2));
-            
-            Assert.Equal(4, MemoryMapper.ReadByte(buffer, sizeof(byte) * 3 + sizeof(uint) * 3));
-            Assert.Equal(uint.MaxValue, MemoryMapper.ReadUint(buffer, sizeof(byte) * 4 + sizeof(uint) * 3));
+            Assert.Equal(uint.MinValue, MemoryMapper.ReadUint(buffer, 0));
+            Assert.Equal(1u, MemoryMapper.ReadUint(buffer, sizeof(uint)));
+            Assert.Equal(2u, MemoryMapper.ReadUint(buffer, sizeof(uint) * 2));
+            Assert.Equal(uint.MaxValue, MemoryMapper.ReadUint(buffer, sizeof(uint) * 3));
         }
     }
 }

@@ -166,6 +166,9 @@ namespace Fracture.Net.Serialization
             if (IsNewNullableType(typeof(T?)))
                 RegisterNullableTypeSerializer(typeof(T?));
             
+            if (!value.HasValue)
+                return;
+            
             ((SerializeDelegate<T?>)SerializeDelegates[typeof(T?)])(value, buffer, offset);
         }
         
@@ -203,7 +206,7 @@ namespace Fracture.Net.Serialization
             if (IsNewNullableType(typeof(T?)))
                 RegisterNullableTypeSerializer(typeof(T?));
             
-            return ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value);
+            return !value.HasValue ? (ushort) 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value);
         }
     }
 }
