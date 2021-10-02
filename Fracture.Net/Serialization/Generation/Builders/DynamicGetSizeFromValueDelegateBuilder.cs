@@ -113,7 +113,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var il = DynamicMethod.GetILGenerator();
             
             // Load bit field size to stack.
-            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.NullMaskLength.Size);
+            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.ContentLength.Size);
             // Load local size to stack.
             il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
             // Add local + bit field size.

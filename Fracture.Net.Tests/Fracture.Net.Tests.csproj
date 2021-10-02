@@ -274,12 +274,14 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Serialization\ArraySerializerTests.cs" />
         <Compile Include="Serialization\BitFieldSerializerTests.cs" />
+        <Compile Include="Serialization\DictionarySerializerTests.cs" />
         <Compile Include="Serialization\EnumSerializerTests.cs" />
         <Compile Include="Serialization\Generation\DynamicDeserializeTests.cs" />
         <Compile Include="Serialization\Generation\DynamicGetSizeFromValueTests.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMappingTests.cs" />
         <Compile Include="Serialization\Generation\DynamicSerializeTests.cs" />
         <Compile Include="Serialization\Generation\DynamicObjectSerializerProgramTests.cs" />
+        <Compile Include="Serialization\ListSerializerTests.cs" />
         <Compile Include="Serialization\StructureSerializerTests.cs" />
         <Compile Include="Serialization\StringSerializerTests.cs" />
         <Compile Include="Serialization\ValueSerializerTests.cs" />

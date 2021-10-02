@@ -116,6 +116,9 @@ namespace Fracture.Net.Serialization
                 contentLength += BitFieldSerializer.GetSizeFromValue(nullMask);
             }
             
+            // Add header sizes to content length.
+            contentLength += Protocol.ContentLength.Size + Protocol.CollectionLength.Size + Protocol.TypeData.Size;
+            
             Protocol.ContentLength.Write(checked((ushort)contentLength), buffer, contentLengthOffset);
             
             // Write null mask and it's length at it's offset.
@@ -168,7 +171,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(Protocol.ContentLength.Read(buffer, offset) + Protocol.TypeData.Size + Protocol.ContentLength.Size + Protocol.CollectionLength.Size);
+            => Protocol.ContentLength.Read(buffer, offset);
                 
         /// <summary>
         /// Returns size of array value, size will vary.
@@ -179,13 +182,25 @@ namespace Fracture.Net.Serialization
             if (IsNewArrayType(typeof(T)))
                 RegisterArrayTypeSerializer(typeof(T));
             
-            var isSparseCollection       = values.Any(v => v == null);
+            var isSparseCollection       = false;
             var getSizeFromValueDelegate = (GetSizeFromValueDelegate<T>)GetSizeFromValueDelegates[typeof(T)];
-            var size                     = Protocol.TypeData.Size + Protocol.ContentLength.Size + Protocol.CollectionLength.Size + 
-                                           (isSparseCollection ? Protocol.NullMaskLength.Size + BitField.LengthFromBits(values.Length) : 0);
+            var size                     = Protocol.ContentLength.Size + Protocol.CollectionLength.Size + Protocol.TypeData.Size;
             
             for (var i = 0; i < values.Length; i++)
+            {
+                if (values[i] == null)
+                {
+                    isSparseCollection = true;
+                    
+                    continue;
+                }
+                    
                 size += getSizeFromValueDelegate(values[i]);
+            }
+            
+            // Add bit field content length + bytes length if sparse collection.
+            if (isSparseCollection)
+                size += Protocol.ContentLength.Size + BitField.LengthFromBits(values.Length);
             
             return checked((ushort)size);
         }
@@ -259,7 +274,7 @@ namespace Fracture.Net.Serialization
         
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
-            => type == typeof(KeyValuePair<,>);
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
         
         /// <summary>
         /// Writes given key value pair value to given buffer beginning at given offset.
@@ -285,7 +300,7 @@ namespace Fracture.Net.Serialization
             var valueSerializeDelegate = (SerializeDelegate<TValue>)SerializeDelegates[valueType];
 
             keySerializeDelegate(value.Key, buffer, offset);
-            offset += ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[valueType])(value.Key);
+            offset += ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[keyType])(value.Key);
             
             var valueNullFlag = (byte)(value.Value == null ? 1 : 0);
             
@@ -319,14 +334,17 @@ namespace Fracture.Net.Serialization
             // Skip to serialization values.
             offset += Protocol.ContentLength.Size;
             
-            var keyDeserializeDelegate   = (DeserializeDelegate<TKey>)DeserializeDelegates[keyType];
-            var valueDeserializeDelegate = (DeserializeDelegate<TValue>)DeserializeDelegates[valueType];
+            var keyDeserializeDelegate      = (DeserializeDelegate<TKey>)DeserializeDelegates[keyType];
+            var keyGetSizeFromValueDelegate = (GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[keyType];
+            var valueDeserializeDelegate    = (DeserializeDelegate<TValue>)DeserializeDelegates[valueType];
+
+            var key = keyDeserializeDelegate(buffer, offset);
+            offset += keyGetSizeFromValueDelegate(key);
             
             var valueNullFlag = Protocol.TypeData.Read(buffer, offset) == 1;
             offset += Protocol.TypeData.Size;
             
-            var key   = keyDeserializeDelegate(buffer, offset);
-            var value = valueNullFlag ? default : valueDeserializeDelegate(buffer, offset + ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[valueType])(key));
+            var value = valueNullFlag ? default : valueDeserializeDelegate(buffer, offset);
             
             return new KeyValuePair<TKey, TValue>(key, value);
         }
@@ -336,7 +354,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(Protocol.ContentLength.Read(buffer, offset) + Protocol.ContentLength.Size);
+            => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
         /// Returns size of key value pair value, size will vary.

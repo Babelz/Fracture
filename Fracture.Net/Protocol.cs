@@ -109,6 +109,8 @@ namespace Fracture.Net
         /// <summary>
         /// Header denoting content size inside the message in bytes. This header appears on all object values after their type id or with fields that can
         /// vary in size. This is used for storing for example collection package size in streams and string lengths.
+        ///
+        /// Object this header belongs to it also contains any other header header sizes including it self.
         /// </summary>
         public static readonly Header<ushort> ContentLength = Header.Ushort();
         
@@ -121,12 +123,6 @@ namespace Fracture.Net
         /// Header containing small optional serialization data field used by some serialization types to store additional information about the serialized objects.
         /// </summary>
         public static readonly Header<byte> TypeData = Header.Byte();
-
-        /// <summary>
-        /// Header denoting the size of the possible null mask bit field in bytes. This header appears on all objects that have values that can be null or on
-        /// collection values that can contain null values.
-        /// </summary>
-        public static readonly Header<ushort> NullMaskLength = Header.Ushort(); 
         #endregion
     }
 }

@@ -11,13 +11,13 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Fact()]
-        public void Serialized_String_Contains_Size_Of_The_String()
+        public void Serialized_String_Contains_Size_Of_The_Serialized_String()
         {
             var buffer = new byte[128];
             
             StringSerializer.Serialize("Hello!", buffer, 0);
             
-            Assert.Equal(12, Protocol.ContentLength.Read(buffer, 0));
+            Assert.Equal(14, Protocol.ContentLength.Read(buffer, 0));
         }
         
         [Fact()]
@@ -42,7 +42,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact()]
         public void Get_Size_From_Buffer_Returns_String_Size_And_Size_Field_In_Bytes()
         {
-            Assert.Equal(10, StringSerializer.GetSizeFromBuffer(new byte[] { 8, 0, 0, 0 }, 0));
+            Assert.Equal(10, StringSerializer.GetSizeFromBuffer(new byte[] { 10, 0, 0, 0 }, 0));
         }
     }
 }

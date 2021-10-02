@@ -88,7 +88,7 @@ namespace Fracture.Net.Tests.Serialization
             
             BitFieldSerializer.Serialize(bf, buffer, 0);
             
-            Assert.Equal(4, buffer[0]);
+            Assert.Equal(6, buffer[0]);
             Assert.Equal(0, buffer[1]);
             Assert.Equal(1, buffer[2]);
             Assert.Equal(1, buffer[3]);
@@ -101,7 +101,7 @@ namespace Fracture.Net.Tests.Serialization
         {
             var buffer = new byte[]
             {
-                4, // Size of the bit field in bytes.
+                6, // Size of the serialized bit field in bytes.
                 0, 
                 1, // Bit field bytes. 
                 2,
@@ -129,7 +129,7 @@ namespace Fracture.Net.Tests.Serialization
         {
             var buffer = new byte[]
             {
-                4, // Size of the bit field in bytes.
+                6, // Size of the bit field in bytes.
                 0,
                 1, // Bit field bytes. 
                 2,

@@ -29,7 +29,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         /// <param name="bytesLength">how many bytes does the bit field consist of</param>
         public BitField(int bytesLength)
-            => this.bytes = new byte[bytesLength];
+            => bytes = new byte[bytesLength];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int BitIndex(int index) => index % BitsInByte;
@@ -101,29 +101,29 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize(BitField value, byte[] buffer, int offset)
         {
-            Protocol.NullMaskLength.Write(checked((byte)value.BytesLength), buffer, offset);
+            Protocol.ContentLength.Write(checked((ushort)(value.BytesLength + Protocol.ContentLength.Size)), buffer, offset);
             
-            value.CopyTo(buffer, offset + Protocol.NullMaskLength.Size);
+            value.CopyTo(buffer, offset + Protocol.ContentLength.Size);
         }
 
         [ValueSerializer.Deserialize]
         public static BitField Deserialize(byte[] buffer, int offset)
         {
-            var size = Protocol.NullMaskLength.Read(buffer, offset);
+            var size = Protocol.ContentLength.Read(buffer, offset) - Protocol.ContentLength.Size;
             
             var value = new BitField(size);
             
-            value.CopyFrom(buffer, offset + Protocol.NullMaskLength.Size);
+            value.CopyFrom(buffer, offset + Protocol.ContentLength.Size);
             
             return value;
         }
 
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
-            => (ushort)(Protocol.NullMaskLength.Size + Protocol.NullMaskLength.Read(buffer, offset));
+            => Protocol.ContentLength.Read(buffer, offset);
 
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue(BitField value)
-            => (ushort)(Protocol.NullMaskLength.Size + value.BytesLength);
+            => (ushort)(value.BytesLength + Protocol.ContentLength.Size);
     }
 }

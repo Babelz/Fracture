@@ -50,7 +50,7 @@ namespace Fracture.Net.Tests.Serialization
             var offset = 0;
             
             // Content length.
-            Assert.Equal(16, Protocol.ContentLength.Read(buffer, offset));
+            Assert.Equal(21, Protocol.ContentLength.Read(buffer, offset));
             offset += Protocol.ContentLength.Size;
             
             // Collection length + omitted sparse collection flag.
@@ -86,7 +86,7 @@ namespace Fracture.Net.Tests.Serialization
             var offset = 0;
             
             // Content length.
-            Assert.Equal(23, Protocol.ContentLength.Read(buffer, offset));
+            Assert.Equal(28, Protocol.ContentLength.Read(buffer, offset));
             offset += Protocol.ContentLength.Size;
             
             // Collection length.
@@ -121,7 +121,7 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Fact]
-        public void Deserializes_Non_Nullable_Primitive_Types_Correctly()
+        public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
             var numbersIn = new int[4]
             {
@@ -141,7 +141,7 @@ namespace Fracture.Net.Tests.Serialization
         }
         
         [Fact]
-        public void Deserializes_Nullable_Primitive_Types_Correctly()
+        public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
             var numbersIn = new int?[8]
             {

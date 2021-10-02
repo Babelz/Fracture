@@ -143,6 +143,10 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MethodInfo SpecializeMethodInfo(MethodInfo methodInfo, Type valueSerializerType, Type serializationValueType)
         {
+            // Can't specialize non-generic methods.
+            if (!methodInfo.IsGenericMethod)
+                return methodInfo;
+            
             // No serialization value type hint was provided so assuming the method should be good to go as it is for delegate creation.
             if (serializationValueType == null)
                 return methodInfo;
@@ -150,7 +154,7 @@ namespace Fracture.Net.Serialization
             // Nothing to specialize, just return the method info.
             if (!IsGenericValueSerializer(valueSerializerType))
                 return methodInfo;
-            
+
             // Handle special case with arrays as they are not handled as generic types.
             if (serializationValueType.IsArray)
                 return methodInfo.MakeGenericMethod(serializationValueType.GetElementType());
