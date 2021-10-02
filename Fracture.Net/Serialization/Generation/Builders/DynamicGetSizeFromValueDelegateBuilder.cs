@@ -103,7 +103,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// Emits instructions for getting value size of the possible null mask.
         ///
         /// Translate roughly to:
-        ///     size += BitField.LengthFromBits(context.NullableValuesCount) + Protocol.NullMaskLength.Size;
+        ///     size += BitFieldSerializer.SizeFromValue(nullMask);
         /// </summary>
         public void EmitSizeOfNullMask()
         {

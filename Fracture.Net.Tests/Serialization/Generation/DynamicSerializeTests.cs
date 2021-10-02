@@ -311,7 +311,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, 0));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, 0));
             
             // Null mask values.
             Assert.Equal(192, MemoryMapper.ReadByte(buffer, sizeof(ushort)));
@@ -349,7 +349,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var offset = 0;
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, offset));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, offset));
             offset += sizeof(ushort);
             
             // Null mask values.
@@ -392,7 +392,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, 0));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, 0));
             
             // Null mask values.
             Assert.Equal(0, MemoryMapper.ReadByte(buffer, sizeof(ushort)));
@@ -425,7 +425,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             serializeDelegate(testObject, buffer, 0);
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, 0));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, 0));
             // Null mask values.
             Assert.Equal(224, MemoryMapper.ReadByte(buffer, sizeof(ushort)));
             // Field 'I' value.
@@ -460,7 +460,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var offset = 0;
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, offset));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, offset));
             offset += sizeof(ushort);
             
             // Null mask values.
@@ -537,7 +537,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var offset = 0;
             
             // Null mask size in bytes.
-            Assert.Equal(2, MemoryMapper.ReadUshort(buffer, offset));
+            Assert.Equal(4, MemoryMapper.ReadUshort(buffer, offset));
             offset += sizeof(ushort);
             
             // Null mask values.
@@ -606,7 +606,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var offset = 0;
             
             // Null mask size in bytes.
-            Assert.Equal(1, MemoryMapper.ReadUshort(buffer, offset));
+            Assert.Equal(3, MemoryMapper.ReadUshort(buffer, offset));
             offset += sizeof(ushort);
             
             // Null mask values.

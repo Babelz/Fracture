@@ -121,6 +121,8 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromBufferDelegates = new Dictionary<Type, Delegate>();
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
+        
+        private static readonly object PadLock = new Object();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsNewNullableType(Type type)
@@ -206,7 +208,7 @@ namespace Fracture.Net.Serialization
             if (IsNewNullableType(typeof(T?)))
                 RegisterNullableTypeSerializer(typeof(T?));
             
-            return !value.HasValue ? (ushort) 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value);
+            return (ushort)(!value.HasValue ? 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value));
         }
     }
 }

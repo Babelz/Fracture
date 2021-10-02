@@ -38,6 +38,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         
         #region Fields
         private readonly byte localNullMask;
+        
+        private int nullableValueIndex;
         #endregion
         
         public DynamicDeserializeDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType) 
@@ -76,7 +78,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
          
             // Check if null mask contains null for this value at this index.
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, serializationValueIndex - ValueRanges.NullableValuesOffset);
+            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
             
             var isNull = il.DefineLabel();
@@ -137,7 +139,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
          
             // Check if null mask contains null for this value at this index.
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, serializationValueIndex - ValueRanges.NullableValuesOffset);
+            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
             
             var isNull = il.DefineLabel();

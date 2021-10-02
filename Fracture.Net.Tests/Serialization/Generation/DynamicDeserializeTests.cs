@@ -359,7 +359,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var nullMask = new BitField(1);
             
             nullMask.SetBit(0, true);
-            
+            nullMask.SetBit(2, true);
+
             var buffer = new byte[64];
             var offset = 0;
             

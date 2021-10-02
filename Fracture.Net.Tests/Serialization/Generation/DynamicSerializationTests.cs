@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -80,10 +81,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .Map();
             
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
-            var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
+            var serializationOps   = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
             var deserializationValueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), deserializationOps);
-            var serializationValueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), serializationOps);
+            var serializationValueRanges   = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), serializationOps);
 
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
                 deserializationValueRanges,
@@ -99,15 +100,15 @@ namespace Fracture.Net.Tests.Serialization.Generation
             
             var testObjectIn = new AllFieldTypesTestClass()
             {
-                X = 200,
+                X      = 200,
                 MaybeX = null,
                 
-                S = "hello world!",
+                S      = "hello world!",
                 MaybeS = "this should not be null",
-                
-                Numbers = new [] { 200, 300, 400, 500 },
+
+                Numbers         = new [] { 200, 300, 400, 500 },
                 NullableNumbers = new int?[] { null, null, 200, null, null },
-                MaybeNumbers = null,
+                MaybeNumbers    = null,
                 
                 Map = new Dictionary<string, float>()
                 {
@@ -129,9 +130,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 }
             };
             
-            var buffer = new byte[ushort.MaxValue];
+            var buffer = new byte[256];
             
             serializeDelegate(testObjectIn, buffer, 0);
+            
+            var bf = BitFieldSerializer.Deserialize(buffer, 0);
             
             var testObjectOut = (AllFieldTypesTestClass)deserializeDelegate(buffer, 0);
         }

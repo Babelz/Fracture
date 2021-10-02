@@ -28,7 +28,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         #endregion
 
         #region Fields
-        private int nullableFieldIndex;
+        private int nullableValueIndex;
         #endregion
 
         public DynamicSerializeDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType)
@@ -107,12 +107,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Mask value to be null.
             il.MarkLabel(notNull);
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex - ValueRanges.NullableValuesOffset);
+            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
             il.MarkLabel(branchOut);
-            
-            nullableFieldIndex++;
         }
         
         /// <summary>
@@ -169,12 +167,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Mask value to be null.
             il.MarkLabel(notNull);
             il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableFieldIndex - ValueRanges.NullableValuesOffset);
+            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
             il.Emit(OpCodes.Ldc_I4_1);
             il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.SetBit))!);
             il.MarkLabel(setNullBit);
-            
-            nullableFieldIndex++;
         }
 
         /// <summary>
@@ -221,7 +217,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///     var actual      = ([program-type])value;
         ///     var serializers = context.ValueSerializers;
         ///     var serializer  = default(ValueSerializer);
-        ///     var isNull      = false;
         /// </summary>
         public override void EmitLocals()
         {

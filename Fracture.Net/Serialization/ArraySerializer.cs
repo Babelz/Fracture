@@ -106,9 +106,11 @@ namespace Fracture.Net.Serialization
                 // Move data region to leave space for null mask.
                 Array.Copy(buffer, 
                            collectionDataRegionOffset, 
-                           buffer, 
+                           buffer,
                            collectionDataRegionOffset + BitFieldSerializer.GetSizeFromValue(nullMask), 
                            contentLength);
+                
+                MemoryMapper.Set(buffer, collectionDataRegionOffset, collectionDataRegionOffset + BitFieldSerializer.GetSizeFromValue(nullMask), 0);
                 
                 // Write null mask.
                 BitFieldSerializer.Serialize(nullMask, buffer, nullMaskOffset);

@@ -226,5 +226,13 @@ namespace Fracture.Common.Memory
 
             Array.Copy(source, sourceIndex, destination, destinationIndex, count);
         }
+        
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Set(byte[] source, int beginIndex, int endIndex, byte value)
+        {
+            for (var i = beginIndex; i < endIndex; i++)
+                source[i] = value;
+        }
     }
 }
