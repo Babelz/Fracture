@@ -21,15 +21,7 @@ namespace Fracture.Net.Serialization.Generation
         {
             get;
         }
-        
-        /// <summary>
-        /// Offset to value serializers index where the first nullable field is at.
-        /// </summary>
-        public int NullableValuesOffset
-        {
-            get;
-        }
-        
+
         /// <summary>
         /// Gets the total count of expected serialization values count.
         /// </summary>
@@ -39,10 +31,9 @@ namespace Fracture.Net.Serialization.Generation
         }
         #endregion
 
-        public ObjectSerializationValueRanges(int nullableValuesCount, int nullableValuesOffset, int serializationValuesCount)
+        public ObjectSerializationValueRanges(int nullableValuesCount, int serializationValuesCount)
         {
             NullableValuesCount      = nullableValuesCount;
-            NullableValuesOffset     = nullableValuesOffset;
             SerializationValuesCount = serializationValuesCount;
         }
     }
@@ -319,7 +310,6 @@ namespace Fracture.Net.Serialization.Generation
 
         public static ObjectSerializationValueRanges InterpretObjectSerializationValueRanges(Type type, IEnumerable<ISerializationOp> ops)
         {
-            var nullableValuesOffset    = -1;
             var valueOps                = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
             var firstNullableValueIndex = int.MaxValue;
             var lastNullableValueIndex  = int.MinValue;
@@ -331,9 +321,6 @@ namespace Fracture.Net.Serialization.Generation
                 if (!op.Value.IsNullAssignable)
                     continue;
                 
-                if (nullableValuesOffset < 0) 
-                    nullableValuesOffset = i;
-                
                 if (firstNullableValueIndex > i)
                     firstNullableValueIndex = i;
                 
@@ -343,7 +330,7 @@ namespace Fracture.Net.Serialization.Generation
             
             var nullableValuesCount = lastNullableValueIndex < 0 ? 0 : (lastNullableValueIndex - firstNullableValueIndex) + 1;
             
-            return new ObjectSerializationValueRanges(nullableValuesCount, nullableValuesOffset, valueOps.Count);
+            return new ObjectSerializationValueRanges(nullableValuesCount, valueOps.Count);
         }
         
         public static DynamicDeserializeDelegate InterpretDynamicDeserializeDelegate(in ObjectSerializationValueRanges valueRanges,
