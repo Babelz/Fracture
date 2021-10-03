@@ -124,6 +124,6 @@ namespace Fracture.Net.Serialization
 
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue(BitField value)
-            => (ushort)(value.BytesLength + Protocol.ContentLength.Size);
+            => checked((ushort)(value.BytesLength + Protocol.ContentLength.Size));
     }
 }

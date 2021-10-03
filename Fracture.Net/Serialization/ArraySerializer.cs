@@ -367,7 +367,7 @@ namespace Fracture.Net.Serialization
             var valueSize = value.Value != null ? ((GetSizeFromValueDelegate<TValue>)GetSizeFromValueDelegates[typeof(TValue)])(value.Value) : 0;
             var keySize   = ((GetSizeFromValueDelegate<TKey>)GetSizeFromValueDelegates[typeof(TKey)])(value.Key);
             
-            return (ushort)(valueSize + keySize + Protocol.ContentLength.Size + Protocol.TypeData.Size);
+            return checked((ushort)(valueSize + keySize + Protocol.ContentLength.Size + Protocol.TypeData.Size));
         }
     }
     

@@ -66,7 +66,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue(string value)
-            => (ushort)(Encoding.GetByteCount(value) + Protocol.ContentLength.Size);
+            => checked((ushort)(Encoding.GetByteCount(value) + Protocol.ContentLength.Size));
     }
     
     /// <summary>
