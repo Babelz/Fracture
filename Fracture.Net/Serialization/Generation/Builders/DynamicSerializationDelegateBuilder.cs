@@ -104,9 +104,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         protected void EmitLoadLocalValue(ILGenerator il)
         {
-            il.Emit(!SerializationType.IsValueType ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, Locals[localValue]);
+            il.Emit(SerializationType.IsClass ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, Locals[localValue]);
         }
-        
+
         protected void EmitStoreValueToLocal(ILGenerator il)
         {
             il.Emit(OpCodes.Stloc_S, Locals[localValue]);
@@ -117,7 +117,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Cast value to actual value, push argument 'value' to stack.
             il.Emit(OpCodes.Ldarg_0);
             // Cast or unbox value.
-            il.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox, SerializationType);
+            il.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox_Any, SerializationType);
             
             EmitStoreValueToLocal(il);  
         }

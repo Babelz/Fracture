@@ -128,8 +128,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             var il = DynamicMethod.GetILGenerator();
 
-            il.Emit(!constructor.DeclaringType!.IsValueType ? OpCodes.Newobj : OpCodes.Call, constructor);
-
+            il.Emit(OpCodes.Newobj, constructor);
+                
             EmitStoreValueToLocal(il);
         }
 
@@ -184,7 +184,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             if (ValueRanges.NullableValuesCount == 0) return;
             
             var il = DynamicMethod.GetILGenerator();
-
+            
             Locals[localNullMask] = il.DeclareLocal(typeof(BitField));
             
             // Load argument 'buffer' to stack.
@@ -210,13 +210,13 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Store current offset to argument 'offset'.
             il.Emit(OpCodes.Starg_S, 1);
         }
-
+        
         public DynamicDeserializeDelegate Build()
         {
             var il = DynamicMethod.GetILGenerator();
-
-            EmitLoadLocalValue(il);
             
+            EmitLoadLocalValue(il);
+
             il.Emit(OpCodes.Ret);
             
             try
