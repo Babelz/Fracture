@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fracture.Common.Reflection;
 using System.Reflection.Emit;
 
 namespace Fracture.Net.Serialization.Generation.Builders
@@ -10,29 +11,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// </summary>
     public abstract class DynamicSerializationDelegateBuilder
     {
-        #region Constant fields
-        private const int MaxLocals = 3;
-        #endregion
-        
         #region Fields
-        private readonly byte localValue;
+        private readonly Dictionary<Type, LocalBuilder> nullableLocals;
         
-        private byte localIndexCounter;
-        
-        // Temporary locals lookup.
-        private readonly Dictionary<Type, LocalBuilder> temp;
+        private LocalBuilder localValue;
         #endregion
 
         #region Properties
-        /// <summary>
-        /// Gets local variables that are accessed by indices.
-        /// </summary>
-        protected LocalBuilder[] Locals
-        {
-            get;
-        }
-        
-        protected DynamicMethod DynamicMethod
+        protected DynamicMethodBuilder DynamicMethodBuilder
         {
             get;
         }
@@ -48,86 +34,89 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
         #endregion
 
-        protected DynamicSerializationDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType, DynamicMethod dynamicMethod, int maxLocals)
+        protected DynamicSerializationDelegateBuilder(in ObjectSerializationValueRanges valueRanges, 
+                                                      Type serializationType, 
+                                                      DynamicMethodBuilder dynamicMethodBuilder)
         {
-            ValueRanges       = valueRanges;
-            SerializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
-            DynamicMethod     = dynamicMethod ?? throw new ArgumentNullException(nameof(dynamicMethod));
+            ValueRanges          = valueRanges;
+            SerializationType    = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
+            DynamicMethodBuilder = dynamicMethodBuilder ?? throw new ArgumentNullException(nameof(dynamicMethodBuilder));
             
-            Locals = new LocalBuilder[MaxLocals + maxLocals];
-            temp   = new Dictionary<Type, LocalBuilder>();
-            
-            localValue = AllocateNextLocalIndex();
+            nullableLocals = new Dictionary<Type, LocalBuilder>();
         }
 
-        protected byte AllocateNextLocalIndex()
-            => checked(localIndexCounter++);
-        
         /// <summary>
         /// Emits instructions for loading serialization value from object that is on top of the stack. The value can loaded from property and from field
         /// by pushing the actual value or the address.
         /// </summary>
-        protected void EmitLoadSerializationValueAddressToStack(ILGenerator il, SerializationValue value)
+        protected void EmitLoadSerializationValueAddressToStack(SerializationValue value)
         {
             // Push local 'value' to stack.
-            EmitLoadLocalValue(il);
+            EmitLoadLocalValue();
             
-            if ((!value.IsValueType || value.IsNullable) && !temp.ContainsKey(value.Type))
+            if ((!value.IsValueType || value.IsNullable) && !nullableLocals.ContainsKey(value.Type))
             {
                 // Declare new local for the new nullable type.
-                temp.Add(value.Type, il.DeclareLocal(value.Type));
+                // temp.Add(value.Type, il.DeclareLocal(value.Type));
+                // TODO: check this.
+                nullableLocals.Add(value.Type, DynamicMethodBuilder.DeclareLocal(value.Type));
             }
 
             if (value.IsProperty)
             {
-                var localNullable = temp[value.Type];
+                // TODO: check if we can get rid of this nullable local stuff.
+                var nullableLocal = nullableLocals[value.Type];
                 
-                il.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
+                DynamicMethodBuilder.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
                 
-                il.Emit(OpCodes.Stloc_S, localNullable);
-                il.Emit(OpCodes.Ldloca_S, localNullable);
+                DynamicMethodBuilder.Emit(OpCodes.Stloc_S, nullableLocal);
+                DynamicMethodBuilder.Emit(OpCodes.Ldloca_S, nullableLocal);
             }
             else
-                il.Emit(OpCodes.Ldflda, value.Field);
+                DynamicMethodBuilder.Emit(OpCodes.Ldflda, value.Field);
         }
         
-        protected void EmitLoadSerializationValue(ILGenerator il, SerializationValue value)
+        protected void EmitLoadSerializationValue(SerializationValue value)
         { 
             // Push local 'value' to stack.
-            EmitLoadLocalValue(il);
+            EmitLoadLocalValue();
 
             if (value.IsProperty) 
-                il.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
+                DynamicMethodBuilder.Emit(value.Property.GetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.GetMethod);
             else 
-                il.Emit(OpCodes.Ldfld, value.Field);
+                DynamicMethodBuilder.Emit(OpCodes.Ldfld, value.Field);
         }
 
-        protected void EmitLoadLocalValue(ILGenerator il)
+        protected void EmitLoadLocalValue()
         {
-            il.Emit(SerializationType.IsClass ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, Locals[localValue]);
-        }
-
-        protected void EmitStoreValueToLocal(ILGenerator il)
-        {
-            il.Emit(OpCodes.Stloc_S, Locals[localValue]);
+            DynamicMethodBuilder.Emit(SerializationType.IsClass ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, localValue);
         }
         
-        protected void EmitStoreArgumentValueToLocal(ILGenerator il)
+        protected void EmitBoxLocalValue()
+        {
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localValue);
+            DynamicMethodBuilder.Emit(OpCodes.Box, SerializationType);
+        }
+        
+        protected void EmitStoreValueToLocal()
+        {
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localValue);
+        }
+        
+        protected void EmitStoreArgumentValueToLocal()
         {
             // Cast value to actual value, push argument 'value' to stack.
-            il.Emit(OpCodes.Ldarg_0);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);
             // Cast or unbox value.
-            il.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox_Any, SerializationType);
+            DynamicMethodBuilder.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox_Any, SerializationType);
             
-            EmitStoreValueToLocal(il);  
+            EmitStoreValueToLocal();  
         }
-
+        
         public virtual void EmitLocals()
         {
-            var il = DynamicMethod.GetILGenerator();
-            
             // Local 0: type we are serializing, create common locals for serialization. These are required across all serialization emit functions.
-            Locals[localValue] = il.DeclareLocal(SerializationType);
+            localValue = DynamicMethodBuilder.DeclareLocal(SerializationType);
         }
     }
 }

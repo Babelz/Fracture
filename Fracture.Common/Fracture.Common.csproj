@@ -88,6 +88,7 @@
         <Compile Include="Memory\Storages\StackStorageObject.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Reflection\DynamicConstructorBinder.cs" />
+        <Compile Include="Reflection\DynamicMethodBuilder.cs" />
         <Compile Include="Reflection\DynamicPropertyBinder.cs" />
         <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
         <Compile Include="Reflection\ReflectionUtil.cs" />

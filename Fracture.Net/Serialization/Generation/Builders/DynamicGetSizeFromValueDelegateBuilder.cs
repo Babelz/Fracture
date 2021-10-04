@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using Fracture.Common.Reflection;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
@@ -26,12 +27,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
         
-        #region Constant fields
-        private const int MaxLocals = 1;
-        #endregion
-        
         #region Fields
-        private readonly byte localSize;
+        private LocalBuilder localSize;
         
         private bool valuesSizeIsConst;
         #endregion
@@ -39,20 +36,16 @@ namespace Fracture.Net.Serialization.Generation.Builders
         public DynamicGetSizeFromValueDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType)
             : base(valueRanges,
                    serializationType,
-                   new DynamicMethod(
+                   new DynamicMethodBuilder(
                        $"GetSizeFromValue", 
                        typeof(ushort), 
                        new []
                        {
                            typeof(object) // Argument 0.
-                       },
-                       true
-                   ),
-                   MaxLocals)
+                       }
+                   ))
         {
             valuesSizeIsConst = true;
-            
-            localSize = AllocateNextLocalIndex();
         }
         
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
@@ -110,16 +103,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             if (ValueRanges.NullableValuesCount == 0)
                 return;
             
-            var il = DynamicMethod.GetILGenerator();
-            
             // Load bit field size to stack.
-            il.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.ContentLength.Size);
+            DynamicMethodBuilder.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.ContentLength.Size);
             // Load local size to stack.
-            il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             // Add local + bit field size.
-            il.Emit(OpCodes.Add);
+            DynamicMethodBuilder.Emit(OpCodes.Add);
             // Store result to local size.
-            il.Emit(OpCodes.Stloc_S, Locals[localSize]);
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localSize);
         }
 
         /// <summary>
@@ -133,28 +124,26 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             UpdateValuesSizeIsConstFlag(value);
 
-            var il = DynamicMethod.GetILGenerator();
-            
             // Push serialization value to stack.
-            EmitLoadSerializationValue(il, value);
+            EmitLoadSerializationValue(value);
             
             // Push null to stack.
-            il.Emit(OpCodes.Ldnull);
+            DynamicMethodBuilder.Emit(OpCodes.Ldnull);
             // Check if serialization value is null.
-            il.Emit(OpCodes.Cgt_Un);
+            DynamicMethodBuilder.Emit(OpCodes.Cgt_Un);
 
             // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
-            var notNull = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse_S, notNull);
+            var notNull = DynamicMethodBuilder.DefineLabel();
+            DynamicMethodBuilder.Emit(OpCodes.Brfalse_S, notNull);
             
             // Push value of the field to stack boxed.
-            EmitLoadSerializationValue(il, value);
+            EmitLoadSerializationValue(value);
             
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
-            il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
-            il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Stloc_S, Locals[localSize]);
-            il.MarkLabel(notNull);
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
+            DynamicMethodBuilder.Emit(OpCodes.Add);
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localSize);
+            DynamicMethodBuilder.MarkLabel(notNull);
         }
 
         /// <summary>
@@ -168,24 +157,22 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             UpdateValuesSizeIsConstFlag(value);
 
-            var il = DynamicMethod.GetILGenerator();
-            
-            EmitLoadSerializationValueAddressToStack(il, value);
+            EmitLoadSerializationValueAddressToStack(value);
             
             // Get boolean declaring if the nullable is null.
-            il.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
+            DynamicMethodBuilder.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
 
             // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
-            var notNull = il.DefineLabel();
-            il.Emit(OpCodes.Brfalse_S, notNull);
+            var notNull = DynamicMethodBuilder.DefineLabel();
+            DynamicMethodBuilder.Emit(OpCodes.Brfalse_S, notNull);
             
-            EmitLoadSerializationValue(il, value);
+            EmitLoadSerializationValue(value);
             
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
-            il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
-            il.Emit(OpCodes.Add);
-            il.Emit(OpCodes.Stloc_S, Locals[localSize]);
-            il.MarkLabel(notNull);
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
+            DynamicMethodBuilder.Emit(OpCodes.Add);
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localSize);
+            DynamicMethodBuilder.MarkLabel(notNull);
         }
 
         /// <summary>
@@ -196,43 +183,37 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// </summary>
         public void EmitGetSizeOfValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            var il = DynamicMethod.GetILGenerator();
-            
-            EmitLoadSerializationValue(il, value);
+            EmitLoadSerializationValue(value);
             
             // Call get size from value.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             
             // Push local size to stack.
-            il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             // Add local + value size.
-            il.Emit(OpCodes.Add);
+            DynamicMethodBuilder.Emit(OpCodes.Add);
             // Store results to local size.
-            il.Emit(OpCodes.Stloc_S, Locals[localSize]);
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localSize);
         }
         
         public new void EmitLocals()
         {
             base.EmitLocals();
             
-            var il = DynamicMethod.GetILGenerator();
-
-            EmitStoreArgumentValueToLocal(il);
+            EmitStoreArgumentValueToLocal();
             
             // Local 0: total size of the value.
-            Locals[localSize] = il.DeclareLocal(typeof(ushort));
+            localSize = DynamicMethodBuilder.DeclareLocal(typeof(ushort));
         }
 
         public DynamicGetSizeFromValueDelegate Build()
-        {            
-            var il = DynamicMethod.GetILGenerator();
-            
-            il.Emit(OpCodes.Ldloc_S, Locals[localSize]);
-            il.Emit(OpCodes.Ret);
+        {   
+            DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
+            DynamicMethodBuilder.Emit(OpCodes.Ret);
             
             try
             {
-                var method = (DynamicGetSizeFromValueDelegate)DynamicMethod.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate));
+                var method = (DynamicGetSizeFromValueDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate));
                 
                 if (ValueRanges.NullableValuesCount == 0 && valuesSizeIsConst)
                     return CreateGetSizeFromValueAsConstClosure(method);

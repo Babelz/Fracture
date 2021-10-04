@@ -15,8 +15,7 @@ namespace Fracture.Net.Tests.Serialization
     public class StructSerializerTests
     {
         #region Test types
-        // TODO: make this a struct and see everything burn - investigate, test and fix.
-        public class Vec2
+        public struct Vec2
         {
             #region Fields
             public readonly float X;

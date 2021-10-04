@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using Fracture.Common.Reflection;
 using NLog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
@@ -13,31 +14,27 @@ namespace Fracture.Net.Serialization.Generation.Builders
     
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
-        #region Constant fields
-        private const int MaxLocals = 1;
-        #endregion
-
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         
-        private static readonly Dictionary<Type, Action<ILGenerator>> EmitLoadDefaultValueMap = new Dictionary<Type, Action<ILGenerator>>
+        private static readonly Dictionary<Type, Action<DynamicMethodBuilder>> EmitLoadDefaultValueMap = new Dictionary<Type, Action<DynamicMethodBuilder>>
         {
-            { typeof(sbyte),   il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(byte),    il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(short),   il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(ushort),  il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(int),     il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(uint),    il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(long),    il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(ulong),   il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(float),   il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(decimal), il => il.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(string),  il => il.Emit(OpCodes.Ldstr, string.Empty) }
+            { typeof(sbyte),   dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(byte),    dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(short),   dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(ushort),  dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(int),     dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(uint),    dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(long),    dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(ulong),   dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(float),   dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(decimal), dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
+            { typeof(string),  dmb => dmb.Emit(OpCodes.Ldstr, string.Empty) }
         };
         #endregion
         
         #region Fields
-        private readonly byte localNullMask;
+        private LocalBuilder localNullMask;
         
         private int nullableValueIndex;
         #endregion
@@ -45,136 +42,123 @@ namespace Fracture.Net.Serialization.Generation.Builders
         public DynamicDeserializeDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType) 
             : base(in valueRanges, 
                    serializationType,
-                   new DynamicMethod(
+                   new DynamicMethodBuilder(
                        $"Deserialize", 
                        typeof(object), 
                        new []
                        {
                            typeof(byte[]), // Argument 0.
                            typeof(int)     // Argument 1.
-                       },
-                       true
-                   ),
-                   MaxLocals)
+                       }
+                   ))
         {
-            localNullMask = AllocateNextLocalIndex();
         }
         
-        private static void EmitLoadDefaultValue(ILGenerator il, in SerializationValue value)
+        private static void EmitLoadDefaultValue(DynamicMethodBuilder dynamicMethodBuilder, in SerializationValue value)
         {
             if (EmitLoadDefaultValueMap.TryGetValue(value.Type, out var emitLoadDefaultValue))
             {
-                emitLoadDefaultValue(il);
+                emitLoadDefaultValue(dynamicMethodBuilder);
                 
                 return;
             }
             
-            il.Emit(OpCodes.Ldnull);
+            dynamicMethodBuilder.Emit(OpCodes.Ldnull);
         }
         
         public void EmitDeserializeNullableValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            var il = DynamicMethod.GetILGenerator();
-         
             // Check if null mask contains null for this value at this index.
-            il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
-            il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
+            DynamicMethodBuilder.Emit(OpCodes.Ldloca_S, localNullMask);
+            DynamicMethodBuilder.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
+            DynamicMethodBuilder.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
             
-            var isNull = il.DefineLabel();
-            il.Emit(OpCodes.Brtrue, isNull);
+            var isNull = DynamicMethodBuilder.DefineLabel();
+            DynamicMethodBuilder.Emit(OpCodes.Brtrue, isNull);
                 
             EmitDeserializeValue(value, valueSerializerType, serializationValueIndex);
-            il.MarkLabel(isNull);
+            DynamicMethodBuilder.MarkLabel(isNull);
         }
 
         public void EmitDeserializeValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            var il = DynamicMethod.GetILGenerator();
-            
             // Push local 'value' to stack.
-            EmitLoadLocalValue(il);
+            EmitLoadLocalValue();
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_0);                                                                       
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Store deserialized value to target value.
             if (value.IsField)
-                il.Emit(OpCodes.Stfld, value.Field);
+                DynamicMethodBuilder.Emit(OpCodes.Stfld, value.Field);
             else
-                il.Emit(value.Property.SetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.SetMethod);
+                DynamicMethodBuilder.Emit(value.Property.SetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.SetMethod);
             
             if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_0);                                                                       
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);      
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType, value.Type)); 
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType, value.Type)); 
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1); 
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
-            il.Emit(OpCodes.Add);                                                              
+            DynamicMethodBuilder.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 1);
+            DynamicMethodBuilder.Emit(OpCodes.Starg_S, 1);
         }
 
         public void EmitActivation(ConstructorInfo constructor)
         {
-            var il = DynamicMethod.GetILGenerator();
-
-            il.Emit(OpCodes.Newobj, constructor);
+            DynamicMethodBuilder.Emit(OpCodes.Newobj, constructor);
                 
-            EmitStoreValueToLocal(il);
+            EmitStoreValueToLocal();
         }
 
         public void EmitLoadNullableValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            var il = DynamicMethod.GetILGenerator();
-         
             // Check if null mask contains null for this value at this index.
-            il.Emit(OpCodes.Ldloca_S, Locals[localNullMask]);
-            il.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
-            il.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
+            DynamicMethodBuilder.Emit(OpCodes.Ldloca_S, localNullMask);
+            DynamicMethodBuilder.Emit(OpCodes.Ldc_I4, nullableValueIndex++);
+            DynamicMethodBuilder.Emit(OpCodes.Call, typeof(BitField).GetMethod(nameof(BitField.GetBit))!);
             
-            var isNull = il.DefineLabel();
-            il.Emit(OpCodes.Brtrue, isNull);
+            var isNull = DynamicMethodBuilder.DefineLabel();
+            DynamicMethodBuilder.Emit(OpCodes.Brtrue, isNull);
                 
             EmitLoadValue(value, valueSerializerType, serializationValueIndex);
-            il.MarkLabel(isNull);
+            DynamicMethodBuilder.MarkLabel(isNull);
             
             // Load default value in case the value is marked null in the null mask.
-            EmitLoadDefaultValue(il, value);
+            EmitLoadDefaultValue(DynamicMethodBuilder, value);
         }
 
         public void EmitLoadValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
         {
-            var il = DynamicMethod.GetILGenerator();
-            
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_0);                                                                       
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType, value.Type));
             
             // Push 'buffer' to stack. 
-            il.Emit(OpCodes.Ldarg_0);                                                                       
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);                                                                       
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);      
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);      
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(valueSerializerType)); 
             // Push 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1); 
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1); 
             // Add offset + size.
-            il.Emit(OpCodes.Add);                                                              
+            DynamicMethodBuilder.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 1);
+            DynamicMethodBuilder.Emit(OpCodes.Starg_S, 1);
         }
 
         public override void EmitLocals()
@@ -183,45 +167,41 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             if (ValueRanges.NullableValuesCount == 0) return;
             
-            var il = DynamicMethod.GetILGenerator();
-            
-            Locals[localNullMask] = il.DeclareLocal(typeof(BitField));
+            localNullMask = DynamicMethodBuilder.DeclareLocal(typeof(BitField));
             
             // Load argument 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_0);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);
             // Call deserialize.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(typeof(BitFieldSerializer)));
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetDeserializeMethodInfo(typeof(BitFieldSerializer)));
             
             // Store deserialized bitfield to local 'nullMask'.
-            il.Emit(OpCodes.Stloc_S, Locals[localNullMask]);
+            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localNullMask);
             
             // Load argument 'buffer' to stack.
-            il.Emit(OpCodes.Ldarg_0);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);
             // Call 'GetSizeFromBuffer', push size to stack.
-            il.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(typeof(BitFieldSerializer)));
+            DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromBufferMethodInfo(typeof(BitFieldSerializer)));
             // Load argument 'offset' to stack.
-            il.Emit(OpCodes.Ldarg_1);
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_1);
             // Add offset + size.
-            il.Emit(OpCodes.Add);                                                              
+            DynamicMethodBuilder.Emit(OpCodes.Add);                                                              
             // Store current offset to argument 'offset'.
-            il.Emit(OpCodes.Starg_S, 1);
+            DynamicMethodBuilder.Emit(OpCodes.Starg_S, 1);
         }
         
         public DynamicDeserializeDelegate Build()
         {
-            var il = DynamicMethod.GetILGenerator();
-            
-            EmitLoadLocalValue(il);
-
-            il.Emit(OpCodes.Ret);
+            EmitBoxLocalValue();
+                
+            DynamicMethodBuilder.Emit(OpCodes.Ret);
             
             try
             {
-                var method = (DynamicDeserializeDelegate)DynamicMethod.CreateDelegate(typeof(DynamicDeserializeDelegate));
+                var method = (DynamicDeserializeDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicDeserializeDelegate));
                 
                 return (buffer, offset) =>
                 {
