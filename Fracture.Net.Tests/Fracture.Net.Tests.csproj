@@ -288,7 +288,6 @@
         <Compile Include="Serialization\Generation\DynamicObjectSerializerProgramTests.cs" />
         <Compile Include="Serialization\ListSerializerTests.cs" />
         <Compile Include="Serialization\StructSerializerTests.cs" />
-        <Compile Include="Serialization\StructureSerializerTests.cs" />
         <Compile Include="Serialization\StringSerializerTests.cs" />
         <Compile Include="Serialization\ValueSerializerTests.cs" />
     </ItemGroup>

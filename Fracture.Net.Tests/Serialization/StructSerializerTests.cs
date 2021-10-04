@@ -15,7 +15,7 @@ namespace Fracture.Net.Tests.Serialization
     public class StructSerializerTests
     {
         #region Test types
-        public struct Vec2
+        private struct Vec2
         {
             #region Fields
             public readonly float X;
@@ -29,13 +29,52 @@ namespace Fracture.Net.Tests.Serialization
             }
         }
 
-        public sealed class ClassComposedOfStructures
+        private sealed class ClassComposedOfStructs
         {
             #region Properties
             public Vec2 X;
             public Vec2? Y;
             public Vec2? Z;
             #endregion
+        }
+        
+        private struct Inner
+        {
+            #region Fields
+            public Inner1 Value;
+            #endregion
+        }
+        
+        private struct Inner1
+        {
+            #region Fields
+            public Inner2 Inner;
+            #endregion
+        }
+        
+        private struct Inner2
+        {
+            #region Fields
+            public Inner3 Inner;
+            #endregion
+        }
+        
+        private struct Inner3
+        {
+            #region Fields
+            public Inner4 Inner;
+            #endregion
+        }
+        
+        private struct Inner4
+        {
+            #region Fields
+            public Vec2 Value;
+            #endregion
+        }
+        
+        private struct DeepInnerTestStruct
+        {
         }
         #endregion
 
@@ -75,9 +114,15 @@ namespace Fracture.Net.Tests.Serialization
                                                        .Map());
             
             CompileSerializer(ObjectSerializationMapper.Create()
-                                                       .FromType<ClassComposedOfStructures>()
+                                                       .FromType<ClassComposedOfStructs>()
                                                        .PublicFields()
                                                        .Map());
+            
+            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner4>().PublicFields().Map());
+            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner3>().PublicFields().Map());
+            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner2>().PublicFields().Map());
+            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner1>().PublicFields().Map());
+            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner>().PublicFields().Map());
         }
         
         [Fact]
@@ -87,7 +132,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Structures_Composed_Of_Structures_Back_And_Forth()
         {
-            var testValueIn = new ClassComposedOfStructures()
+            var testValueIn = new ClassComposedOfStructs()
             {
                 X = new Vec2(1.0f, 2.0f),
                 Z = new Vec2(3.0f, 4.0f)
@@ -97,7 +142,36 @@ namespace Fracture.Net.Tests.Serialization
             
             StructSerializer.Serialize(testValueIn, buffer, 0);
             
-            var testValueOut = (ClassComposedOfStructures)StructSerializer.Deserialize(buffer, 0);
+            var testValueOut = StructSerializer.Deserialize<ClassComposedOfStructs>(buffer, 0);
+            
+            Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
+        }
+        
+        [Fact]
+        public void Serializes_Complex_Nested_Structures_Composed_Of_Structures_Back_And_Forth()
+        {
+            var testValueIn = new Inner()
+            {
+                Value = new Inner1()
+                {
+                    Inner = new Inner2()
+                    {
+                        Inner = new Inner3()
+                        {
+                            Inner = new Inner4()
+                            {
+                                Value = new Vec2(float.MinValue, float.MaxValue)
+                            }
+                        }
+                    }
+                }
+            };
+            
+            var buffer = new byte[128];
+            
+            StructSerializer.Serialize(testValueIn, buffer, 0);
+            
+            var testValueOut = StructSerializer.Deserialize<Inner>(buffer, 0);
             
             Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
         }

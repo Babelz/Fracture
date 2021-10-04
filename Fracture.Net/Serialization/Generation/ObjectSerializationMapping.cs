@@ -525,6 +525,7 @@ namespace Fracture.Net.Serialization.Generation
             // Ensure activation is possible.
             var constructor            = GetObjectActivationConstructor();
             var objectActivationValues = GetObjectActivationValues();
+            // TODO: fix object activation of structs with no constructor.
             var objectActivator        = new ObjectActivator(constructor, objectActivationValues.ToList().AsReadOnly());
             
             // Remove all fields and properties that are mapped by the object activator.

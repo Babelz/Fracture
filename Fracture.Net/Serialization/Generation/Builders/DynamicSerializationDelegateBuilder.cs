@@ -56,9 +56,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             if ((!value.IsValueType || value.IsNullable) && !nullableLocals.ContainsKey(value.Type))
             {
-                // Declare new local for the new nullable type.
-                // temp.Add(value.Type, il.DeclareLocal(value.Type));
-                // TODO: check this.
                 nullableLocals.Add(value.Type, DynamicMethodBuilder.DeclareLocal(value.Type));
             }
 

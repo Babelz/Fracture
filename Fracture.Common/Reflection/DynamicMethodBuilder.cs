@@ -14,25 +14,18 @@ namespace Fracture.Common.Reflection
         #region Fields
         private readonly DynamicMethod dynamicMethod;
         private readonly ILGenerator il;
-        
-        private readonly List<LocalBuilder> locals;
         #endregion
         
         public DynamicMethodBuilder(string name, Type returnType, Type[] parameterTypes)
         {
             dynamicMethod = new DynamicMethod(name, returnType, parameterTypes, true);
-            locals        = new List<LocalBuilder>();
-            
+
             il = dynamicMethod.GetILGenerator();
         }
 
         public LocalBuilder DeclareLocal(Type type)
         {
-            var local = il.DeclareLocal(type);
-            
-            locals.Add(local);
-            
-            return local;
+            return il.DeclareLocal(type);    
         }
         
         public void Emit(OpCode op)
