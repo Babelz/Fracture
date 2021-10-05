@@ -1,14 +1,6 @@
 using System;
-using System.Buffers;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Xml.Schema;
 using Fracture.Common.Memory;
-using Fracture.Common.Reflection;
-using Perfolizer.Mathematics.RangeEstimators;
 
 namespace Fracture.Net.Serialization
 {

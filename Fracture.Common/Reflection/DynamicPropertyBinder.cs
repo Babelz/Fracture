@@ -19,7 +19,7 @@ namespace Fracture.Common.Reflection
             if (setMethod == null)
                 throw new InvalidOperationException("property does not have set method");
             
-            var parameterType = setMethod.GetParameters().FirstOrDefault().ParameterType;
+            var parameterType = setMethod.GetParameters().FirstOrDefault()!.ParameterType;
             
             var dynamicMethod = new DynamicMethod("Set", typeof(void), new[] { typeof(object), typeof(object) }, true);
             var il            = dynamicMethod.GetILGenerator();

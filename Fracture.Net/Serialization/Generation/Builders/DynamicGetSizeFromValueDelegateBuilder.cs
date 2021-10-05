@@ -120,7 +120,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///     if (actual.[op-value-name] != null)
         ///         size += serializer.GetSizeFromValue(actual.[op-value-name])
         /// </summary>
-        public void EmitGetSizeOfNonValueTypeValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
+        public void EmitGetSizeOfNonValueTypeValue(in SerializationValue value, Type valueSerializerType)
         {
             UpdateValuesSizeIsConstFlag(value);
 
@@ -153,7 +153,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         ///     if (actual.[op-value-name].HasValue)
         ///         size += serializer.GetSizeFromValue(actual.[op-value-name].Value)
         /// </summary>
-        public void EmitGetSizeOfNullableValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
+        public void EmitGetSizeOfNullableValue(in SerializationValue value, Type valueSerializerType)
         {
             UpdateValuesSizeIsConstFlag(value);
 
@@ -181,7 +181,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// Translates roughly to:
         ///     size += serializer.GetSizeFromValue(actual.[op-value-name])
         /// </summary>
-        public void EmitGetSizeOfValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
+        public void EmitGetSizeOfValue(in SerializationValue value, Type valueSerializerType)
         {
             EmitLoadSerializationValue(value);
             

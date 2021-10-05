@@ -304,21 +304,19 @@ namespace Fracture.Engine.Scripting
         
         public bool TryLoad(string name, out T script)
         {
-            if (!scripts.TryGetValue(name, out script))
-                script = default;
-            else
+            if (!scripts.TryGetValue(name, out script)) 
+                return false;
+            
+            if (loads[name] == 0)
             {
-                if (loads[name] == 0)
-                {
-                    script.OnLoad();
+                script.OnLoad();
 
-                    loads[name] += 1;
-                }
-
-                script.Unloaded += Script_Unloaded;
-
-                loaded.Add(script);
+                loads[name] += 1;
             }
+
+            script.Unloaded += Script_Unloaded;
+
+            loaded.Add(script);
 
             return script != default;
         }

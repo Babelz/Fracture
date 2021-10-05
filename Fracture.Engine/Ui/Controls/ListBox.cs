@@ -247,9 +247,6 @@ namespace Fracture.Engine.Ui.Controls
             var destination     = GetRenderDestinationRectangle();
             var backgroundScale = GetBackgroundScale();
             
-            // If we are collapsed, draw arrow flipped horizontally.
-            var effect = collapsed ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
-            
             // Draw box background.
             fragment.DrawSprite(new Vector2(destination.X, destination.Y),
                                 Vector2.One,

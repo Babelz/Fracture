@@ -3,10 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
-using Fracture.Net.Serialization.Generation.Builders;
-using Fracture.Net.Tests.Serialization.Generation;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using Xunit;
 
 namespace Fracture.Net.Tests.Serialization
@@ -15,10 +12,12 @@ namespace Fracture.Net.Tests.Serialization
     public class StructSerializerTests
     {
         #region Test types
-        private struct Vec2
+        private readonly struct Vec2
         {
             #region Fields
+            // ReSharper disable once MemberCanBePrivate.Local - disabled for testing.
             public readonly float X;
+            // ReSharper disable once MemberCanBePrivate.Local - disabled for testing.
             public readonly float Y;
             #endregion
 
@@ -71,10 +70,6 @@ namespace Fracture.Net.Tests.Serialization
             #region Fields
             public Vec2 Value;
             #endregion
-        }
-        
-        private struct DeepInnerTestStruct
-        {
         }
         #endregion
 

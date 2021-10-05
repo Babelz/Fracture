@@ -237,7 +237,7 @@ namespace Fracture.Engine.Ui.Controls
 
         private void AcceptClickInput()
         {
-            var (left, center, right, slider) = GetActualRenderDestinationRectangles();
+            var (left, center, right, _) = GetActualRenderDestinationRectangles();
 
             if (!Mouse.IsPressed(MouseButton.Left) || !Mouse.IsHovering(center)) return;
             

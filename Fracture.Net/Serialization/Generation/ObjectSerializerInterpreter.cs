@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Fracture.Common;
 using Fracture.Net.Serialization.Generation.Builders;
-using NLog;
 
 namespace Fracture.Net.Serialization.Generation
 {
@@ -134,12 +134,20 @@ namespace Fracture.Net.Serialization.Generation
         #endregion
 
         public DefaultActivationOp(ConstructorInfo constructor)
-        {
-            Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
-        }
-
+            => Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
+        
         public override string ToString()
             => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
+    }
+    
+    /// <summary>
+    /// Structure representing operation that causes structure to be instantiated without calling any constructor. This is used in cases where structures
+    /// do not define constructor as they can't have parameterless default constructor.
+    /// </summary>
+    public readonly struct DefaultStructureActivationOp : ISerializationOp
+    {
+        public override string ToString()
+            => $"{{ op: {nameof(DefaultStructureActivationOp)}, ctor: none }}";
     }
 
     /// <summary>
@@ -255,7 +263,7 @@ namespace Fracture.Net.Serialization.Generation
     public static class ObjectSerializerCompiler
     {        
         /// <summary>
-        /// Compiles deserialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
+        /// Compiles deserialization instructions from given mappings.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileDeserializationOps(in ObjectSerializationMapping mapping)
@@ -271,8 +279,13 @@ namespace Fracture.Net.Serialization.Generation
                             )
                 );
             else
-                ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
-
+            {
+                if (mapping.Type.IsValueType)
+                    ops.Add(new DefaultStructureActivationOp());
+                else
+                    ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
+            }
+            
             ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
                     v, 
                     ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
@@ -283,7 +296,7 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
-        /// Compiles serialization instructions from given mappings to <see cref="ObjectSerializationProgram"/>.
+        /// Compiles serialization instructions from given mappings.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
@@ -292,7 +305,7 @@ namespace Fracture.Net.Serialization.Generation
                ).ToList();
         
         /// <summary>
-        /// Compiles both serialization and deserialization instructions from given mappings to <see cref="ObjectSerializerProgram"/>.
+        /// Compiles both serialization and deserialization instructions from given mappings.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
@@ -304,10 +317,6 @@ namespace Fracture.Net.Serialization.Generation
     /// </summary>
     public static class ObjectSerializerInterpreter
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         public static ObjectSerializationValueRanges InterpretObjectSerializationValueRanges(Type type, IEnumerable<ISerializationOp> ops)
         {
             var valueOps                = ops.Where(o => o is SerializeValueOp).Cast<SerializeValueOp>().ToList();
@@ -359,12 +368,16 @@ namespace Fracture.Net.Serialization.Generation
                         foreach (var parameter in paop.ParameterValueOps)
                         {
                             if (parameter.Value.IsNullAssignable) 
-                                builder.EmitLoadNullableValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
+                                builder.EmitLoadNullableValue(parameter.Value, parameter.ValueSerializerType);
                             else
-                                builder.EmitLoadValue(parameter.Value, parameter.ValueSerializerType, serializationValueIndex++);
+                                builder.EmitLoadValue(parameter.Value, parameter.ValueSerializerType);
                         }    
                         
                         builder.EmitActivation(paop.Constructor);
+                        break;
+                    default:
+                        if (op.GetType() != typeof(DefaultStructureActivationOp))
+                            throw new InvalidOrUnsupportedException("op", op);
                         break;
                 }
             }
@@ -387,11 +400,11 @@ namespace Fracture.Net.Serialization.Generation
                 var op = (SerializeValueOp)ops[serializationValueIndex];
 
                 if (!op.Value.IsValueType) 
-                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, op.ValueSerializerType, serializationValueIndex);
+                    builder.EmitGetSizeOfNonValueTypeValue(op.Value, op.ValueSerializerType);
                 else if (op.Value.IsNullable)
-                    builder.EmitGetSizeOfNullableValue(op.Value, op.ValueSerializerType, serializationValueIndex);
+                    builder.EmitGetSizeOfNullableValue(op.Value, op.ValueSerializerType);
                 else
-                    builder.EmitGetSizeOfValue(op.Value, op.ValueSerializerType, serializationValueIndex);
+                    builder.EmitGetSizeOfValue(op.Value, op.ValueSerializerType);
             }
             
             return builder.Build();

@@ -289,7 +289,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         private void Button_Click(object sender, EventArgs e)
-            => ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl).UserData));
+            => ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl)!.UserData));
         #endregion
 
         private void UpdateSelectedPosition(IControl control)

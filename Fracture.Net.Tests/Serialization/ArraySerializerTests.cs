@@ -1,24 +1,16 @@
-using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Fracture.Net.Serialization;
-using Iced.Intel;
 using Xunit;
-using Xunit.Abstractions;
-using Xunit.Sdk;
 
 namespace Fracture.Net.Tests.Serialization
 {
     [Trait("Category", "Serialization")]
     public sealed class ArraySerializerTests
     {
-        #region Fields
-        private readonly ITestOutputHelper output;
-        #endregion
-        
-        public ArraySerializerTests(ITestOutputHelper output)
-            => this.output = output;
+        public ArraySerializerTests()
+        {
+        }
         
         [Fact]
         public void Serialize_Throws_If_Array_Type_Is_Unsupported()
@@ -35,7 +27,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Non_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
-            var numbers = new int[4]
+            var numbers = new[]
             {
                 16,
                 32,
@@ -67,7 +59,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
-            var numbers = new int?[8]
+            var numbers = new int?[]
             {
                 0,
                 1,
@@ -123,7 +115,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
-            var numbersIn = new int[4]
+            var numbersIn = new[]
             {
                 int.MinValue,
                 128,
@@ -143,7 +135,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
-            var numbersIn = new int?[8]
+            var numbersIn = new int?[]
             {
                 0,
                 1,

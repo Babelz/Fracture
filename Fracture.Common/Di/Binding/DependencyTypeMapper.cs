@@ -12,7 +12,7 @@ namespace Fracture.Common.Di.Binding
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasDefaultConstructor(Type type)
             => type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                   .Any(c => c.GetParameters()?.Length == 0);
+                   .Any(c => c.GetParameters().Length == 0);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasBindingConstructor(Type type)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Fracture.Common.Memory;
 
 namespace Fracture.Net.Serialization
 {
@@ -122,8 +121,6 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
         
-        private static readonly object PadLock = new Object();
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool IsNewNullableType(Type type)
             => !SerializeDelegates.ContainsKey(type);

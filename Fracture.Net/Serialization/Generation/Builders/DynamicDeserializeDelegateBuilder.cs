@@ -121,7 +121,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitStoreValueToLocal();
         }
 
-        public void EmitLoadNullableValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
+        public void EmitLoadNullableValue(in SerializationValue value, Type valueSerializerType)
         {
             // Check if null mask contains null for this value at this index.
             DynamicMethodBuilder.Emit(OpCodes.Ldloca_S, localNullMask);
@@ -131,14 +131,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             var isNull = DynamicMethodBuilder.DefineLabel();
             DynamicMethodBuilder.Emit(OpCodes.Brtrue, isNull);
                 
-            EmitLoadValue(value, valueSerializerType, serializationValueIndex);
+            EmitLoadValue(value, valueSerializerType);
             DynamicMethodBuilder.MarkLabel(isNull);
             
             // Load default value in case the value is marked null in the null mask.
             EmitLoadDefaultValue(DynamicMethodBuilder, value);
         }
 
-        public void EmitLoadValue(in SerializationValue value, Type valueSerializerType, int serializationValueIndex)
+        public void EmitLoadValue(in SerializationValue value, Type valueSerializerType)
         {
             // Push 'buffer' to stack. 
             DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);                                                                       

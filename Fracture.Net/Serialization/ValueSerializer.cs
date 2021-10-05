@@ -301,7 +301,7 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ValidateGenericSchema(Type valueSerializerType, GenericValueSerializerAttribute valueSerializerAttribute)
+        private static void ValidateGenericSchema(Type valueSerializerType)
         {
             if (Delegate.CreateDelegate(typeof(SupportsTypeDelegate), ValueSerializerRegistry.GetSupportsTypeMethodInfo(valueSerializerType), false) == null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.SupportsTypeAttribute)} does not match the " +
@@ -346,7 +346,7 @@ namespace Fracture.Net.Serialization
             if (valueSerializerAttribute != null)
                 ValidateNonGenericSchema(valueSerializerType, valueSerializerAttribute);
             else
-                ValidateGenericSchema(valueSerializerType, genericValueSerializerAttribute);
+                ValidateGenericSchema(valueSerializerType);
         }
         
         public static void ValidateSchemas(IEnumerable<Type> valueSerializerTypes)

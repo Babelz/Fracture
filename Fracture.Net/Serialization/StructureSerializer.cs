@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using Fracture.Net.Serialization.Generation.Builders;
@@ -32,7 +31,7 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, DynamicGetSizeFromValueDelegate> GetSizeFromValueDelegates 
             = new Dictionary<Type, DynamicGetSizeFromValueDelegate>();
         
-        private static long NextSerializationTypeId = 0;
+        private static long NextSerializationTypeId;
         #endregion
         
         

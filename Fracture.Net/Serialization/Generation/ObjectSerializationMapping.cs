@@ -208,7 +208,7 @@ namespace Fracture.Net.Serialization.Generation
 
         public ObjectActivator(ConstructorInfo constructor, IReadOnlyCollection<SerializationValue> values)
         {
-            Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
+            Constructor = constructor;
             Values      = values;
         }
     }
@@ -321,7 +321,7 @@ namespace Fracture.Net.Serialization.Generation
                 constructor = serializationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
                                                .FirstOrDefault(c => c.GetParameters().Length == 0);
                     
-                if (constructor == null)
+                if (!serializationType.IsValueType && constructor == null)
                     throw new InvalidOperationException($"type {serializationType.Name} has no parameterless constructor");
             }
             else
@@ -525,7 +525,6 @@ namespace Fracture.Net.Serialization.Generation
             // Ensure activation is possible.
             var constructor            = GetObjectActivationConstructor();
             var objectActivationValues = GetObjectActivationValues();
-            // TODO: fix object activation of structs with no constructor.
             var objectActivator        = new ObjectActivator(constructor, objectActivationValues.ToList().AsReadOnly());
             
             // Remove all fields and properties that are mapped by the object activator.

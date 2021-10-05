@@ -293,7 +293,7 @@ namespace Fracture.Engine.Physics
             body.ResetForces();
         }
 
-        private void ApplyConstantForces(int id, IPhysicsSimulationTime time)
+        private void ApplyConstantForces(int id)
         {
             ref var body = ref bodies.WithId(id);
 
@@ -315,7 +315,7 @@ namespace Fracture.Engine.Physics
             }
 
             foreach (var id in node.Dynamics.Concat(node.Sensors))
-                ApplyConstantForces(id, time);
+                ApplyConstantForces(id);
         }
         
         private void ApplyForces(int id, IPhysicsSimulationTime time)
@@ -465,7 +465,7 @@ namespace Fracture.Engine.Physics
         public void Update(int id)
         {
             // Add constant world gravity and wind forces.
-            ApplyConstantForces(id, Time);
+            ApplyConstantForces(id);
             
             // Sweep quad tree and re-position lost bodies.
             RelocateLostBody(id, Time);

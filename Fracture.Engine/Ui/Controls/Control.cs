@@ -620,8 +620,8 @@ namespace Fracture.Engine.Ui.Controls
                 var x = MathHelper.Clamp(myBounds.X, parentBounds.Left, parentBounds.Right);
                 var y = MathHelper.Clamp(myBounds.Y, parentBounds.Top, parentBounds.Bottom);
 
-                var w = 0.0f;
-                var h = 0.0f;
+                float w; 
+                float h; 
 
                 // Clamp vertical.
                 if (myBounds.Top < parentBounds.Top)
