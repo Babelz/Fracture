@@ -5,7 +5,9 @@ using System.Reflection.Emit;
 namespace Fracture.Common.Reflection
 {
     /// <summary>
-    /// Utility class for generating dynamic methods.
+    /// Wrapper class for <see cref="DynamicMethod"/>.
+    ///
+    /// TODO: implement ToString and logging of generated code.
     /// </summary>
     public class DynamicMethodBuilder
     {

@@ -1,6 +1,8 @@
 using System.Linq;
 using System.Reflection;
 using Fracture.Net.Serialization;
+using Fracture.Net.Serialization.Generation;
+using Fracture.Net.Serialization.Generation.Builders;
 using Xunit;
 
 namespace Fracture.Net.Tests.Serialization
@@ -8,6 +10,12 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class ArraySerializerTests
     {
+        static ArraySerializerTests()
+        {
+            ObjectSerializationSchema.DefineArray(typeof(int[]));
+            ObjectSerializationSchema.DefineArray(typeof(int?[]));
+        }
+        
         public ArraySerializerTests()
         {
         }

@@ -34,7 +34,6 @@ namespace Fracture.Net.Serialization
         private static long NextSerializationTypeId;
         #endregion
         
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort InternalGetSizeFromValue(Type serializationType, object value)
             => checked((ushort)(GetSizeFromValueDelegates[serializationType](value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
@@ -71,10 +70,10 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RegisterStructureTypeSerializer(Type serializationType,
-                                                           DynamicSerializeDelegate serializeDelegate,
-                                                           DynamicDeserializeDelegate deserializeDelegate,
-                                                           DynamicGetSizeFromValueDelegate getSizeFromValueDelegate)
+        public static void RegisterStructTypeSerializer(Type serializationType,
+                                                        DynamicSerializeDelegate serializeDelegate,
+                                                        DynamicDeserializeDelegate deserializeDelegate,
+                                                        DynamicGetSizeFromValueDelegate getSizeFromValueDelegate)
         {
             if (SupportsType(serializationType))
                 throw new InvalidOperationException("serialization type already registered")

@@ -18,6 +18,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
+
+        public DynamicObjectSerializerProgramTests()
+        {
+        }
         
         [Fact]
         public void Constructor_Should_Throw_If_Program_Serializer_Counts_Differ()

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fracture.Net.Serialization;
+using Fracture.Net.Serialization.Generation.Builders;
 using Xunit;
 
 namespace Fracture.Net.Tests.Serialization
@@ -7,6 +8,12 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public class DictionarySerializerTests
     {
+        public DictionarySerializerTests()
+        {
+            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<string, int>));
+            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<string, int?>));
+        }
+        
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {

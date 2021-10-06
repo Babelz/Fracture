@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
+using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
+using Fracture.Net.Serialization.Generation.Builders;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -69,6 +71,21 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
+
+        static DynamicSerializationTests()
+        {
+            ObjectSerializationSchema.DefineArray(typeof(string[]));
+            
+            ObjectSerializationSchema.DefineNullable(typeof(int?));
+            
+            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<int, int>));
+            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<string, float>));
+            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<int, string?>));
+        }
+        
+        public DynamicSerializationTests()
+        {
+        }
         
         [Fact()]
         public void Serialization_Back_And_Forth_Works_With_All_Field_Types()
@@ -128,7 +145,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                     { 3, "hello!" },
                 }
             };
-            
+
             var buffer = new byte[256];
             
             serializeDelegate(testObjectIn, buffer, 0);

@@ -1,7 +1,9 @@
+using System;
 using System.Linq;
 using Fracture.Common.Memory;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
+using Fracture.Net.Serialization.Generation.Builders;
 using Xunit;
 
 // Fields and properties are read and written dynamically, warning disabled for testing.
@@ -156,6 +158,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion    
         }
         #endregion
+
+        static DynamicDeserializeTests()
+        {
+            ObjectSerializationSchema.DefineNullable(typeof(int?));
+            ObjectSerializationSchema.DefineArray(typeof(int?[]));
+            ObjectSerializationSchema.DefineArray(typeof(int[]));
+        }
+        
+        public DynamicDeserializeTests()
+        {
+        }
         
         [Fact]
         public void Should_Deserialize_Value_Type_Fields()

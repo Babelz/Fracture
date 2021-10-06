@@ -29,11 +29,11 @@ namespace Fracture.Net.Serialization
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNewArrayType(Type type)
+        public static bool IsNewArrayType(Type type)
             => !SerializeDelegates.ContainsKey(type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RegisterArrayTypeSerializer(Type serializationType)
+        public static void RegisterArrayTypeSerializer(Type serializationType)
         {
             var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
@@ -260,11 +260,11 @@ namespace Fracture.Net.Serialization
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNewType(Type type)
+        public static bool IsNewSerializationType(Type type)
             => !SerializeDelegates.ContainsKey(type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RegisterTypeSerializer(Type serializationType)
+        public static void RegisterNewSerializationType(Type serializationType)
         {
             var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
@@ -283,16 +283,9 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte[] buffer, int offset)
         {
-            var keyType = typeof(TKey);
-            
-            if (IsNewType(keyType))
-                RegisterTypeSerializer(keyType);
-
+            var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
-            
-            if (IsNewType(valueType))
-                RegisterTypeSerializer(valueType);
-            
+
             // Leave 2-bytes from the beginning of the object for content length.
             var contentLengthOffset = offset;
             offset += Protocol.ContentLength.Size;
@@ -322,16 +315,9 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static KeyValuePair<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
         {
-            var keyType = typeof(TKey);
-            
-            if (IsNewType(keyType))
-                RegisterTypeSerializer(keyType);
-
+            var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
-            
-            if (IsNewType(valueType))
-                RegisterTypeSerializer(valueType);
-            
+
             // Skip to serialization values.
             offset += Protocol.ContentLength.Size;
             

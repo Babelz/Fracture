@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Net.Serialization
 {
@@ -122,11 +123,11 @@ namespace Fracture.Net.Serialization
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNewNullableType(Type type)
+        public static bool IsNewNullableType(Type type)
             => !SerializeDelegates.ContainsKey(type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RegisterNullableTypeSerializer(Type serializationType)
+        public static void RegisterNullableTypeSerializer(Type serializationType)
         {
             var underlyingSerializationType   = ValueSerializer.GetUnderlyingSerializationType(serializationType);
             var underlyingValueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(underlyingSerializationType);
@@ -162,9 +163,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T? value, byte[] buffer, int offset) where T : struct
         {
-            if (IsNewNullableType(typeof(T?)))
-                RegisterNullableTypeSerializer(typeof(T?));
-            
             if (!value.HasValue)
                 return;
             
@@ -178,9 +176,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static T? Deserialize<T>(byte[] buffer, int offset) where T : struct
         {
-            if (IsNewNullableType(typeof(T?)))
-                RegisterNullableTypeSerializer(typeof(T?));
-            
             return ((DeserializeDelegate<T?>)DeserializeDelegates[typeof(T?)])(buffer, offset);
         }
 
@@ -190,9 +185,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer<T>(byte[] buffer, int offset) where T : struct
         {
-            if (IsNewNullableType(typeof(T?)))
-                RegisterNullableTypeSerializer(typeof(T?));
-            
             return ((GetSizeFromBufferDelegate)GetSizeFromBufferDelegates[typeof(T?)])(buffer, offset);
         }
         
@@ -202,9 +194,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T? value) where T : struct
         {
-            if (IsNewNullableType(typeof(T?)))
-                RegisterNullableTypeSerializer(typeof(T?));
-            
             return (ushort)(!value.HasValue ? 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value));
         }
     }

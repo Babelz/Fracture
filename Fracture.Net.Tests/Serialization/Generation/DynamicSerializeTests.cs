@@ -260,6 +260,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         #endregion
 
+        public DynamicSerializeTests()
+        {
+        }
+        
         [Fact]
         public void Should_Serialize_Fields()
         {

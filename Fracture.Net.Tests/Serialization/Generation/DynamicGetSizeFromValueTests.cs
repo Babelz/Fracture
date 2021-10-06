@@ -1,5 +1,7 @@
 using System.Linq;
+using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
+using Fracture.Net.Serialization.Generation.Builders;
 using Xunit;
 #pragma warning disable 8632
 
@@ -108,6 +110,17 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
+
+        static DynamicGetSizeFromValueTests()
+        {
+            ObjectSerializationSchema.DefineNullable(typeof(int?));
+            ObjectSerializationSchema.DefineArray(typeof(int?[]));
+            ObjectSerializationSchema.DefineArray(typeof(int[]));
+        }
+        
+        public DynamicGetSizeFromValueTests()
+        {
+        }
         
         [Fact]
         public void Should_Compute_Size_Of_Non_Value_Type_Values_Correctly()

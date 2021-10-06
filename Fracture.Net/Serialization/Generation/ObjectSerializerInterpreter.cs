@@ -144,10 +144,10 @@ namespace Fracture.Net.Serialization.Generation
     /// Structure representing operation that causes structure to be instantiated without calling any constructor. This is used in cases where structures
     /// do not define constructor as they can't have parameterless default constructor.
     /// </summary>
-    public readonly struct DefaultStructureActivationOp : ISerializationOp
+    public readonly struct DefaultStructActivationOp : ISerializationOp
     {
         public override string ToString()
-            => $"{{ op: {nameof(DefaultStructureActivationOp)}, ctor: none }}";
+            => $"{{ op: {nameof(DefaultStructActivationOp)}, ctor: none }}";
     }
 
     /// <summary>
@@ -281,7 +281,7 @@ namespace Fracture.Net.Serialization.Generation
             else
             {
                 if (mapping.Type.IsValueType)
-                    ops.Add(new DefaultStructureActivationOp());
+                    ops.Add(new DefaultStructActivationOp());
                 else
                     ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
             }
@@ -375,10 +375,11 @@ namespace Fracture.Net.Serialization.Generation
                         
                         builder.EmitActivation(paop.Constructor);
                         break;
-                    default:
-                        if (op.GetType() != typeof(DefaultStructureActivationOp))
-                            throw new InvalidOrUnsupportedException("op", op);
+                    case DefaultStructActivationOp _:
+                        // NOP, no need to emit any special instructions.
                         break;
+                    default:
+                        throw new InvalidOrUnsupportedException("op", op);
                 }
             }
             

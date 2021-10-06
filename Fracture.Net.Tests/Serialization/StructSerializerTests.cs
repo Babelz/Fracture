@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Linq;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
+using Fracture.Net.Serialization.Generation.Builders;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -72,57 +73,32 @@ namespace Fracture.Net.Tests.Serialization
             #endregion
         }
         #endregion
-
-        private static void CompileSerializer(ObjectSerializationMapping mapping)
-        {
-            var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
-            var serializationOps   = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
-
-            var deserializationValueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(mapping.Type, deserializationOps);
-            var serializationValueRanges   = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(mapping.Type, serializationOps);
-
-            StructSerializer.RegisterStructureTypeSerializer(
-                mapping.Type,
-                ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
-                    serializationValueRanges,
-                    mapping.Type,
-                    serializationOps
-                ),
-                ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
-                    deserializationValueRanges,
-                    mapping.Type,
-                    deserializationOps
-                ),
-                ObjectSerializerInterpreter.InterpretDynamicGetSizeFromValueDelegate(
-                    serializationValueRanges,
-                    mapping.Type,
-                    serializationOps
-                ));
-        }
-
+        
         static StructSerializerTests()
         {
-            CompileSerializer(ObjectSerializationMapper.Create()
-                                                       .FromType<Vec2>()
-                                                       .PublicFields()
-                                                       .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
-                                                       .Map());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create()
+                                                                            .FromType<Vec2>()
+                                                                            .PublicFields()
+                                                                            .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y")));
             
-            CompileSerializer(ObjectSerializationMapper.Create()
-                                                       .FromType<ClassComposedOfStructs>()
-                                                       .PublicFields()
-                                                       .Map());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create()
+                                                                            .FromType<ClassComposedOfStructs>()
+                                                                            .PublicFields());
             
-            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner4>().PublicFields().Map());
-            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner3>().PublicFields().Map());
-            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner2>().PublicFields().Map());
-            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner1>().PublicFields().Map());
-            CompileSerializer(ObjectSerializationMapper.Create().FromType<Inner>().PublicFields().Map());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create().FromType<Inner4>().PublicFields());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create().FromType<Inner3>().PublicFields());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create().FromType<Inner2>().PublicFields());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create().FromType<Inner1>().PublicFields());
+            ObjectSerializationSchema.DefineStruct(ObjectSerializationMapper.Create().FromType<Inner>().PublicFields());
         }
         
+        public StructSerializerTests()
+        {
+        }
+
         [Fact]
         public void Register_Throws_If_Type_Is_Already_Registered()
-            => Assert.IsType<InvalidOperationException>(Record.Exception(() => StructSerializer.RegisterStructureTypeSerializer(typeof(Vec2), null, null, null)));
+            => Assert.IsType<InvalidOperationException>(Record.Exception(() => StructSerializer.RegisterStructTypeSerializer(typeof(Vec2), null, null, null)));
         
         [Fact]
         public void Serializes_Structures_Composed_Of_Structures_Back_And_Forth()

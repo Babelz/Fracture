@@ -214,6 +214,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
         }
         #endregion
+
+        public ObjectSerializationMappingTests()
+        {
+        }
         
         [Fact]
         public void Should_Throw_If_No_Default_Constructor_Exists()
