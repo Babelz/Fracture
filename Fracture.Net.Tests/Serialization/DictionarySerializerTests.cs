@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Fracture.Net.Serialization;
+using Fracture.Net.Serialization.Generation;
 using Fracture.Net.Serialization.Generation.Builders;
 using Xunit;
 

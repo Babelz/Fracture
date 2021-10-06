@@ -34,4 +34,6 @@ using Xunit;
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]
+
+// Because of the static shared state of some serializers this is needed to keep tests from not being flaky.
 [assembly: CollectionBehavior(DisableTestParallelization = true)]

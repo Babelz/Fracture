@@ -1,13 +1,17 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
-using System.Xml.Serialization;
+using System.Reflection;
+using NLog;
+using NLog.Fluent;
 
-namespace Fracture.Net.Serialization.Generation.Builders
+namespace Fracture.Net.Serialization.Generation
 {
     public static class ObjectSerializationSchema
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+
         public static void DefineNullable(Type type)
         {
             if (!NullableSerializer.IsNewNullableType(type))
@@ -97,6 +101,39 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             public SchemaAttribute(string name)
                 => Name = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
+        }
+        
+        public static void Load(string name) 
+        {
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderBy(a => a.FullName))
+            {
+                try
+                {
+                    var schemaType = assembly.GetTypes().FirstOrDefault(t => (t.GetCustomAttribute<SchemaAttribute>()?.Name == name));
+
+                    if (schemaType == null) continue;
+                    
+                    Log.Info($"loading serialization schema {name}");
+                    
+                    var loadMethod = schemaType.GetMethods(BindingFlags.Instance |
+                                                           BindingFlags.Public | 
+                                                           BindingFlags.Static |
+                                                           BindingFlags.NonPublic).FirstOrDefault(m => m.GetCustomAttribute<LoadAttribute>() != null);
+                    
+                    if (loadMethod == null)
+                        throw new InvalidOperationException($"serialization schema with name \"{name}\" has no method annotated with {nameof(LoadAttribute)}"); 
+                    
+                    loadMethod.Invoke(null, null);
+                    
+                    return;
+                }   
+                catch (ReflectionTypeLoadException e)
+                {
+                    Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
+                }
+            }
+            
+            throw new InvalidOperationException($"no serialization schema with name \"{name}\" was found");
         }
     }
 }
