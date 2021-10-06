@@ -10,12 +10,6 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class ArraySerializerTests
     {
-        static ArraySerializerTests()
-        {
-            ObjectSerializationSchema.DefineArray(typeof(int[]));
-            ObjectSerializationSchema.DefineArray(typeof(int?[]));
-        }
-        
         public ArraySerializerTests()
         {
         }

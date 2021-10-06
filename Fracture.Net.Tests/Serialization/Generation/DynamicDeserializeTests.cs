@@ -158,13 +158,6 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion    
         }
         #endregion
-
-        static DynamicDeserializeTests()
-        {
-            ObjectSerializationSchema.DefineNullable(typeof(int?));
-            ObjectSerializationSchema.DefineArray(typeof(int?[]));
-            ObjectSerializationSchema.DefineArray(typeof(int[]));
-        }
         
         public DynamicDeserializeTests()
         {

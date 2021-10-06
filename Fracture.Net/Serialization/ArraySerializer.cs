@@ -29,11 +29,11 @@ namespace Fracture.Net.Serialization
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNewArrayType(Type type)
+        private static bool IsNewArrayType(Type type)
             => !SerializeDelegates.ContainsKey(type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RegisterArrayTypeSerializer(Type serializationType)
+        private static void RegisterArrayTypeSerializer(Type serializationType)
         {
             var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
@@ -260,11 +260,11 @@ namespace Fracture.Net.Serialization
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNewSerializationType(Type type)
+        private static bool IsNewSerializationType(Type type)
             => !SerializeDelegates.ContainsKey(type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RegisterNewSerializationType(Type serializationType)
+        private static void RegisterNewSerializationType(Type serializationType)
         {
             var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
             
@@ -285,6 +285,12 @@ namespace Fracture.Net.Serialization
         {
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
+            
+            if (IsNewSerializationType(keyType))
+                RegisterNewSerializationType(keyType);
+
+            if (IsNewSerializationType(valueType))
+                RegisterNewSerializationType(valueType);
 
             // Leave 2-bytes from the beginning of the object for content length.
             var contentLengthOffset = offset;
@@ -318,6 +324,12 @@ namespace Fracture.Net.Serialization
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
 
+            if (IsNewSerializationType(keyType))
+                RegisterNewSerializationType(keyType);
+
+            if (IsNewSerializationType(valueType))
+                RegisterNewSerializationType(valueType);
+            
             // Skip to serialization values.
             offset += Protocol.ContentLength.Size;
             

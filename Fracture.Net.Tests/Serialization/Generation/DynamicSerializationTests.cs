@@ -71,17 +71,6 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
-
-        static DynamicSerializationTests()
-        {
-            ObjectSerializationSchema.DefineArray(typeof(string[]));
-            
-            ObjectSerializationSchema.DefineNullable(typeof(int?));
-            
-            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<int, int>));
-            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<string, float>));
-            ObjectSerializationSchema.DefineDictionary(typeof(Dictionary<int, string?>));
-        }
         
         public DynamicSerializationTests()
         {

@@ -110,13 +110,6 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
-
-        static DynamicGetSizeFromValueTests()
-        {
-            ObjectSerializationSchema.DefineNullable(typeof(int?));
-            ObjectSerializationSchema.DefineArray(typeof(int?[]));
-            ObjectSerializationSchema.DefineArray(typeof(int[]));
-        }
         
         public DynamicGetSizeFromValueTests()
         {
