@@ -8,7 +8,16 @@ namespace Fracture.Net.Tests.Serialization
 {
     [Trait("Category", "Serialization")]
     public class DictionarySerializerTests
-    {
+    {        
+        static DictionarySerializerTests()
+        {
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });    
+        }
+        
+        public DictionarySerializerTests()
+        {
+        }
+        
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {

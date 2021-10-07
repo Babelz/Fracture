@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
+using Fracture.Common.Reflection;
 
 namespace Fracture.Net.Serialization
 {
@@ -28,19 +29,23 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
         
+        [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNewArrayType(Type type)
-            => !SerializeDelegates.ContainsKey(type);
+        public static bool CanExtendType(Type type)
+            => SupportsType(type) && !SerializeDelegates.ContainsKey(type.GetElementType());
         
+        [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RegisterArrayTypeSerializer(Type serializationType)
+        public static void ExtendType(Type type)
         {
-            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
+            // TODO: fix.
+            var elementType         = type.GetElementType();
+            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(type.GetElementType());
             
-            SerializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, serializationType));
-            DeserializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, serializationType));
-            GetSizeFromValueDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, serializationType));
-            GetSizeFromBufferDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(valueSerializerType, serializationType));
+            SerializeDelegates.Add(elementType, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, elementType));
+            DeserializeDelegates.Add(elementType, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, elementType));
+            GetSizeFromValueDelegates.Add(elementType, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, elementType));
+            GetSizeFromBufferDelegates.Add(elementType, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(valueSerializerType, elementType));
         }
 
         [ValueSerializer.SupportsType]
@@ -52,10 +57,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T[] values, byte[] buffer, int offset) 
-        {
-            if (IsNewArrayType(typeof(T)))
-                RegisterArrayTypeSerializer(typeof(T));
-            
+        {    
             // Leave 2-bytes from the beginning of the object for content length.
             var contentLengthOffset = offset;
             offset += Protocol.ContentLength.Size;
@@ -133,9 +135,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.Deserialize]
         public static T[] Deserialize<T>(byte[] buffer, int offset)
         {
-            if (IsNewArrayType(typeof(T)))
-                RegisterArrayTypeSerializer(typeof(T));
-            
             // Seek to collection length.
             offset += Protocol.ContentLength.Size;
             
@@ -180,9 +179,6 @@ namespace Fracture.Net.Serialization
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T[] values)
         {
-            if (IsNewArrayType(typeof(T)))
-                RegisterArrayTypeSerializer(typeof(T));
-            
             var isSparseCollection       = false;
             var getSizeFromValueDelegate = (GetSizeFromValueDelegate<T>)GetSizeFromValueDelegates[typeof(T)];
             var size                     = Protocol.ContentLength.Size + Protocol.CollectionLength.Size + Protocol.TypeData.Size;
@@ -208,8 +204,19 @@ namespace Fracture.Net.Serialization
     }
     
     [GenericValueSerializer]
+    [ExtendableValueSerializer]
     public static class ListSerializer
     {
+        [ValueSerializer.CanExtendType]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool CanExtendType(Type type)
+            => ArraySerializer.CanExtendType(type.GetGenericArguments()[0].MakeArrayType());
+        
+        [ValueSerializer.ExtendType]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ExtendType(Type type)
+            => ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
+        
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
             => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
@@ -251,6 +258,7 @@ namespace Fracture.Net.Serialization
     }
     
     [GenericValueSerializer]
+    [ExtendableValueSerializer]
     public static class KeyValuePairSerializer
     {
         #region Static fields
@@ -259,18 +267,21 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates = new Dictionary<Type, Delegate>();
         #endregion
         
+        [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsNewSerializationType(Type type)
-            => !SerializeDelegates.ContainsKey(type);
+        public static bool CanExtendType(Type type)
+            => SupportsType(type) && type.GetGenericArguments().Any(t => !SerializeDelegates.ContainsKey(t));
         
+        [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void RegisterNewSerializationType(Type serializationType)
+        public static void ExtendType(Type type)
         {
-            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
+            // TODO: fix.
+            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(type);
             
-            SerializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, serializationType));
-            DeserializeDelegates.Add(serializationType, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, serializationType));
-            GetSizeFromValueDelegates.Add(serializationType, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, serializationType));
+            SerializeDelegates.Add(type, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, type));
+            DeserializeDelegates.Add(type, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, type));
+            GetSizeFromValueDelegates.Add(type, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, type));
         }
         
         [ValueSerializer.SupportsType]
@@ -286,12 +297,6 @@ namespace Fracture.Net.Serialization
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
             
-            if (IsNewSerializationType(keyType))
-                RegisterNewSerializationType(keyType);
-
-            if (IsNewSerializationType(valueType))
-                RegisterNewSerializationType(valueType);
-
             // Leave 2-bytes from the beginning of the object for content length.
             var contentLengthOffset = offset;
             offset += Protocol.ContentLength.Size;
@@ -323,12 +328,6 @@ namespace Fracture.Net.Serialization
         {
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
-
-            if (IsNewSerializationType(keyType))
-                RegisterNewSerializationType(keyType);
-
-            if (IsNewSerializationType(valueType))
-                RegisterNewSerializationType(valueType);
             
             // Skip to serialization values.
             offset += Protocol.ContentLength.Size;
@@ -369,8 +368,26 @@ namespace Fracture.Net.Serialization
     }
     
     [GenericValueSerializer]
+    [ExtendableValueSerializer]
     public static class DictionarySerializer
     {
+        [ValueSerializer.CanExtendType]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool CanExtendType(Type type)
+            => ArraySerializer.CanExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()).type.GetGenericArguments()[0].MakeArrayType());
+        
+        [ValueSerializer.ExtendType]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ExtendType(Type type)
+        {
+            var kvpType = typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments());
+            
+            if (KeyValuePairSerializer.CanExtendType()))
+                KeyValuePairSerializer.ExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()));
+            
+            ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
+        }
+        
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
             => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);

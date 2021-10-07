@@ -139,16 +139,6 @@ namespace Fracture.Net.Serialization.Generation
         public override string ToString()
             => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
     }
-    
-    /// <summary>
-    /// Structure representing operation that causes structure to be instantiated without calling any constructor. This is used in cases where structures
-    /// do not define constructor as they can't have parameterless default constructor.
-    /// </summary>
-    public readonly struct DefaultStructActivationOp : ISerializationOp
-    {
-        public override string ToString()
-            => $"{{ op: {nameof(DefaultStructActivationOp)}, ctor: none }}";
-    }
 
     /// <summary>
     /// Structure representing serialization value serialization operation. Depending on the context the operation is either interpreted as property/field read or write operation.
@@ -220,13 +210,22 @@ namespace Fracture.Net.Serialization.Generation
         {
             get;
         }
+        
+        public IReadOnlyList<Type> SerializationTypes
+        {
+            get;
+        }
         #endregion
 
-        public ObjectSerializerProgram(Type type, IEnumerable<ISerializationOp> serializationOps, IEnumerable<ISerializationOp> deserializationOps)
+        public ObjectSerializerProgram(Type type, 
+                                       IEnumerable<ISerializationOp> serializationOps, 
+                                       IEnumerable<ISerializationOp> deserializationOps,
+                                       IEnumerable<Type> serializationTypes)
         {
             Type               = type ?? throw new ArgumentNullException(nameof(type));
             SerializationOps   = serializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(serializationOps));
             DeserializationOps = deserializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(deserializationOps));
+            SerializationTypes = serializationTypes?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(serializationTypes));
 
             var serializationOpsSerializers   = GetOpValueSerializerTypes(SerializationOps);
             var deserializationOpsSerializers = GetOpValueSerializerTypes(DeserializationOps);
@@ -257,6 +256,32 @@ namespace Fracture.Net.Serialization.Generation
         }
     }
     
+    public static class ObjectSerializerAnalyzer
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Analyze(IEnumerable<Type> serializationTypes)
+        {
+            foreach (var serializationType in serializationTypes)
+            {
+                if (serializationType.IsGenericType)
+                    Analyze(serializationType.GetGenericArguments());
+                
+                if (serializationType.IsArray)
+                    Analyze(new [] { serializationType.GetElementType() });
+                
+                var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
+                
+                if (!ValueSerializerRegistry.IsExtendableValueSerializer(valueSerializerType))
+                    continue;
+                
+                if (!ValueSerializerRegistry.CreateCanExtendTypeDelegate(valueSerializerType)(serializationType))
+                    continue;
+                
+                ValueSerializerRegistry.CreateExtendTypeDelegate(valueSerializerType)(serializationType);
+            }
+        }
+    }
+    
     /// <summary>
     /// Static class that translates serialization run types to operations and outputs instructions how the type can be serialized and deserialized. 
     /// </summary>
@@ -279,12 +304,7 @@ namespace Fracture.Net.Serialization.Generation
                             )
                 );
             else
-            {
-                if (mapping.Type.IsValueType)
-                    ops.Add(new DefaultStructActivationOp());
-                else
-                    ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
-            }
+                ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
             
             ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
                     v, 
@@ -309,7 +329,10 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
-            => new ObjectSerializerProgram(mapping.Type, CompileSerializationOps(mapping), CompileDeserializationOps(mapping));
+            => new ObjectSerializerProgram(mapping.Type, 
+                                           CompileSerializationOps(mapping), 
+                                           CompileDeserializationOps(mapping), 
+                                           mapping.Values.Select(v => v.Type).Distinct());
     }
 
     /// <summary>
@@ -375,11 +398,6 @@ namespace Fracture.Net.Serialization.Generation
                         
                         builder.EmitActivation(paop.Constructor);
                         break;
-                    case DefaultStructActivationOp _:
-                        // NOP, no need to emit any special instructions.
-                        break;
-                    default:
-                        throw new InvalidOrUnsupportedException("op", op);
                 }
             }
             
@@ -438,6 +456,8 @@ namespace Fracture.Net.Serialization.Generation
 
         public static ObjectSerializer InterpretSerializer(in ObjectSerializerProgram program)
         {
+            ObjectSerializerAnalyzer.Analyze(program.SerializationTypes);
+            
             // Create context based on program. Instructions from serialize program should be usable when interpreting this function.
             var objectSerializationContext = InterpretObjectSerializationValueRanges(program.Type, program.SerializationOps);
             

@@ -159,6 +159,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         #endregion
         
+        static DynamicDeserializeTests()
+        {
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int?[]) });
+        }
+        
         public DynamicDeserializeTests()
         {
         }

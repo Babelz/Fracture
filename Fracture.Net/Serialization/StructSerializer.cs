@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using Fracture.Net.Serialization.Generation;
 using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Net.Serialization
@@ -22,21 +23,14 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, ushort> SerializationTypeIdMappings = new Dictionary<Type, ushort>();
         private static readonly Dictionary<ushort, Type> RunTypeMappings             = new Dictionary<ushort, Type>();
 
-        private static readonly Dictionary<Type, DynamicSerializeDelegate> SerializeDelegates         
-            = new Dictionary<Type, DynamicSerializeDelegate>();
-        
-        private static readonly Dictionary<Type, DynamicDeserializeDelegate> DeserializeDelegates       
-            = new Dictionary<Type, DynamicDeserializeDelegate>();
-        
-        private static readonly Dictionary<Type, DynamicGetSizeFromValueDelegate> GetSizeFromValueDelegates 
-            = new Dictionary<Type, DynamicGetSizeFromValueDelegate>();
+        private static readonly Dictionary<Type, ObjectSerializer> Serializers = new Dictionary<Type, ObjectSerializer>();
         
         private static long NextSerializationTypeId;
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort InternalGetSizeFromValue(Type serializationType, object value)
-            => checked((ushort)(GetSizeFromValueDelegates[serializationType](value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
+            => checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static object InternalDeserialize(byte[] buffer, int offset)
@@ -48,7 +42,7 @@ namespace Fracture.Net.Serialization
             
             var runType = RunTypeMappings[serializationTypeId];
             
-            return DeserializeDelegates[runType](buffer, offset);
+            return Serializers[runType].Deserialize(buffer, offset);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -56,7 +50,7 @@ namespace Fracture.Net.Serialization
         {
             var serializationTypeId = SerializationTypeIdMappings[serializationType];
             
-            var contentLength = checked((ushort)(GetSizeFromValueDelegates[serializationType](value) + 
+            var contentLength = checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + 
                                                  Protocol.ContentLength.Size + 
                                                  Protocol.SerializationTypeId.Size));
             
@@ -66,37 +60,35 @@ namespace Fracture.Net.Serialization
             Protocol.SerializationTypeId.Write(serializationTypeId, buffer, offset);
             offset += Protocol.SerializationTypeId.Size;
                 
-            SerializeDelegates[serializationType](value, buffer, offset);
+            Serializers[serializationType].Serialize(value, buffer, offset);
         }
         
+        [ValueSerializer.SupportsType]
+        private static bool SupportsType(Type type)
+            => Serializers.ContainsKey(type);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void RegisterStructTypeSerializer(Type serializationType,
-                                                        DynamicSerializeDelegate serializeDelegate,
-                                                        DynamicDeserializeDelegate deserializeDelegate,
-                                                        DynamicGetSizeFromValueDelegate getSizeFromValueDelegate)
+        public static void MapStruct(ObjectSerializationMapping mapping)
         {
-            if (SupportsType(serializationType))
+            if (SupportsType(mapping.Type))
                 throw new InvalidOperationException("serialization type already registered")
                 {
-                    Data = { { nameof(serializationType), serializationType } }
+                    Data = { { nameof(mapping.Type), mapping.Type } }
                 };
+         
+            var program    = ObjectSerializerCompiler.CompileSerializerProgram(mapping);
+            var serializer = ObjectSerializerInterpreter.InterpretSerializer(program);
             
-            SerializeDelegates.Add(serializationType, serializeDelegate);
-            DeserializeDelegates.Add(serializationType, deserializeDelegate);
-            GetSizeFromValueDelegates.Add(serializationType, getSizeFromValueDelegate);
+            Serializers.Add(mapping.Type, serializer);
             
             var serializationTypeId = checked((ushort)(Interlocked.Read(ref NextSerializationTypeId)));
             
-            SerializationTypeIdMappings.Add(serializationType, serializationTypeId);
-            RunTypeMappings.Add(serializationTypeId, serializationType);
+            SerializationTypeIdMappings.Add(mapping.Type, serializationTypeId);
+            RunTypeMappings.Add(serializationTypeId, mapping.Type);
 
             Interlocked.Increment(ref NextSerializationTypeId);
         }
 
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => SerializeDelegates.ContainsKey(type);
-        
         /// <summary>
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>

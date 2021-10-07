@@ -32,6 +32,14 @@ namespace Fracture.Net.Serialization
         }
     }
     
+    [AttributeUsage(AttributeTargets.Class)]
+    public sealed class ExtendableValueSerializerAttribute : Attribute
+    {
+        public ExtendableValueSerializerAttribute()
+        {
+        }
+    }
+    
     public static class ValueSerializer
     {
         [AttributeUsage(AttributeTargets.Method)]
@@ -75,13 +83,21 @@ namespace Fracture.Net.Serialization
             }
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Type GetUnderlyingSerializationType(Type serializationType)
-            => IsNullableSerializationType(serializationType) ? serializationType.GetGenericArguments()[0] : serializationType;
+        [AttributeUsage(AttributeTargets.Method)]
+        public sealed class CanExtendTypeAttribute : Attribute
+        {
+            public CanExtendTypeAttribute()
+            {
+            }
+        }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNullableSerializationType(Type serializationType) 
-            => serializationType.IsGenericType && serializationType.GetGenericTypeDefinition() == typeof(Nullable<>);
+        [AttributeUsage(AttributeTargets.Method)]
+        public sealed class ExtendTypeAttribute : Attribute
+        {
+            public ExtendTypeAttribute()
+            {
+            }
+        }
     }
     
     public delegate bool SupportsTypeDelegate(Type type);
@@ -95,7 +111,11 @@ namespace Fracture.Net.Serialization
     public delegate ushort GetSizeFromBufferDelegate<in T>(byte[] buffer, int offset);
 
     public delegate ushort GetSizeFromValueDelegate<in T>(T value);
-
+    
+    public delegate bool CanExtendTypeDelegate(Type type);
+    
+    public delegate void ExtendTypeDelegate(Type type);
+    
     /// <summary>
     /// Static class that provides interface for working with value serializers indirectly. 
     /// </summary>
@@ -133,8 +153,12 @@ namespace Fracture.Net.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsGenericValueSerializer(Type valueSerializerType)
+        public static bool IsGenericValueSerializer(MemberInfo valueSerializerType)
             => valueSerializerType.GetCustomAttribute<GenericValueSerializerAttribute>() != null;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsExtendableValueSerializer(MemberInfo valueSerializerType)
+            => valueSerializerType.GetCustomAttribute<ExtendableValueSerializerAttribute>() != null;
         
         /// <summary>
         /// Specializes given method info based on the value serializer type.    
@@ -165,6 +189,19 @@ namespace Fracture.Net.Serialization
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static MethodInfo GetValuerSerializerMethodInfo<T>(Type valueSerializerType, Type serializationValueType = null) where T : Attribute
+        {
+            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
+                                                .FirstOrDefault(m => m.GetCustomAttribute<T>() != null);
+
+            if (methodInfo == null) 
+                throw new ValueSerializerSchemaException($"could not find static method annotated with {typeof(T).Name} for " +
+                                                         $"value serializer", valueSerializerType);
+            
+            return serializationValueType == null ? methodInfo : SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateSerializeDelegate(Type valueSerializerType, Type serializationValueType)
             => ReflectionUtil.CreateCrossGenericDelegate(GetSerializeMethodInfo(valueSerializerType, serializationValueType), typeof(SerializeDelegate<>));
         
@@ -181,81 +218,51 @@ namespace Fracture.Net.Serialization
             => ReflectionUtil.CreateDelegate(GetSizeFromBufferMethodInfo(valueSerializerType, serializationValueType), typeof(GetSizeFromBufferDelegate));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static CanExtendTypeDelegate CreateCanExtendTypeDelegate(Type valueSerializerType)
+            => (CanExtendTypeDelegate)ReflectionUtil.CreateDelegate(GetCanExtendTypeMethodInfo(valueSerializerType), typeof(CanExtendTypeDelegate));
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ExtendTypeDelegate CreateExtendTypeDelegate(Type valueSerializerType)
+            => (ExtendTypeDelegate)ReflectionUtil.CreateDelegate(GetExtendTypeMethodInfo(valueSerializerType), typeof(ExtendTypeDelegate));
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSupportsTypeMethodInfo(Type valueSerializerType)
-        {
-            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.SupportsTypeAttribute>() != null);
-
-            if (methodInfo == null) 
-                throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.SupportsTypeAttribute)} for " +
-                                                         $"value serializer", valueSerializerType);
-            
-            return methodInfo;
-        }
+            => GetValuerSerializerMethodInfo<ValueSerializer.SupportsTypeAttribute>(valueSerializerType);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSerializeMethodInfo(Type valueSerializerType, Type serializationValueType = null)
-        {
-            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.SerializeAttribute>() != null);
-
-            if (methodInfo == null) 
-                throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.SerializeAttribute)} for " +
-                                                         $"value serializer", valueSerializerType);
-            
-            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
-        }
+            => GetValuerSerializerMethodInfo<ValueSerializer.SerializeAttribute>(valueSerializerType, serializationValueType);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetDeserializeMethodInfo(Type valueSerializerType, Type serializationValueType = null)
-        {
-            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.DeserializeAttribute>() != null);
-
-            if (methodInfo == null) 
-                throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.DeserializeAttribute)} for " +
-                                                         $"value serializer", valueSerializerType);
-
-            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
-        }
+            => GetValuerSerializerMethodInfo<ValueSerializer.DeserializeAttribute>(valueSerializerType, serializationValueType);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSizeFromValueMethodInfo(Type valueSerializerType, Type serializationValueType = null)
-        {
-            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.GetSizeFromValueAttribute>() != null);
-
-            if (methodInfo == null) 
-                throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.GetSizeFromValueAttribute)} for " +
-                                                         $"value serializer", valueSerializerType);
-            
-            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
-        }
+            => GetValuerSerializerMethodInfo<ValueSerializer.GetSizeFromValueAttribute>(valueSerializerType, serializationValueType);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSizeFromBufferMethodInfo(Type valueSerializerType, Type serializationValueType = null)
-        {
-            var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.GetSizeFromBufferAttribute>() != null);
-
-            if (methodInfo == null) 
-                throw new ValueSerializerSchemaException($"could not find static method annotated with {nameof(ValueSerializer.GetSizeFromBufferAttribute)} " +
-                                                         $"for value serializer", valueSerializerType);
-            
-            return SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
-        }
+            => GetValuerSerializerMethodInfo<ValueSerializer.GetSizeFromBufferAttribute>(valueSerializerType, serializationValueType);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MethodInfo GetCanExtendTypeMethodInfo(Type valueSerializerType)
+            => GetValuerSerializerMethodInfo<ValueSerializer.CanExtendTypeAttribute>(valueSerializerType);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MethodInfo GetExtendTypeMethodInfo(Type valueSerializerType)
+            => GetValuerSerializerMethodInfo<ValueSerializer.ExtendTypeAttribute>(valueSerializerType);
 
         public static Type GetValueSerializerForRunType(Type serializationType)
         {
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
-                var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                    .FirstOrDefault(m => m.GetCustomAttribute<ValueSerializer.SupportsTypeAttribute>() != null);
+                var supportsTypeMethodInfo = GetSupportsTypeMethodInfo(valueSerializerType);
                 
-                if (methodInfo == null)
+                if (supportsTypeMethodInfo == null)
                     continue;
             
-                if ((bool)methodInfo.Invoke(null, new object[] { serializationType }))
+                if ((bool)supportsTypeMethodInfo.Invoke(null, new object[] { serializationType }))
                     return valueSerializerType;
             }
 
@@ -332,10 +339,26 @@ namespace Fracture.Net.Serialization
                                                          valueSerializerType);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ValidateExtendableSchema(Type valueSerializerType)
+        {
+            if (Delegate.CreateDelegate(typeof(CanExtendTypeDelegate), ValueSerializerRegistry.GetCanExtendTypeMethodInfo(valueSerializerType), false) == null)
+                throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.CanExtendTypeAttribute)} does not match the " +
+                                                         $"required method signature of {typeof(CanExtendTypeDelegate)}",
+                                                         valueSerializerType);
+            
+            if (Delegate.CreateDelegate(typeof(ExtendTypeDelegate), ValueSerializerRegistry.GetExtendTypeMethodInfo(valueSerializerType), false) == null)
+                throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.ExtendTypeAttribute)} does not match the " +
+                                                         $"required method signature of {typeof(ExtendTypeDelegate)}, if the signature is correct" +
+                                                         $"make sure the generic method is closed and the type parameter is correct",
+                                                         valueSerializerType);
+        }
+        
         public static void ValidateSchema(Type valueSerializerType)
         {
-            var valueSerializerAttribute        = valueSerializerType.GetCustomAttribute<ValueSerializerAttribute>();
-            var genericValueSerializerAttribute = valueSerializerType.GetCustomAttribute<GenericValueSerializerAttribute>();
+            var valueSerializerAttribute           = valueSerializerType.GetCustomAttribute<ValueSerializerAttribute>();
+            var genericValueSerializerAttribute    = valueSerializerType.GetCustomAttribute<GenericValueSerializerAttribute>();
+            var extendableValueSerializerAttribute = valueSerializerType.GetCustomAttribute<ExtendableValueSerializerAttribute>();
 
             if (valueSerializerAttribute == null && genericValueSerializerAttribute == null)
                 throw new ValueSerializerSchemaException("type has no value serializer attribute", valueSerializerType);
@@ -347,6 +370,9 @@ namespace Fracture.Net.Serialization
                 ValidateNonGenericSchema(valueSerializerType, valueSerializerAttribute);
             else
                 ValidateGenericSchema(valueSerializerType);
+            
+            if (extendableValueSerializerAttribute != null)
+                ValidateExtendableSchema(valueSerializerType);
         }
         
         public static void ValidateSchemas(IEnumerable<Type> valueSerializerTypes)

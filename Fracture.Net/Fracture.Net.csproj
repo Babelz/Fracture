@@ -272,7 +272,6 @@
         <Compile Include="Serialization\Generation\Builders\DynamicSerializationDelegateBuilder.cs" />
         <Compile Include="Serialization\Generation\Builders\DynamicSerializeDelegateBuilder.cs" />
         <Compile Include="Serialization\Generation\Builders\Exceptions.cs" />
-        <Compile Include="Serialization\Generation\ObjectSerializationSchema.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializerInterpreter.cs" />
         <Compile Include="Serialization\Generation\ObjectSerializationMapping.cs" />
         <Compile Include="Serialization\IntSerializer.cs" />

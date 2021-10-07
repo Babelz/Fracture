@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
@@ -29,7 +30,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             var exception = Record.Exception(() => new ObjectSerializerProgram(
                     typeof(int),
                     new List<ISerializationOp> { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X")), typeof(IntSerializer)) }.AsReadOnly(),
-                    new List<ISerializationOp>().AsReadOnly())
+                    new List<ISerializationOp>().AsReadOnly(),
+                    new List<Type>())
             );
             
             Assert.NotNull(exception);

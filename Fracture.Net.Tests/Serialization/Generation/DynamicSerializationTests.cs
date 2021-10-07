@@ -72,6 +72,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         #endregion
         
+        static DynamicSerializationTests()
+        {
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int?[]), typeof(int[]), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>) });    
+        }
+        
         public DynamicSerializationTests()
         {
         }

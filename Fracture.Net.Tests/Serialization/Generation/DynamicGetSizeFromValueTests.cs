@@ -111,6 +111,11 @@ namespace Fracture.Net.Tests.Serialization.Generation
         }
         #endregion
         
+        static DynamicGetSizeFromValueTests()
+        {
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int?) });
+        }
+        
         public DynamicGetSizeFromValueTests()
         {
         }
