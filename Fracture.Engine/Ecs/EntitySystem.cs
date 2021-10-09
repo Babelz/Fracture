@@ -72,7 +72,7 @@ namespace Fracture.Engine.Ecs
       /// Creates new entity with optional annotation and tag.
       /// </summary>
       /// <returns>id of the new entity</returns>
-      void Create(uint? annotation, string tag = "");
+      void Create(int? annotation, string tag = "");
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
@@ -85,7 +85,7 @@ namespace Fracture.Engine.Ecs
       bool Alive(int id);
       
       bool IsAnnotated(int id);
-      uint GetAnnotation(int id);
+      int GetAnnotation(int id);
       
       string GetTag(int id);
 
@@ -115,7 +115,7 @@ namespace Fracture.Engine.Ecs
             set;
          }
          
-         public uint? Annotation
+         public int? Annotation
          {
             get;
             set;
@@ -197,7 +197,7 @@ namespace Fracture.Engine.Ecs
             throw new InvalidOperationException($"entity {id} does not exist");
       }
       
-      public void Create(uint? annotation, string tag = "")
+      public void Create(int? annotation, string tag = "")
       {
          var id = freeEntityIds.Take();
          
@@ -273,7 +273,7 @@ namespace Fracture.Engine.Ecs
          return entities.AtIndex(id).Annotation.HasValue;
       }
 
-      public uint GetAnnotation(int id)
+      public int GetAnnotation(int id)
       {
          AssertAlive(id);
          
