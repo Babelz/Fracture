@@ -69,10 +69,10 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       /// <summary>
-      /// Creates new entity with optional annotation and tag.
+      /// Creates new entity with optional parameters.
       /// </summary>
       /// <returns>id of the new entity</returns>
-      void Create(int? remoteId = null, int? annotation = null, string tag = "");
+      void Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "");
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
@@ -117,26 +117,17 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
-
-         public string Tag
+         public int? RemoteId
          {
             get;
             set;
          }
-         
          public int? ParentId
          {
             get;
             set;
          }
-         
          public List<int> ChildrenIds
-         {
-            get;
-            set;
-         } 
-         
-         public bool Alive
          {
             get;
             set;
@@ -147,8 +138,12 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
-         
-         public int? RemoteId
+         public string Tag
+         {
+            get;
+            set;
+         }
+         public bool Alive
          {
             get;
             set;
@@ -209,7 +204,7 @@ namespace Fracture.Engine.Ecs
             throw new InvalidOperationException($"entity {id} does not exist");
       }
       
-      public void Create(int? remoteId = null, int? annotation = null, string tag = "")
+      public void Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "")
       {
          var id = freeEntityIds.Take();
          
@@ -222,13 +217,12 @@ namespace Fracture.Engine.Ecs
          entity.RemoteId      = remoteId;
          entity.Annotation    = annotation;
          entity.Tag           = tag;
-         entity.ParentId      = null;
          entity.Alive         = true;
          entity.ChildrenIds ??= new List<int>();
          
          if (remoteId.HasValue)
             remoteEntityIdMap.Add(remoteId.Value, id);
-
+         
          // Create events.
          deletedEvents.Create(id);
          
@@ -239,6 +233,10 @@ namespace Fracture.Engine.Ecs
          madeChildOfEvents.Create(id);
          
          aliveEntityIds.Add(id);
+         
+         // Lastly pair.
+         if (parentId.HasValue)
+            Pair(parentId.Value, id);
       }
 
       public void Delete(int id)
