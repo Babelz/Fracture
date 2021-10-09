@@ -20,6 +20,7 @@ namespace Fracture.Net.Serialization
     ///     [collection-length of elements, each can vary in size]
     /// </summary>
     [GenericValueSerializer]
+    [ExtendableValueSerializer]
     public static class ArraySerializer
     {
         #region Static fields
@@ -29,16 +30,19 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
         
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type.IsArray;
+        
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanExtendType(Type type)
-            => SupportsType(type) && !SerializeDelegates.ContainsKey(type.GetElementType());
+            => SupportsType(type) && !SerializeDelegates.ContainsKey(type.GetElementType()!);
         
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExtendType(Type type)
         {
-            // TODO: fix.
             var elementType         = type.GetElementType();
             var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(type.GetElementType());
             
@@ -48,10 +52,6 @@ namespace Fracture.Net.Serialization
             GetSizeFromBufferDelegates.Add(elementType, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(valueSerializerType, elementType));
         }
 
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => type.IsArray;
-        
         /// <summary>
         /// Writes given array to given buffer beginning at given offset.
         /// </summary>
@@ -207,6 +207,10 @@ namespace Fracture.Net.Serialization
     [ExtendableValueSerializer]
     public static class ListSerializer
     {
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
+
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanExtendType(Type type)
@@ -216,10 +220,6 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExtendType(Type type)
             => ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
-        
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
         
         /// <summary>
         /// Writes given list to given buffer beginning at given offset. This function allocates new array because it uses the array serializer and will
@@ -267,6 +267,10 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates = new Dictionary<Type, Delegate>();
         #endregion
         
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
+
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanExtendType(Type type)
@@ -276,17 +280,18 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExtendType(Type type)
         {
-            // TODO: fix.
-            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(type);
+            foreach (var genericArgument in type.GetGenericArguments())
+            {
+                if (SerializeDelegates.ContainsKey(genericArgument))
+                    continue;
+                
+                var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(genericArgument);
             
-            SerializeDelegates.Add(type, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, type));
-            DeserializeDelegates.Add(type, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, type));
-            GetSizeFromValueDelegates.Add(type, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, type));
+                SerializeDelegates.Add(genericArgument, ValueSerializerRegistry.CreateSerializeDelegate(valueSerializerType, genericArgument));
+                DeserializeDelegates.Add(genericArgument, ValueSerializerRegistry.CreateDeserializeDelegate(valueSerializerType, genericArgument));
+                GetSizeFromValueDelegates.Add(genericArgument, ValueSerializerRegistry.CreateGetSizeFromValueDelegate(valueSerializerType, genericArgument));
+            }
         }
-        
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
         
         /// <summary>
         /// Writes given key value pair value to given buffer beginning at given offset.
@@ -371,27 +376,27 @@ namespace Fracture.Net.Serialization
     [ExtendableValueSerializer]
     public static class DictionarySerializer
     {
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+        
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanExtendType(Type type)
-            => ArraySerializer.CanExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()).type.GetGenericArguments()[0].MakeArrayType());
+            => ArraySerializer.CanExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()).MakeArrayType());
         
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExtendType(Type type)
         {
-            var kvpType = typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments());
+            var keyValuePairType = typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments());
             
-            if (KeyValuePairSerializer.CanExtendType()))
-                KeyValuePairSerializer.ExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()));
+            if (KeyValuePairSerializer.CanExtendType(keyValuePairType))
+                KeyValuePairSerializer.ExtendType(keyValuePairType);
             
-            ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
+            ArraySerializer.ExtendType(keyValuePairType.MakeArrayType());
         }
-        
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
-        
+
         /// <summary>
         /// Writes given dictionary to given buffer beginning at given offset. This function allocates new array because it uses the array serializer
         /// and will include some overhead because of that. To avoid this use more optimized types.

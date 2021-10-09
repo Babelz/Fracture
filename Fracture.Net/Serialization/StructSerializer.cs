@@ -62,9 +62,9 @@ namespace Fracture.Net.Serialization
                 
             Serializers[serializationType].Serialize(value, buffer, offset);
         }
-        
+
         [ValueSerializer.SupportsType]
-        private static bool SupportsType(Type type)
+        public static bool SupportsType(Type type)
             => Serializers.ContainsKey(type);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

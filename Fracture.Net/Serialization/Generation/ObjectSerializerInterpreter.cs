@@ -227,13 +227,13 @@ namespace Fracture.Net.Serialization.Generation
             DeserializationOps = deserializationOps?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(deserializationOps));
             SerializationTypes = serializationTypes?.ToList().AsReadOnly() ?? throw new ArgumentNullException(nameof(serializationTypes));
 
-            var serializationOpsSerializers   = GetOpValueSerializerTypes(SerializationOps);
-            var deserializationOpsSerializers = GetOpValueSerializerTypes(DeserializationOps);
+            var serializationOpsSerializers   = GetOpValueSerializerTypes(SerializationOps).ToList();
+            var deserializationOpsSerializers = GetOpValueSerializerTypes(DeserializationOps).ToList();
+            
+            if (serializationOpsSerializers.Count != deserializationOpsSerializers.Count) 
+                throw new InvalidOperationException($"serialization programs for type \"{Type.Name}\" have different count of value serializers");
             
             ValueSerializerTypes = serializationOpsSerializers.Intersect(deserializationOpsSerializers).ToList();
-            
-            if (ValueSerializerTypes.Count != SerializationOps.Count) 
-                throw new InvalidOperationException($"serialization programs for type \"{Type.Name}\" have different count of value serializers");
         }   
         
         public static IEnumerable<Type> GetOpValueSerializerTypes(IEnumerable<ISerializationOp> ops)
@@ -303,9 +303,9 @@ namespace Fracture.Net.Serialization.Generation
                                 ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))).ToList().AsReadOnly()
                             )
                 );
-            else
+            else if (!mapping.Activator.IsStructInitializer)
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
-            
+                
             ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
                     v, 
                     ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))

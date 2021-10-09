@@ -204,6 +204,11 @@ namespace Fracture.Net.Serialization.Generation
         /// Gets boolean declaring whether this object activator is using the default constructor.
         /// </summary>
         public bool IsDefaultConstructor => Values.Count == 0;
+        
+        /// <summary>
+        /// Gets boolean declaring whether this object activator is default structure initializer.
+        /// </summary>
+        public bool IsStructInitializer => IsDefaultConstructor && Constructor == null;
         #endregion
 
         public ObjectActivator(ConstructorInfo constructor, IReadOnlyCollection<SerializationValue> values)

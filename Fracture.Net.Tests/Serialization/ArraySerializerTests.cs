@@ -10,6 +10,11 @@ namespace Fracture.Net.Tests.Serialization
     [Trait("Category", "Serialization")]
     public sealed class ArraySerializerTests
     {
+        static ArraySerializerTests()
+        {
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int[]), typeof(int?[]) });
+        }
+        
         public ArraySerializerTests()
         {
         }

@@ -122,7 +122,11 @@ namespace Fracture.Net.Serialization
         private static readonly Dictionary<Type, Delegate> GetSizeFromBufferDelegates = new Dictionary<Type, Delegate>();
         private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
-        
+                
+        [ValueSerializer.SupportsType]
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool CanExtendType(Type type)
@@ -132,7 +136,6 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExtendType(Type type)
         {
-            // TODO: fix.
             var underlyingValueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(type.GetGenericArguments()[0]);
             
             SerializeDelegates.Add(
@@ -155,10 +158,6 @@ namespace Fracture.Net.Serialization
             
             GetSizeFromBufferDelegates.Add(type, ValueSerializerRegistry.CreateGetSizeFromBufferDelegate(underlyingValueSerializerType, type));
         }
-        
-        [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type)
-            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
         /// <summary>
         /// Writes given nullable value to given buffer beginning at given offset if it has value.
