@@ -72,7 +72,7 @@ namespace Fracture.Engine.Ecs
       /// Creates new entity with optional annotation and tag.
       /// </summary>
       /// <returns>id of the new entity</returns>
-      void Create(int? annotation, string tag = "");
+      void Create(int? remoteId = null, int? annotation = null, string tag = "");
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
@@ -92,8 +92,11 @@ namespace Fracture.Engine.Ecs
       void Pair(int parentId, int childId);
       void Unpair(int parentId, int childId);
       
-      int ParentOf(int id);
       bool HasParent(int id);
+      int ParentOf(int id);
+      
+      bool LocalExists(int remoteId);
+      int GetLocalId(int remoteId);
       
       IEnumerable<int> ChildrenOf(int parentId);
       
@@ -114,13 +117,7 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
-         
-         public int? Annotation
-         {
-            get;
-            set;
-         }
-         
+
          public string Tag
          {
             get;
@@ -144,6 +141,18 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
+         
+         public int? Annotation
+         {
+            get;
+            set;
+         }
+         
+         public int? RemoteId
+         {
+            get;
+            set;
+         }
          #endregion
       }
       #endregion
@@ -153,6 +162,8 @@ namespace Fracture.Engine.Ecs
       // the free list to create new entity.
       private readonly FreeList<int> freeEntityIds;
       private readonly HashSet<int> aliveEntityIds;
+
+      private readonly Dictionary<int, int> remoteEntityIdMap;
       
       private readonly LinearGrowthArray<Entity> entities;
 
@@ -186,9 +197,10 @@ namespace Fracture.Engine.Ecs
          // Create entity data. 
          var idc = 0;
          
-         freeEntityIds  = new FreeList<int>(() => idc++);
-         aliveEntityIds = new HashSet<int>();
-         entities       = new LinearGrowthArray<Entity>(1024);
+         freeEntityIds     = new FreeList<int>(() => idc++);
+         aliveEntityIds    = new HashSet<int>();
+         entities          = new LinearGrowthArray<Entity>(1024);
+         remoteEntityIdMap = new Dictionary<int, int>();
       }
       
       private void AssertAlive(int id)
@@ -197,7 +209,7 @@ namespace Fracture.Engine.Ecs
             throw new InvalidOperationException($"entity {id} does not exist");
       }
       
-      public void Create(int? annotation, string tag = "")
+      public void Create(int? remoteId = null, int? annotation = null, string tag = "")
       {
          var id = freeEntityIds.Take();
          
@@ -207,12 +219,16 @@ namespace Fracture.Engine.Ecs
          ref var entity = ref entities.AtIndex(id);
          
          entity.Id            = id;
+         entity.RemoteId      = remoteId;
          entity.Annotation    = annotation;
          entity.Tag           = tag;
          entity.ParentId      = null;
          entity.Alive         = true;
          entity.ChildrenIds ??= new List<int>();
          
+         if (remoteId.HasValue)
+            remoteEntityIdMap.Add(remoteId.Value, id);
+
          // Create events.
          deletedEvents.Create(id);
          
@@ -246,6 +262,10 @@ namespace Fracture.Engine.Ecs
          if (entity.ParentId.HasValue)
             Unpair(entity.ParentId.Value, id);
          
+         // Remove from remote and annotation lookups.
+         if (entity.RemoteId.HasValue)
+            remoteEntityIdMap.Remove(entity.RemoteId.Value);
+
          // Clear rest of the state and return id to pool.
          deletedEvents.Delete(id);
          
@@ -329,13 +349,6 @@ namespace Fracture.Engine.Ecs
          unpairedFromChildEvents.Publish(parentId, e => e.Invoke(parentId, childId));
          unpairedFromParentEvents.Publish(childId, e => e.Invoke(parentId, childId));
       }
-
-      public int ParentOf(int id)
-      {  
-         AssertAlive(id);
-         
-         return entities.AtIndex(id).ParentId!.Value;
-      }
       
       public bool HasParent(int id)
       {
@@ -343,6 +356,19 @@ namespace Fracture.Engine.Ecs
          
          return entities.AtIndex(id).ParentId.HasValue;
       }
+      
+      public int ParentOf(int id)
+      {  
+         AssertAlive(id);
+         
+         return entities.AtIndex(id).ParentId!.Value;
+      }
+      
+      public bool LocalExists(int remoteId)
+         => remoteEntityIdMap.ContainsKey(remoteId);
+      
+      public int GetLocalId(int remoteId)
+         => remoteEntityIdMap[remoteId];
 
       public IEnumerable<int> ChildrenOf(int parentId)
       {
