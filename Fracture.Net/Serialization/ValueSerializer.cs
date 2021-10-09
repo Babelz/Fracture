@@ -42,6 +42,10 @@ namespace Fracture.Net.Serialization
     
     public static class ValueSerializer
     {
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="SupportsTypeDelegate"/> in value serializers. This attribute is for
+        /// all value serializer types.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class SupportsTypeAttribute : Attribute 
         {
@@ -49,7 +53,10 @@ namespace Fracture.Net.Serialization
             {
             }
         }
-        
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="SerializeDelegate{T}"/> in value serializers. This attribute is for
+        /// all value serializer types.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class SerializeAttribute : Attribute 
         {
@@ -57,7 +64,10 @@ namespace Fracture.Net.Serialization
             {
             }
         }
-        
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="DeserializeDelegate{T}"/> in value serializers. This attribute is for
+        /// all value serializer types.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class DeserializeAttribute : Attribute 
         {
@@ -66,7 +76,10 @@ namespace Fracture.Net.Serialization
             }
         }
         
-
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="GetSizeFromValueDelegate{T}"/> or in non-generic context for
+        /// <see cref="GetSizeFromValueDelegate"/> in value serializers. This attribute is for all value serializer types.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class GetSizeFromBufferAttribute : Attribute 
         {
@@ -75,6 +88,10 @@ namespace Fracture.Net.Serialization
             }
         }
         
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="GetSizeFromValueDelegate{T}"/> in value serializers. This attribute is for
+        /// all value serializer types.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class GetSizeFromValueAttribute : Attribute 
         {
@@ -83,6 +100,10 @@ namespace Fracture.Net.Serialization
             }
         }
         
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="CanExtendTypeDelegate"/> in value serializers. This attribute is required
+        /// for serializers that are annotated with <see cref="ExtendableValueSerializerAttribute"/>.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class CanExtendTypeAttribute : Attribute
         {
@@ -91,6 +112,10 @@ namespace Fracture.Net.Serialization
             }
         }
         
+        /// <summary>
+        /// Attribute used to annotate methods that provide interface for <see cref="ExtendTypeDelegate"/> in value serializers. This attribute is required
+        /// for serializers that are annotated with <see cref="ExtendableValueSerializerAttribute"/>.
+        /// </summary>
         [AttributeUsage(AttributeTargets.Method)]
         public sealed class ExtendTypeAttribute : Attribute
         {
@@ -100,20 +125,45 @@ namespace Fracture.Net.Serialization
         }
     }
     
+    /// <summary>
+    /// Returns boolean declaring whether given serialization type is supported by the value serializer.
+    /// </summary>
     public delegate bool SupportsTypeDelegate(Type type);
-
+    
+    /// <summary>
+    /// Serializes given object of specific type to given buffer beginning at given offset.
+    /// </summary>
     public delegate void SerializeDelegate<in T>(T value, byte[] buffer, int offset);
-
+    
+    /// <summary>
+    /// Deserializes object of specified type from given buffer beginning at given offset.
+    /// </summary>
     public delegate T DeserializeDelegate<out T>(byte[] buffer, int offset);
 
+    /// <summary>
+    /// Returns the size of an object inside the buffer beginning at given offset.
+    /// </summary>
     public delegate ushort GetSizeFromBufferDelegate(byte[] buffer, int offset);
 
+    /// <summary>
+    /// Returns the size of an object inside the buffer using generic type information provided beginning at given offset. 
+    /// </summary>
     public delegate ushort GetSizeFromBufferDelegate<in T>(byte[] buffer, int offset);
 
+    /// <summary>
+    /// Returns size of the value when it is serialized.
+    /// </summary>
     public delegate ushort GetSizeFromValueDelegate<in T>(T value);
     
+    /// <summary>
+    /// Returns boolean declaring whether this serialization type can be extended by the value serializer.
+    /// </summary>
     public delegate bool CanExtendTypeDelegate(Type type);
     
+    /// <summary>
+    /// Extends given serialization type inside the serializer with special serialization instructions. For example the type might require some generic
+    /// reducing before it can be serialized.
+    /// </summary>
     public delegate void ExtendTypeDelegate(Type type);
     
     /// <summary>
@@ -226,6 +276,10 @@ namespace Fracture.Net.Serialization
             => (ExtendTypeDelegate)ReflectionUtil.CreateDelegate(GetExtendTypeMethodInfo(valueSerializerType), typeof(ExtendTypeDelegate));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static SupportsTypeDelegate CreateSupportsTypeDelegate(Type valueSerializerType)
+            => (SupportsTypeDelegate)ReflectionUtil.CreateDelegate(GetSupportsTypeMethodInfo(valueSerializerType), typeof(SupportsTypeDelegate));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MethodInfo GetSupportsTypeMethodInfo(Type valueSerializerType)
             => GetValuerSerializerMethodInfo<ValueSerializer.SupportsTypeAttribute>(valueSerializerType);
 
@@ -257,12 +311,7 @@ namespace Fracture.Net.Serialization
         {
             foreach (var valueSerializerType in ValueSerializerTypes)
             {
-                var supportsTypeMethodInfo = GetSupportsTypeMethodInfo(valueSerializerType);
-                
-                if (supportsTypeMethodInfo == null)
-                    continue;
-            
-                if ((bool)supportsTypeMethodInfo.Invoke(null, new object[] { serializationType }))
+                if (CreateSupportsTypeDelegate(valueSerializerType)(serializationType))
                     return valueSerializerType;
             }
 
