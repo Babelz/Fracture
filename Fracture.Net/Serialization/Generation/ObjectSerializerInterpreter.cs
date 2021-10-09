@@ -256,29 +256,42 @@ namespace Fracture.Net.Serialization.Generation
         }
     }
     
+    /// <summary>
+    /// Static class that provides pre-interpretation steps for compiling dynamic object serializers. 
+    /// </summary>
     public static class ObjectSerializerAnalyzer
     {
+        /// <summary>
+        /// Analyzes given serialization type and extends it when needed.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Analyze(Type serializationType)
+        {
+            if (serializationType.IsGenericType)
+                Analyze(serializationType.GetGenericArguments());
+                
+            if (serializationType.IsArray)
+                Analyze(serializationType.GetElementType());
+            
+            var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
+                
+            if (!ValueSerializerRegistry.IsExtendableValueSerializer(valueSerializerType))
+                return;
+                
+            if (!ValueSerializerRegistry.CreateCanExtendTypeDelegate(valueSerializerType)(serializationType))
+                return;
+                
+            ValueSerializerRegistry.CreateExtendTypeDelegate(valueSerializerType)(serializationType);
+        }
+        
+        /// <summary>
+        /// Iterates trough given value serializer types and analyzes them.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Analyze(IEnumerable<Type> serializationTypes)
         {
             foreach (var serializationType in serializationTypes)
-            {
-                if (serializationType.IsGenericType)
-                    Analyze(serializationType.GetGenericArguments());
-                
-                if (serializationType.IsArray)
-                    Analyze(new [] { serializationType.GetElementType() });
-                
-                var valueSerializerType = ValueSerializerRegistry.GetValueSerializerForRunType(serializationType);
-                
-                if (!ValueSerializerRegistry.IsExtendableValueSerializer(valueSerializerType))
-                    continue;
-                
-                if (!ValueSerializerRegistry.CreateCanExtendTypeDelegate(valueSerializerType)(serializationType))
-                    continue;
-                
-                ValueSerializerRegistry.CreateExtendTypeDelegate(valueSerializerType)(serializationType);
-            }
+                Analyze(serializationType);
         }
     }
     

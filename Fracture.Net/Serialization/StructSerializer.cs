@@ -68,7 +68,7 @@ namespace Fracture.Net.Serialization
             => Serializers.ContainsKey(type);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void MapStruct(ObjectSerializationMapping mapping)
+        public static void Map(ObjectSerializationMapping mapping)
         {
             if (SupportsType(mapping.Type))
                 throw new InvalidOperationException("serialization type already registered")

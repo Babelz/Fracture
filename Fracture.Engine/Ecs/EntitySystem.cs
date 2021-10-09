@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using Fracture.Common.Collections;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
@@ -71,12 +72,7 @@ namespace Fracture.Engine.Ecs
       /// Creates new entity with optional annotation and tag.
       /// </summary>
       /// <returns>id of the new entity</returns>
-      int Create(uint annotation = 0u, string tag = "");
-      /// <summary>
-      /// Creates new entity that has it's id explicitly defined.  
-      /// </summary>
-      /// <returns>boolean declaring whether the entity was created</returns>
-      bool Create(int id, uint annotation = 0u, string tag = "");
+      void Create(uint? annotation, string tag = "");
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
@@ -88,13 +84,17 @@ namespace Fracture.Engine.Ecs
       /// </summary>
       bool Alive(int id);
       
+      bool IsAnnotated(int id);
       uint GetAnnotation(int id);
+      
       string GetTag(int id);
 
       void Pair(int parentId, int childId);
       void Unpair(int parentId, int childId);
       
-      IEnumerable<int> ParentsOf(int childId);
+      int ParentOf(int id);
+      bool HasParent(int id);
+      
       IEnumerable<int> ChildrenOf(int parentId);
       
       void Clear();
@@ -105,19 +105,57 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public sealed class EntitySystem : GameEngineSystem, IEntitySystem
    {
+      #region Entity structure
+      private struct Entity
+      {
+         #region Properties
+         public int Id
+         {
+            get;
+            set;
+         }
+         
+         public uint? Annotation
+         {
+            get;
+            set;
+         }
+         
+         public string Tag
+         {
+            get;
+            set;
+         }
+         
+         public int? ParentId
+         {
+            get;
+            set;
+         }
+         
+         public List<int> ChildrenIds
+         {
+            get;
+            set;
+         } 
+         
+         public bool Alive
+         {
+            get;
+            set;
+         }
+         #endregion
+      }
+      #endregion
+      
       #region Fields
       // Free (dead/unused) entities and alive entities. Get id from
       // the free list to create new entity.
-      private readonly FreeList<int> freeEntities;
-      private readonly HashSet<int> aliveEntities;
+      private readonly FreeList<int> freeEntityIds;
+      private readonly HashSet<int> aliveEntityIds;
       
-      // Actual entity data. Use the id of the entity to access
-      // it's properties trough these lookup structures.
-      private readonly Dictionary<int, string> entityTags;
-      private readonly Dictionary<int, uint> entityAnnotations;
-      private readonly Dictionary<int, HashSet<int>> entityChildren;
-      private readonly Dictionary<int, HashSet<int>> entityParents;
-      
+      private readonly LinearGrowthArray<Entity> entities;
+
       // Entity events. 
       private IEventQueue<int, EntityEventHandler> deletedEvents;
       private IEventQueue<int, EntityPairEventHandler> unpairedFromChildEvents;
@@ -148,41 +186,32 @@ namespace Fracture.Engine.Ecs
          // Create entity data. 
          var idc = 0;
          
-         freeEntities  = new FreeList<int>(() => idc++);
-         aliveEntities = new HashSet<int>();
-         
-         entityTags        = new Dictionary<int, string>();
-         entityAnnotations = new Dictionary<int, uint>();
-         entityChildren    = new Dictionary<int, HashSet<int>>();
-         entityParents     = new Dictionary<int, HashSet<int>>();
+         freeEntityIds  = new FreeList<int>(() => idc++);
+         aliveEntityIds = new HashSet<int>();
+         entities       = new LinearGrowthArray<Entity>(1024);
       }
-
+      
       private void AssertAlive(int id)
       {
          if (!Alive(id)) 
             throw new InvalidOperationException($"entity {id} does not exist");
       }
       
-      public int Create(uint annotation = 0u, string tag = "")
+      public void Create(uint? annotation, string tag = "")
       {
-         var id = freeEntities.Take();
+         var id = freeEntityIds.Take();
          
-         if (!Create(id, annotation, tag))
-            throw new InvalidOperationException($"duplicated internal entity id {id}");
+         while (id >= entities.Length)
+            entities.Grow();
          
-         return id;
-      }
-      
-      public bool Create(int id, uint annotation = 0u, string tag = "")
-      {
-         if (Alive(id))
-            return false;
+         ref var entity = ref entities.AtIndex(id);
          
-         // Add to lookups.
-         entityAnnotations[id] = annotation;
-         entityTags[id]        = tag;
-         
-         aliveEntities.Add(id);
+         entity.Id            = id;
+         entity.Annotation    = annotation;
+         entity.Tag           = tag;
+         entity.ParentId      = null;
+         entity.Alive         = true;
+         entity.ChildrenIds ??= new List<int>();
          
          // Create events.
          deletedEvents.Create(id);
@@ -193,38 +222,29 @@ namespace Fracture.Engine.Ecs
          madeParentOfEvents.Create(id);
          madeChildOfEvents.Create(id);
          
-         return true;
+         aliveEntityIds.Add(id);
       }
 
       public void Delete(int id)
       {
-         if (!aliveEntities.Remove(id)) 
-            throw new InvalidOperationException($"entity {id} not alive");
+         AssertAlive(id);
+         
+         ref var entity = ref entities.AtIndex(id);
          
          // Notify events.
          deletedEvents.Publish(id, e => e(id));
          
          // Delete and unpair children.
-         if (entityChildren.TryGetValue(id, out var children))
+         foreach (var childId in entity.ChildrenIds)
          {
-            foreach (var childId in children)
-            {
-               Unpair(id, childId);
-               
-               Delete(childId);
-            }
-               
-            entityChildren.Remove(id);
+            Unpair(id, childId);
+            
+            Delete(childId);
          }
          
          // Unpair from parents.
-         if (entityParents.TryGetValue(id, out var parents))
-         {
-            foreach (var parentId in parents)
-               Unpair(parentId, id);
- 
-            parents.Remove(id);
-         }
+         if (entity.ParentId.HasValue)
+            Unpair(entity.ParentId.Value, id);
          
          // Clear rest of the state and return id to pool.
          deletedEvents.Delete(id);
@@ -235,53 +255,58 @@ namespace Fracture.Engine.Ecs
          madeParentOfEvents.Delete(id);
          madeChildOfEvents.Delete(id);
          
-         entityTags.Remove(id);
-         entityAnnotations.Remove(id);
+         freeEntityIds.Return(id);
+       
+         // Mark as not alive.
+         entity.Alive = false;
          
-         freeEntities.Return(id);
+         aliveEntityIds.Remove(id);
       }
 
       public bool Alive(int id)
-         => aliveEntities.Contains(id);
+         => id < entities.Length && entities.AtIndex(id).Alive;
+
+      public bool IsAnnotated(int id)
+      {
+         AssertAlive(id);
+         
+         return entities.AtIndex(id).Annotation.HasValue;
+      }
 
       public uint GetAnnotation(int id)
       {
          AssertAlive(id);
          
-         return entityAnnotations[id];
+         return entities.AtIndex(id).Annotation!.Value;
       }
 
       public string GetTag(int id)
       {
          AssertAlive(id);
          
-         return entityTags[id];
+         return entities.AtIndex(id).Tag;
       }
 
       public void Pair(int parentId, int childId)
       {
+         if (parentId == childId)
+            throw new InvalidOperationException($"can't pair same entity {parentId}");
+         
          AssertAlive(parentId);
          AssertAlive(childId);
          
-         // Get or create children collection for parent.
-         if (!entityChildren.TryGetValue(parentId, out var children))
-         {
-            children = new HashSet<int>();
-            
-            entityChildren.Add(parentId, children);
-         }
+         ref var parent = ref entities.AtIndex(parentId);
+         ref var child  = ref entities.AtIndex(childId);
          
-         // Get or create parent collection for children.
-         if (!entityParents.TryGetValue(childId, out var parents))
-         {
-            parents = new HashSet<int>();
-            
-            entityParents.Add(childId, parents);
-         }
+         // Unpair from old parent.
+         if (child.ParentId.HasValue)
+            Unpair(child.ParentId.Value, child.Id);
          
-         // Do the actual pairing and invoke events.
-         parents.Add(parentId);
-         children.Add(childId);
+         // Make child of new parent.
+         parent.ChildrenIds.Add(childId);
+         
+         // Pair with new parent.
+         child.ParentId = parentId;
          
          madeParentOfEvents.Publish(parentId, e => e.Invoke(parentId, childId));
          madeChildOfEvents.Publish(childId, e => e.Invoke(parentId, childId));
@@ -292,39 +317,43 @@ namespace Fracture.Engine.Ecs
          AssertAlive(parentId);
          AssertAlive(childId);
          
-         // Make sure parent has accepted children in the past.
-         if (!entityChildren.TryGetValue(parentId, out var children))
-            return;
+         ref var parent = ref entities.AtIndex(parentId);
+         ref var child  = ref entities.AtIndex(childId);
+
+         // Unpair parent from children.
+         parent.ChildrenIds.Remove(childId);
          
-         // Make sure children has accepted parent in the past.
-         if (!entityParents.TryGetValue(childId, out var parents))
-            return;
-         
-         // Do the actual unpairing and invoke events.
-         children.Remove(childId);
-         parents.Remove(parentId);
-         
+         // Unpair child from parent.
+         child.ParentId = null;
+
          unpairedFromChildEvents.Publish(parentId, e => e.Invoke(parentId, childId));
          unpairedFromParentEvents.Publish(childId, e => e.Invoke(parentId, childId));
       }
 
-      public IEnumerable<int> ParentsOf(int childId)
+      public int ParentOf(int id)
       {  
-         AssertAlive(childId);
+         AssertAlive(id);
          
-         return entityParents.TryGetValue(childId, out var parents) ? parents : Enumerable.Empty<int>();
+         return entities.AtIndex(id).ParentId!.Value;
+      }
+      
+      public bool HasParent(int id)
+      {
+         AssertAlive(id);
+         
+         return entities.AtIndex(id).ParentId.HasValue;
       }
 
       public IEnumerable<int> ChildrenOf(int parentId)
       {
          AssertAlive(parentId);
          
-         return entityChildren.TryGetValue(parentId, out var children) ? children : Enumerable.Empty<int>();
+         return entities.AtIndex(parentId).ChildrenIds;
       }
 
       public void Clear()
       {
-         foreach (var id in aliveEntities.ToList())
+         foreach (var id in aliveEntityIds)
             Delete(id);
       }
 
@@ -345,7 +374,7 @@ namespace Fracture.Engine.Ecs
       }
 
       public IEnumerator<int> GetEnumerator()
-         => aliveEntities.GetEnumerator();
+         => aliveEntityIds.GetEnumerator();
 
       IEnumerator IEnumerable.GetEnumerator()
          => GetEnumerator();
