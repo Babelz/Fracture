@@ -117,6 +117,11 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
+         public int SystemId
+         {
+            get;
+            set;
+         }
          public int? RemoteId
          {
             get;
@@ -151,10 +156,16 @@ namespace Fracture.Engine.Ecs
          #endregion
       }
       #endregion
+
+      #region Static fields
+      private static int IdCounter;
+      #endregion
       
       #region Fields
-      // Free (dead/unused) entities and alive entities. Get id from
-      // the free list to create new entity.
+      private readonly int systemId;
+      
+      // Free (dead/unused) entities and alive entities. Get id from the free list to create new entity. This is required as some internal structures are 
+      // linear and grow with the entity count.
       private readonly FreeList<int> freeEntityIds;
       private readonly HashSet<int> aliveEntityIds;
 
@@ -189,6 +200,8 @@ namespace Fracture.Engine.Ecs
 
       public EntitySystem()
       {
+         systemId = IdCounter++;
+         
          // Create entity data. 
          var idc = 0;
          
@@ -214,12 +227,13 @@ namespace Fracture.Engine.Ecs
          ref var entity = ref entities.AtIndex(id);
          
          entity.Id            = id;
+         entity.SystemId      = systemId;
          entity.RemoteId      = remoteId;
          entity.Annotation    = annotation;
          entity.Tag           = tag;
          entity.Alive         = true;
          entity.ChildrenIds ??= new List<int>();
-         
+
          if (remoteId.HasValue)
             remoteEntityIdMap.Add(remoteId.Value, id);
          

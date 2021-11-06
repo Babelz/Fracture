@@ -17,7 +17,7 @@
         }
 
         /// <summary>
-        /// Returns the count of objects in this storage objects.
+        /// Returns the count of objects in this storage.
         /// </summary>
         int Count
         {

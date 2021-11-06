@@ -48,6 +48,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Collections\CirularBuffer.cs" />
+        <Compile Include="Collections\Concurrent\LockedDoubleBuffer.cs" />
         <Compile Include="Collections\FreeList.cs" />
         <Compile Include="Collections\LinearGrowthArray.cs" />
         <Compile Include="Collections\LinearRegistry.cs" />
@@ -68,6 +69,7 @@
         <Compile Include="Events\EventScheduler.cs" />
         <Compile Include="Events\KeyEventScheduler.cs" />
         <Compile Include="Events\ScheduledEvent.cs" />
+        <Compile Include="Events\StructEventArgs.cs" />
         <Compile Include="Exceptions.cs" />
         <Compile Include="Memory\MemoryMapper.cs" />
         <Compile Include="Memory\IClearable.cs" />
