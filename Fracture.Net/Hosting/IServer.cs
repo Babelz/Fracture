@@ -6,13 +6,30 @@ using Fracture.Net.Hosting.Peers;
 
 namespace Fracture.Net.Hosting
 {
+    /// <summary>
+    /// Interface for implementing low level peer servers.
+    /// </summary>
     public interface IServer : IDisposable
     {
         #region Events
+        /// <summary>
+        /// Event invoked when peer joins the server.
+        /// </summary>
         event StructEventHandler<PeerJoinEventArgs> Join;
+        
+        /// <summary>
+        /// Event invoked when peer leaves the server. 
+        /// </summary>
         event StructEventHandler<PeerResetEventArgs> Reset;
         
+        /// <summary>
+        /// Event invoked when server receives message from a peer.
+        /// </summary>
         event StructEventHandler<PeerMessageEventArgs> Incoming;
+        
+        /// <summary>
+        /// Event invoked when server is sending message to peer.
+        /// </summary>
         event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
@@ -76,16 +93,16 @@ namespace Fracture.Net.Hosting
         }
 
         #region Event handlers
-        private void PeerOnReset(object sender, in PeerResetEventArgs e)
+        private void Peer_OnReset(object sender, in PeerResetEventArgs e)
         {
             var peer = lookup[e.Peer.Id];
             
             peers.Remove(peer);
             lookup.Remove(e.Peer.Id);
             
-            peer.Incoming     -= Peer_OnReceived;
-            peer.Outgoing     -= Peer_OnSending;
-            peer.Reset -= PeerOnReset;
+            peer.Incoming -= Peer_OnReceived;
+            peer.Outgoing -= Peer_OnSending;
+            peer.Reset    -= Peer_OnReset;
             
             peer.Dispose();
             
@@ -109,7 +126,7 @@ namespace Fracture.Net.Hosting
             
             peer.Incoming += Peer_OnReceived;
             peer.Outgoing += Peer_OnSending;
-            peer.Reset    += PeerOnReset;
+            peer.Reset    += Peer_OnReset;
         }
         #endregion
         
