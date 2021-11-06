@@ -262,9 +262,7 @@
         <Compile Include="Hosting\Messaging\MessageHandler.cs" />
         <Compile Include="Hosting\Messaging\MessageQueue.cs" />
         <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
-        <Compile Include="Hosting\Messaging\RequestMessage.cs" />
         <Compile Include="Hosting\Messaging\RequestPipeline.cs" />
-        <Compile Include="Hosting\Messaging\ResponsePipeline.cs" />
         <Compile Include="Hosting\Messaging\SimulationPipeline.cs" />
         <Compile Include="Hosting\Peers\EventArgs.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />

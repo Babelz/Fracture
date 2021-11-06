@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Messages
@@ -43,5 +44,31 @@ namespace Fracture.Net.Messages
             set;
         }
         #endregion
+    }
+    
+    /// <summary>
+    /// Static utility class containing message related utilities.
+    /// </summary>
+    public static class Message
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
+        {
+            var message = result();
+            
+            message.RequestTime = from.RequestTime;
+            
+            return message;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Query<T>(IQueryMessage from, Func<T> result) where T : IQueryMessage
+        {
+            var message = result();
+            
+            message.QueryId = from.QueryId;
+            
+            return message;
+        }
     }
 }
