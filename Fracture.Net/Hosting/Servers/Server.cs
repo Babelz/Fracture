@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using Fracture.Common.Events;
 using Fracture.Net.Hosting.Peers;
 
-namespace Fracture.Net.Hosting
+namespace Fracture.Net.Hosting.Servers
 {
     /// <summary>
     /// Structure event arguments used when new connection is made to a listener.
@@ -173,11 +173,11 @@ namespace Fracture.Net.Hosting
             lookup.Add(peer.Id, peer);
             peers.Add(peer);
             
-            Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint)));
-            
             peer.Incoming += Peer_OnReceived;
             peer.Outgoing += Peer_OnSending;
             peer.Reset    += Peer_OnReset;
+            
+            Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint)));
         }
         #endregion
         

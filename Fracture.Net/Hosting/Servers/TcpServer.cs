@@ -7,7 +7,7 @@ using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
 using Fracture.Net.Hosting.Peers;
 
-namespace Fracture.Net.Hosting
+namespace Fracture.Net.Hosting.Servers
 {
     /// <summary>
     /// Listener implementation that listens for incoming TPC connections.

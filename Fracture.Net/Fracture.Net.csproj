@@ -259,11 +259,11 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Hosting\Server.cs" />
         <Compile Include="Hosting\Peers\EventArgs.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
-        <Compile Include="Hosting\TcpServer.cs" />
+        <Compile Include="Hosting\Servers\Server.cs" />
+        <Compile Include="Hosting\Servers\TcpServer.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Protocol.cs" />
         <Compile Include="Serialization\ArraySerializer.cs" />
@@ -304,6 +304,9 @@
     <ItemGroup>
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Messages" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

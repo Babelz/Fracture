@@ -266,6 +266,9 @@ namespace Fracture.Net.Serialization.Generation
     public sealed class ObjectSerializationMapper 
     {
         #region Fields
+        private readonly HashSet<string> excludedProperties;
+        private readonly HashSet<string> excludedFields;
+        
         private readonly List<SerializationValueHint> serializationValueHints;
         private readonly List<ObjectActivationHint> objectActivationHints;
     
@@ -279,6 +282,9 @@ namespace Fracture.Net.Serialization.Generation
         {
             serializationValueHints = new List<SerializationValueHint>();
             objectActivationHints   = new List<ObjectActivationHint>();
+            
+            excludedProperties = new HashSet<string>();
+            excludedFields     = new HashSet<string>();
         }
         
         private void AssertSerializationTypeIsValidForSerialization()
@@ -432,7 +438,8 @@ namespace Fracture.Net.Serialization.Generation
                                                            .Where(f => !serializationValueHints.Any(h => h.Name == f.Name && 
                                                                                                          h.Path == SerializationValueLocation.Field));
             
-            serializationValueHints.AddRange(serializationTypeFields.Select(f => SerializationValueHint.Field(f.Name)));
+            serializationValueHints.AddRange(serializationTypeFields.Where(f => !excludedFields.Contains(f.Name))
+                                                                    .Select(f => SerializationValueHint.Field(f.Name)));
         }
         
         private void DiscoverPublicPropertyHints()
@@ -441,10 +448,11 @@ namespace Fracture.Net.Serialization.Generation
                 return;
             
             var serializationTypeProperties = serializationType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                                               .Where(f => !serializationValueHints.Any(h => h.Name == f.Name && 
+                                                               .Where(p => !serializationValueHints.Any(h => h.Name == p.Name && 
                                                                                                              h.Path == SerializationValueLocation.Property));
             
-            serializationValueHints.AddRange(serializationTypeProperties.Select(f => SerializationValueHint.Property(f.Name)));
+            serializationValueHints.AddRange(serializationTypeProperties.Where(p => !excludedProperties.Contains(p.Name))
+                                                                        .Select(p => SerializationValueHint.Property(p.Name)));
         }
         
         private void RemoveActivationValueHints()
@@ -498,9 +506,12 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Directs the builder to map all public fields of the type.
         /// </summary>
-        public ObjectSerializationMapper PublicFields()
+        public ObjectSerializationMapper PublicFields(params string[] excludeFields)
         {
             discoverPublicFields = true;
+            
+            if (excludeFields != null)
+                Array.ForEach(excludeFields, (s) => excludedFields.Add(s));
             
             return this;
         }
@@ -508,9 +519,12 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Directs the builder to map all public properties of the type.
         /// </summary>
-        public ObjectSerializationMapper PublicProperties()
+        public ObjectSerializationMapper PublicProperties(params string[] excludeProperties)
         {
             discoverPublicProperties = true;
+            
+            if (excludeProperties != null)
+                Array.ForEach(excludeProperties, (s) => excludedProperties.Add(s));
             
             return this;
         }
