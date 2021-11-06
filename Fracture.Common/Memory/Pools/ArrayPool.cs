@@ -156,7 +156,7 @@ namespace Fracture.Common.Memory.Pools
             => size < maxSize;
         
         private int GetBlocksCount(int size)
-            => size / blockSize + size % blockSize;
+            => size / blockSize + (size % blockSize > 0 ? 1 : 0);
         
         public void Return(T[] array)
         {
