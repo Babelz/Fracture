@@ -259,11 +259,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Hosting\IServer.cs" />
-        <Compile Include="Hosting\IListener.cs" />
+        <Compile Include="Hosting\Server.cs" />
         <Compile Include="Hosting\Peers\EventArgs.cs" />
-        <Compile Include="Hosting\Peers\IPeer.cs" />
-        <Compile Include="Hosting\Peers\IPeerFactory.cs" />
+        <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
         <Compile Include="Hosting\TcpServer.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

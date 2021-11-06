@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Sockets;
 using Fracture.Common.Events;
 
 namespace Fracture.Net.Hosting.Peers
@@ -136,5 +137,16 @@ namespace Fracture.Net.Hosting.Peers
         /// Polls the peer once allowing it to update its internal state and invoke any events in queue. 
         /// </summary>
         void Poll();
+    }
+    
+    /// <summary>
+    /// Interface for implementing peer factories.
+    /// </summary>
+    public interface IPeerFactory
+    {
+        /// <summary>
+        /// Creates new peer using given socket connected by remote client.
+        /// </summary>
+        IPeer Create(Socket socket);
     }
 }
