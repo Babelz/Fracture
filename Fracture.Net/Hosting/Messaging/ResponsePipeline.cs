@@ -4,7 +4,7 @@ using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
-        /// <summary>
+    /// <summary>
     /// Enumeration defining all possible response status codes.
     /// </summary>
     public enum StatusCode : byte
@@ -95,7 +95,7 @@ namespace Fracture.Net.Hosting.Messaging
             => new Response(StatusCode.Reset, message, exception);
     }
     
-    public class ResponseHandler
+    public class ResponsePipeline
     {
     }
 }
