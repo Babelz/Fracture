@@ -1,7 +1,6 @@
-using System.Net;
 using Fracture.Common.Events;
 
-namespace Fracture.Net.Hosting
+namespace Fracture.Net.Hosting.Peers
 {
     public readonly struct PeerJoinEventArgs : IStructEventArgs
     {
@@ -53,12 +52,14 @@ namespace Fracture.Net.Hosting
         public readonly PeerConnection Peer;
         
         public readonly byte[] Data;
+        public readonly int Length;
         #endregion
 
-        public PeerMessageEventArgs(in PeerConnection peer, byte[] data)
+        public PeerMessageEventArgs(in PeerConnection peer, byte[] data, int length)
         {
-            Peer = peer;
-            Data = data;
+            Peer   = peer;
+            Data   = data;
+            Length = length;
         }
     }
 }

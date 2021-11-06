@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Sockets;
 using Fracture.Common.Events;
+using Fracture.Net.Hosting.Peers;
 
 namespace Fracture.Net.Hosting
 {
@@ -29,6 +29,7 @@ namespace Fracture.Net.Hosting
         #endregion
 
         void Disconnect(int peerId);
+        bool IsConnected(int peerId);
         
         void Send(int peerId, byte[] data, int offset, int length);
         
@@ -106,9 +107,9 @@ namespace Fracture.Net.Hosting
             
             Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint)));
             
-            peer.Incoming     += Peer_OnReceived;
-            peer.Outgoing     += Peer_OnSending;
-            peer.Reset += PeerOnReset;
+            peer.Incoming += Peer_OnReceived;
+            peer.Outgoing += Peer_OnSending;
+            peer.Reset    += PeerOnReset;
         }
         #endregion
         
@@ -119,6 +120,9 @@ namespace Fracture.Net.Hosting
             
             peer.Disconnect();
         }
+        
+        public bool IsConnected(int peerId)
+            => lookup.TryGetValue(peerId, out var peer) && peer.Connected;
 
         public void Send(int peerId, byte[] data, int offset, int length)
         {
@@ -168,14 +172,6 @@ namespace Fracture.Net.Hosting
             
             peers.Clear();
             lookup.Clear();
-        }
-    }
-    
-    public sealed class TcpServer : Server
-    {
-        public TcpServer(TimeSpan gracePeriod)
-            : base(new TcpPeer.TcpPeerFactory(gracePeriod), new TcpListener())
-        {
         }
     }
 }
