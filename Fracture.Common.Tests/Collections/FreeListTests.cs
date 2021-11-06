@@ -6,8 +6,12 @@ namespace Fracture.Common.Tests.Collections
     [Trait("Category", "Collections")]
     public class FreeListTests
     {
+        public FreeListTests()
+        {
+        }
+        
         [Fact]
-        public void FreeListTest()
+        public void FreeList_Ctor_Test()
         {
             try
             {
@@ -21,7 +25,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void TakeTest()
+        public void Take_Returns_New_Values_In_Sequence()
         {
             var idc = 0;
 
@@ -32,7 +36,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void ReturnTest()
+        public void Return_Stores_Values_In_Sequence()
         {
             var idc = 0;
 

@@ -16,7 +16,7 @@ namespace Fracture.Common.Tests.Collections
             => array = new LinearGrowthArray<int>(4);
 
         [Fact]
-        public void LinearGrowthArrayTest()
+        public void LinearGrowthArray_Ctor_Test()
         {
             Assert.Throws<ArgumentOutOfRangeException>(() => new LinearGrowthArray<int>(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => new LinearGrowthArray<int>(1, -1));
@@ -36,7 +36,7 @@ namespace Fracture.Common.Tests.Collections
         }
         
         [Fact]
-        public void GrowTest()
+        public void Grow_Creates_New_Buckets()
         {
             Assert.Equal(1, array.Buckets);
 
@@ -46,7 +46,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void SetElementAtIndexTest()
+        public void SetElementAtIndex_Throws_Correctly_If_Index_Is_Out_Of_Range()
         {
             array.Insert(0, 1);
 
@@ -68,7 +68,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void GetElementAtIndexTest()
+        public void GetElementAtIndex_Throws_If_Index_Is_Out_Of_Range()
         {
             array.Insert(0, 1);
             array.Insert(1, 2);

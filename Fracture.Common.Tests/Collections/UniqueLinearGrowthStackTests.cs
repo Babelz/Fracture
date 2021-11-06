@@ -16,7 +16,7 @@ namespace Fracture.Common.Tests.Collections
             => stack = new UniqueLinearGrowthStack<int>();
 
         [Fact]
-        public void UniqueLinearGrowthStackTest()
+        public void UniqueLinearGrowthStack_Ctor_Test()
         {
             Assert.Throws<ArgumentNullException>(() => new UniqueLinearGrowthStack<int>(null));
 
@@ -35,7 +35,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PeekTest()
+        public void Peek_Test()
         {
             stack.Push(0);
             stack.Push(1);
@@ -55,7 +55,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PopTest()
+        public void Pop_Test()
         {
             stack.Push(0);
             stack.Push(1);
@@ -77,7 +77,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PushTest()
+        public void Push_Test()
         {
             Assert.Equal(0, stack.Top);
             Assert.True(stack.Empty);
@@ -104,7 +104,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void WillThrowOnNonUniqueValue()
+        public void Push_Will_Throw_If_Element_Is_Not_Unique()
         {
             stack.Push(0);
             stack.Push(1);

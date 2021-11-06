@@ -15,7 +15,7 @@ namespace Fracture.Common.Tests.Collections
             => stack = new LinearGrowthStack<int>(new LinearGrowthArray<int>(2));
 
         [Fact]
-        public void LinearGrowthStackTest()
+        public void LinearGrowthStack_Ctor_Test()
         {
             Assert.Throws<ArgumentNullException>(() => new LinearGrowthStack<int>(null));
 
@@ -34,7 +34,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PeekTest()
+        public void Peek_Test()
         {
             stack.Push(0);
             stack.Push(1);
@@ -54,7 +54,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PopTest()
+        public void Pop_Test()
         {
             stack.Push(0);
             stack.Push(1);
@@ -76,7 +76,7 @@ namespace Fracture.Common.Tests.Collections
         }
 
         [Fact]
-        public void PushTest()
+        public void Push_Test()
         {
             Assert.Equal(0, stack.Top);
             Assert.True(stack.Empty);
