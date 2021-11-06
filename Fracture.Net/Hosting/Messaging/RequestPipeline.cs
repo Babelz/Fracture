@@ -1,7 +1,8 @@
+using System;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
 
-namespace Fracture.Net.Hosting.Application
+namespace Fracture.Net.Hosting.Messaging
 {
     public readonly struct Request 
     {
@@ -53,4 +54,25 @@ namespace Fracture.Net.Hosting.Application
 
     public delegate Response HandleRequestDelegate(in Request request);
     public delegate Response HandleRequestDelegate<T>(in Request<T> request) where T : IMessage;
+    
+    [AttributeUsage(AttributeTargets.Method)]
+    public sealed class RequestHandlerAttribute : Attribute
+    {
+        #region Properties
+        public string Path
+        {
+            get;
+        }
+        #endregion
+
+        public RequestHandlerAttribute(string path)
+            => Path = !string.IsNullOrEmpty(path) ? path : throw new ArgumentNullException(nameof(path));
+    }
+
+    public sealed class RequestPipeline
+    {
+        public RequestPipeline()
+        {
+        }
+    }
 }

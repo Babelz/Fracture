@@ -259,13 +259,13 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Hosting\Application\MessageHandler.cs" />
-        <Compile Include="Hosting\Application\MessageQueue.cs" />
-        <Compile Include="Hosting\Application\Request.cs" />
-        <Compile Include="Hosting\Application\RequestHandler.cs" />
-        <Compile Include="Hosting\Application\Response.cs" />
-        <Compile Include="Hosting\Application\ResponseHandler.cs" />
-        <Compile Include="Hosting\Messages\RequestMessage.cs" />
+        <Compile Include="Hosting\Messaging\MessageHandler.cs" />
+        <Compile Include="Hosting\Messaging\MessageQueue.cs" />
+        <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
+        <Compile Include="Hosting\Messaging\RequestMessage.cs" />
+        <Compile Include="Hosting\Messaging\RequestPipeline.cs" />
+        <Compile Include="Hosting\Messaging\ResponsePipeline.cs" />
+        <Compile Include="Hosting\Messaging\SimulationPipeline.cs" />
         <Compile Include="Hosting\Peers\EventArgs.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
@@ -313,6 +313,9 @@
     <ItemGroup>
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <Folder Include="Hosting\Application" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

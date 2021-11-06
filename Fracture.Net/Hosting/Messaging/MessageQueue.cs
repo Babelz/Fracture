@@ -1,4 +1,4 @@
-namespace Fracture.Net.Hosting.Application
+namespace Fracture.Net.Hosting.Messaging
 {
     public class MessageQueue
     {

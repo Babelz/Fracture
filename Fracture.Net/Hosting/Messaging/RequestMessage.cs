@@ -1,6 +1,6 @@
 using Fracture.Net.Messages;
 
-namespace Fracture.Net.Hosting.Messages
+namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
     /// Message that represents a request received by the server from a peer.
