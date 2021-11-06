@@ -9,14 +9,14 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class MiddlewareHandlerAttribute : Attribute
     {
         #region Properties
-        public string Path
+        public Type Path
         {
             get;
         }
         #endregion
 
-        public MiddlewareHandlerAttribute(string path)
-            => Path = !string.IsNullOrEmpty(path) ? path : throw new ArgumentNullException(nameof(path));
+        public MiddlewareHandlerAttribute(Type path)
+            => Path = path ?? throw new ArgumentNullException(nameof(path));
     }
     
     public sealed class MiddlewarePipeline

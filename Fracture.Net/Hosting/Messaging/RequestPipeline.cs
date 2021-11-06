@@ -25,7 +25,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
     }
     
-    public readonly struct Request<T> where T : IMessage
+    public readonly struct Request<T>
     {
         #region Properties
         public PeerConnection Peer
@@ -59,14 +59,14 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class RequestHandlerAttribute : Attribute
     {
         #region Properties
-        public string Path
+        public Type Path
         {
             get;
         }
         #endregion
 
-        public RequestHandlerAttribute(string path)
-            => Path = !string.IsNullOrEmpty(path) ? path : throw new ArgumentNullException(nameof(path));
+        public RequestHandlerAttribute(Type path)
+            => Path = path ?? throw new ArgumentNullException(nameof(path));
     }
 
     public sealed class RequestPipeline
