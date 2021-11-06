@@ -1,3 +1,4 @@
+using System;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
@@ -5,20 +6,20 @@ namespace Fracture.Net.Hosting.Messaging
     /// <summary>
     /// Message that represents a request received by the server from a peer.
     /// </summary>
-    public struct RequestMessage : IMessage
+    public sealed class RequestMessage : IMessage
     {
         #region Properties
         /// <summary>
-        /// Gets or sets the path of the request. This is the path the peer has send the message to.
+        /// Gets or sets the message that the peer send with the request.
         /// </summary>
-        public string Path
+        public IMessage Message
         {
             get;
             set;
         }
         
         /// <summary>
-        /// Gets or sets the contents of the request. This contains the message send by the peer in serialized format.
+        /// Gets or sets the raw contents the peer send with the request.
         /// </summary>
         public byte[] Contents
         {
@@ -27,9 +28,13 @@ namespace Fracture.Net.Hosting.Messaging
         }
         #endregion
 
+        public RequestMessage()
+        {
+        }
+
         public void Clear()
         {
-            Path     = default;
+            Message  = default;
             Contents = default;
         }
     }

@@ -11,7 +11,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         public byte[] Contents
         {
             get;

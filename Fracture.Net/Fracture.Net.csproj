@@ -272,6 +272,7 @@
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpServer.cs" />
         <Compile Include="Messages\Message.cs" />
+        <Compile Include="Messages\MessageMatch.cs" />
         <Compile Include="Messages\PingMessage.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Protocol.cs" />
@@ -313,9 +314,6 @@
     <ItemGroup>
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.Analyzers.dll" />
       <Analyzer Include="..\packages\Microsoft.CodeAnalysis.Analyzers.2.6.1\analyzers\dotnet\cs\Microsoft.CodeAnalysis.CSharp.Analyzers.dll" />
-    </ItemGroup>
-    <ItemGroup>
-      <Folder Include="Hosting\Application" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
