@@ -259,10 +259,15 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Hosting\Application\MessageHandler.cs" />
+        <Compile Include="Hosting\Application\Request.cs" />
+        <Compile Include="Hosting\Application\RequestHandler.cs" />
+        <Compile Include="Hosting\Application\Response.cs" />
+        <Compile Include="Hosting\Application\ResponseHandler.cs" />
+        <Compile Include="Hosting\Messages\RequestMessage.cs" />
         <Compile Include="Hosting\Peers\EventArgs.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
-        <Compile Include="Hosting\Requests\RequestMessage.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpServer.cs" />
         <Compile Include="Messages\Message.cs" />

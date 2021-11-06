@@ -1,24 +1,13 @@
-using Fracture.Common.Memory;
-using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
 
-namespace Fracture.Net.Hosting.Requests
+namespace Fracture.Net.Hosting.Messages
 {
     /// <summary>
     /// Message that represents a request received by the server from a peer.
     /// </summary>
-    public sealed class RequestMessage : IMessage
+    public struct RequestMessage : IMessage
     {
         #region Properties
-        /// <summary>
-        /// Gets or sets the peer connection details that has send this messages.
-        /// </summary>
-        public PeerConnection Peer
-        {
-            get;
-            set;
-        }
-        
         /// <summary>
         /// Gets or sets the path of the request. This is the path the peer has send the message to.
         /// </summary>
@@ -38,13 +27,8 @@ namespace Fracture.Net.Hosting.Requests
         }
         #endregion
 
-        public RequestMessage()
-        {
-        }
-
         public void Clear()
         {
-            Peer     = default;
             Path     = default;
             Contents = default;
         }
