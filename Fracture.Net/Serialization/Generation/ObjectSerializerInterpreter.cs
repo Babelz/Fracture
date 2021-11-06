@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Fracture.Common;
 using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Net.Serialization.Generation

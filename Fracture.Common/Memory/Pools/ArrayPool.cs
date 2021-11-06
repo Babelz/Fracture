@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Common.Memory.Pools

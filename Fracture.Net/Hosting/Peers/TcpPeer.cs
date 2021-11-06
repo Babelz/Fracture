@@ -6,7 +6,6 @@ using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
-using System.Linq;
 
 namespace Fracture.Net.Hosting.Peers
 {

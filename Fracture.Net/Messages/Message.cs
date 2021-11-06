@@ -1,5 +1,4 @@
 using System;
-using System.Security.Cryptography.X509Certificates;
 using Fracture.Common.Memory;
 
 namespace Fracture.Net.Messages
@@ -7,7 +6,7 @@ namespace Fracture.Net.Messages
     /// <summary>
     /// Interface for implementing messages. Messages are passed between servers and clients.
     /// </summary>
-    public interface IMessage
+    public interface IMessage : IClearable
     {
         // Marker interface, nothing to implement.
     }
@@ -44,41 +43,5 @@ namespace Fracture.Net.Messages
             set;
         }
         #endregion
-    }
-    
-    /// <summary>
-    /// Message that represents a request received by the server from a peer.
-    /// </summary>
-    public sealed class RequestMessage : IMessage, IClearable
-    {
-        #region Properties
-        /// <summary>
-        /// Gets or sets the path of the request. This is the path the client has send the message to.
-        /// </summary>
-        public string Path
-        {
-            get;
-            set;
-        }
-        
-        /// <summary>
-        /// Gets or sets the contents of the request. This contains the message send by the client in serialized format.
-        /// </summary>
-        public byte[] Contents
-        {
-            get;
-            set;
-        }
-        #endregion
-
-        public RequestMessage()
-        {
-        }
-
-        public void Clear()
-        {
-            Path     = default;
-            Contents = default;
-        }
     }
 }
