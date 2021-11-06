@@ -260,6 +260,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Hosting\Application\MessageHandler.cs" />
+        <Compile Include="Hosting\Application\MessageQueue.cs" />
         <Compile Include="Hosting\Application\Request.cs" />
         <Compile Include="Hosting\Application\RequestHandler.cs" />
         <Compile Include="Hosting\Application\Response.cs" />

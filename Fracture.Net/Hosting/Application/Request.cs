@@ -3,31 +3,54 @@ using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Application
 {
-    public interface IRequest
+    public readonly struct Request 
     {
         #region Properties
-        PeerConnection Peer
+        public PeerConnection Peer
         {
             get;
         }
         
-        byte[] Contents
+        public byte[] Contents
         {
             get;
         }
         #endregion
+
+        public Request(in PeerConnection peer, byte[] contents)
+        {
+            Peer     = peer;
+            Contents = contents;
+        }
     }
     
-    public interface IRequest<out T> : IRequest where T : IMessage
+    public readonly struct Request<T> where T : IMessage
     {
         #region Properties
+        public PeerConnection Peer
+        {
+            get;
+        }
+        
+        public byte[] Contents
+        {
+            get;
+        }
+     
         public T Message
         {
             get;
         }
         #endregion
+
+        public Request(in PeerConnection peer, byte[] contents, T message)
+        {
+            Peer     = peer;
+            Contents = contents;
+            Message  = message;
+        }
     }
 
-    public delegate IResponse HandleRequestDelegate(in IRequest request);
-    public delegate IResponse HandleRequestDelegate<T>(in IRequest<T> request) where T : IMessage;
+    public delegate Response HandleRequestDelegate(in Request request);
+    public delegate Response HandleRequestDelegate<T>(in Request<T> request) where T : IMessage;
 }
