@@ -3,30 +3,30 @@ using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
-    public delegate void MiddlewareDelegate(in Request request, out bool pass);
+    public delegate void MiddlewareDelegate<T>(in T value, out bool pass);
 
-    public interface IMiddlewareConsumer
+    public interface IMiddlewareConsumer<T>
     {
-        void Use(MessageMatchDelegate match, MiddlewareDelegate middleware);
+        void Use(MessageMatchDelegate match, MiddlewareDelegate<T> middleware);
     }
     
-    public interface IMiddlewareHandler
+    public interface IMiddlewareHandler<T>
     {
-        void Handle(in Request request, out bool pass);
+        void Handle(in T value, out bool pass);
     }
     
-    public sealed class MiddlewarePipeline : IMiddlewareConsumer, IMiddlewareHandler
+    public sealed class MiddlewarePipeline<T> : IMiddlewareConsumer<T>, IMiddlewareHandler<T>
     {
         public MiddlewarePipeline()
         {
         }
 
-        public void Use(MessageMatchDelegate match, MiddlewareDelegate middleware)
+        public void Use(MessageMatchDelegate match, MiddlewareDelegate<T> middleware)
         {
             throw new NotImplementedException();
         }
 
-        public void Handle(in Request request, out bool pass)
+        public void Handle(in T value, out bool pass)
         {
             throw new NotImplementedException();
         }

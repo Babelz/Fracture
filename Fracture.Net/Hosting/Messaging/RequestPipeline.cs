@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
@@ -6,7 +7,7 @@ using Fracture.Net.Messages;
 namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
-    /// Structure representing request object that contains a message receive from a peer.
+    /// Structure representing request object that contains a message receive from a peer. 
     /// </summary>
     public readonly struct Request
     {

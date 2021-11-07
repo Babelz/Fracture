@@ -74,7 +74,7 @@ namespace Fracture.Common.Collections
         }
 
         /// <summary>
-        /// Grows the array with given count of new buckets.
+        /// Grows the array from the end with given count of new buckets.
         /// </summary>
         public void Grow(int newBucketsCount = 1)
         {
@@ -86,6 +86,29 @@ namespace Fracture.Common.Collections
             Array.Resize(ref buckets, buckets.Length + newBucketsCount);
 
             for (int i = oldLength, currentLength = buckets.Length; i < currentLength; i++)
+                buckets[i] = new T[bucketSize];
+        }
+        
+        /// <summary>
+        /// Grows the array from the beginning with given count of new buckets.
+        /// </summary>
+        public void Shift(int newBucketsCount = 1)
+        {
+            #warning Test this method before using.
+            
+            if (newBucketsCount <= 0) 
+                throw new ArgumentOutOfRangeException(nameof(newBucketsCount));
+
+            var shiftIndex = buckets.Length - 1;
+
+            Array.Resize(ref buckets, buckets.Length + newBucketsCount);
+            
+            // Shift existing buckets to end.
+            for (var i = buckets.Length - 1; i >= 0; i--) 
+                buckets[i] = buckets[shiftIndex--];
+            
+            // Create new buckets.
+            for (var i = 0; i < newBucketsCount; i++)
                 buckets[i] = new T[bucketSize];
         }
 
