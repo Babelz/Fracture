@@ -92,15 +92,15 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Returns id of connected peers.
         /// </summary>
-        IEnumerable<int> Peers
+        IEnumerable<uint> Peers
         {
             get;
         }
         #endregion
 
-        void Disconnect(int peerId);
-        bool Connected(int peerId);
-        void Send(int peerId, byte[] data, int offset, int length);
+        void Disconnect(uint peerId);
+        bool Connected(uint peerId);
+        void Send(uint peerId, byte[] data, int offset, int length);
         
         void Start(int port, int backlog);
         void Stop();
@@ -119,7 +119,7 @@ namespace Fracture.Net.Hosting.Servers
         #endregion
         
         #region Fields
-        private readonly Dictionary<int, IPeer> lookup;
+        private readonly Dictionary<uint, IPeer> lookup;
         private readonly List<IPeer> peers;
      
         private readonly IPeerFactory factory;
@@ -130,7 +130,7 @@ namespace Fracture.Net.Hosting.Servers
         public int PeersCount
             => peers.Count;
         
-        public IEnumerable<int> Peers
+        public IEnumerable<uint> Peers
             => peers.Select(p => p.Id);
         #endregion
         
@@ -140,7 +140,7 @@ namespace Fracture.Net.Hosting.Servers
             this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
             
             peers  = new List<IPeer>();
-            lookup = new Dictionary<int, IPeer>();
+            lookup = new Dictionary<uint, IPeer>();
         }
 
         #region Event handlers
@@ -181,7 +181,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public void Disconnect(int peerId)
+        public void Disconnect(uint peerId)
         {
             if (!lookup.TryGetValue(peerId, out var peer))
                 throw new InvalidOperationException("peer not connected");
@@ -189,10 +189,10 @@ namespace Fracture.Net.Hosting.Servers
             peer.Disconnect();
         }
         
-        public bool Connected(int peerId)
+        public bool Connected(uint peerId)
             => lookup.TryGetValue(peerId, out var peer) && peer.Connected;
 
-        public void Send(int peerId, byte[] data, int offset, int length)
+        public void Send(uint peerId, byte[] data, int offset, int length)
         {
             if (!lookup.TryGetValue(peerId, out var peer))
                 throw new InvalidOperationException("peer not connected");

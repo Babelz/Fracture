@@ -14,7 +14,7 @@ namespace Fracture.Net.Hosting.Peers
         /// <summary>
         /// Runtime id of the peer.
         /// </summary>
-        public readonly int Id;
+        public readonly uint Id;
         
         /// <summary>
         /// Remote end point of the peer.
@@ -22,7 +22,7 @@ namespace Fracture.Net.Hosting.Peers
         public readonly IPEndPoint EndPoint;
         #endregion
         
-        public PeerConnection(int id, IPEndPoint endPoint)
+        public PeerConnection(uint id, IPEndPoint endPoint)
         {
             Id       = id;
             EndPoint = endPoint;
@@ -98,7 +98,7 @@ namespace Fracture.Net.Hosting.Peers
         /// <summary>
         /// Returns the id of the peer.
         /// </summary>
-        int Id
+        uint Id
         {
             get;
         }
