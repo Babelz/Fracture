@@ -116,21 +116,46 @@ namespace Fracture.Net.Hosting.Messaging
             => (request) => predicate(request);
     }
     
-    public delegate void RequestMiddlewareHandlerDelegate(IRequest request, out bool pass);
+    /// <summary>
+    /// Delegate for creating request middleware delegates. Middleware delegates are invoked for each registered middleware that match the request.
+    /// </summary>
+    public delegate void RequestMiddlewareHandlerDelegate(IRequest request, out bool reject);
 
+    /// <summary>
+    /// Interface for implementing request middleware consumers that are used for registering middleware callbacks.
+    /// </summary>
     public interface IRequestMiddlewareConsumer
     {
+        /// <summary>
+        /// Register given middleware to the pipeline. All requests that match the given matcher will be handled by given middleware delegate.
+        /// </summary>
+        /// <param name="match">matcher that the request must match in order to be passed to the handler</param>
+        /// <param name="handler">handler invoked when request matches the preceding matcher</param>
         void Use(RequestMatchDelegate match, RequestMiddlewareHandlerDelegate handler);
     }
     
-    public interface IRequestMiddlewareHandler
+    /// <summary>
+    /// Interface for implementing request middleware invokers that handle running the middleware pipeline for requests.
+    /// </summary>
+    public interface IRequestMiddlewareInvoker
     {
-        bool Pass(IRequest request);
+        /// <summary>
+        /// Invoke the pipeline for given request. 
+        /// </summary>
+        /// <param name="request">request that the pipeline will be executed for</param>
+        /// <returns>boolean declaring whether the request was rejected by the pipeline</returns>
+        bool Invoke(IRequest request);
     }
 
-    public sealed class RequestMiddlewareHandler : IRequestMiddlewareHandler, IRequestMiddlewareConsumer
+    /// <summary>
+    /// Class that provides full middleware pipeline implementation by functioning as middleware consumer and invoker.  
+    /// </summary>
+    public sealed class RequestMiddlewarePipeline : IRequestMiddlewareInvoker, IRequestMiddlewareConsumer
     {
         #region Private request middleware class
+        /// <summary>
+        /// Private context class containing single request middleware.
+        /// </summary>
         private sealed class RequestMiddleware
         {
             #region Properties
@@ -157,45 +182,80 @@ namespace Fracture.Net.Hosting.Messaging
         private readonly List<RequestMiddleware> middlewares;
         #endregion
 
-        public RequestMiddlewareHandler()
+        public RequestMiddlewarePipeline()
             => middlewares = new List<RequestMiddleware>();
 
         public void Use(RequestMatchDelegate match, RequestMiddlewareHandlerDelegate handler)
             => middlewares.Add(new RequestMiddleware(match, handler));
         
-        public bool Pass(IRequest request)
+        public bool Invoke(IRequest request)
         {
+            // Go trough all middlewares that match given request.
             foreach (var middleware in middlewares.Where(m => m.Match(request)))
             {
-                middleware.Handler(request, out var pass);
+                // Invoke the middleware that matched given request.
+                middleware.Handler(request, out var reject);
                 
-                if (pass)
-                    return true;
+                // Immediately return if the middleware rejected the request.
+                if (!reject)
+                    return false;
             }
             
-            return false;
+            return true;
         }
     }
-    
+
+    /// <summary>
+    /// Delegate for creating request handler delegates. Request handler delegates are invoked all requests that have route accepting them.
+    /// </summary>
     public delegate void RequestHandlerDelegate(IRequest request, IResponse response);
     
+    /// <summary>
+    /// Interface for implementing request routers that provide functionality for registering routes.
+    /// </summary>
     public interface IRequestRouter
     {
+        /// <summary>
+        /// Registers route based on given message match. All requests that contain message that match this matcher will be handled by the given handler.
+        /// </summary>
+        /// <param name="match">matcher that the request message must match in order to be passed to the handler</param>
+        /// <param name="handler">handler invoked when request message matches the preceding matcher</param>
         void Route(MessageMatchDelegate match, RequestHandlerDelegate handler);
+        
+        /// <summary>
+        /// Registers route based on given request match. All requests that match this matcher will be handled by the given handler.
+        /// </summary>
+        /// <param name="match">matcher that the request must match in order to be passed to the handler</param>
+        /// <param name="handler">handler invoked when request matches the preceding matcher</param>
+        void Route(RequestMatchDelegate match, RequestHandlerDelegate handler);
     }
     
+    /// <summary>
+    /// Interface for implementing request dispatchers that delegate handling of received requests to registered request handlers.
+    /// </summary>
     public interface IRequestDispatcher
     {
-        void Dispatch(IRequest request, IResponseDecorator response);
+        /// <summary>
+        /// Dispatch given request to any request handler that accepts it. Use the response object to get the results returned by the handler. 
+        /// </summary>
+        /// <param name="request">request that will be dispatched and possibly handled</param>
+        /// <param name="response">response object to contain the response from handling the request</param>
+        void Dispatch(IRequest request, IResponse response);
     }
 
-    public sealed class RequestRouter : IRequestRouter, IRequestDispatcher
+    /// <summary>
+    /// Class that provides full request pipeline implementation by functioning as router and request dispatcher.  
+    /// </summary>
+    public sealed class RequestPipeline : IRequestRouter, IRequestDispatcher
     {
         #region Private request route class
+        /// <summary>
+        /// Class representing single request route.
+        /// </summary>
         private sealed class RequestRoute
         {
             #region Properties
-            public MessageMatchDelegate Match
+            public RequestMatchDelegate Match
             {
                 get;
             }
@@ -206,7 +266,7 @@ namespace Fracture.Net.Hosting.Messaging
             }
             #endregion
 
-            public RequestRoute(MessageMatchDelegate match, RequestHandlerDelegate handler)
+            public RequestRoute(RequestMatchDelegate match, RequestHandlerDelegate handler)
             {
                 Match   = match ?? throw new ArgumentNullException(nameof(match));
                 Handler = handler ?? throw new ArgumentNullException(nameof(handler));
@@ -218,19 +278,21 @@ namespace Fracture.Net.Hosting.Messaging
         private readonly List<RequestRoute> routes;
         #endregion
 
-        public RequestRouter()
+        public RequestPipeline()
             => routes = new List<RequestRoute>();
         
         public void Route(MessageMatchDelegate match, RequestHandlerDelegate handler)
+            => routes.Add(new RequestRoute(RequestMatch.Message(match), handler));
+        
+        public void Route(RequestMatchDelegate match, RequestHandlerDelegate handler)
             => routes.Add(new RequestRoute(match, handler));
 
-        public void Dispatch(IRequest request, IResponseDecorator response)
+        public void Dispatch(IRequest request, IResponse response)
         {
-            foreach (var route in routes)
+            var route = routes.FirstOrDefault(r => r.Match(request));
+            
+            if (route != null)
             {
-                if (!route.Match(request.Message))
-                    continue;
-                
                 try
                 {
                     route.Handler(request, response);
@@ -239,11 +301,9 @@ namespace Fracture.Net.Hosting.Messaging
                 {
                     response.ServerError(exception: e);
                 }
-                
-                return;
             }
-            
-            response.NoRoute();
+            else 
+                response.NoRoute();
         }
     }
 }
