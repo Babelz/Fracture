@@ -72,10 +72,10 @@ namespace Fracture.Net.Hosting.Servers
             
                 newConnections.Push(socket);   
             }
-            catch (SocketException ex)
+            catch (SocketException se)
             {
                 // Only expect the socket to be shutdown if an exception occurs.
-                if (ex.SocketErrorCode != SocketError.Shutdown)
+                if (se.SocketErrorCode != SocketError.Shutdown)
                     throw;
             }
         }

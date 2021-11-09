@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.ServiceModel.Configuration;
 using Castle.DynamicProxy;
 using Fracture.Common.Collections;
+using Fracture.Common.Memory;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
@@ -37,45 +38,39 @@ namespace Fracture.Net.Hosting.Messaging
     }
     
     /// <summary>
-    /// Structure defining notification that will be handled using the notification pipeline. Notifications are generated in server free updates. Examples of
+    /// Interface defining notification that will be handled using the notification pipeline. Notifications are generated in server free updates. Examples of
     /// a good use case for notification is world snapshot updates that are send to peers during world simulation updates.   
     /// </summary>
-    public struct Notification
+    public interface INotification
     {
         #region Properties
         /// <summary>
         /// Gets the message in this notification.
         /// </summary>
-        public IMessage Message
+        IMessage Message
         {
             get;
-            set;
         }
 
         /// <summary>
         /// Gets the command associated with this notification.
         /// </summary>
-        public NotificationCommand Command
+        NotificationCommand Command
         {
             get;
-            set;
         }
 
         /// <summary>
         /// Gets the optional peer list associated with this notification.
         /// </summary>
-        public uint[] Peers
+        uint[] Peers
         {
             get;
-            set;
         }
         #endregion
     }
     
-    /// <summary>
-    /// Interface that provides functionality for creating different type notifications. 
-    /// </summary>
-    public interface INotificationCenter
+    public interface INotificationDecorator
     {
         /// <summary>
         /// Enqueues message notification for handling. 
@@ -105,67 +100,44 @@ namespace Fracture.Net.Hosting.Messaging
         void BroadcastWide(IMessage message);
     }
     
-    /// <summary>
-    /// Delegate that is used to handle enqueued notifications.
-    /// </summary>
-    public delegate void NotificationHandlerDelegate(in Notification notification);
-    
-    /// <summary>
-    /// Interface that provides functionality for processing notifications that have been enqueued. 
-    /// </summary>
-    public interface INotificationContainer
+    public sealed class Notification : INotification, INotificationDecorator, IClearable
     {
-        /// <summary>
-        /// Handles all enqueued notifications using given delegate handler.
-        /// </summary>
-        void Handle(NotificationHandlerDelegate handler);
-    }
-    
-    /// <summary>
-    /// Pipeline for handling notifications.
-    /// </summary>
-    public class NotificationPipeline : INotificationCenter, INotificationContainer
-    {
-        #region Fields
-        private readonly LinearGrowthArray<Notification> notifications;
-        
-        private int count;
+        #region Properties
+        public IMessage Message
+        {
+            get;
+            private set;
+        }
+
+        public NotificationCommand Command
+        {
+            get;
+            private set;
+        }
+
+        public uint[] Peers
+        {
+            get;
+            private set;
+        }
         #endregion
-        
-        public NotificationPipeline(int initialNotificationsCapacity)
+
+        public Notification()
         {
-            notifications = new LinearGrowthArray<Notification>(initialNotificationsCapacity);
         }
-        
-        private void EnsureCapacity()
-        {
-            if (count >= notifications.Length)
-                notifications.Grow();
-        }
-        
+
         public void Send(uint peerId, IMessage message)
         {
-            if (message == null)
-                throw new ArgumentException(nameof(message));
-            
-            EnsureCapacity();
-            
-            ref var notification = ref notifications.AtIndex(count++);
-            
-            notification.Command = NotificationCommand.Send;
-            notification.Peers   = new[] { peerId };
-            notification.Message = message;
+            Command = NotificationCommand.Send;
+            Peers   = new[] { peerId };
+            Message = message ?? throw new ArgumentException(nameof(message));
         }
         
         public void Reset(uint peerId, IMessage message = null)
-        {
-            EnsureCapacity();
-            
-            ref var notification = ref notifications.AtIndex(count++);
-            
-            notification.Command = NotificationCommand.Reset;
-            notification.Peers   = new[] { peerId };
-            notification.Message = message;
+        {   
+            Command = NotificationCommand.Reset;
+            Peers   = new[] { peerId };
+            Message = message;
         }
         
         public void BroadcastNarrow(IMessage message, params uint[] peers)
@@ -173,41 +145,23 @@ namespace Fracture.Net.Hosting.Messaging
             if (peers?.Length == 0)
                 throw new ArgumentException("expecting at least one peer to be present");
 
-            if (message == null)
-                throw new ArgumentException(nameof(message));
-
-            EnsureCapacity();
-            
-            ref var notification = ref notifications.AtIndex(count++);
-            
-            notification.Command = NotificationCommand.BroadcastNarrow;
-            notification.Peers   = peers;
-            notification.Message = message;
+            Command = NotificationCommand.BroadcastNarrow;
+            Peers   = peers;
+            Message = message ?? throw new ArgumentException(nameof(message));
         }
         
         public void BroadcastWide(IMessage message)
         {
-            if (message == null)
-                throw new ArgumentException(nameof(message));
-
-            EnsureCapacity();
-            
-            ref var notification = ref notifications.AtIndex(count++);
-            
-            notification.Command = NotificationCommand.BroadcastWide;
-            notification.Peers   = null;
-            notification.Message = message;
+            Command = NotificationCommand.BroadcastWide;
+            Peers   = null;
+            Message = message ?? throw new ArgumentException(nameof(message));
         }
 
-        public void Handle(NotificationHandlerDelegate handler)
+        public void Clear()
         {
-            if (handler == null)
-                throw new ArgumentException(nameof(handler));
-            
-            for (var i = 0; i < count; i++)
-                handler(notifications.AtIndex(i));
-            
-            count = 0;
+            Command = default;
+            Peers   = default;
+            Message = default;
         }
     }
 }

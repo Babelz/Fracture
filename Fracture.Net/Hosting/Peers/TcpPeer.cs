@@ -55,7 +55,7 @@ namespace Fracture.Net.Hosting.Peers
             SocketError.NotConnected
         };
         
-        private static int IdCounter;
+        private static uint IdCounter;
         #endregion
 
         #region Fields
@@ -91,7 +91,7 @@ namespace Fracture.Net.Hosting.Peers
         private bool IsReceivingAsync => !receiveResult?.IsCompleted ?? false;
         private bool IsDisconnectedAsync => disconnectResult?.IsCompleted ?? false;
         
-        public int Id
+        public uint Id
         {
             get;
         }
@@ -142,9 +142,9 @@ namespace Fracture.Net.Hosting.Peers
             {
                 socket.EndDisconnect(ar);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                HandleSocketException(ex);
+                HandleSocketException(e);
             }
         }
             
@@ -157,9 +157,9 @@ namespace Fracture.Net.Hosting.Peers
                 
                 outgoingMessageBuffer.Push((ServerMessageEventArgs)ar.AsyncState);
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                HandleSocketException(ex);
+                HandleSocketException(e);
             }
         }
 
@@ -179,9 +179,9 @@ namespace Fracture.Net.Hosting.Peers
             
                 incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length));   
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                HandleSocketException(ex);
+                HandleSocketException(e);
             }
         }
         #endregion

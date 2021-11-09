@@ -259,8 +259,6 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Hosting\Messaging\MessageHandler.cs" />
-        <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
         <Compile Include="Hosting\Messaging\RequestPipeline.cs" />
         <Compile Include="Hosting\Messaging\ResponsePipeline.cs" />
         <Compile Include="Hosting\Messaging\NotificationPipeline.cs" />

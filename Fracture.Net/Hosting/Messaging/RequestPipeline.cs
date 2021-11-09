@@ -1,92 +1,170 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
+using Fracture.Common.Memory;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
+using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
 
 namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
-    /// Structure representing request object that contains a message receive from a peer. 
+    /// Interface representing request object that contains a message receive from a peer. 
     /// </summary>
-    public struct Request
+    public interface IRequest
     {
         #region Properties
         /// <summary>
         /// Gets the peer that created this request.
         /// </summary>
-        public PeerConnection Peer
+        PeerConnection Peer
         {
             get;
-            set;
         }
         
         /// <summary>
         /// Gets the request contents in it's raw serialized format.
         /// </summary>
-        public byte[] Contents
+        byte[] Contents
         {
             get;
-            set;
         }
      
         /// <summary>
         /// Gets the request contents in it's deserialized format.
         /// </summary>
+        IMessage Message
+        {
+            get;
+        }
+        #endregion
+    }
+    
+    public sealed class Request : IRequest, IClearable
+    {
+        #region Properties
+        public PeerConnection Peer
+        {
+            get;
+            set;
+        }
+
+        public byte[] Contents
+        {
+            get;
+            set;
+        }
+
         public IMessage Message
         {
             get;
             set;
         }
         #endregion
+
+        public Request()
+        {
+        }
+        
+        public void Clear()
+        {
+            Peer     = default;
+            Contents = default;
+            Message  = default;
+        }
+    }
+    
+    public delegate bool RequestMatchDelegate(IRequest request);
+    
+    public static class RequestMatcher
+    {
+        public static RequestMatchDelegate Any() => (_) => true;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static RequestMatchDelegate Match(Func<IRequest, bool> predicate) 
+            => (request) => predicate(request);
+    }
+    
+    public delegate void RequestMiddlewareHandlerDelegate(IRequest request, out bool pass);
+
+    public interface IRequestMiddlewareConsumer
+    {
+        void Use(RequestMatchDelegate match, RequestMiddlewareHandlerDelegate handler);
+    }
+    
+    public interface IRequestMiddlewareHandler
+    {
+        bool Pass(IRequest request);
     }
 
-    /// <summary>
-    /// Delegate used for incoming request handling.
-    /// </summary>
-    public delegate Response RequestHandlerDelegate(in Request request);
+    public sealed class RequestMiddlewareHandler : IRequestMiddlewareHandler, IRequestMiddlewareConsumer
+    {
+        #region Private request middleware class
+        private sealed class RequestMiddleware
+        {
+            #region Properties
+            public RequestMatchDelegate Match
+            {
+                get;
+            }
+
+            public RequestMiddlewareHandlerDelegate Handler
+            {
+                get;
+            }
+            #endregion
+
+            public RequestMiddleware(RequestMatchDelegate match, RequestMiddlewareHandlerDelegate handler)
+            {
+                Match   = match ?? throw new ArgumentNullException(nameof(match));
+                Handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            }
+        }
+        #endregion
+
+        #region Fields
+        private readonly List<RequestMiddleware> middlewares;
+        #endregion
+
+        public RequestMiddlewareHandler()
+            => middlewares = new List<RequestMiddleware>();
+
+        public void Use(RequestMatchDelegate match, RequestMiddlewareHandlerDelegate handler)
+            => middlewares.Add(new RequestMiddleware(match, handler));
+        
+        public bool Pass(IRequest request)
+        {
+            foreach (var middleware in middlewares.Where(m => m.Match(request)))
+            {
+                middleware.Handler(request, out var pass);
+                
+                if (pass)
+                    return true;
+            }
+            
+            return false;
+        }
+    }
     
-    /// <summary>
-    /// Interface for implementing type based request routers. Requests are routed based on message matchers associated with the handlers.  
-    /// </summary>
+    public delegate void RequestHandlerDelegate(IRequest request, IResponseDecorator response);
+    
     public interface IRequestRouter
     {
-        /// <summary>
-        /// Registers new message router. All messages that match the specified matcher will be handled by the supplied handler.
-        /// </summary>
         void Route(MessageMatchDelegate match, RequestHandlerDelegate handler);
     }
     
-    /// <summary>
-    /// Delegate that is used to handle enqueued requests.
-    /// </summary>
-    public delegate void RequestResponseHandlerDelegate(in Request request, in Response response);
-    
-    /// <summary>
-    /// Interface for implementing request handlers for processing enqueued requests.
-    /// </summary>
-    public interface IRequestHandler
+    public interface IRequestDispatcher
     {
-        /// <summary>
-        /// Enqueue incoming request for processing.
-        /// </summary>
-        /// <param name="peer">peer that send this request</param>
-        /// <param name="contents">raw contents received from the peer</param>
-        /// <param name="message">message received from the peer with the request</param>
-        void Enqueue(in PeerConnection peer, byte[] contents, IMessage message);
-        
-        /// <summary>
-        /// Handles all enqueued requests using given request handler.
-        /// </summary>
-        void Handle(RequestResponseHandlerDelegate handler);
+        void Dispatch(IRequest request, IResponseDecorator response);
     }
 
-    public sealed class RequestPipeline : IRequestRouter, IRequestHandler
+    public sealed class RequestRouter : IRequestRouter, IRequestDispatcher
     {
-        #region Typed route class
-        private sealed class RouteContext
+        #region Private request route class
+        private sealed class RequestRoute
         {
             #region Properties
             public MessageMatchDelegate Match
@@ -100,7 +178,7 @@ namespace Fracture.Net.Hosting.Messaging
             }
             #endregion
 
-            public RouteContext(MessageMatchDelegate match, RequestHandlerDelegate handler)
+            public RequestRoute(MessageMatchDelegate match, RequestHandlerDelegate handler)
             {
                 Match   = match ?? throw new ArgumentNullException(nameof(match));
                 Handler = handler ?? throw new ArgumentNullException(nameof(handler));
@@ -109,54 +187,35 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
         
         #region Fields
-        private readonly List<RouteContext> routes;
-        
-        private readonly LinearGrowthArray<Request> requests;
-        
-        private int count;
+        private readonly List<RequestRoute> routes;
         #endregion
-        
-        public RequestPipeline(int initialRequestsCapacity)
-        {
-            routes   = new List<RouteContext>();
-            requests = new LinearGrowthArray<Request>(initialRequestsCapacity);
-        }
 
-        private void EnsureCapacity()
-        {
-            if (count >= requests.Length)
-                requests.Grow();
-        }
+        public RequestRouter()
+            => routes = new List<RequestRoute>();
         
         public void Route(MessageMatchDelegate match, RequestHandlerDelegate handler)
-            => routes.Add(new RouteContext(match, handler));
+            => routes.Add(new RequestRoute(match, handler));
 
-        public void Enqueue(in PeerConnection peer, byte[] contents, IMessage message)
+        public void Dispatch(IRequest request, IResponseDecorator response)
         {
-            EnsureCapacity();
+            foreach (var route in routes)
+            {
+                if (!route.Match(request.Message))
+                    continue;
+                
+                try
+                {
+                    route.Handler(request, response);
+                }
+                catch (Exception e)
+                {
+                    response.ServerError(exception: e);
+                }
+                
+                return;
+            }
             
-            if (contents == null)
-                throw new ArgumentException(nameof(contents));
-            
-            if (message == null)
-                throw new ArgumentException(nameof(message));
-            
-            ref var request = ref requests.AtIndex(count++);
-            
-            request.Peer     = peer;
-            request.Contents = contents;
-            request.Message  = message;
-        }
-
-        public void Handle(RequestResponseHandlerDelegate handler)
-        {
-            if (handler == null)
-                throw new ArgumentException(nameof(handler));
-            
-            for (var i = 0; i < count; i++)
-                routes.FirstOrDefault(r => r.Match(requests.AtIndex(i).Message))?.Handler(requests.AtIndex(i));
-            
-            count = 0;
+            response.NoRoute();
         }
     }
 }
