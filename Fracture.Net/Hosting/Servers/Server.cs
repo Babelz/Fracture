@@ -73,11 +73,6 @@ namespace Fracture.Net.Hosting.Servers
         /// Event invoked when server receives message from a peer.
         /// </summary>
         event StructEventHandler<PeerMessageEventArgs> Incoming;
-        
-        /// <summary>
-        /// Event invoked when server is sending message to peer.
-        /// </summary>
-        event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Properties
@@ -115,7 +110,6 @@ namespace Fracture.Net.Hosting.Servers
         public event StructEventHandler<PeerResetEventArgs> Reset;
         
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Fields
@@ -151,8 +145,7 @@ namespace Fracture.Net.Hosting.Servers
             peers.Remove(peer);
             lookup.Remove(e.Peer.Id);
             
-            peer.Incoming -= Peer_OnReceived;
-            peer.Outgoing -= Peer_OnSending;
+            peer.Incoming -= Peer_OnIncoming;
             peer.Reset    -= Peer_OnReset;
             
             peer.Dispose();
@@ -160,10 +153,7 @@ namespace Fracture.Net.Hosting.Servers
             Reset?.Invoke(this, e);
         }
         
-        private void Peer_OnSending(object sender, in ServerMessageEventArgs e)
-            => Outgoing?.Invoke(this, e);
-
-        private void Peer_OnReceived(object sender, in PeerMessageEventArgs e)
+        private void Peer_OnIncoming(object sender, in PeerMessageEventArgs e)
             => Incoming?.Invoke(this, e);
         
         private void Listener_OnConnected(object sender, in ListenerConnectedEventArgs e)
@@ -173,8 +163,7 @@ namespace Fracture.Net.Hosting.Servers
             lookup.Add(peer.Id, peer);
             peers.Add(peer);
             
-            peer.Incoming += Peer_OnReceived;
-            peer.Outgoing += Peer_OnSending;
+            peer.Incoming += Peer_OnIncoming;
             peer.Reset    += Peer_OnReset;
             
             Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint)));

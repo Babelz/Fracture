@@ -65,8 +65,7 @@ namespace Fracture.Net.Hosting.Peers
         private readonly byte[] receiveBuffer;
         private readonly Socket socket;
         
-        private readonly LockedDoubleBuffer<PeerMessageEventArgs> incomingMessageBuffer;
-        private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
+        private readonly List<PeerMessageEventArgs> incomingMessageBuffer;
         
         private IAsyncResult receiveResult;
         private IAsyncResult disconnectResult;
@@ -81,7 +80,6 @@ namespace Fracture.Net.Hosting.Peers
         public event StructEventHandler<PeerResetEventArgs> Reset;
         
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
@@ -114,8 +112,7 @@ namespace Fracture.Net.Hosting.Peers
             Id       = IdCounter++;
             EndPoint = (IPEndPoint)socket.RemoteEndPoint;
             
-            incomingMessageBuffer = new LockedDoubleBuffer<PeerMessageEventArgs>();
-            outgoingMessageBuffer = new LockedDoubleBuffer<ServerMessageEventArgs>();
+            incomingMessageBuffer = new List<PeerMessageEventArgs>();
             receiveBuffer         = new byte[ReceiveBufferSize];
             
             state          = PeerState.Connected;
@@ -154,8 +151,6 @@ namespace Fracture.Net.Hosting.Peers
             try
             {
                 socket.EndSend(ar);
-                
-                outgoingMessageBuffer.Push((ServerMessageEventArgs)ar.AsyncState);
             }
             catch (Exception e)
             {
@@ -177,7 +172,7 @@ namespace Fracture.Net.Hosting.Peers
             
                 Array.Copy(receiveBuffer, 0, message, 0, length);
             
-                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length));   
+                incomingMessageBuffer.Add(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length));   
             }
             catch (Exception e)
             {
@@ -201,22 +196,23 @@ namespace Fracture.Net.Hosting.Peers
             this.reason = reason;
         }
         
-        private void HandleMessages()
+        private void ReceiveMessages()
         {
-            // Get all messages from both of the locked double buffers. 
-            var outgoingMessages = outgoingMessageBuffer.Read();
-            var incomingMessages = incomingMessageBuffer.Read();
-            
-            // Handle all outgoing messages.
-            foreach (var outgoing in outgoingMessages)
-                Outgoing?.Invoke(this, outgoing);
+            if (state != PeerState.Connected || IsReceivingAsync)
+                return;
             
             // Handle all incoming messages.
-            foreach (var incoming in incomingMessages)
+            foreach (var incoming in incomingMessageBuffer)
                 Incoming?.Invoke(this, incoming);
             
             // Set activity timestamp to be current time if we are sending or receiving any messages.
-            lastTimeActive = (outgoingMessages.Length + incomingMessages.Length > 0) ? DateTime.UtcNow : lastTimeActive;
+            lastTimeActive = (incomingMessageBuffer.Count > 0) ? DateTime.UtcNow : lastTimeActive;
+            
+            // Clear message buffer before we begin receiving more messages.
+            incomingMessageBuffer.Clear();
+
+            // Begin receiving async if last receive operation has completed.
+            receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
         }
         
         private void UpdateConnectedState()
@@ -228,16 +224,11 @@ namespace Fracture.Net.Hosting.Peers
                 InternalDisconnect(PeerResetReason.RemoteReset);
             else if (HasTimedOut)
                 InternalDisconnect(PeerResetReason.TimedOut);
-            else if (!IsReceivingAsync)
-                receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
         }
         
         private void UpdateDisconnectingState()
         {
-            if (state != PeerState.Disconnecting)
-                return;
-            
-            if (!IsDisconnectedAsync)
+            if (state != PeerState.Disconnecting || !IsDisconnectedAsync)
                 return;
             
             state = PeerState.Disconnected;
@@ -256,12 +247,9 @@ namespace Fracture.Net.Hosting.Peers
             if (!IsConnected)
                 return;
             
-            socket.BeginSend(data, 
-                             offset, 
-                             length, 
-                             SocketFlags.None, 
-                             SendCallback, 
-                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length));
+            socket.BeginSend(data, offset, length, SocketFlags.None, SendCallback, null);
+            
+            lastTimeActive = DateTime.UtcNow;
         }
 
         public void Poll()
@@ -269,7 +257,7 @@ namespace Fracture.Net.Hosting.Peers
             if (state == PeerState.Disconnected)
                 return;
             
-            HandleMessages();
+            ReceiveMessages();
             
             UpdateConnectedState();
             

@@ -12,7 +12,7 @@ namespace Fracture.Net.Hosting.Messaging
     /// <summary>
     /// Enumeration defining all possible response status codes.
     /// </summary>
-    public enum StatusCode : byte
+    public enum ResponseStatusCode : byte
     {
         /// <summary>
         /// Request did not return any response. 
@@ -54,7 +54,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the status code of this response.
         /// </summary>
-        StatusCode Status
+        ResponseStatusCode StatusCode
         {
             get;
         }
@@ -128,7 +128,7 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class Response : IResponse, IClearable
     {
         #region Properties
-        public StatusCode Status
+        public ResponseStatusCode StatusCode
         {
             get;
             set;
@@ -157,7 +157,7 @@ namespace Fracture.Net.Hosting.Messaging
         
         private void AssertEmpty()
         {
-            if (Status != StatusCode.Empty)
+            if (StatusCode != ResponseStatusCode.Empty)
                 throw new InvalidOperationException("request is not empty");
         }
         
@@ -166,7 +166,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertEmpty();
                
             Message = message;
-            Status  = StatusCode.Ok;
+            StatusCode  = ResponseStatusCode.Ok;
         }
 
         public void ServerError(IMessage message = null, Exception exception = null)
@@ -175,7 +175,7 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message   = message;
             Exception = exception;
-            Status    = StatusCode.ServerError;
+            StatusCode    = ResponseStatusCode.ServerError;
         }
 
         public void BadRequest(IMessage message = null, Exception exception = null)
@@ -184,7 +184,7 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message   = message;
             Exception = exception;
-            Status    = StatusCode.BadRequest;
+            StatusCode    = ResponseStatusCode.BadRequest;
         }
         
         public void Reset(IMessage message = null, Exception exception = null)
@@ -193,35 +193,21 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message   = message;
             Exception = exception;
-            Status    = StatusCode.Reset;
+            StatusCode    = ResponseStatusCode.Reset;
         }
         
         public void NoRoute()
         {
             AssertEmpty();
             
-            Status = StatusCode.NoRoute;
+            StatusCode = ResponseStatusCode.NoRoute;
         }
             
         public void Clear()
         {
-            Status    = default;
-            Message   = default;
-            Exception = default;
+            StatusCode = default;
+            Message    = default;
+            Exception  = default;
         }
-    }
-    
-    public delegate bool RequestResponseMatchDelegate(IRequest request, IResponse response);
-    
-    public delegate void RequestResponseMiddlewareHandlerDelegate(IRequest request, IResponse response, out bool pass);
-
-    public interface IRequestResponseMiddlewareConsumer
-    {
-        void Use(RequestResponseMatchDelegate match, RequestResponseMatchDelegate handler);
-    }
-    
-    public interface IRequestResponseMiddlewareHandler
-    {
-        bool Pass(IRequest request, IResponse response);
     }
 }

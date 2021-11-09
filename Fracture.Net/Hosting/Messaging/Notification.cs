@@ -12,27 +12,32 @@ using Fracture.Net.Messages;
 namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
-    /// Enumeration defining commands associated with notifications.
+    /// Enumeration defining all possible notification command codes.
     /// </summary>
     public enum NotificationCommand : byte
     {
         /// <summary>
-        /// Single send message, this is send to one peer only. 
+        /// Notification will do nothing.
         /// </summary>
-        Send = 0,
+        Unset = 0,
         
         /// <summary>
-        /// Message will be broadcast to all peers listed in the message. 
+        /// Notification contains single send message, this is send to one peer only. 
+        /// </summary>
+        Send,
+        
+        /// <summary>
+        /// Notification message will be broadcast to all peers listed in the message. 
         /// </summary>
         BroadcastNarrow,
         
         /// <summary>
-        /// Message will be broadcast to all active peers.
+        /// Notification message will be broadcast to all active peers.
         /// </summary>
         BroadcastWide,
         
         /// <summary>
-        /// Message is considered as last message and the peer will be disconnected after the message has been send.
+        /// Notification message is considered as last message and the peer will be disconnected after the message has been send.
         /// </summary>
         Reset
     }
@@ -68,10 +73,7 @@ namespace Fracture.Net.Hosting.Messaging
             get;
         }
         #endregion
-    }
-    
-    public interface INotificationDecorator
-    {
+        
         /// <summary>
         /// Enqueues message notification for handling. 
         /// </summary>
@@ -100,7 +102,7 @@ namespace Fracture.Net.Hosting.Messaging
         void BroadcastWide(IMessage message);
     }
     
-    public sealed class Notification : INotification, INotificationDecorator, IClearable
+    public sealed class Notification : INotification, IClearable
     {
         #region Properties
         public IMessage Message
@@ -126,8 +128,16 @@ namespace Fracture.Net.Hosting.Messaging
         {
         }
 
+        private void AssertUnset()
+        {
+            if (Command != NotificationCommand.Unset)
+                throw new InvalidOperationException("notification is not unset");
+        }
+        
         public void Send(uint peerId, IMessage message)
         {
+            AssertUnset();
+            
             Command = NotificationCommand.Send;
             Peers   = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));
@@ -135,6 +145,8 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void Reset(uint peerId, IMessage message = null)
         {   
+            AssertUnset();
+
             Command = NotificationCommand.Reset;
             Peers   = new[] { peerId };
             Message = message;
@@ -142,6 +154,8 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void BroadcastNarrow(IMessage message, params uint[] peers)
         {
+            AssertUnset();
+
             if (peers?.Length == 0)
                 throw new ArgumentException("expecting at least one peer to be present");
 
@@ -152,6 +166,8 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void BroadcastWide(IMessage message)
         {
+            AssertUnset();
+
             Command = NotificationCommand.BroadcastWide;
             Peers   = null;
             Message = message ?? throw new ArgumentException(nameof(message));
@@ -163,5 +179,24 @@ namespace Fracture.Net.Hosting.Messaging
             Peers   = default;
             Message = default;
         }
+    }
+    
+    /// <summary>
+    /// Structure containing middleware request context of single notification object. 
+    /// </summary>
+    public readonly struct NotificationMiddlewareContext : IMiddlewareRequestContext
+    {
+        #region Properties
+        /// <summary>
+        /// Gets the notification associated with the middleware request context.
+        /// </summary>
+        public INotification Notification
+        {
+            get;
+        }
+        #endregion
+
+        public NotificationMiddlewareContext(INotification notification)
+            => Notification = notification ?? throw new ArgumentNullException(nameof(notification));
     }
 }

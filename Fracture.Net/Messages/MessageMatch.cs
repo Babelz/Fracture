@@ -18,7 +18,7 @@ namespace Fracture.Net.Messages
         /// <summary>
         /// Matcher that accepts any message type and kind.
         /// </summary>
-        public static MessageMatchDelegate Any() => (_) => true;
+        public static MessageMatchDelegate Any() => delegate { return true; };
         
         /// <summary>
         /// Matcher that only accepts one specific message type.
@@ -62,12 +62,5 @@ namespace Fracture.Net.Messages
             
             return (message) => many(message);
         }
-        
-        /// <summary>
-        /// Generic matcher that allows customs matching of message routes.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Match(Func<IMessage, bool> predicate) 
-            => (message) => predicate(message);
     }
 }
