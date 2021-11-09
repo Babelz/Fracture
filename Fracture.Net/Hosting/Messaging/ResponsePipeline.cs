@@ -15,9 +15,14 @@ namespace Fracture.Net.Hosting.Messaging
     public enum StatusCode : byte
     {
         /// <summary>
+        /// Request did not return any response. 
+        /// </summary>
+        Empty = 0,
+        
+        /// <summary>
         /// Request has handled successfully.
         /// </summary>
-        Ok = 0,
+        Ok,
         
         /// <summary>
         /// Error occurred inside the handler while handling the message.
@@ -86,40 +91,59 @@ namespace Fracture.Net.Hosting.Messaging
             get;
         }
         #endregion
-    }
-    
-    public interface IResponseDecorator
-    {
+        
+        /// <summary>
+        /// Decorates the response object to contain successful response.
+        /// </summary>
+        /// <param name="message">optional message associated with the response</param>
         void Ok(IMessage message = null);
         
+        /// <summary>
+        /// Decorates the response object to contain server error response.
+        /// </summary>
+        /// <param name="message">optional message associated with the response</param>
+        /// <param name="exception">optional exception associated with the response</param>
         void ServerError(IMessage message = null, Exception exception = null);
         
+        /// <summary>
+        /// Decorates the response object to contain bad request error response.
+        /// </summary>
+        /// <param name="message">optional message associated with the response</param>
+        /// <param name="exception">optional exception associated with the response</param>
         void BadRequest(IMessage message = null, Exception exception = null);
 
+        /// <summary>
+        /// Decorates the response object to contain peer reset response. 
+        /// </summary>
+        /// <param name="message">optional message associated with the response</param>
+        /// <param name="exception">optional exception associated with the response</param>
         void Reset(IMessage message = null, Exception exception = null);
         
+        /// <summary>
+        /// Decorates the response object to contain no route response.
+        /// </summary>
         void NoRoute();
     }
     
-    public sealed class Response : IResponse, IResponseDecorator, IClearable
+    public sealed class Response : IResponse, IClearable
     {
         #region Properties
         public StatusCode Status
         {
             get;
-            private set;
+            set;
         }
         
         public IMessage Message
         {
             get;
-            private set;
+            set;
         }
         
         public Exception Exception
         {
             get;
-            private set;
+            set;
         }
         
         public bool ContainsException => Exception != null;
@@ -131,14 +155,24 @@ namespace Fracture.Net.Hosting.Messaging
         {
         }
         
+        private void AssertEmpty()
+        {
+            if (Status != StatusCode.Empty)
+                throw new InvalidOperationException("request is not empty");
+        }
+        
         public void Ok(IMessage message = null)
         {
+            AssertEmpty();
+               
             Message = message;
             Status  = StatusCode.Ok;
         }
 
         public void ServerError(IMessage message = null, Exception exception = null)
         {
+            AssertEmpty();
+
             Message   = message;
             Exception = exception;
             Status    = StatusCode.ServerError;
@@ -146,6 +180,8 @@ namespace Fracture.Net.Hosting.Messaging
 
         public void BadRequest(IMessage message = null, Exception exception = null)
         {
+            AssertEmpty();
+
             Message   = message;
             Exception = exception;
             Status    = StatusCode.BadRequest;
@@ -153,14 +189,20 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void Reset(IMessage message = null, Exception exception = null)
         {
+            AssertEmpty();
+
             Message   = message;
             Exception = exception;
             Status    = StatusCode.Reset;
         }
         
         public void NoRoute()
-            => Status = StatusCode.NoRoute;
-        
+        {
+            AssertEmpty();
+            
+            Status = StatusCode.NoRoute;
+        }
+            
         public void Clear()
         {
             Status    = default;

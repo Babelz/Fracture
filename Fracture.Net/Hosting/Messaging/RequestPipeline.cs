@@ -12,7 +12,7 @@ using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
 namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
-    /// Interface representing request object that contains a message receive from a peer. 
+    /// Interface representing request object that contains a message received from a peer. 
     /// </summary>
     public interface IRequest
     {
@@ -43,6 +43,9 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
     }
     
+    /// <summary>
+    /// Default implementation of <see cref="IRequest"/>. This implementation can be pooled and thus is mutable.
+    /// </summary>
     public sealed class Request : IRequest, IClearable
     {
         #region Properties
@@ -77,12 +80,37 @@ namespace Fracture.Net.Hosting.Messaging
         }
     }
     
+    
+    /// <summary>
+    /// Delegate for creating request match delegates. Request matchers are used in request middleware.
+    /// </summary>
     public delegate bool RequestMatchDelegate(IRequest request);
     
-    public static class RequestMatcher
+    /// <summary>
+    /// Static utility class containing request matching utilities.
+    /// </summary>
+    public static class RequestMatch
     {
+        /// <summary>
+        /// Matcher that accepts requests of any kind.
+        /// </summary>
         public static RequestMatchDelegate Any() => (_) => true;
         
+        /// <summary>
+        /// Matcher that uses message based matching using the message contained in the request.
+        /// </summary>
+        public static RequestMatchDelegate Message(MessageMatchDelegate match)
+            => (request) => match(request.Message);
+        
+        /// <summary>
+        /// Matcher that uses conditional matching using given conditional delegate.
+        /// </summary>
+        public static RequestMatchDelegate Condition(Func<bool> condition)   
+            => (_) => condition();
+
+        /// <summary>
+        /// Matcher that matches all request that match given predicate.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RequestMatchDelegate Match(Func<IRequest, bool> predicate) 
             => (request) => predicate(request);
@@ -149,7 +177,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
     }
     
-    public delegate void RequestHandlerDelegate(IRequest request, IResponseDecorator response);
+    public delegate void RequestHandlerDelegate(IRequest request, IResponse response);
     
     public interface IRequestRouter
     {
