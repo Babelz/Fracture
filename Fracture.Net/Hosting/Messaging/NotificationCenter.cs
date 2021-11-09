@@ -7,12 +7,12 @@ namespace Fracture.Net.Hosting.Messaging
     
     public delegate void NotificationHandlerDelegate(INotification notification);
     
-    public interface INotificationDispatcher
+    public interface INotificationHandler
     {
-        void Dispatch(NotificationHandlerDelegate handler);
+        void Handle(NotificationHandlerDelegate handler);
     }
     
-    public sealed class NotificationCenter : INotificationCenter, INotificationDispatcher
+    public sealed class NotificationCenter : INotificationCenter, INotificationHandler
     {
         #region Fields
         
@@ -27,7 +27,7 @@ namespace Fracture.Net.Hosting.Messaging
             throw new System.NotImplementedException();
         }
 
-        public void Dispatch(NotificationHandlerDelegate handler)
+        public void Handle(NotificationHandlerDelegate handler)
         {
             throw new System.NotImplementedException();
         }
