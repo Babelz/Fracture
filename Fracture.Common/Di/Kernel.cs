@@ -52,10 +52,28 @@ namespace Fracture.Common.Di
     }
     
     /// <summary>
+    /// Interface for implementing object generic object activators.
+    /// </summary>
+    public interface IObjectActivator
+    {
+        /// <summary>
+        /// Attempts to activate object of specified type. Dependencies for this object are retrieved from the kernel. The object will not be registered to the
+        /// kernel after it has been activated.
+        /// </summary>
+        object Activate(Type type);
+        
+        /// <summary>
+        /// Attempts to activate object of specified type. Dependencies for this object are retrieved from the kernel. The object will not be registered to the
+        /// kernel after it has been activated.
+        /// </summary>
+        T Activate<T>();
+    }
+    
+    /// <summary>
     /// Class that provides simple dependency injection kernels. Kernels combine binding and locating
     /// dependencies under single interface.
     /// </summary>
-    public class Kernel : IDependencyLocator, IDependencyBinder
+    public class Kernel : IDependencyLocator, IDependencyBinder, IObjectActivator
     {
         #region Fields
         private readonly DependencyBindingOptions bindingOptions;
@@ -84,7 +102,7 @@ namespace Fracture.Common.Di
         {
             dependency = null;
 
-            if (!binder.Bind()) return false;
+            if (!binder.TryBind()) return false;
 
             var options = binder.Options;
             var strict  = (options & DependencyBindingOptions.Strict) == DependencyBindingOptions.Strict;
@@ -150,6 +168,18 @@ namespace Fracture.Common.Di
                 i++;
             }
         }
+
+        public object Activate(Type type)
+        {
+            var binder = ConstructBinder(type, null, null, DependencyBindingOptions.Class);
+            
+            binder.Bind();
+            
+            return binder.Instance;
+        }
+        
+        public T Activate<T>()
+            => (T)Activate(typeof(T));
 
         public IEnumerable<object> All(Func<object, bool> predicate)
             => dependencies.Where(d => predicate(d.Cast<object>()));

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Common.Di.Binding
@@ -11,11 +12,15 @@ namespace Fracture.Common.Di.Binding
     public interface IDependencyActivator
     {
         /// <summary>
-        /// Attempts to active dependency of given type and returns 
-        /// it to the caller via out instance.
+        /// Attempts to active dependency of given type and returns it to the caller via out instance.
         /// </summary>
         /// <returns>boolean declaring whether the type could be activated</returns>
-        bool Activate(Type type, out object instance);
+        bool TryActivate(Type type, out object instance);
+        
+        /// <summary>
+        /// Attempts to active dependency of given type and returns it to the caller via out instance. Throws if the dependency could not be activated.
+        /// </summary>
+        void Activate(Type type, out object instance);
     }
     
     /// <summary>
@@ -27,11 +32,16 @@ namespace Fracture.Common.Di.Binding
         {
         }
         
-        public bool Activate(Type type, out object instance)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AssertTypeHasDefaultConstructor(Type type)
         {
             if (!DependencyTypeMapper.HasDefaultConstructor(type))
                 throw new DependencyBinderException(type, "type does not have default constructor");
-
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void InternalActivate(Type type, out object instance)
+        {
             try
             {
                 instance = Activator.CreateInstance(type);
@@ -43,7 +53,33 @@ namespace Fracture.Common.Di.Binding
                                                     $"parameterless constructor, please check that the type has a " +
                                                     $"public parameterless default constructor available", e);
             }
-
+            
+            if (instance == null)
+                throw new DependencyBinderException(type, "could not activate dependency");
+        }
+        
+        public void Activate(Type type, out object instance)
+        {
+            AssertTypeHasDefaultConstructor(type);
+            
+            InternalActivate(type, out instance);
+        }
+        
+        public bool TryActivate(Type type, out object instance)
+        {
+            AssertTypeHasDefaultConstructor(type);
+            
+            instance = null;
+            
+            try
+            {
+                InternalActivate(type, out instance);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            
             return true;
         }
     }
@@ -60,15 +96,19 @@ namespace Fracture.Common.Di.Binding
         public DependencyBindingConstructorActivator(IDependencyLocator locator)
             => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
-        public bool Activate(Type type, out object instance)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AssertTypeHasBindingConstructor(Type type)
         {
             if (!DependencyTypeMapper.HasBindingConstructor(type))
                 throw new DependencyBinderException(type,
                                                     $"type {type.Name} does not contain constructor annotated with " +
                                                     $"{nameof(BindingConstructorAttribute)}");
-
+        }
+        
+        private void InternalActivate(Type type, out object instance)
+        {
             instance = null;
-
+            
             foreach (var constructor in type.GetConstructors())
             {
                 // Not a binding constructor, continue.
@@ -87,10 +127,36 @@ namespace Fracture.Common.Di.Binding
                 
                 instance = constructor.Invoke(arguments);
 
-                return true;
+                break;
             }
             
-            return false;
+            if (instance == null)
+                throw new DependencyBinderException(type, "could not activate dependency");
+        }
+        
+        public void Activate(Type type, out object instance)
+        {
+            AssertTypeHasBindingConstructor(type);
+            
+            InternalActivate(type, out instance);
+        }
+
+        public bool TryActivate(Type type, out object instance)
+        {
+            AssertTypeHasBindingConstructor(type);
+            
+            instance = null;
+            
+            try
+            {
+                InternalActivate(type, out instance);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            
+            return true;
         }
     }
 }

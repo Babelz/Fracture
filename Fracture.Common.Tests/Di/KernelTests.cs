@@ -23,7 +23,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithInstanceTest()
+        public void Bind_Instance_Test()
         {
             var kernel = new Kernel();
 
@@ -35,7 +35,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithTypeTest()
+        public void Bind_With_Type_Test()
         {
             var kernel = new Kernel();
 
@@ -47,7 +47,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithInstanceAndOptionsNonStrictTest()
+        public void Bind_Instance_Non_Strict_test()
         {
             var kernel = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
 
@@ -59,7 +59,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithInstanceAndOptionsStrictTest()
+        public void Bind_Instance_With_Options_And_Strict()
         {
             var kernel = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Strict);
 
@@ -71,7 +71,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithTypeAndOptionsTest()
+        public void Bind_With_Type_And_Options_Test()
         {
             var kernel = new Kernel(DependencyBindingOptions.Interfaces);
 
@@ -81,33 +81,9 @@ namespace Fracture.Common.Tests.Di
             Assert.True(kernel.Exists<IFoo>());
             Assert.True(kernel.Exists<IBar>());
         }
-        
+
         [Fact]
-        public void BindWithTypeGenericTest()
-        {
-            var kernel = new Kernel();
-
-            kernel.Bind<FooBar>();
-
-            Assert.True(kernel.Exists<FooBar>());
-            Assert.True(kernel.Exists<IFoo>());
-            Assert.True(kernel.Exists<IBar>());
-        }
-        
-        [Fact]
-        public void BindWithTypeGenericAndOptionsTest()
-        {
-            var kernel = new Kernel(DependencyBindingOptions.Interfaces);
-
-            kernel.Bind<FooBar>();
-
-            Assert.False(kernel.Exists<FooBar>());
-            Assert.True(kernel.Exists<IFoo>());
-            Assert.True(kernel.Exists<IBar>());
-        }
-        
-        [Fact]
-        public void BindWithInstanceProxyTests()
+        public void Bind_With_Instance_Proxy_Test()
         {
             var kernel = new Kernel();
 
@@ -119,7 +95,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithTypeProxyTests()
+        public void Bind_With_Type_Proxy_Test()
         {
             var kernel = new Kernel();
 
@@ -131,7 +107,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithInstanceProxyAndOptionsTest()
+        public void Bind_With_Instance_Proxy_Using_Options_Test()
         {
             var kernel = new Kernel(proxyOptions: DependencyBindingOptions.Interfaces);
 
@@ -143,7 +119,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithTypeProxyAndOptionsNonStrictTests()
+        public void Bind_With_Type_Proxy_Using_Options_And_Non_Strict_Test()
         {
             var kernel = new Kernel(proxyOptions: DependencyBindingOptions.Class);
 
@@ -155,7 +131,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindWithTypeProxyAndOptionsStrictTests()
+        public void Bind_With_Type_Proxy_Using_Options_And_Strict_Test()
         {
             var kernel = new Kernel(proxyOptions: DependencyBindingOptions.Class | DependencyBindingOptions.Strict);
 
@@ -167,7 +143,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindingConstructorTest()
+        public void Dependencies_Are_Activated_With_Available_Binding_Constructor()
         {
             var kernel = new Kernel();
 
@@ -189,7 +165,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindingPropertyTest()
+        public void Dependency_Binding_Properties_Are_Filled_After_Activation()
         {
             var kernel = new Kernel();
 
@@ -211,7 +187,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindingMethodTest()
+        public void Dependency_Binding_Methods_Are_Invoked_After_Activation()
         {
             var kernel = new Kernel();
 
@@ -234,7 +210,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindingConstructorPropertyAndMethodTest()
+        public void Binding_Methods_And_Properties_Are_Processed_After_Activation()
         {
             var kernel = new Kernel();
 
@@ -257,7 +233,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void BindingConstructorVirtualPropertyAndMethodTest()
+        public void Virtual_Methods_And_Properties_Are_Called_Correctly()
         {
             var kernel = new Kernel();
 
@@ -281,7 +257,7 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void CantBindToInterfaceTest()
+        public void Binding_Directly_To_Interface_Throws()
         {
             var kernel = new Kernel();
 
@@ -289,11 +265,27 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
-        public void CantBindToAbstractClassTest()
+        public void Binding_Directly_To_Abstract_Classes_Throws()
         {
             var kernel = new Kernel();
 
             Assert.Throws<DependencyBinderException>(() => kernel.Bind<BaseCtorPropMethodFooBar>());
+        }
+        
+        [Fact]
+        public void Activate_Throws_If_Dependencies_Are_Not_Present()
+        {
+            var kernel = new Kernel();
+
+            Assert.Throws<DependencyBinderException>(() => kernel.Activate<PropFooBar>());
+        }
+        
+        [Fact]
+        public void Activate_Throws_If_Dependencies_Are_Not_Activated()
+        {
+            var kernel = new Kernel();
+
+            Assert.Throws<DependencyBinderException>(() => kernel.Activate<CtroFooBar>());
         }
     }
 }

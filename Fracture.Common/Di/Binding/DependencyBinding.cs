@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Common.Di.Binding
@@ -14,7 +15,12 @@ namespace Fracture.Common.Di.Binding
         /// Attempts to bind dependencies to given object.
         /// </summary>
         /// <returns>boolean declaring whether the binding was successful</returns>
-        bool Bind(object instance);
+        bool TryBind(object instance);
+        
+        /// <summary>
+        /// Attempts to bind dependencies to given object. Throws if binding could not be complete.
+        /// </summary>
+        void Bind(object instance);
     }
     
     /// <summary>
@@ -29,6 +35,15 @@ namespace Fracture.Common.Di.Binding
         public DependencyMethodBinding(IDependencyLocator locator)
             => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AssertTypeHasBindingMethods(Type type)
+        {
+            if (!DependencyTypeMapper.HasBindingMethods(type))
+                throw new DependencyBinderException(type, 
+                                                    $"type {type.Name} does not contain any methods " +
+                                                    $"annotated with {nameof(BindingMethodAttribute)}");
+        }
+        
         private bool CanBindToMethod(MethodInfo method)
             => method.GetParameters().All(t => locator.Exists(t.ParameterType));
         
@@ -43,26 +58,40 @@ namespace Fracture.Common.Di.Binding
             method.Invoke(instance, arguments);
         }
         
-        public bool Bind(object instance)
+        private void InternalBind(object instance)
         {
-            var type = instance?.GetType();
-                
-            if (!DependencyTypeMapper.HasBindingMethods(type))
-                throw new DependencyBinderException(type, 
-                                                    $"type {instance.GetType().Name} does not contain any methods " +
-                                                    $"annotated with {nameof(BindingMethodAttribute)}");
-
             var methods = instance.GetType()
-                .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Where(c => c.GetCustomAttribute<BindingMethodAttribute>() != null)
-                .ToArray();
+                                  .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                                  .Where(c => c.GetCustomAttribute<BindingMethodAttribute>() != null)
+                                  .ToArray();
 
             if (!methods.All(CanBindToMethod))
-                return false;
+                throw new DependencyBinderException(instance.GetType(), "unable to bind to method");
             
             for (var i = 0; i < methods.Length; i++)
                 BindToMethod(instance, methods[i]);
-
+        }
+        
+        public void Bind(object instance)
+        {
+            AssertTypeHasBindingMethods(instance.GetType());
+            
+            InternalBind(instance);
+        }
+        
+        public bool TryBind(object instance)
+        {
+            AssertTypeHasBindingMethods(instance.GetType());
+            
+            try
+            {
+                InternalBind(instance);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+            
             return true;
         }
     }
@@ -79,31 +108,55 @@ namespace Fracture.Common.Di.Binding
         public DependencyPropertyBinding(IDependencyLocator locator)
             => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
         
-        public bool Bind(object instance)
-        {    
-            var type = instance?.GetType();
-            
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void AssertTypeHasBindingProperties(Type type)
+        {
             if (!DependencyTypeMapper.HasBindingProperties(type))
                 throw new DependencyBinderException(type,
-                                                    $"type {instance.GetType().Name} does not contain any properties " +
+                                                    $"type {type.Name} does not contain any properties " +
                                                     $"annotated with {nameof(BindingPropertyAttribute)}");
-
+        }
+        
+        private void InternalBind(object instance)
+        {
             var properties = instance.GetType()
-                .GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Where(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null)
-                .ToArray();
+                                     .GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
+                                     .Where(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null)
+                                     .ToArray();
 
             var arguments = new object[properties.Length];
 
             for (var i = 0; i < properties.Length; i++)
             {
-                if (!locator.Exists(properties[i].PropertyType)) return false;
+                if (!locator.Exists(properties[i].PropertyType))
+                    throw new DependencyBinderException(instance.GetType(), "binding does not exist");
 
                 arguments[i] = locator.First(properties[i].PropertyType);
             }
 
             for (var i = 0; i < properties.Length; i++)
                 properties[i].SetValue(instance, arguments[i]);
+        }
+        
+        public void Bind(object instance)
+        {    
+            AssertTypeHasBindingProperties(instance.GetType());
+            
+            InternalBind(instance);
+        }
+        
+        public bool TryBind(object instance)
+        {
+            AssertTypeHasBindingProperties(instance.GetType());
+            
+            try
+            {
+                InternalBind(instance);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
             
             return true;
         }

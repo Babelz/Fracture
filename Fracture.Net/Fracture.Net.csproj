@@ -259,6 +259,9 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Hosting\Application.cs" />
+        <Compile Include="Hosting\ApplicationScript.cs" />
+        <Compile Include="Hosting\ApplicationScriptingHost.cs" />
         <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
         <Compile Include="Hosting\Messaging\NotificationCenter.cs" />
         <Compile Include="Hosting\Messaging\Request.cs" />

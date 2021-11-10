@@ -74,14 +74,23 @@ namespace Fracture.Common.Di.Binding
             if (!proxy.IsAssignableFrom(actual))
                 throw new InvalidOperationException("invalid proxy type");
         }
-
-        public bool Bind()
+        
+        public void Bind()
         {
-            if (activator != null && instance == null && !activator.Activate(Type, out instance))
+            if (activator != null && instance == null)
+                activator.Activate(Type, out instance);
+            
+            for (var i = binders.Count - 1; i >= 0; i--)
+                binders[i].Bind(instance);
+        }
+
+        public bool TryBind()
+        {
+            if (activator != null && instance == null && !activator.TryActivate(Type, out instance))
                 return false;
             
             for (var i = binders.Count - 1; i >= 0; i--)
-                if (!binders[i].Bind(instance)) return false;
+                if (!binders[i].TryBind(instance)) return false;
             
             return true;
         }
