@@ -1,6 +1,6 @@
 namespace Fracture.Net.Hosting
 {
-    public class ApplicationScript
+    public class IApplicationClock
     {
         
     }

@@ -260,8 +260,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Hosting\Application.cs" />
-        <Compile Include="Hosting\ApplicationScript.cs" />
-        <Compile Include="Hosting\ApplicationScriptingHost.cs" />
+        <Compile Include="Hosting\ApplicationClock.cs" />
         <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
         <Compile Include="Hosting\Messaging\NotificationCenter.cs" />
         <Compile Include="Hosting\Messaging\Request.cs" />
@@ -271,8 +270,12 @@
         <Compile Include="Hosting\Messaging\Notification.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
+        <Compile Include="Hosting\Scripting\Script.cs" />
+        <Compile Include="Hosting\Scripting\ScriptingHost.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpServer.cs" />
+        <Compile Include="Hosting\Services\Service.cs" />
+        <Compile Include="Hosting\Services\ServiceContainer.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />
         <Compile Include="Messages\PingMessage.cs" />
