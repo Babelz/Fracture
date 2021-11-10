@@ -102,6 +102,9 @@ namespace Fracture.Net.Hosting.Messaging
         void BroadcastWide(IMessage message);
     }
     
+    /// <summary>
+    /// Default implementation of <see cref="INotification"/>. This implementation can be pooled and thus is mutable.
+    /// </summary>
     public sealed class Notification : INotification, IClearable
     {
         #region Properties

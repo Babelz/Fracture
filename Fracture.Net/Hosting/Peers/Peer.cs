@@ -65,6 +65,37 @@ namespace Fracture.Net.Hosting.Peers
         }
     }
     
+    public readonly struct ServerMessageEventArgs : IStructEventArgs
+    {
+        #region Fields
+        public PeerConnection Peer
+        {
+            get;
+        }
+
+        public byte[] Data
+        {
+            get;
+        }
+        public int Offset
+        {
+            get;
+        }
+        public int Length
+        {
+            get;
+        }
+        #endregion
+
+        public ServerMessageEventArgs(in PeerConnection peer, byte[] data, int offset, int length)
+        {
+            Peer   = peer;
+            Offset = offset;
+            Length = length;
+            Data   = data;
+        }
+    }
+    
     /// <summary>
     /// Structure that represents peer connection.
     /// </summary>
@@ -74,7 +105,7 @@ namespace Fracture.Net.Hosting.Peers
         /// <summary>
         /// Runtime id of the peer.
         /// </summary>
-        public readonly uint Id;
+        public readonly int Id;
         
         /// <summary>
         /// Remote end point of the peer.
@@ -82,7 +113,7 @@ namespace Fracture.Net.Hosting.Peers
         public readonly IPEndPoint EndPoint;
         #endregion
         
-        public PeerConnection(uint id, IPEndPoint endPoint)
+        public PeerConnection(int id, IPEndPoint endPoint)
         {
             Id       = id;
             EndPoint = endPoint;
@@ -147,13 +178,18 @@ namespace Fracture.Net.Hosting.Peers
         /// Event invoked when the peer has incoming messages.
         /// </summary>
         event StructEventHandler<PeerMessageEventArgs> Incoming;
+        
+        /// <summary>
+        /// Event invoked when the peer has outgoing messages.
+        /// </summary>
+        event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
         /// <summary>
         /// Returns the id of the peer.
         /// </summary>
-        uint Id
+        int Id
         {
             get;
         }

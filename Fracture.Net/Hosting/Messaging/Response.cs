@@ -125,6 +125,9 @@ namespace Fracture.Net.Hosting.Messaging
         void NoRoute();
     }
     
+    /// <summary>
+    /// Default implementation of <see cref="IResponse"/>. This implementation can be pooled and thus is mutable.
+    /// </summary>
     public sealed class Response : IResponse, IClearable
     {
         #region Properties
@@ -165,35 +168,35 @@ namespace Fracture.Net.Hosting.Messaging
         {
             AssertEmpty();
                
-            Message = message;
-            StatusCode  = ResponseStatusCode.Ok;
+            Message    = message;
+            StatusCode = ResponseStatusCode.Ok;
         }
 
         public void ServerError(IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 
-            Message   = message;
-            Exception = exception;
-            StatusCode    = ResponseStatusCode.ServerError;
+            Message    = message;
+            Exception  = exception;
+            StatusCode = ResponseStatusCode.ServerError;
         }
 
         public void BadRequest(IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 
-            Message   = message;
-            Exception = exception;
-            StatusCode    = ResponseStatusCode.BadRequest;
+            Message    = message;
+            Exception  = exception;
+            StatusCode = ResponseStatusCode.BadRequest;
         }
         
         public void Reset(IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 
-            Message   = message;
-            Exception = exception;
-            StatusCode    = ResponseStatusCode.Reset;
+            Message    = message;
+            Exception  = exception;
+            StatusCode = ResponseStatusCode.Reset;
         }
         
         public void NoRoute()
