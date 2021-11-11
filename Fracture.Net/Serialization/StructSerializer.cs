@@ -53,7 +53,7 @@ namespace Fracture.Net.Serialization
                                                  Protocol.ContentLength.Size + 
                                                  Protocol.SerializationTypeId.Size));
             
-            Protocol.ContentLength.Write(contentLength, buffer, offset);
+            Protocol.ContentLength.Write(contentLength, buffer, offset); 
             offset += Protocol.ContentLength.Size;
             
             Protocol.SerializationTypeId.Write(serializationTypeId, buffer, offset);

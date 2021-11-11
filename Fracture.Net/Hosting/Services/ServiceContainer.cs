@@ -1,6 +1,6 @@
 namespace Fracture.Net.Hosting.Services
 {
-    public class ServiceContainer
+    public class IServiceContainer
     {
         
     }
