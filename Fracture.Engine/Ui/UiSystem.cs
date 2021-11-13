@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
@@ -21,8 +22,8 @@ namespace Fracture.Engine.Ui
         private readonly IUiSystem uis;
         #endregion
         
-        public UiPipelinePhase(IGameEngine engine, int index) 
-            : base(engine, index, new GraphicsFragmentSettings(
+        public UiPipelinePhase(IGameEngine engine, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index) 
+            : base(engine, pipelines, index, new GraphicsFragmentSettings(
                    SpriteSortMode.Deferred,
                    BlendState.AlphaBlend,
                    new SamplerState
@@ -35,7 +36,7 @@ namespace Fracture.Engine.Ui
                    DepthStencilState.None,
                    RasterizerState.CullNone))
         {
-            uis = engine.Systems.First<IUiSystem>();
+            this.uis = uis ?? throw new ArgumentNullException(nameof(uis));
         }
 
         public override void Execute(IGameEngineTime time)
@@ -73,16 +74,17 @@ namespace Fracture.Engine.Ui
         #region Fields
         private readonly List<Ui> uis;
 
-        private GraphicsDevice graphics;
-        private ContentManager content;
+        private readonly GraphicsDevice graphics;
+        private readonly ContentManager content;
         
-        private IInputDeviceSystem devices;
+        private readonly IInputDeviceSystem devices;
         #endregion
 
         #region Properties
         public int Count => uis.Count;
         #endregion
 
+        [BindingConstructor]
         public UiSystem(IGameEngine engine, IInputDeviceSystem devices, int priority)
             : base(engine, priority)
         {

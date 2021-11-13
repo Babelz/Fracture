@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Scripting
@@ -57,6 +58,7 @@ namespace Fracture.Engine.Scripting
         }
         #endregion
 
+        [BindingConstructor]
         public CsScriptingSystem(IGameEngine engine)
             : base(engine)
         {    

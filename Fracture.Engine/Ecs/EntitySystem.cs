@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 using Fracture.Engine.Events;
@@ -196,6 +197,7 @@ namespace Fracture.Engine.Ecs
          => madeChildOfEvents;
       #endregion
 
+      [BindingConstructor]
       public EntitySystem(IGameEngine engine, IEventQueueSystem events)
          : base(engine)
       {

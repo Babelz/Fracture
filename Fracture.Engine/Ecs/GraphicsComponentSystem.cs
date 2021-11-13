@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -138,13 +139,11 @@ namespace Fracture.Engine.Ecs
       protected IGraphicsLayerSystem Layers
       {
          get;
-         private set;
       }
       
       protected ITransformComponentSystem Transforms
       {
          get;
-         private set;
       }
 
       protected LinearGrowthArray<T> Components
@@ -163,14 +162,24 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      protected GraphicsComponentSystem(int priority, int graphicsComponentTypeId)
+      protected GraphicsComponentSystem(IGameEngine engine,
+                                        IEntitySystem entities,
+                                        IEventQueueSystem events,
+                                        IGraphicsLayerSystem layers, 
+                                        ITransformComponentSystem transforms, 
+                                        int priority, 
+                                        int graphicsComponentTypeId)
+         : base(engine, entities, events)
       {
+         
+         Layers     = layers ?? throw new ArgumentNullException(nameof(layers));
+         Transforms = transforms ?? throw new ArgumentNullException(nameof(layers));
+         
          Priority                = priority;
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
          Components = new LinearGrowthArray<T>(ComponentsCapacity);
-         
-         dirty = new HashSet<int>(ComponentsCapacity);
+         dirty      = new HashSet<int>(ComponentsCapacity);
       }
       
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -418,15 +427,7 @@ namespace Fracture.Engine.Ecs
       }
       
       public abstract void DrawElement(int id, IGraphicsFragment fragment);
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-
-         Layers     = Engine.Systems.First<IGraphicsLayerSystem>();
-         Transforms = Engine.Systems.First<ITransformComponentSystem>();
-      }
-
+      
       public virtual void Update(IGameEngineTime time)
       {
          // Update all dirty elements.
@@ -567,8 +568,14 @@ namespace Fracture.Engine.Ecs
       } 
       #endregion
 
-      public SpriteComponentSystem(int priority) 
-         : base(priority, Ecs.GraphicsComponentTypeId.Sprite)
+      [BindingConstructor]
+      public SpriteComponentSystem(IGameEngine engine, 
+                                   IEntitySystem entities, 
+                                   IEventQueueSystem events, 
+                                   IGraphicsLayerSystem layers, 
+                                   ITransformComponentSystem transforms, 
+                                   int priority) 
+         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.Sprite)
       {
       }
 
@@ -753,8 +760,14 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      public QuadComponentSystem(int priority)
-         : base(priority, Ecs.GraphicsComponentTypeId.Quad)
+      [BindingConstructor]
+      public QuadComponentSystem(IGameEngine engine, 
+                                 IEntitySystem entities, 
+                                 IEventQueueSystem events, 
+                                 IGraphicsLayerSystem layers, 
+                                 ITransformComponentSystem transforms, 
+                                 int priority) 
+         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.Quad)
       {
       }
       
@@ -974,9 +987,17 @@ namespace Fracture.Engine.Ecs
          => finishedEvents;
       #endregion
 
-      public SpriteAnimationComponentSystem(int priority) 
-         : base(priority, Ecs.GraphicsComponentTypeId.SpriteAnimation)
+      [BindingConstructor]
+      public SpriteAnimationComponentSystem(IGameEngine engine, 
+                                            IEntitySystem entities, 
+                                            IEventQueueSystem events, 
+                                            IGraphicsLayerSystem layers, 
+                                            ITransformComponentSystem transforms, 
+                                            int priority) 
+         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
+         finishedEvents = events.CreateUnique<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
+
          var idc = 1;
          
          indices   = new FreeList<int>(() => idc++);
@@ -1139,13 +1160,6 @@ namespace Fracture.Engine.Ecs
                              component.Color,
                              component.Effects);         
       }
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-         
-         finishedEvents = Engine.Systems.First<IEventQueueSystem>().CreateUnique<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
-      }
    }
 
    /// <summary>
@@ -1250,8 +1264,14 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      public SpriteTextComponentSystem(int priority)
-         : base(priority, Ecs.GraphicsComponentTypeId.SpriteText)
+      [BindingConstructor]
+      public SpriteTextComponentSystem(IGameEngine engine, 
+                                       IEntitySystem entities, 
+                                       IEventQueueSystem events, 
+                                       IGraphicsLayerSystem layers, 
+                                       ITransformComponentSystem transforms, 
+                                       int priority) 
+         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
       }
 

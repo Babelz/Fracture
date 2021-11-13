@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Input.Devices;
 
@@ -28,6 +29,7 @@ namespace Fracture.Engine.Input
         }
         #endregion
 
+        [BindingConstructor]
         public MouseInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority) 
             : base(engine, priority)
         {

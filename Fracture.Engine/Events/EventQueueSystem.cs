@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 
@@ -36,8 +37,9 @@ namespace Fracture.Engine.Events
       private readonly List<IEventDispatcher> queues;
       #endregion
 
-      public EventQueueSystem(int priority) 
-         : base(priority) => queues = new List<IEventDispatcher>();
+      [BindingConstructor]
+      public EventQueueSystem(IGameEngine engine, int priority)
+         : base(engine, priority) => queues = new List<IEventDispatcher>();
 
       public IEventQueue<TKey, TEvent> CreateShared<TKey, TEvent>(int queueBucketSize) where TEvent : Delegate
       {

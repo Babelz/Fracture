@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -495,8 +496,8 @@ namespace Fracture.Engine.Graphics
       private readonly List<GraphicsElementLayer> layers;
       #endregion
       
-      public GraphicsLayerSystem() 
-         => layers = new List<GraphicsElementLayer>();
+      public GraphicsLayerSystem(IGameEngine engine)
+         : base(engine) => layers = new List<GraphicsElementLayer>();
       
       public GraphicsElementLayer Create(string name, int order)
       {
@@ -557,21 +558,23 @@ namespace Fracture.Engine.Graphics
       private readonly HashSet<GraphicsElement> results;
       #endregion
 
-      public GraphicsLayerPipelinePhase(IGameEngine engine, int index)
-         : base(engine, index, new GraphicsFragmentSettings(
+      public GraphicsLayerPipelinePhase(IGameEngine engine, 
+                                        IGraphicsPipelineSystem pipelines,
+                                        IGraphicsLayerSystem layers, 
+                                        IViewSystem views, 
+                                        IEnumerable<IGraphicsComponentSystem> systems, 
+                                        int index)
+         : base(engine, pipelines, index, new GraphicsFragmentSettings(
                 SpriteSortMode.Deferred,
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp,
                 DepthStencilState.None,
                 RasterizerState.CullNone))
       {
-         // Get systems.
-         layers = engine.Systems.First<IGraphicsLayerSystem>();
-         views  = engine.Systems.First<IViewSystem>();
+         this.views  = views ?? throw new ArgumentNullException(nameof(views));
+         this.layers = layers ?? throw new ArgumentNullException(nameof(layers));
          
          // Create component lookup for rendering elements.
-         var systems = engine.Systems.All<IGraphicsComponentSystem>().ToArray();
-         
          lookup = new IGraphicsComponentSystem[systems.Max(s => s.GraphicsComponentTypeId) + 1];
 
          foreach (var system in systems)

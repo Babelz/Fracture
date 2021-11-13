@@ -1,4 +1,5 @@
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Events;
@@ -89,8 +90,14 @@ namespace Fracture.Engine.Ecs
          => rotationEvents;
       #endregion
       
-      public TransformComponentComponentSystem()
+      [BindingConstructor]
+      public TransformComponentComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events)
+         : base(engine, entities, events)
       {
+         positionEvents = events.CreateUnique<int, TransformPositionEventHandler>(EventQueueUsageHint.Normal);
+         scaleEvents    = events.CreateUnique<int, TransformScaleEventHandler>(EventQueueUsageHint.Normal);
+         rotationEvents = events.CreateUnique<int, TransformRotationEventHandler>(EventQueueUsageHint.Normal);
+         
          // Allocate data.
          transforms = new LinearGrowthArray<Transform>(1024);
       }
@@ -216,18 +223,6 @@ namespace Fracture.Engine.Ecs
          transforms.Insert(id, Transform.TransformRotation(transforms.AtIndex(id), transformation));
          
          rotationEvents.Publish(id, e => e(id, transforms.AtIndex(id).Rotation));
-      }
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-         
-         // Create events.
-         var events = Engine.Systems.First<IEventQueueSystem>();
-         
-         positionEvents = events.CreateUnique<int, TransformPositionEventHandler>(EventQueueUsageHint.Normal);
-         scaleEvents    = events.CreateUnique<int, TransformScaleEventHandler>(EventQueueUsageHint.Normal);
-         rotationEvents = events.CreateUnique<int, TransformRotationEventHandler>(EventQueueUsageHint.Normal);
       }
    }
 }

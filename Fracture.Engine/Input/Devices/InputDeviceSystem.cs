@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Input.Devices
@@ -44,8 +45,9 @@ namespace Fracture.Engine.Input.Devices
         private readonly HashSet<IInputDevice> devices;
         #endregion
 
-        public InputDeviceSystem(int priority, params IInputDevice[] devices)
-            : base(priority)
+        [BindingConstructor]
+        public InputDeviceSystem(IGameEngine engine, int priority, IEnumerable<IInputDevice> devices)
+            : base(engine, priority)
         {
             this.devices = new HashSet<IInputDevice>();
 

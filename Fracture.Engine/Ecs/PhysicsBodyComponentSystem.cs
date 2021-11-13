@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -149,12 +150,11 @@ namespace Fracture.Engine.Ecs
       #region Fields
       private readonly LinearGrowthArray<PhysicsBodyComponent> bodies;
       
-      private IEventQueue<int, BodyContactEventHandler> beginContactEvents;
+      private readonly IEventQueue<int, BodyContactEventHandler> beginContactEvents;
+      private readonly IEventQueue<int, BodyContactEventHandler> endContactEvents;
       
-      private IEventQueue<int, BodyContactEventHandler> endContactEvents;
-      
-      private ITransformComponentSystem transforms;
-      private IPhysicsWorldSystem world;
+      private readonly ITransformComponentSystem transforms;
+      private readonly IPhysicsWorldSystem world;
       
       private readonly List<int> dirty;
       #endregion
@@ -172,8 +172,26 @@ namespace Fracture.Engine.Ecs
          => endContactEvents;
       #endregion
 
-      public PhysicsBodyComponentSystem(int priority)
+      [BindingConstructor]
+      public PhysicsBodyComponentSystem(IGameEngine engine, 
+                                        IEntitySystem entities,
+                                        IEventQueueSystem events,
+                                        IPhysicsWorldSystem world, 
+                                        ITransformComponentSystem transforms, 
+                                        int priority)
+         : base(engine, entities, events)
       {
+         this.world      = world ?? throw new ArgumentNullException(nameof(world));
+         this.transforms = transforms ?? throw new ArgumentNullException(nameof(transforms));
+         
+         world.BeginContact += WorldOnBeginContact;
+         world.EndContact   += WorldOnEndContact;
+         world.Moved        += WorldOnRelocated;
+         
+         // Create events.
+         beginContactEvents = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
+         endContactEvents   = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
+         
          Priority = priority;
          
          bodies = new LinearGrowthArray<PhysicsBodyComponent>();
@@ -531,25 +549,6 @@ namespace Fracture.Engine.Ecs
          }
          
          dirty.Clear();
-      }
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-      
-         // Locate dependencies.
-         world      = Engine.Systems.First<IPhysicsWorldSystem>();
-         transforms = Engine.Systems.First<ITransformComponentSystem>();
-         
-         world.BeginContact += WorldOnBeginContact;
-         world.EndContact   += WorldOnEndContact;
-         world.Moved        += WorldOnRelocated;
-         
-         // Create events.
-         var events = Engine.Systems.First<IEventQueueSystem>();
-         
-         beginContactEvents = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
-         endContactEvents   = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
       }
    }
 }

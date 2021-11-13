@@ -1,4 +1,5 @@
-﻿using Fracture.Common.Events;
+﻿using Fracture.Common.Di.Attributes;
+using Fracture.Common.Events;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Events
@@ -18,8 +19,9 @@ namespace Fracture.Engine.Events
         private readonly EventScheduler scheduler;
         #endregion
         
-        public EventSchedulerSystem(int priority)
-            : base(priority) => scheduler = new EventScheduler();
+        [BindingConstructor]
+        public EventSchedulerSystem(IGameEngine engine, int priority)
+            : base(engine, priority) => scheduler = new EventScheduler();
 
         public void Add(IScheduledEvent scheduledEvent)
             => scheduler.Add(scheduledEvent);

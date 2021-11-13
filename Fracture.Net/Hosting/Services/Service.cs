@@ -6,7 +6,7 @@ namespace Fracture.Net.Hosting.Services
     
     public abstract class Service
     {
-        public Service(IApplicationServiceHost application)
+        public Service(IApplicationHost application)
         {
         }
     }

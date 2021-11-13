@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Microsoft.Xna.Framework;
@@ -242,7 +243,9 @@ namespace Fracture.Engine.Graphics
         private readonly List<IView> views;
         #endregion
         
-        public ViewSystem() 
+        [BindingConstructor]
+        public ViewSystem(IGameEngine engine)
+            : base(engine)
         {
             var idc = 0;
             

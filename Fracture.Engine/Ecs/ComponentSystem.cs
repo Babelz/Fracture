@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 using Fracture.Engine.Events;
@@ -207,8 +208,8 @@ namespace Fracture.Engine.Ecs
       private readonly Dictionary<int, int> entityToComponentMap;
       #endregion
       
-      protected UniqueComponentSystem() 
-         => entityToComponentMap = new Dictionary<int, int>();
+      protected UniqueComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events) 
+         : base(engine, entities, events) => entityToComponentMap = new Dictionary<int, int>();
       
       protected override int InitializeComponent(int entityId)
       {
@@ -272,8 +273,8 @@ namespace Fracture.Engine.Ecs
       private readonly Dictionary<int, List<int>> entityToComponentsMap;
       #endregion
       
-      protected SharedComponentSystem()
-         => entityToComponentsMap = new Dictionary<int, List<int>>();
+      protected SharedComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events) 
+         : base(engine, entities, events) => entityToComponentsMap = new Dictionary<int, List<int>>();
       
       protected override int InitializeComponent(int entityId)
       {

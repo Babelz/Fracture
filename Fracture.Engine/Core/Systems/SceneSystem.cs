@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Engine.Core.Systems
 {
@@ -135,8 +136,9 @@ namespace Fracture.Engine.Core.Systems
         }
         #endregion
         
-        public SceneSystem()
-            : base(0) => scenes = new Stack<Scene>();
+        [BindingConstructor]
+        public SceneSystem(IGameEngine engine)
+            : base(engine, 0) => scenes = new Stack<Scene>();
         
         public void Push(Scene scene, SceneChangedCallback callback = null)
         {

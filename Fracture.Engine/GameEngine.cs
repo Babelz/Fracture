@@ -38,7 +38,7 @@ namespace Fracture.Engine
         #endregion
 
         #region Events
-        public event EventHandler Exiting;
+        public new event EventHandler Exiting;
         #endregion
         
         #region Fields

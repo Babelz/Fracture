@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Physics.Contacts;
@@ -251,11 +252,13 @@ namespace Fracture.Engine.Physics
         /// <param name="treeNodeBodyLimit">max bodies one node can hold in the tree before it will be split</param>
         /// <param name="treeNodeMaxDepth">max splits one node can have</param>
         /// </summary>
-        public PhysicsWorldSystem(IPhysicsSimulationTime time, 
+        [BindingConstructor]
+        public PhysicsWorldSystem(IGameEngine engine,
+                                  IPhysicsSimulationTime time, 
                                   int treeNodeBodyLimit, 
                                   int treeNodeMaxDepth,
                                   int priority = 0)
-            : base(priority)
+            : base(engine, priority)
         {
             this.treeNodeBodyLimit = treeNodeBodyLimit;
             this.treeNodeMaxDepth  = treeNodeMaxDepth;

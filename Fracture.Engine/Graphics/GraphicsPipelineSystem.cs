@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Microsoft.Xna.Framework;
@@ -896,10 +897,10 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
 
-      protected GraphicsPipelinePhase(IGameEngine engine, int index, GraphicsFragmentSettings settings = null)
+      protected GraphicsPipelinePhase(IGameEngine engine, IGraphicsPipelineSystem pipeline, int index, GraphicsFragmentSettings settings = null)
       {  
+         Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
          Index    = index;
-         Pipeline = engine.Systems.First<IGraphicsPipelineSystem>();
          
          Pipeline.CreateFragment(index, settings ?? new GraphicsFragmentSettings());
       }
@@ -956,6 +957,7 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
       
+      [BindingConstructor]
       public GraphicsPipelineSystem(IGameEngine engine, int priority)
          : base(engine)
       {

@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Input.Devices;
 using Microsoft.Xna.Framework.Input;
@@ -29,6 +30,7 @@ namespace Fracture.Engine.Input
         }
         #endregion
 
+        [BindingConstructor]
         public KeyboardInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority)
             : base(engine, priority)
         {
