@@ -193,6 +193,14 @@ namespace Fracture.Net.Serialization.Generation
         }
         
         /// <summary>
+        /// Gets the activator callback delegate that should be used for object activation.
+        /// </summary>
+        public ObjectActivationDelegate Callback
+        {
+            get;
+        }
+        
+        /// <summary>
         /// Gets the optional serialization values if non-default constructor is being used for activation.
         /// </summary>
         public IReadOnlyCollection<SerializationValue> Values
@@ -203,18 +211,31 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Gets boolean declaring whether this object activator is using the default constructor.
         /// </summary>
-        public bool IsDefaultConstructor => Values.Count == 0;
+        public bool IsDefaultConstructor => !IsCallbackInitializer && Values.Count == 0;
         
         /// <summary>
         /// Gets boolean declaring whether this object activator is default structure initializer.
         /// </summary>
         public bool IsStructInitializer => IsDefaultConstructor && Constructor == null;
+
+        /// <summary>
+        /// Gets boolean declaring whether this object activator uses delegate callback for creating the objects.
+        /// </summary>
+        public bool IsCallbackInitializer => Callback != null;
         #endregion
 
         public ObjectActivator(ConstructorInfo constructor, IReadOnlyCollection<SerializationValue> values)
         {
+            Callback    = null;
             Constructor = constructor;
             Values      = values;
+        }
+
+        public ObjectActivator(ObjectActivationDelegate callback)
+        {
+            Callback    = callback;
+            Constructor = null;
+            Values      = null;
         }
     }
     
@@ -258,6 +279,12 @@ namespace Fracture.Net.Serialization.Generation
             Activator = activator;
         }
     }
+    
+    /// <summary>
+    /// Delegate for creating serialization object activation callbacks. These callbacks are provided for the serializers to get empty object to which the data
+    /// will be deserialized to.
+    /// </summary>
+    public delegate object ObjectActivationDelegate();
 
     /// <summary>
     /// Class for mapping objects to their intermediate serialization instructions. Mapper provides builder interface for mapping
@@ -271,14 +298,15 @@ namespace Fracture.Net.Serialization.Generation
         
         private readonly List<SerializationValueHint> serializationValueHints;
         private readonly List<ObjectActivationHint> objectActivationHints;
-    
+        
+        private ObjectActivationDelegate activator;
         private Type serializationType;
         
         private bool discoverPublicFields;
         private bool discoverPublicProperties;
         #endregion
 
-        public ObjectSerializationMapper()
+        private ObjectSerializationMapper()
         {
             serializationValueHints = new List<SerializationValueHint>();
             objectActivationHints   = new List<ObjectActivationHint>();
@@ -457,6 +485,10 @@ namespace Fracture.Net.Serialization.Generation
         
         private void RemoveActivationValueHints()
             => serializationValueHints.RemoveAll(h => objectActivationHints.Any(a => a.Value.Name == h.Name));
+
+        private ObjectActivator GetObjectActivator()
+            => activator != null ? new ObjectActivator(activator) : 
+                                   new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
         
         /// <summary>
         /// Directs the builder that given type is being mapped.
@@ -484,8 +516,21 @@ namespace Fracture.Net.Serialization.Generation
         {
             if (hints == null) 
                 throw new ArgumentNullException(nameof(hints));
-            
+         
+            if (activator != null)
+                throw new InvalidOperationException("mapping already has activator callback defined");
+
             objectActivationHints.AddRange(hints);
+            
+            return this;
+        }
+        
+        public ObjectSerializationMapper IndirectActivation(ObjectActivationDelegate activator)
+        {
+            if (objectActivationHints.Count != 0)
+                throw new InvalidOperationException("mapping already has parametrized activation defined");
+            
+            this.activator = activator;
             
             return this;
         }
@@ -542,9 +587,7 @@ namespace Fracture.Net.Serialization.Generation
             DiscoverPublicPropertyHints();
             
             // Ensure activation is possible.
-            var constructor            = GetObjectActivationConstructor();
-            var objectActivationValues = GetObjectActivationValues();
-            var objectActivator        = new ObjectActivator(constructor, objectActivationValues.ToList().AsReadOnly());
+            var objectActivator = GetObjectActivator();
             
             // Remove all fields and properties that are mapped by the object activator.
             RemoveActivationValueHints();
@@ -559,7 +602,7 @@ namespace Fracture.Net.Serialization.Generation
                                                   serializationValues,
                                                   objectActivator);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ObjectSerializationMapper Create() 
             => new ObjectSerializationMapper();

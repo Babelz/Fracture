@@ -55,7 +55,7 @@ namespace Fracture.Net.Hosting.Peers
             SocketError.NotConnected
         };
         
-        private static uint IdCounter;
+        private static int IdCounter;
         #endregion
 
         #region Fields

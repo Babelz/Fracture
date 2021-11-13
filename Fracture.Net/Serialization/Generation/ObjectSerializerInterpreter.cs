@@ -138,6 +138,22 @@ namespace Fracture.Net.Serialization.Generation
         public override string ToString()
             => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
     }
+    
+    public readonly struct IndirectActivationOp : ISerializationOp
+    {
+        #region Properties
+        public ObjectActivationDelegate Activator
+        {
+            get;
+        }
+        #endregion
+
+        public IndirectActivationOp(ObjectActivationDelegate activator)
+            => Activator = activator ?? throw new ArgumentNullException(nameof(activator));
+
+        public override string ToString()
+            => $"{{ op: {nameof(IndirectActivationOp)}, ctor: none, activator: {Activator} }}";
+    }
 
     /// <summary>
     /// Structure representing serialization value serialization operation. Depending on the context the operation is either interpreted as property/field read or write operation.
@@ -307,7 +323,9 @@ namespace Fracture.Net.Serialization.Generation
         {
             var ops = new List<ISerializationOp>();
             
-            if (!mapping.Activator.IsDefaultConstructor)
+            if (mapping.Activator.IsCallbackInitializer)
+                ops.Add(new IndirectActivationOp(mapping.Activator.Callback));
+            else if (!mapping.Activator.IsDefaultConstructor)
                 ops.Add(new ParametrizedActivationOp(
                             mapping.Activator.Constructor, 
                             mapping.Activator.Values.Select(v => new SerializeValueOp(
@@ -317,11 +335,11 @@ namespace Fracture.Net.Serialization.Generation
                 );
             else if (!mapping.Activator.IsStructInitializer)
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
-                
+
             ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
-                    v, 
-                    ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-                )
+                                                   v, 
+                                                   ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
+                             )
             );
 
             return ops;
@@ -332,9 +350,10 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
-            => (mapping.Activator.IsDefaultConstructor ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-               ).ToList();
+            => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer ? 
+                    mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
+                    v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
+                ).ToList();
         
         /// <summary>
         /// Compiles both serialization and deserialization instructions from given mappings.
@@ -382,8 +401,11 @@ namespace Fracture.Net.Serialization.Generation
                                                                                      IEnumerable<ISerializationOp> ops)
         {
             var serializationValueIndex = 0;
-            var builder                 = new DynamicDeserializeDelegateBuilder(valueRanges, type);
             
+            var builder = ops.OfType<IndirectActivationOp>().Any() ? 
+                          DynamicDeserializeDelegateBuilder.CreateWithIndirectActivation(valueRanges, type) :
+                          DynamicDeserializeDelegateBuilder.CreateWithDirectActivation(valueRanges, type);
+
             builder.EmitLocals();
             
             foreach (var op in ops)
@@ -409,6 +431,9 @@ namespace Fracture.Net.Serialization.Generation
                         }    
                         
                         builder.EmitActivation(paop.Constructor);
+                        break;
+                    case IndirectActivationOp iaop:
+                        builder.EmitActivation(iaop.Activator);
                         break;
                 }
             }

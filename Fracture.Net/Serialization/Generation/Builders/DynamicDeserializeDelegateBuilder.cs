@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Reflection;
 using NLog;
 
@@ -11,6 +12,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// Delegate for wrapping deserialization functions.  
     /// </summary>
     public delegate object DynamicDeserializeDelegate(byte[] buffer, int offset);
+
+    public delegate object DynamicIndirectActivationDeserializeDelegate(byte[] buffer, int offset, ObjectActivationDelegate callback);
     
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
@@ -34,23 +37,15 @@ namespace Fracture.Net.Serialization.Generation.Builders
         #endregion
         
         #region Fields
+        private ObjectActivationDelegate activator;
+        
         private LocalBuilder localNullMask;
         
         private int nullableValueIndex;
         #endregion
         
-        public DynamicDeserializeDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType) 
-            : base(in valueRanges, 
-                   serializationType,
-                   new DynamicMethodBuilder(
-                       $"Deserialize", 
-                       typeof(object), 
-                       new []
-                       {
-                           typeof(byte[]), // Argument 0.
-                           typeof(int)     // Argument 1.
-                       }
-                   ))
+        private DynamicDeserializeDelegateBuilder(DynamicMethodBuilder methodBuilder, in ObjectSerializationValueRanges valueRanges, Type serializationType) 
+            : base(in valueRanges, serializationType, methodBuilder)
         {
         }
         
@@ -118,6 +113,16 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             DynamicMethodBuilder.Emit(OpCodes.Newobj, constructor);
                 
+            EmitStoreValueToLocal();
+        }
+        
+        public void EmitActivation(ObjectActivationDelegate activator)
+        {
+            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            
+            DynamicMethodBuilder.Emit(OpCodes.Ldarg_2); 
+            DynamicMethodBuilder.Emit(OpCodes.Callvirt, typeof(ObjectActivationDelegate).GetMethod("Invoke"));
+            
             EmitStoreValueToLocal();
         }
 
@@ -201,19 +206,38 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             try
             {
-                var method = (DynamicDeserializeDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicDeserializeDelegate));
-                
-                return (buffer, offset) =>
+                if (activator != null)
                 {
-                    try
+                    var method = (DynamicIndirectActivationDeserializeDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicIndirectActivationDeserializeDelegate));
+                    
+                    return (buffer, offset) =>
                     {
-                        return method(buffer, offset);
-                    }
-                    catch (Exception e)
+                        try
+                        {
+                            return method(buffer, offset, activator);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new DynamicDeserializeException(SerializationType, e, buffer, offset);
+                        }
+                    };
+                }
+                else
+                {
+                    var method = (DynamicDeserializeDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicDeserializeDelegate));
+                
+                    return (buffer, offset) =>
                     {
-                        throw new DynamicDeserializeException(SerializationType, e, buffer, offset);
-                    }
-                };
+                        try
+                        {
+                            return method(buffer, offset);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new DynamicDeserializeException(SerializationType, e, buffer, offset);
+                        }
+                    };
+                }
             } 
             catch (Exception e)
             {
@@ -222,5 +246,38 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 throw;
             }
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DynamicDeserializeDelegateBuilder CreateWithDirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
+            => new DynamicDeserializeDelegateBuilder(
+                new DynamicMethodBuilder(
+                    $"Deserialize", 
+                    typeof(object), 
+                    new []
+                    {
+                        typeof(byte[]), // Argument 0.
+                        typeof(int)     // Argument 1.
+                    }
+                ),
+                valueRanges,
+                serializationType
+            );
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static DynamicDeserializeDelegateBuilder CreateWithIndirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
+            => new DynamicDeserializeDelegateBuilder(
+                new DynamicMethodBuilder(
+                    $"Deserialize", 
+                    typeof(object), 
+                    new []
+                    {
+                        typeof(byte[]),                  // Argument 0.
+                        typeof(int),                     // Argument 1.
+                        typeof(ObjectActivationDelegate) // Argument 1.
+                    }
+                ),
+                valueRanges,
+                serializationType
+            );
     }
 }

@@ -70,8 +70,20 @@ namespace Fracture.Net.Tests.Serialization
             public Vec2 Value;
             #endregion
         }
-        #endregion
         
+        private sealed class IndirectlyActivatedTestClass
+        {
+            #region Fields
+            public int X;
+            public int Y;
+            #endregion
+
+            public IndirectlyActivatedTestClass()
+            {
+            }
+        }
+        #endregion
+
         static StructSerializerTests()
         {
             StructSerializer.Map(ObjectSerializationMapper.Create()
@@ -103,6 +115,32 @@ namespace Fracture.Net.Tests.Serialization
             );
         
         [Fact]
+        public void Serializes_Objects_With_Indirect_Activation_Correctly_Back_And_Forth()
+        {
+            var testValueIn = new IndirectlyActivatedTestClass();
+            
+            StructSerializer.Map(ObjectSerializationMapper.Create()
+                                                          .FromType<IndirectlyActivatedTestClass>()
+                                                          .PublicFields()
+                                                          .IndirectActivation(() =>
+                                                           {
+                                                               return testValueIn;
+                                                           })
+                                                          .Map());
+            
+            testValueIn.X = testValueIn.Y = 256;
+            
+            var buffer = new byte[128];
+            
+            StructSerializer.Serialize(testValueIn, buffer, 0);
+            
+            var testValueOut = StructSerializer.Deserialize<IndirectlyActivatedTestClass>(buffer, 0);
+            
+            Assert.Same(testValueIn, testValueOut);
+            Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
+        }
+        
+        [Fact]
         public void Serializes_Structures_Composed_Of_Structures_Back_And_Forth()
         {
             var testValueIn = new ClassComposedOfStructs()
@@ -119,7 +157,7 @@ namespace Fracture.Net.Tests.Serialization
             
             Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
         }
-        
+
         [Fact]
         public void Serializes_Complex_Nested_Structures_Composed_Of_Structures_Back_And_Forth()
         {
