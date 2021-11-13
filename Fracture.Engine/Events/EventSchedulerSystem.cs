@@ -35,7 +35,7 @@ namespace Fracture.Engine.Events
         public void Clear()
             => scheduler.Clear();
         
-        public override void Update(IGameEngineTime time)
-            => scheduler.Tick(time.Elapsed);
+        public override void Update()
+            => scheduler.Tick(Engine.Time.Elapsed);
     }
 }

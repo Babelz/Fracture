@@ -428,7 +428,7 @@ namespace Fracture.Engine.Ecs
       
       public abstract void DrawElement(int id, IGraphicsFragment fragment);
       
-      public virtual void Update(IGameEngineTime time)
+      public virtual void Update()
       {
          // Update all dirty elements.
          var layersLookup = Layers.ToDictionary(l => l.Name, l => l);
@@ -1103,9 +1103,9 @@ namespace Fracture.Engine.Ecs
          Components.AtIndex(id).Effects = effects;
       }
 
-      public override void Update(IGameEngineTime time)
+      public override void Update()
       {
-         base.Update(time);
+         base.Update();
 
          for (var i = 0; i < Count; i++)
          {
@@ -1114,7 +1114,7 @@ namespace Fracture.Engine.Ecs
             if (!component.Playing)
                continue;
 
-            component.Elapsed += time.Elapsed;
+            component.Elapsed += Engine.Time.Elapsed;
 
             var animation = playlists[component.PlaylistId].Animations[component.AnimationName];
             

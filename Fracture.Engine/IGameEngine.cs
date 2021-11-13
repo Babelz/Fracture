@@ -5,12 +5,14 @@ using Fracture.Engine.Core;
 namespace Fracture.Engine
 {
     /// <summary>
-    /// Interface for implementing games and game engines. Engines contain
-    /// initialization logic and bound all systems together.
+    /// Interface for implementing games and game engines. Engines contain initialization logic and bound all relevant systems together.
     /// </summary>
     public interface IGameEngine
     {
         #region Events
+        /// <summary>
+        /// Event invoked when the game is exiting.
+        /// </summary>
         event EventHandler Exiting;
         #endregion
         
@@ -24,7 +26,7 @@ namespace Fracture.Engine
         }
         
         /// <summary>
-        /// Gets service locator for getting non-system.
+        /// Gets service locator for getting non-system dependencies.
         /// </summary>
         IDependencyLocator Services
         {
@@ -32,6 +34,9 @@ namespace Fracture.Engine
         }
         #endregion
         
+        /// <summary>
+        /// Causes the game to exit.
+        /// </summary>
         void Exit();
     }
 }

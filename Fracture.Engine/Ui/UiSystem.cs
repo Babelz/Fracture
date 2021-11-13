@@ -143,10 +143,10 @@ namespace Fracture.Engine.Ui
                 Delete(uis[0]);
         }
         
-        public override void Update(IGameEngineTime time)
+        public override void Update()
         {
             for (var i = 0; i < uis.Count; i++)
-                uis[i].Update(time);
+                uis[i].Update(Engine.Time);
         }
 
         IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator()

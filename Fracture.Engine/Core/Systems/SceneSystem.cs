@@ -213,7 +213,7 @@ namespace Fracture.Engine.Core.Systems
             throw new InvalidOperationException("no scene matches predicate");
         }
 
-        public override void Update(IGameEngineTime time)
-            => Current?.Update(time);
+        public override void Update()
+            => Current?.Update(Engine.Time);
     }
 }

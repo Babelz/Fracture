@@ -65,7 +65,7 @@ namespace Fracture.Engine.Events
       public void Clear()
          => queues.Clear();
       
-      public override void Update(IGameEngineTime time)
+      public override void Update()
       {
          foreach (var queue in queues)
             queue.Dispatch();

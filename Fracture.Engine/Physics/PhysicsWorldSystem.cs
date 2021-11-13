@@ -550,7 +550,7 @@ namespace Fracture.Engine.Physics
         public IEnumerable<int> ContactsOf(int id)
             => contactListLookup.TryGetValue(id, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
 
-        public override void Update(IGameEngineTime time)
+        public override void Update()
         {
             if (tree == null)
                 return;

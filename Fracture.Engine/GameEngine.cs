@@ -115,7 +115,7 @@ namespace Fracture.Engine
             time.Total   = gameTime.TotalGameTime;
             
             foreach (var system in systems.All<IActiveGameEngineSystem>().OrderBy(s => s.Priority))
-                system.Update(time);
+                system.Update();
         }
 
         #region Sealed members

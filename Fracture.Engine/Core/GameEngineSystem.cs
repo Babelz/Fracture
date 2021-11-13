@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net;
+using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Engine.Core
 {
@@ -9,12 +10,12 @@ namespace Fracture.Engine.Core
     public interface IGameEngineSystem
     {
         /// <summary>
-        /// Allows the system to do initialization.
+        /// Allows the system to do initialization. This is called for each system before the engine start to run the game loop.
         /// </summary>
         void Initialize();
 
         /// <summary>
-        /// Allows the system do deinitialization.
+        /// Allows the system do deinitialization. This is called for each system before the game loop exists.
         /// </summary>
         void Deinitialize();
     }
@@ -33,9 +34,9 @@ namespace Fracture.Engine.Core
         #endregion
         
         /// <summary>
-        /// Allows the system to do updates.
+        /// Allows the system to do updates. This is called for each system on every frame.
         /// </summary>
-        void Update(IGameEngineTime time);
+        void Update();
     }
     
     /// <summary>
@@ -82,7 +83,7 @@ namespace Fracture.Engine.Core
         /// Creates new instance of <see cref="GameEngineSystem"/>. Use
         /// constructors to setup any configuration for the system. Use the
         /// initialize method to do any initialization for your system. Setup
-        /// system dependencies using the constructor.
+        /// system dependencies using the constructor by decorating it with <see cref="BindingConstructorAttribute"/>.
         /// </summary>
         protected GameEngineSystem(IGameEngine engine)
         {
@@ -141,7 +142,7 @@ namespace Fracture.Engine.Core
             Priority = priority;
         }
         
-        public abstract void Update(IGameEngineTime time);
+        public abstract void Update();
     }
     
     /// <summary>

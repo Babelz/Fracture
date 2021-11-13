@@ -41,8 +41,8 @@ namespace Fracture.Engine.Input
             manager = new KeyboardInputManager(Device);
         }
 
-        public override void Update(IGameEngineTime time)
-            => manager.Update(time);
+        public override void Update()
+            => manager.Update(Engine.Time);
         
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params Keys[] combination)
             => manager.Bind(name, callback, state, combination);

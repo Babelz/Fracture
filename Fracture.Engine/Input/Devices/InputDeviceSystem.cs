@@ -55,10 +55,10 @@ namespace Fracture.Engine.Input.Devices
                 Register(device);
         }
         
-        public override void Update(IGameEngineTime time)
+        public override void Update()
         {
             foreach (var device in devices)
-                device.Poll(time);
+                device.Poll(Engine.Time);
         }
 
         public void Register(IInputDevice device)

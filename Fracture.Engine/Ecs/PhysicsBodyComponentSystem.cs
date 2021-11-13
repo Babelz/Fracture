@@ -529,7 +529,7 @@ namespace Fracture.Engine.Ecs
          return GetQueryResults(link);
       }
 
-      public void Update(IGameEngineTime time)
+      public void Update()
       {
          if (dirty.Count == 0) return;
          

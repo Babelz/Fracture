@@ -998,7 +998,7 @@ namespace Fracture.Engine.Graphics
       public IGraphicsFragment FragmentAtIndex(int index) 
          => fragments.AtLocation(index);
 
-      public void Update(IGameEngineTime time)
+      public void Update()
       {
          // Clear graphics device default back buffer.
          manager.GraphicsDevice.SetRenderTarget(null);
@@ -1010,7 +1010,7 @@ namespace Fracture.Engine.Graphics
          
          // Execute all phases.
          foreach (var phase in phases.Where(p => !p.Disabled))
-            phase.Execute(time);
+            phase.Execute(Engine.Time);
          
          // Present all results.
          foreach (var fragment in fragments.Values)

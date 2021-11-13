@@ -40,8 +40,8 @@ namespace Fracture.Engine.Input
             manager = new MouseInputManager(Device);
         }
 
-        public override void Update(IGameEngineTime time)
-            => manager.Update(time);
+        public override void Update()
+            => manager.Update(Engine.Time);
         
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton[] combination)
             => manager.Bind(name, callback, state, combination);
