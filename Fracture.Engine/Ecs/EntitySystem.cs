@@ -172,11 +172,11 @@ namespace Fracture.Engine.Ecs
       private readonly LinearGrowthArray<Entity> entities;
 
       // Entity events. 
-      private IEventQueue<int, EntityEventHandler> deletedEvents;
-      private IEventQueue<int, EntityPairEventHandler> unpairedFromChildEvents;
-      private IEventQueue<int, EntityPairEventHandler> unpairedFromParentEvents;
-      private IEventQueue<int, EntityPairEventHandler> madeParentOfEvents;
-      private IEventQueue<int, EntityPairEventHandler> madeChildOfEvents;
+      private readonly IEventQueue<int, EntityEventHandler> deletedEvents;
+      private readonly IEventQueue<int, EntityPairEventHandler> unpairedFromChildEvents;
+      private readonly IEventQueue<int, EntityPairEventHandler> unpairedFromParentEvents;
+      private readonly IEventQueue<int, EntityPairEventHandler> madeParentOfEvents;
+      private readonly IEventQueue<int, EntityPairEventHandler> madeChildOfEvents;
       #endregion
 
       #region Properties
@@ -196,10 +196,19 @@ namespace Fracture.Engine.Ecs
          => madeChildOfEvents;
       #endregion
 
-      public EntitySystem()
+      public EntitySystem(IGameEngine engine, IEventQueueSystem events)
+         : base(engine)
       {
          systemId = IdCounter++;
          
+         deletedEvents = events.CreateShared<int, EntityEventHandler>(EventQueueUsageHint.Lazy);
+         
+         unpairedFromChildEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+         unpairedFromParentEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+         
+         madeParentOfEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+         madeChildOfEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+
          // Create entity data. 
          var idc = 0;
          
@@ -391,22 +400,6 @@ namespace Fracture.Engine.Ecs
       {
          foreach (var id in aliveEntityIds)
             Delete(id);
-      }
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-
-         // Create event queues.
-         var events = Engine.Systems.First<IEventQueueSystem>();
-         
-         deletedEvents = events.CreateShared<int, EntityEventHandler>(EventQueueUsageHint.Lazy);
-         
-         unpairedFromChildEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
-         unpairedFromParentEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
-         
-         madeParentOfEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
-         madeChildOfEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
       }
 
       public IEnumerator<int> GetEnumerator()

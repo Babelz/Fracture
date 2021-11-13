@@ -83,8 +83,16 @@ namespace Fracture.Engine.Ui
         public int Count => uis.Count;
         #endregion
 
-        public UiSystem(int priority)
-            : base(priority) => uis = new List<Ui>();
+        public UiSystem(IGameEngine engine, IInputDeviceSystem devices, int priority)
+            : base(engine, priority)
+        {
+            this.devices = devices;
+            
+            graphics = Engine.Services.First<GraphicsDevice>();
+            content  = Engine.Services.First<ContentManager>();
+            
+            uis = new List<Ui>();
+        }
 
         public override void Deinitialize()
         {
@@ -133,16 +141,6 @@ namespace Fracture.Engine.Ui
                 Delete(uis[0]);
         }
         
-        public override void Initialize(IGameEngine engine)
-        {    
-            base.Initialize(engine);
-
-            devices = Engine.Systems.First<IInputDeviceSystem>();
-            
-            graphics = Engine.Services.First<GraphicsDevice>();
-            content  = Engine.Services.First<ContentManager>();
-        }
-
         public override void Update(IGameEngineTime time)
         {
             for (var i = 0; i < uis.Count; i++)

@@ -17,7 +17,7 @@ namespace Fracture.Engine.Input
     public sealed class MouseInputSystem : ActiveGameEngineSystem, IMouseInputSystem
     {
         #region Fields
-        private MouseInputManager manager;
+        private readonly MouseInputManager manager;
         #endregion
 
         #region Properties
@@ -28,18 +28,11 @@ namespace Fracture.Engine.Input
         }
         #endregion
 
-        public MouseInputSystem(int priority) 
-            : base(priority)
+        public MouseInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority) 
+            : base(engine, priority)
         {
-        }
-
-        public override void Initialize(IGameEngine engine)
-        {
-            base.Initialize(engine);
-
             // Get mouse device.
-            Device = Engine.Systems.First<IInputDeviceSystem>().First(d => d is IMouseDevice)
-                as IMouseDevice;
+            Device = input.First(d => d is IMouseDevice) as IMouseDevice;
 
             // Initialize manager.
             manager = new MouseInputManager(Device);

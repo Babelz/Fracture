@@ -946,7 +946,7 @@ namespace Fracture.Engine.Graphics
       
       private readonly List<IGraphicsPipelinePhase> phases;
       
-      private GraphicsDeviceManager manager;
+      private readonly GraphicsDeviceManager manager;
       #endregion
       
       #region Properties
@@ -956,8 +956,11 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
       
-      public GraphicsPipelineSystem(int priority)
+      public GraphicsPipelineSystem(IGameEngine engine, int priority)
+         : base(engine)
       {
+         manager = Engine.Services.First<GraphicsDeviceManager>();
+         
          Priority = priority;
          
          // Initialize system.
@@ -992,13 +995,6 @@ namespace Fracture.Engine.Graphics
       
       public IGraphicsFragment FragmentAtIndex(int index) 
          => fragments.AtLocation(index);
-
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-         
-         manager = Engine.Services.First<GraphicsDeviceManager>();
-      }
 
       public void Update(IGameEngineTime time)
       {

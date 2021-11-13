@@ -18,7 +18,7 @@ namespace Fracture.Engine.Input
     public sealed class KeyboardInputSystem : ActiveGameEngineSystem, IKeyboardInputSystem
     {
         #region Fields
-        private KeyboardInputManager manager;
+        private readonly KeyboardInputManager manager;
         #endregion
 
         #region Properties
@@ -29,18 +29,11 @@ namespace Fracture.Engine.Input
         }
         #endregion
 
-        public KeyboardInputSystem(int priority)
-            : base(priority)
+        public KeyboardInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority)
+            : base(engine, priority)
         {
-        }
-
-        public override void Initialize(IGameEngine engine)
-        {
-            base.Initialize(engine);
-            
             // Get mouse device.
-            Device = Engine.Systems.First<IInputDeviceSystem>().First(d => d is IKeyboardDevice)
-                as IKeyboardDevice;
+            Device = input.First(d => d is IKeyboardDevice) as IKeyboardDevice;
 
             // Initialize manager.
             manager = new KeyboardInputManager(Device);

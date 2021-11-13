@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using Fracture.Common.Collections;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
@@ -69,9 +70,9 @@ namespace Fracture.Engine.Ecs
       
       private readonly List<int> aliveComponents;
       
-      private IEventQueue<int, ComponentEventHandler> deletedEvents;
+      private readonly IEventQueue<int, ComponentEventHandler> deletedEvents;
       
-      private IEntitySystem entities;
+      private readonly IEntitySystem entities;
       #endregion
 
       #region Properties
@@ -81,8 +82,13 @@ namespace Fracture.Engine.Ecs
          => deletedEvents;
       #endregion
 
-      protected ComponentSystem() 
+      protected ComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events)
+         : base(engine)
       {
+         this.entities = entities ?? throw new ArgumentNullException(nameof(entities));
+         
+         deletedEvents = events.CreateShared<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
+         
          // Create basic component data.
          var idc = 0;
          
@@ -175,18 +181,6 @@ namespace Fracture.Engine.Ecs
       public abstract int FirstFor(int entityId);
       public abstract int AtIndex(int entityId, int index);
       public abstract IEnumerable<int> IndicesOf(int entityId);
-      
-      public override void Initialize(IGameEngine engine)
-      {
-         base.Initialize(engine);
-
-         // Locate systems.
-         entities = Engine.Systems.First<IEntitySystem>();
-         
-         // Create event queues.
-         deletedEvents = Engine.Systems.First<IEventQueueSystem>()
-            .CreateShared<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
-      }
       
       public virtual void Clear()
       {

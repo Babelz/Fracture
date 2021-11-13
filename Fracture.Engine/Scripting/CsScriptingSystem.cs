@@ -54,12 +54,14 @@ namespace Fracture.Engine.Scripting
         protected ICsScriptRepository<T> Scripts
         {
             get;
-            private set;
         }
         #endregion
 
-        public CsScriptingSystem()
-        {
+        public CsScriptingSystem(IGameEngine engine)
+            : base(engine)
+        {    
+            Scripts = Engine.Services.First<ICsScriptRepositoryFactory>().Create<T>(Engine);
+
             mappings = new Dictionary<string, List<T>>();
         }
 
@@ -104,12 +106,5 @@ namespace Fracture.Engine.Scripting
 
         public bool TryLoad(string name, out T script)
             => Scripts.TryLoad(name, out script);
-
-        public override void Initialize(IGameEngine engine)
-        {
-            base.Initialize(engine);
-            
-            Scripts = Engine.Services.First<ICsScriptRepositoryFactory>().Create<T>(Engine);
-        }
     }
 }

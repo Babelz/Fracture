@@ -36,6 +36,10 @@ namespace Fracture.Engine
             }
         }
         #endregion
+
+        #region Events
+        public event EventHandler Exiting;
+        #endregion
         
         #region Fields
         private readonly GameEngineTime time;
@@ -50,14 +54,6 @@ namespace Fracture.Engine
 
         public new IDependencyLocator Services
             => services;
-
-        public IDependencyLocator Systems
-            => systems;
-        
-        protected GraphicsDeviceManager GraphicsDeviceManager
-        {
-            get;
-        }
         #endregion
 
         protected GameEngine()
@@ -71,7 +67,7 @@ namespace Fracture.Engine
             systems = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.Strict);
             
             // Mono game specific initialization.
-            services.Bind(GraphicsDeviceManager = new GraphicsDeviceManager(this)
+            services.Bind(new GraphicsDeviceManager(this)
             {
                 GraphicsProfile = GraphicsProfile.HiDef
             });
@@ -98,11 +94,13 @@ namespace Fracture.Engine
             BindSystems(systems);
             
             foreach (var system in systems.All<IGameEngineSystem>())
-                system.Initialize(this);
+                system.Initialize();
         }
 
         protected override void OnExiting(object sender, EventArgs args)
         {
+            Exiting?.Invoke(this, EventArgs.Empty);
+            
             base.OnExiting(sender, args);
             
             foreach (var system in systems.All<IGameEngineSystem>())

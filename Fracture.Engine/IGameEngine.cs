@@ -1,4 +1,5 @@
-﻿using Fracture.Common.Di;
+﻿using System;
+using Fracture.Common.Di;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine
@@ -9,6 +10,10 @@ namespace Fracture.Engine
     /// </summary>
     public interface IGameEngine
     {
+        #region Events
+        event EventHandler Exiting;
+        #endregion
+        
         #region Properties
         /// <summary>
         /// Gets the time of the engine.
@@ -19,20 +24,14 @@ namespace Fracture.Engine
         }
         
         /// <summary>
-        /// Gets the service locator for getting services.
+        /// Gets service locator for getting non-system.
         /// </summary>
         IDependencyLocator Services
         {
             get;
         }
-        
-        /// <summary>
-        /// Gets system locator for getting dependencies.
-        /// </summary>
-        IDependencyLocator Systems
-        {
-            get;
-        }
         #endregion
+        
+        void Exit();
     }
 }
