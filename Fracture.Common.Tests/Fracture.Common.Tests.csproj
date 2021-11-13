@@ -64,6 +64,7 @@
         <Compile Include="Di\KernelTests.cs" />
         <Compile Include="Di\TestTypes\BaseCtorPropMethodFooBar.cs" />
         <Compile Include="Di\TestTypes\BaseCtorPropMethodFooBarImpl.cs" />
+        <Compile Include="Di\TestTypes\BindingValueTestTypes.cs" />
         <Compile Include="Di\TestTypes\CtorPropMethodFooBar.cs" />
         <Compile Include="Di\TestTypes\CtroFooBar.cs" />
         <Compile Include="Di\TestTypes\Dep0.cs" />

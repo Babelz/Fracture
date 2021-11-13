@@ -23,6 +23,57 @@ namespace Fracture.Common.Tests.Di
         }
         
         [Fact]
+        public void Bind_Instance_With_Binding_Values_Using_Binding_Ctor_Test()
+        {
+            var kernel = new Kernel();
+            
+            kernel.Bind<Dep1>();
+            
+            var dep0 = new Dep0();
+            
+            kernel.Bind<BindingValueCtorTestClass>(BindingValue.Const("a", dep0));
+            
+            var result = kernel.First<BindingValueCtorTestClass>();
+            
+            Assert.Same(dep0, result.A);
+            Assert.NotNull(result.B);
+        }
+
+        [Fact]
+        public void Bind_Instance_With_Binding_Values_Using_Binding_Property_Test()
+        {
+            var kernel = new Kernel();
+            
+            kernel.Bind<Dep1>();
+            
+            var dep0 = new Dep0();
+            
+            kernel.Bind<BindingValuePropertyTestClass>(BindingValue.Const("A", dep0));
+            
+            var result = kernel.First<BindingValuePropertyTestClass>();
+            
+            Assert.Same(dep0, result.A);
+            Assert.NotNull(result.B);
+        }
+
+        [Fact]
+        public void Bind_Instance_With_Binding_Values_Using_Binding_Method_Test()
+        {
+            var kernel = new Kernel();
+            
+            kernel.Bind<Dep1>();
+            
+            var dep0 = new Dep0();
+            
+            kernel.Bind<BindingValueMethodTestClass>(BindingValue.Const("a", dep0));
+            
+            var result = kernel.First<BindingValueMethodTestClass>();
+            
+            Assert.Same(dep0, result.A);
+            Assert.NotNull(result.B);
+        }
+
+        [Fact]
         public void Bind_Instance_Test()
         {
             var kernel = new Kernel();

@@ -247,6 +247,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             }
         }
         
+        /// <summary>
+        /// Creates new new instance of <see cref="DynamicDeserializeDelegateBuilder"/> that internally generates the deserialization logic to use struct
+        /// initialization or calls a constructor. 
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DynamicDeserializeDelegateBuilder CreateWithDirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
             => new DynamicDeserializeDelegateBuilder(
@@ -263,6 +267,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 serializationType
             );
         
+        /// <summary>
+        /// Creates new instance of <see cref="DynamicDeserializeDelegateBuilder"/> that internally generates the deserialization logic to use call back
+        /// for activating the object that is deserialized. This is useful in cases where the object reference already exists and object construction can be
+        /// avoided. Examples case is where the objects are being pooled. 
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static DynamicDeserializeDelegateBuilder CreateWithIndirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
             => new DynamicDeserializeDelegateBuilder(

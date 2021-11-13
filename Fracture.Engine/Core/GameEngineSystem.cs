@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 
 namespace Fracture.Engine.Core
 {
@@ -10,7 +11,7 @@ namespace Fracture.Engine.Core
         /// <summary>
         /// Allows the system to do initialization.
         /// </summary>
-        void Initialize(IGameEngine engine);
+        void Initialize();
 
         /// <summary>
         /// Allows the system do deinitialization.
@@ -74,60 +75,27 @@ namespace Fracture.Engine.Core
         protected IGameEngine Engine
         {
             get;
-            private set;
         }
         #endregion
 
         /// <summary>
         /// Creates new instance of <see cref="GameEngineSystem"/>. Use
         /// constructors to setup any configuration for the system. Use the
-        /// initialize method to do any initialization for your system. Systems
-        /// can setup their dependencies in three ways:
-        ///     1) using binding properties, binding happens before calling initialize
-        ///     2) using binding method, calling this happens before calling initialize
-        ///     3) using the initialize method and manually locating all dependencies
-        ///
-        /// Option 3 should be preferred when:
-        ///     - system locates services
-        ///     - system locates only 1 dependency
-        ///     - system needs to do some special initialization when it locates the services
-        ///     - the system does not need the dependency after initialization step
-        ///
-        /// Options 3 should be preferred because of:
-        ///     - it makes locating dependencies easy for the developer
-        ///     - it is clear how dependencies are located
-        ///     - it makes clear when dependencies are located
-        ///     - it just fucking works you monkey
-        /// 
-        /// 1 and 2 should be used when no service location is required or option 3 rules are not violated.
+        /// initialize method to do any initialization for your system. Setup
+        /// system dependencies using the constructor.
         /// </summary>
-        protected GameEngineSystem()
+        protected GameEngineSystem(IGameEngine engine)
         {
+            Engine = engine ?? throw new ArgumentNullException(nameof(engine));
         }
 
         public virtual void Deinitialize()
         {
         }
         
-        // To bind dependencies using binding method, for example:
-        //
-        // [BindingMethod]
-        // void Bind(ISystemA a, ISystemB b, ...) 
-        //
-        // Doing this you need to catch dependencies using.
-        
-        // To bind dependencies using binding properties, for example:
-        //
-        // [BindingProperty]
-        // public ISystemA A { get; private set; }
-        // OR
-        // private ISystem A { get; set; }
-        //
-        // Binder will bind dependency here, properties can be public or private. 
-        // Setter can be public or private.
-        
-        public virtual void Initialize(IGameEngine engine)
-            => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
+        public virtual void Initialize()
+        {
+        }
     }
  
     /// <summary>
@@ -167,7 +135,8 @@ namespace Fracture.Engine.Core
         }
         #endregion
         
-        protected ActiveGameEngineSystem(int priority) 
+        protected ActiveGameEngineSystem(IGameEngine engine, int priority)
+            : base(engine)
         {
             Priority = priority;
         }
@@ -180,7 +149,8 @@ namespace Fracture.Engine.Core
     /// </summary>
     public abstract class ReactiveGameEngineSystem<T> : GameEngineSystem, IReactiveGameEngineSystem<T>
     {
-        protected ReactiveGameEngineSystem()
+        protected ReactiveGameEngineSystem(IGameEngine engine)
+            : base(engine)
         {
         }
         

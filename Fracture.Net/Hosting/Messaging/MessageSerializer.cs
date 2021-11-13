@@ -1,7 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Net.Messages;
 using Fracture.Net.Serialization;
+using Fracture.Net.Serialization.Generation;
 using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Net.Hosting.Messaging
@@ -31,6 +36,37 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         int GetSizeFromMessage(IMessage message);
     }
+    
+    /// <summary>
+    /// Static utility class that provides default implementation for doing message pooling.
+    /// </summary>
+    public static class MessagePool
+    {
+        #region Static fields
+        private static readonly Dictionary<Type, object> Pools; 
+        #endregion
+
+        static MessagePool()
+            => Pools = new Dictionary<Type, object>();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IMessage Take<T>() where T : class, IMessage, new()
+        {
+            var type = typeof(T);
+            
+            if (StructSerializer.SupportsType(type))
+                throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
+            
+            if (!Pools.ContainsKey(type))
+                Pools.Add(type, new CleanPool<T>(new Pool<T>(new LinearStorageObject<T>(new LinearGrowthArray<T>(8)), 0)));
+            
+            return ((IPool<T>)Pools[type]).Take();
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return<T>(T message) where T : class, IMessage, new()
+            => ((IPool<T>)Pools[typeof(T)]).Return(message);
+    }
 
     /// <summary>
     /// Default implementation of <see cref="IMessageSerializer"/> and default message serializer for Fracture. Uses serialization module found in Fracture for
@@ -41,18 +77,18 @@ namespace Fracture.Net.Hosting.Messaging
     public class MessageSerializer : IMessageSerializer
     {
         #region Fields
-        private readonly IArrayPool<byte> pool;
+        private readonly IArrayPool<byte> buffers;
         #endregion
         
-        public MessageSerializer(IArrayPool<byte> pool)
-            => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
+        public MessageSerializer()
+            => this.buffers = buffers ?? throw new ArgumentNullException(nameof(buffers));
 
         public byte[] Serialize(IMessage message)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
             
-            var buffer = pool.Take(GetSizeFromMessage(message));
+            var buffer = buffers.Take(GetSizeFromMessage(message));
             
             StructSerializer.Serialize(message, buffer, 0);
             
@@ -64,8 +100,6 @@ namespace Fracture.Net.Hosting.Messaging
             if (buffer == null)
                 throw new ArgumentNullException(nameof(buffer));
             
-            // TODO: implement pooling support for messages when using Fracture serializer.
-            // TODO: this can be done by passing activator function or object for the serializer to decorate.
             return (IMessage)StructSerializer.Deserialize(buffer, offset);
         }
 

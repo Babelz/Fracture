@@ -34,7 +34,7 @@ namespace Fracture.Net.Hosting
         #endregion
         
         #region Properties
-        protected IApplicationScriptingHost Application
+        protected IApplicationSctiptingHost Application
         {
             get;
         }
@@ -45,7 +45,7 @@ namespace Fracture.Net.Hosting
         }
         #endregion
 
-        public Script(IApplicationScriptingHost application, IScriptActivationArgs args = null)
+        public Script(IApplicationSctiptingHost application, IScriptActivationArgs args = null)
         {
             Application = application ?? throw new ArgumentNullException(nameof(application));
             Args        = args;
@@ -64,7 +64,7 @@ namespace Fracture.Net.Hosting
     
     public abstract class CommandScript : Script, ICommandScript
     {
-        protected CommandScript(IApplicationScriptingHost application, IScriptActivationArgs args = null) 
+        protected CommandScript(IApplicationSctiptingHost application, IScriptActivationArgs args = null) 
             : base(application, args)
         {
         }
@@ -77,7 +77,7 @@ namespace Fracture.Net.Hosting
     
     public abstract class ActiveScript : Script, IActiveScript
     {
-        protected ActiveScript(IApplicationScriptingHost application, IScriptActivationArgs args = null) 
+        protected ActiveScript(IApplicationSctiptingHost application, IScriptActivationArgs args = null) 
             : base(application, args)
         {
         }

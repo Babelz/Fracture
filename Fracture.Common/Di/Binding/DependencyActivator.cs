@@ -90,12 +90,14 @@ namespace Fracture.Common.Di.Binding
     public sealed class DependencyBindingConstructorActivator : IDependencyActivator
     {
         #region Fields
-        private readonly IDependencyLocator locator;
+        private readonly DependencyBindingValueLocator locator;
         #endregion
 
-        public DependencyBindingConstructorActivator(IDependencyLocator locator)
-            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
-
+        public DependencyBindingConstructorActivator(DependencyBindingValueLocator locator)
+        {
+            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingConstructor(Type type)
         {
@@ -109,27 +111,15 @@ namespace Fracture.Common.Di.Binding
         {
             instance = null;
             
-            foreach (var constructor in type.GetConstructors())
-            {
-                // Not a binding constructor, continue.
-                if (constructor.GetCustomAttribute<BindingConstructorAttribute>() == null)
-                    continue;
-                
-                // Check that all arguments can be located.
-                var parameters = constructor.GetParameters();
-                
-                if (!parameters.All(p => locator.Exists(p.ParameterType)))
-                    continue;
-                
-                // Get all arguments and create the instance.
-                var arguments = parameters.Select(p => locator.First(p.ParameterType))
-                                          .ToArray();
-                
-                instance = constructor.Invoke(arguments);
-
-                break;
-            }
+            // Check that all arguments can be located.
+            var constructor = DependencyTypeMapper.GetBindingConstructor(type);
             
+            if (!locator.BindingsExist(constructor))
+                throw new DependencyBinderException(type, "unable to bind to constructor, missing binding values");
+            
+            // Get all arguments and create the instance.
+            instance = constructor.Invoke(locator.GetConstructorBindingValues(constructor));
+
             if (instance == null)
                 throw new DependencyBinderException(type, "could not activate dependency");
         }

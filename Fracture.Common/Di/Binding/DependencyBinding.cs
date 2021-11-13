@@ -29,11 +29,13 @@ namespace Fracture.Common.Di.Binding
     public sealed class DependencyMethodBinding : IDependencyBinding
     {
         #region Fields
-        private readonly IDependencyLocator locator;
+        private readonly DependencyBindingValueLocator locator;
         #endregion
 
-        public DependencyMethodBinding(IDependencyLocator locator)
-            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        public DependencyMethodBinding(DependencyBindingValueLocator locator)
+        {
+            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingMethods(Type type)
@@ -44,32 +46,15 @@ namespace Fracture.Common.Di.Binding
                                                     $"annotated with {nameof(BindingMethodAttribute)}");
         }
         
-        private bool CanBindToMethod(MethodInfo method)
-            => method.GetParameters().All(t => locator.Exists(t.ParameterType));
-        
-        private void BindToMethod(object instance, MethodInfo method)
-        {
-            var parameters = method.GetParameters();
-            var arguments  = new object[parameters.Length];
-
-            for (var i = 0; i < parameters.Length; i++)
-                arguments[i] = locator.First(parameters[i].ParameterType);
-
-            method.Invoke(instance, arguments);
-        }
-        
         private void InternalBind(object instance)
         {
-            var methods = instance.GetType()
-                                  .GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                                  .Where(c => c.GetCustomAttribute<BindingMethodAttribute>() != null)
-                                  .ToArray();
+            var methods = DependencyTypeMapper.GetBindingMethods(instance.GetType()).ToArray();
 
-            if (!methods.All(CanBindToMethod))
-                throw new DependencyBinderException(instance.GetType(), "unable to bind to method");
-            
-            for (var i = 0; i < methods.Length; i++)
-                BindToMethod(instance, methods[i]);
+            if (!methods.All(locator.BindingsExist))
+                throw new DependencyBinderException(instance.GetType(), "unable to bind to method, missing binding values");
+
+            foreach (var method in methods)
+                method.Invoke(instance, locator.GetMethodBindingValues(method));
         }
         
         public void Bind(object instance)
@@ -102,11 +87,13 @@ namespace Fracture.Common.Di.Binding
     public sealed class DependencyPropertyBinding : IDependencyBinding
     {
         #region Fields
-        private readonly IDependencyLocator locator;
+        private readonly DependencyBindingValueLocator locator;
         #endregion
 
-        public DependencyPropertyBinding(IDependencyLocator locator)
-            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        public DependencyPropertyBinding(DependencyBindingValueLocator locator)
+        {
+            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingProperties(Type type)
@@ -117,30 +104,29 @@ namespace Fracture.Common.Di.Binding
                                                     $"annotated with {nameof(BindingPropertyAttribute)}");
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ValidateBindingProperties(Type type)
+        {
+            if (DependencyTypeMapper.GetBindingProperties(type).Any(p => !p.CanWrite))
+                throw new InvalidOperationException($"one or more binding property on type {type.Name} is read only");
+        }
+
         private void InternalBind(object instance)
         {
-            var properties = instance.GetType()
-                                     .GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                                     .Where(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null)
-                                     .ToArray();
+            var properties = DependencyTypeMapper.GetBindingProperties(instance.GetType()).ToArray();
 
-            var arguments = new object[properties.Length];
-
-            for (var i = 0; i < properties.Length; i++)
-            {
-                if (!locator.Exists(properties[i].PropertyType))
-                    throw new DependencyBinderException(instance.GetType(), "binding does not exist");
-
-                arguments[i] = locator.First(properties[i].PropertyType);
-            }
-
-            for (var i = 0; i < properties.Length; i++)
-                properties[i].SetValue(instance, arguments[i]);
+            if (!properties.All(locator.BindingExist)) 
+                throw new DependencyBinderException(instance.GetType(), "unable to bind to property, missing binding value");
+            
+            foreach (var property in properties)
+                property.SetValue(instance, locator.GetPropertyBindingValue(property));
         }
         
         public void Bind(object instance)
         {    
             AssertTypeHasBindingProperties(instance.GetType());
+            
+            ValidateBindingProperties(instance.GetType());
             
             InternalBind(instance);
         }
@@ -148,6 +134,8 @@ namespace Fracture.Common.Di.Binding
         public bool TryBind(object instance)
         {
             AssertTypeHasBindingProperties(instance.GetType());
+            
+            ValidateBindingProperties(instance.GetType());
             
             try
             {

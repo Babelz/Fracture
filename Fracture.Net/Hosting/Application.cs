@@ -1,5 +1,7 @@
 using System;
+using System.Net;
 using Fracture.Net.Hosting.Messaging;
+using Fracture.Net.Hosting.Services;
 
 namespace Fracture.Net.Hosting
 {
@@ -40,16 +42,16 @@ namespace Fracture.Net.Hosting
         void Shutdown();
     }
     
-    public interface IApplicationServiceHost : IApplicationHost
-    {
-        
-    }
-    
     public interface IApplicationScriptingHost : IApplicationHost
     {
-        
+        #region Properties
+        public IScriptHost Scripts
+        {
+            get;
+        }
+        #endregion
     }
-    
+
     public interface IApplication : IApplicationHost
     {
         void Start();

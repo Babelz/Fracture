@@ -61,6 +61,7 @@
         <Compile Include="Di\Binding\DependencyBinding.cs" />
         <Compile Include="Di\Binding\DependencyBindingOptions.cs" />
         <Compile Include="Di\Binding\DependencyBindingResolver.cs" />
+        <Compile Include="Di\Binding\DependencyBindingLocator.cs" />
         <Compile Include="Di\Binding\DependencyTypeMapper.cs" />
         <Compile Include="Di\Dependency.cs" />
         <Compile Include="Di\Exceptions.cs" />
