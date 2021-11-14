@@ -22,9 +22,9 @@ namespace Fracture.Net.Hosting.Messaging
     public delegate void NotificationHandlerDelegate(INotification notification);
     
     /// <summary>
-    /// Interface for implementing notification handlers.
+    /// Interface that provides full notification center implementation by functioning as queue and handler.
     /// </summary>
-    public interface INotificationHandler
+    public interface INotificationCenter : INotificationQueue
     {
         /// <summary>
         /// Handles all queued notifications and invokes given handler callback for them. The queue will be cleared after the handle method returns.
@@ -33,9 +33,9 @@ namespace Fracture.Net.Hosting.Messaging
     }
     
     /// <summary>
-    /// Class that provides full notification center implementation by functioning as queue and handler.  
+    /// Default implementation of <see cref="INotificationCenter"/>.  
     /// </summary>
-    public sealed class NotificationCenter : INotificationQueue, INotificationHandler
+    public sealed class NotificationCenter : INotificationCenter
     {
         #region Fields
         private readonly CleanPool<Notification> pool;

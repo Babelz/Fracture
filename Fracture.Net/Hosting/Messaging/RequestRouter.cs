@@ -8,6 +8,7 @@ using Fracture.Common.Memory;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
 using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
+using NLog;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -19,7 +20,7 @@ namespace Fracture.Net.Hosting.Messaging
     /// <summary>
     /// Interface for implementing request routers that provide functionality for registering routes.
     /// </summary>
-    public interface IRequestRouter
+    public interface IRequestRouteConsumer
     {
         /// <summary>
         /// Registers route based on given message match. All requests that contain message that match this matcher will be handled by the given handler.
@@ -30,9 +31,9 @@ namespace Fracture.Net.Hosting.Messaging
     }
     
     /// <summary>
-    /// Interface for implementing request dispatchers that delegate handling of received requests to registered request handlers.
+    /// Interface that provides full request routing implementation by functioning as route consumer and dispatcher.
     /// </summary>
-    public interface IRequestDispatcher
+    public interface IRequestRouter : IRequestRouteConsumer
     {
         /// <summary>
         /// Dispatch given request to any request handler that accepts it. Use the response object to get the results returned by the handler. 
@@ -43,10 +44,14 @@ namespace Fracture.Net.Hosting.Messaging
     }
 
     /// <summary>
-    /// Class that provides full request routing implementation by functioning as route consumer and dispatcher.  
+    /// Default implementation of <see cref="IRequestRouter"/>.  
     /// </summary>
-    public sealed class RequestRouter : IRequestRouter, IRequestDispatcher
+    public sealed class RequestRouter : IRequestRouter
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Private request route class
         /// <summary>
         /// Class representing single request route.
@@ -95,7 +100,11 @@ namespace Fracture.Net.Hosting.Messaging
                 }
                 catch (Exception e)
                 {
-                    response.ServerError(exception: e);
+                    if (ResponseStatus.Empty(response.StatusCode) || !ResponseStatus.IndicatesFailure(response.StatusCode))
+                        response.ServerError(exception: e);
+                    else
+                        Log.Error(e, "exception occurred while handling a request but the handler returned a response that is not empty and does not " +
+                                     "indicate failure", request, response);
                 }
             }
             else 

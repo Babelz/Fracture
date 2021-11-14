@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.ServiceModel.Channels;
 using Fracture.Common;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
+using NLog;
 
 namespace Fracture.Net.Hosting.Scripting
 {
@@ -14,15 +17,22 @@ namespace Fracture.Net.Hosting.Scripting
     
     public interface IScriptManager : IScriptHost
     {
-        void Tick(IApplicationClock clock);
+        void Tick();
     }
     
     public sealed class ScriptManager : IScriptManager
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly IObjectActivator activator;
         
-        private readonly List<ICommandScript> commandScripts;
+        private readonly List<ICommandScript> newCommandScripts;
+        private readonly List<IActiveScript> newActiveScripts;
+        
+        private readonly Queue<ICommandScript> commandScripts;
         private readonly List<IActiveScript> activeScripts;
         
         private readonly List<IActiveScript> unloadedActiveScripts;
@@ -32,45 +42,47 @@ namespace Fracture.Net.Hosting.Scripting
         {
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
             
-            commandScripts        = new List<ICommandScript>();
+            commandScripts        = new Queue<ICommandScript>();
             activeScripts         = new List<IActiveScript>();
             unloadedActiveScripts = new List<IActiveScript>();
+
+            newCommandScripts = new List<ICommandScript>();
+            newActiveScripts  = new List<IActiveScript>();
         }
 
-        #region Event handlers
-        private void Script_OnUnloading(object sender, EventArgs e)
-        {
-            switch (sender)
-            {
-                case ICommandScript ics:
-                    commandScripts.Remove(ics);
-                    break;
-                case IActiveScript ias:
-                    unloadedActiveScripts.Add(ias);
-                    break;
-                default:
-                    throw new InvalidOrUnsupportedException("script type", sender.GetType());
-            }
-        }
-        #endregion
-        
-        private void RunCommandScripts(IApplicationClock clock)
+        private void RunCommandScripts()
         {
             while (commandScripts.Count != 0)
-                commandScripts[0].Invoke(clock);
+            {
+                var script = commandScripts.Dequeue();
+                
+                try
+                {
+                    script.Invoke();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "error occurred while executing command script", script);
+                }
+            }
         }
         
-        private void UpdateActiveScripts(IApplicationClock clock)
+        private void UpdateActiveScripts()
         {
-            for (var i = 0; i < activeScripts.Count; i++)
-                activeScripts[i].Tick(clock);
-            
-            while (unloadedActiveScripts.Count != 0)
+            foreach (var script in activeScripts)
             {
-                activeScripts.Remove(unloadedActiveScripts[0]);
-                
-                unloadedActiveScripts.RemoveAt(0);
+                try
+                {
+                    script.Tick();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "error occurred while executing active script", activeScripts);
+                }
             }
+                
+            unloadedActiveScripts.ForEach(s => activeScripts.Remove(s));
+            unloadedActiveScripts.Clear();
         }
         
         public void Load<T>(IScriptActivationArgs args) where T : IScript
@@ -80,23 +92,32 @@ namespace Fracture.Net.Hosting.Scripting
             switch (script)
             {
                 case ICommandScript ics:
-                    commandScripts.Add(ics);
+                    newCommandScripts.Add(ics);
                     break;
                 case IActiveScript ias:
-                    activeScripts.Add(ias);
+                    newActiveScripts.Add(ias);
+                    
+                    script.Unloading += delegate
+                    {
+                        unloadedActiveScripts.Add(ias);
+                    };
                     break;
                 default:
                     throw new InvalidOrUnsupportedException("script type", typeof(T));
             }
-            
-            script.Unloading += Script_OnUnloading;
         }
 
-        public void Tick(IApplicationClock clock)
+        public void Tick()
         {
-            RunCommandScripts(clock);
+            RunCommandScripts();
             
-            UpdateActiveScripts(clock);
+            UpdateActiveScripts();
+            
+            newCommandScripts.ForEach(commandScripts.Enqueue);
+            newActiveScripts.ForEach(activeScripts.Add);
+            
+            newCommandScripts.Clear();
+            newActiveScripts.Clear();
         }
     }
 }

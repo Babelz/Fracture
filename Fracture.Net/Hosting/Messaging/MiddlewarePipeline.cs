@@ -35,9 +35,9 @@ namespace Fracture.Net.Hosting.Messaging
     }
 
     /// <summary>
-    /// Interface for implementing middleware invokers that handle running the middleware pipeline for middleware requests.
+    /// Interface that provides full middleware pipeline implementation by functioning as middleware consumer and invoker.
     /// </summary>
-    public interface IMiddlewareInvoker<T> where T : IMiddlewareRequestContext
+    public interface IMiddlewarePipeline<T> : IMiddlewareConsumer<T> where T : IMiddlewareRequestContext
     {
         /// <summary>
         /// Invoke middleware for given middleware request.
@@ -48,9 +48,9 @@ namespace Fracture.Net.Hosting.Messaging
     }
 
     /// <summary>
-    /// Class that provides full middleware pipeline implementation by functioning as middleware consumer and invoker.  
+    /// Default implementation of <see cref="IMiddlewarePipeline{T}"/>.  
     /// </summary>
-    public class MiddlewarePipeline<T> : IMiddlewareInvoker<T>, IMiddlewareConsumer<T> where T : IMiddlewareRequestContext 
+    public class MiddlewarePipeline<T> : IMiddlewarePipeline<T> where T : IMiddlewareRequestContext 
     {
         #region Private middleware class
         /// <summary>
@@ -102,7 +102,7 @@ namespace Fracture.Net.Hosting.Messaging
                 
                 // Immediately return if the middleware rejected the request.
                 if (reject)
-                    return false;
+                    return true;
             }
             
             return true;

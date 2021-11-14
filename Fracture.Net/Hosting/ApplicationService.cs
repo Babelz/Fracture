@@ -23,7 +23,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Allows the service to run updates.
         /// </summary>
-        void Tick(IApplicationClock clock);
+        void Tick();
     }
 
     /// <summary>
@@ -56,6 +56,6 @@ namespace Fracture.Net.Hosting
         {
         }
         
-        public abstract void Tick(IApplicationClock clock);
+        public abstract void Tick();
     }
 }

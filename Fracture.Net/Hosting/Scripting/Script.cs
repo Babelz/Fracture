@@ -27,12 +27,12 @@ namespace Fracture.Net.Hosting.Scripting
     
     public interface ICommandScript : IScript
     {
-        void Invoke(IApplicationClock clock);
+        void Invoke();
     }
     
     public interface IActiveScript : IScript
     {
-        void Tick(IApplicationClock clock); 
+        void Tick(); 
     }
     
     public abstract class Script : IScript
@@ -81,7 +81,7 @@ namespace Fracture.Net.Hosting.Scripting
         {
         }
 
-        public virtual void Invoke(IApplicationClock clock)
+        public virtual void Invoke()
         {
             Unload();
         }
@@ -94,6 +94,6 @@ namespace Fracture.Net.Hosting.Scripting
         {
         }
 
-        public abstract void Tick(IApplicationClock clock);
+        public abstract void Tick();
     }
 }

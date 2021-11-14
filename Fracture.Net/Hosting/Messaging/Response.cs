@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
@@ -9,40 +11,70 @@ using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
-    /// <summary>
-    /// Enumeration defining all possible response status codes.
-    /// </summary>
-    public enum ResponseStatusCode : byte
+    public static class ResponseStatus
     {
         /// <summary>
-        /// Request did not return any response. 
+        /// Enumeration defining all possible response status codes.
         /// </summary>
-        Empty = 0,
+        public enum Code : byte
+        {
+            /// <summary>
+            /// Request did not return any response. 
+            /// </summary>
+            Empty = 0,
         
-        /// <summary>
-        /// Request has handled successfully.
-        /// </summary>
-        Ok,
+            /// <summary>
+            /// Request has handled successfully.
+            /// </summary>
+            Ok,
         
-        /// <summary>
-        /// Error occurred inside the handler while handling the message.
-        /// </summary>
-        ServerError,
+            /// <summary>
+            /// Error occurred inside the handler while handling the message.
+            /// </summary>
+            ServerError,
         
-        /// <summary>
-        /// Request received from the peer was badly formatted or invalid.
-        /// </summary>
-        BadRequest,
+            /// <summary>
+            /// Request received from the peer was badly formatted or invalid.
+            /// </summary>
+            BadRequest,
         
-        /// <summary>
-        /// Request received from the peer had no route.
-        /// </summary>
-        NoRoute,
+            /// <summary>
+            /// Request received from the peer had no route.
+            /// </summary>
+            NoRoute,
         
-        /// <summary>
-        /// Peer connection should be reset. 
-        /// </summary>
-        Reset
+            /// <summary>
+            /// Peer connection should be reset. 
+            /// </summary>
+            Reset
+        }
+        
+        #region Static fields
+        private static readonly HashSet<Code> SuccessfulStatusCodes = new HashSet<Code>
+        {
+            Code.Ok,
+            Code.Reset
+        };
+        
+        private static readonly HashSet<Code> UnsuccessfulStatusCodes = new HashSet<Code>
+        {
+            Code.ServerError,
+            Code.BadRequest,
+            Code.NoRoute
+        };
+        #endregion    
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Empty(Code code)
+            => code == Code.Empty;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IndicatesSuccess(Code code)
+            => SuccessfulStatusCodes.Contains(code);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IndicatesFailure(Code code)
+            => UnsuccessfulStatusCodes.Contains(code);
     }
     
     /// <summary>
@@ -54,7 +86,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the status code of this response.
         /// </summary>
-        ResponseStatusCode StatusCode
+        ResponseStatus.Code StatusCode
         {
             get;
         }
@@ -131,22 +163,22 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class Response : IResponse, IClearable
     {
         #region Properties
-        public ResponseStatusCode StatusCode
+        public ResponseStatus.Code StatusCode
         {
             get;
-            set;
+            private set;
         }
         
         public IMessage Message
         {
             get;
-            set;
+            private set;
         }
         
         public Exception Exception
         {
             get;
-            set;
+            private set;
         }
         
         public bool ContainsException => Exception != null;
@@ -160,8 +192,8 @@ namespace Fracture.Net.Hosting.Messaging
         
         private void AssertEmpty()
         {
-            if (StatusCode != ResponseStatusCode.Empty)
-                throw new InvalidOperationException("request is not empty");
+            if (!ResponseStatus.Empty(StatusCode))
+                throw new InvalidOperationException("response is not empty");
         }
         
         public void Ok(IMessage message = null)
@@ -169,7 +201,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertEmpty();
                
             Message    = message;
-            StatusCode = ResponseStatusCode.Ok;
+            StatusCode = ResponseStatus.Code.Ok;
         }
 
         public void ServerError(IMessage message = null, Exception exception = null)
@@ -178,7 +210,7 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message    = message;
             Exception  = exception;
-            StatusCode = ResponseStatusCode.ServerError;
+            StatusCode = ResponseStatus.Code.ServerError;
         }
 
         public void BadRequest(IMessage message = null, Exception exception = null)
@@ -187,7 +219,7 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message    = message;
             Exception  = exception;
-            StatusCode = ResponseStatusCode.BadRequest;
+            StatusCode = ResponseStatus.Code.BadRequest;
         }
         
         public void Reset(IMessage message = null, Exception exception = null)
@@ -196,14 +228,14 @@ namespace Fracture.Net.Hosting.Messaging
 
             Message    = message;
             Exception  = exception;
-            StatusCode = ResponseStatusCode.Reset;
+            StatusCode = ResponseStatus.Code.Reset;
         }
         
         public void NoRoute()
         {
             AssertEmpty();
             
-            StatusCode = ResponseStatusCode.NoRoute;
+            StatusCode = ResponseStatus.Code.NoRoute;
         }
             
         public void Clear()
