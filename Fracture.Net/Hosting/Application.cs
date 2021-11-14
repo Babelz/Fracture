@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using Fracture.Net.Hosting.Messaging;
+using Fracture.Net.Hosting.Scripting;
 using Fracture.Net.Hosting.Services;
 
 namespace Fracture.Net.Hosting
@@ -9,6 +10,7 @@ namespace Fracture.Net.Hosting
     {
         #region Events
         event EventHandler Starting;
+        
         event EventHandler ShuttingDown;
         #endregion
 

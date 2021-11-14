@@ -1,6 +1,6 @@
 using System;
 
-namespace Fracture.Net.Hosting
+namespace Fracture.Net.Hosting.Scripting
 {
     public interface IScriptActivationArgs
     {
@@ -45,13 +45,13 @@ namespace Fracture.Net.Hosting
         }
         #endregion
 
-        public Script(IApplicationScriptingHost application, IScriptActivationArgs args = null)
+        protected Script(IApplicationScriptingHost application, IScriptActivationArgs args = null)
         {
             Application = application ?? throw new ArgumentNullException(nameof(application));
             Args        = args;
         }
-        
-        public virtual void Unload()
+
+        protected virtual void Unload()
         {
             if (unloaded)
                 throw new InvalidOperationException("script is already unloaded");
