@@ -25,7 +25,7 @@ namespace Fracture.Net.Hosting
     
     public interface IApplicationTimer : IApplicationClock
     {
-        void Snap();
+        void Tick();
     }
     
     public sealed class ApplicationTimer : IApplicationTimer
@@ -51,7 +51,7 @@ namespace Fracture.Net.Hosting
         public ApplicationTimer()
             => timer = Stopwatch.StartNew();
         
-        public void Snap()
+        public void Tick()
         {
             total   += timer.Elapsed;
             elapsed = timer.Elapsed;

@@ -12,6 +12,7 @@ using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Hosting.Scripting;
 using Fracture.Net.Hosting.Servers;
 using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
+using Microsoft.Diagnostics.Tracing.Parsers.FrameworkEventSource;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -246,8 +247,12 @@ namespace Fracture.Net.Hosting
 
         #region Event handlers
         private void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
-            => outgoingEvents.Enqueue(e);
-
+        {
+            resources.Buffers.Return(e.Data);
+            
+            outgoingEvents.Enqueue(e);
+        }
+            
         private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
             => incomingEvents.Enqueue(e);
 
@@ -328,21 +333,28 @@ namespace Fracture.Net.Hosting
                     continue;
                 }
                 
-                var request = resources.Requests.Take();
+                var offset = 0;
+                    
+                while (offset < incomingEvent.Length)
+                {
+                    var request = resources.Requests.Take();
 
-                try
-                {
-                    request.Message  = serializer.Deserialize(incomingEvent.Data, 0);
-                    request.Contents = incomingEvent.Data;
-                    request.Peer     = incomingEvent.Peer;
+                    try
+                    {
+                        request.Message  = serializer.Deserialize(incomingEvent.Data, offset);
+                        request.Contents = incomingEvent.Data;
+                        request.Peer     = incomingEvent.Peer;
                     
-                    incomingRequests.Enqueue(request);
-                }
-                catch (Exception e)
-                {
-                    ReleaseRequest(request);
+                        incomingRequests.Enqueue(request);
+                        
+                        offset += serializer.GetSizeFromBuffer(incomingEvent.Data, offset);
+                    }
+                    catch (Exception e)
+                    {
+                        ReleaseRequest(request);
                     
-                    Log.Warn(e, "exception occurred while processing request from peer");
+                        Log.Warn(e, "exception occurred while processing request from peer");
+                    }
                 }
             }
         }
@@ -434,7 +446,7 @@ namespace Fracture.Net.Hosting
         private void UpdateScripts()
             => scripts.Tick();
         
-        private void RunRequestResponseMiddleware()
+        private void RunPeerRequestResponseMiddleware()
         {
             throw new NotImplementedException();
         }
@@ -467,27 +479,22 @@ namespace Fracture.Net.Hosting
                           Queue<Notification> acceptedNotifications, 
                           HashSet<int> leavedPeers)
         {
-            timer.Snap();
+            timer.Tick();
             
             HandleServerEvents(leavedPeers);
             
             DeserializePeerMessages(leavedPeers, incomingRequests);
-            
             RunPeerRequestMiddleware(incomingRequests, acceptedRequests);
-            
             HandlePeerRequests(acceptedRequests, outgoingResponses);
             
             UpdateServices();
-            
             UpdateScripts();
             
-            RunRequestResponseMiddleware();
+            RunPeerRequestResponseMiddleware(outgoingResponses, acceptedResponses);
+            HandleEnqueuedNotifications(outgoingNotifications, acceptedNotifications);
             
-            RunNotificationMiddleware();
-            
-            SendRequestResponses();
-            
-            SendNotifications();
+            SendRequestResponses(acceptedResponses);
+            SendNotifications(acceptedNotifications);
         }
 
         public void Shutdown()
@@ -516,8 +523,6 @@ namespace Fracture.Net.Hosting
 
             var leavedPeers = new HashSet<int>();
             
-            var services = kernel.All<IActiveApplicationService>().ToArray();
-            
             while (running)
                 Tick(incomingRequests,
                      acceptedRequests,
@@ -525,8 +530,7 @@ namespace Fracture.Net.Hosting
                      acceptedResponses,
                      outgoingNotifications,
                      acceptedNotifications,
-                     leavedPeers,
-                     services);
+                     leavedPeers);
             
             Deinitialize();
         }
