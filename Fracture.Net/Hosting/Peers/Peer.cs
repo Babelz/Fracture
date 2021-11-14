@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using Fracture.Common.Events;
+using Fracture.Common.Util;
 
 namespace Fracture.Net.Hosting.Peers
 {
@@ -118,6 +119,15 @@ namespace Fracture.Net.Hosting.Peers
             Id       = id;
             EndPoint = endPoint;
         }
+
+        public override string ToString()
+            => $"{Id}, {EndPoint.Address}:{EndPoint.Port}";
+
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Id)
+                        .Append(EndPoint)
+                        .Append(EndPoint.Port);
     }
     
     /// <summary>

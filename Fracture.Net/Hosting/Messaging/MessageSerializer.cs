@@ -37,10 +37,17 @@ namespace Fracture.Net.Hosting.Messaging
         int GetSizeFromMessage(IMessage message);
     }
     
+    public interface IMessagePool
+    {
+        IMessage Take<T>() where T : class, IMessage, new();
+        
+        void Return<T>(T message) where T : class, IMessage;
+    }
+    
     /// <summary>
-    /// Static utility class that provides default implementation for doing message pooling.
+    /// Default implementation of <see cref="IMessagePool"/>.
     /// </summary>
-    public static class MessagePool
+    public sealed class MessagePool : IMessagePool
     {
         #region Static fields
         private static readonly Dictionary<Type, object> Pools; 
@@ -49,8 +56,11 @@ namespace Fracture.Net.Hosting.Messaging
         static MessagePool()
             => Pools = new Dictionary<Type, object>();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IMessage Take<T>() where T : class, IMessage, new()
+        public MessagePool()
+        {
+        }
+        
+        public IMessage Take<T>() where T : class, IMessage, new()
         {
             var type = typeof(T);
             
@@ -63,8 +73,7 @@ namespace Fracture.Net.Hosting.Messaging
             return ((IPool<T>)Pools[type]).Take();
         }
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return<T>(T message) where T : class, IMessage, new()
+        public void Return<T>(T message) where T : class, IMessage
             => ((IPool<T>)Pools[typeof(T)]).Return(message);
     }
 
@@ -80,7 +89,7 @@ namespace Fracture.Net.Hosting.Messaging
         private readonly IArrayPool<byte> buffers;
         #endregion
         
-        public MessageSerializer()
+        public MessageSerializer(IArrayPool<byte> buffers)
             => this.buffers = buffers ?? throw new ArgumentNullException(nameof(buffers));
 
         public byte[] Serialize(IMessage message)
