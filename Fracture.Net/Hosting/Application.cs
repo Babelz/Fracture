@@ -2,7 +2,6 @@ using System;
 using System.Net;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Scripting;
-using Fracture.Net.Hosting.Services;
 
 namespace Fracture.Net.Hosting
 {
@@ -14,37 +13,72 @@ namespace Fracture.Net.Hosting
         event EventHandler ShuttingDown;
         #endregion
 
+        void Shutdown();
+    }
+    
+    public sealed class ApplicationRequestContext
+    {
         #region Properties
-        IRequestRouter RequestRouter
+        IRequestRouter Router
         {
             get;
         }
         
-        INotificationQueue NotificationQueue
-        {
-            get;
-        }
-        
-        IMiddlewareConsumer<RequestMiddlewareContext> RequestMiddleware
-        {
-            get;
-        }
-        
-        IMiddlewareConsumer<RequestResponseMiddlewareContext> ResponseMiddleware
-        {
-            get;
-        }
-        
-        IMiddlewareConsumer<NotificationMiddlewareContext> NotificationMiddleware
+        IMiddlewareConsumer<RequestMiddlewareContext> Middleware
         {
             get;
         }
         #endregion
         
-        void Shutdown();
+        public ApplicationRequestContext(IRequestRouter router, IMiddlewareConsumer<RequestMiddlewareContext> middleware)
+        {
+            Router     = router ?? throw new ArgumentNullException(nameof(router));
+            Middleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+        }
     }
     
-    public interface IApplicationScriptingHost : IApplicationHost
+    public sealed class ApplicationNotificationContext
+    {
+        #region Properties
+        INotificationQueue Queue
+        {
+            get;
+        }
+        
+        IMiddlewareConsumer<NotificationMiddlewareContext> Middleware
+        {
+            get;
+        }
+        #endregion
+
+        public ApplicationNotificationContext(INotificationQueue queue, IMiddlewareConsumer<NotificationMiddlewareContext> middleware)
+        {
+            Queue      = queue ?? throw new ArgumentNullException(nameof(queue));
+            Middleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+        }
+    }
+    
+    public interface IApplicationMessagingHost : IApplicationHost
+    {
+        #region Properties
+        ApplicationRequestContext Requests
+        {
+            get;
+        }
+
+        ApplicationNotificationContext Notifications
+        {
+            get;
+        }
+        
+        IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
+        {
+            get;
+        }
+        #endregion
+    }
+    
+    public interface IApplicationScriptingHost : IApplicationMessagingHost
     {
         #region Properties
         public IScriptHost Scripts
