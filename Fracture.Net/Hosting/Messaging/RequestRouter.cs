@@ -27,7 +27,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         /// <param name="match">matcher that the request message must match in order to be passed to the handler</param>
         /// <param name="handler">handler invoked when request message matches the preceding matcher</param>
-        void Route(MessageMatchDelegate match, RequestHandlerDelegate handler);
+        void Use(MessageMatchDelegate match, RequestHandlerDelegate handler);
     }
     
     /// <summary>

@@ -79,6 +79,12 @@ namespace Fracture.Net.Hosting.Messaging
             get;
             set;
         }
+        
+        public TimeSpan Timestamp
+        {
+            get;
+            set;
+        }
         #endregion
 
         public Request()
@@ -87,9 +93,10 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void Clear()
         {
-            Peer     = default;
-            Contents = default;
-            Message  = default;
+            Peer      = default;
+            Contents  = default;
+            Message   = default;
+            Timestamp = default;
         }
     }
 }

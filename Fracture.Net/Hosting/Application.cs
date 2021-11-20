@@ -17,27 +17,47 @@ using NLog;
 
 namespace Fracture.Net.Hosting
 {
+    /// <summary>
+    /// Interface for implementing application hosts. Hosts provide interface for tracking application status and time. 
+    /// </summary>
     public interface IApplicationHost
     {
         #region Events
+        /// <summary>
+        /// Event invoked when the application is about to start.
+        /// </summary>
         event EventHandler Starting;
+        
+        /// <summary>
+        /// Event invoked when the application is about to shut down.
+        /// </summary>
         event EventHandler ShuttingDown;
         #endregion
 
         #region Properties
+        /// <summary>
+        /// Gets the application clock containing current application time.
+        /// </summary>
         IApplicationClock Clock
         {
             get;
         }
         #endregion
 
+        /// <summary>
+        /// Signals the application to start shutting down.
+        /// </summary>
         void Shutdown();
     }
     
+    /// <summary>
+    /// Wrapper class to make working with requests bit more convenient. Use the <see cref="Router"/> to access the application request router and the
+    /// <see cref="Middleware"/> to access the notification middleware.
+    /// </summary>
     public sealed class ApplicationRequestContext
     {
         #region Properties
-        public IRequestRouteConsumer RouteConsumer
+        public IRequestRouteConsumer Router
         {
             get;
         }
@@ -48,13 +68,17 @@ namespace Fracture.Net.Hosting
         }
         #endregion
         
-        public ApplicationRequestContext(IRequestRouteConsumer routeConsumer, IMiddlewareConsumer<RequestMiddlewareContext> middleware)
+        public ApplicationRequestContext(IRequestRouteConsumer router, IMiddlewareConsumer<RequestMiddlewareContext> middleware)
         {
-            RouteConsumer     = routeConsumer;
+            Router     = router;
             Middleware = middleware;
         }
     }
     
+    /// <summary>
+    /// Wrapper class to make working with notifications bit more convenient. Use the <see cref="Queue"/> to access the notification queue of the application
+    /// and the <see cref="Middleware"/> to access the notification middleware.
+    /// </summary>
     public sealed class ApplicationNotificationContext
     {
         #region Properties
@@ -76,24 +100,43 @@ namespace Fracture.Net.Hosting
         }
     }
     
+    /// <summary>
+    /// Interface for application hosts that provide messaging support.
+    /// </summary>
     public interface IApplicationMessagingHost : IApplicationHost
     {
         #region Events
-        event StructEventHandler<PeerJoinEventArgs> Join;
-        event StructEventHandler<PeerResetEventArgs> Reset; 
+        /// <summary>
+        /// Event invoked when peer has joined.
+        /// </summary>
+        event EventHandler<PeerJoinEventArgs> Join;
+        
+        /// <summary>
+        /// Event invoked when peer has reset.
+        /// </summary>
+        event EventHandler<PeerResetEventArgs> Reset; 
         #endregion
         
         #region Properties
+        /// <summary>
+        /// Gets the application request context for working with the request pipeline.
+        /// </summary>
         ApplicationRequestContext Requests
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the application notification context for working with notification pipeline.
+        /// </summary>
         ApplicationNotificationContext Notifications
         {
             get;
         }
         
+        /// <summary>
+        /// Gets the application response middleware consumer.
+        /// </summary>
         IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
         {
             get;
@@ -101,9 +144,15 @@ namespace Fracture.Net.Hosting
         #endregion
     }
     
+    /// <summary>
+    /// Interface for application hosts that provide scripting support.
+    /// </summary>
     public interface IApplicationScriptingHost : IApplicationMessagingHost
     {
         #region Properties
+        /// <summary>
+        /// Gets the application scripting host for working with scripts.
+        /// </summary>
         public IScriptHost Scripts
         {
             get;
@@ -111,11 +160,20 @@ namespace Fracture.Net.Hosting
         #endregion
     }
 
+    /// <summary>
+    /// Interface for implementing applications. Applications provide messaging and peer status handling for all scripts and services.
+    /// </summary>
     public interface IApplication : IApplicationHost
     {
+        /// <summary>
+        /// Starts the application and initializes all of its dependencies.
+        /// </summary>
         void Start();
     }
     
+    /// <summary>
+    /// Wrapper class containing all application required resources.
+    /// </summary>
     public sealed class ApplicationResources
     {
         #region Properties
@@ -181,6 +239,18 @@ namespace Fracture.Net.Hosting
         private readonly Queue<PeerResetEventArgs> resetsEvents;
         private readonly Queue<PeerJoinEventArgs> joinEvents;
 
+        private readonly Queue<Request> incomingRequests;
+        private readonly Queue<Request> acceptedRequests;
+        
+        private readonly Queue<RequestResponse> outgoingResponses;
+        private readonly Queue<RequestResponse> acceptedResponses;
+        
+        private readonly Queue<Notification> outgoingNotifications;
+        private readonly Queue<Notification> acceptedNotifications;
+        
+        private readonly HashSet<int> leavedPeers;
+        private readonly HashSet<int> leavingPeers;
+        
         private bool running;
         #endregion
         
@@ -188,8 +258,8 @@ namespace Fracture.Net.Hosting
         public event EventHandler Starting;
         public event EventHandler ShuttingDown;
         
-        public event StructEventHandler<PeerJoinEventArgs> Join;
-        public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event EventHandler<PeerJoinEventArgs> Join;
+        public event EventHandler<PeerResetEventArgs> Reset;
         #endregion
 
         #region Properties
@@ -231,7 +301,7 @@ namespace Fracture.Net.Hosting
             this.scripts    = scripts ?? throw new ArgumentNullException(nameof(scripts));
 
             this.requestRouter          = requestRouter ?? throw new ArgumentNullException(nameof(requestRouter));
-            this.notificationCenter    = notificationCenter ?? throw new ArgumentNullException(nameof(notificationCenter));
+            this.notificationCenter     = notificationCenter ?? throw new ArgumentNullException(nameof(notificationCenter));
             this.requestMiddleware      = requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware));
             this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             this.responseMiddleware     = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
@@ -243,6 +313,18 @@ namespace Fracture.Net.Hosting
             incomingEvents = new Queue<PeerMessageEventArgs>();
             resetsEvents   = new Queue<PeerResetEventArgs>();
             joinEvents     = new Queue<PeerJoinEventArgs>();
+            
+            incomingRequests = new Queue<Request>();
+            acceptedRequests = new Queue<Request>();
+            
+            outgoingResponses = new Queue<RequestResponse>();
+            acceptedResponses = new Queue<RequestResponse>();
+            
+            outgoingNotifications = new Queue<Notification>();
+            acceptedNotifications = new Queue<Notification>();
+
+            leavedPeers  = new HashSet<int>();
+            leavingPeers = new HashSet<int>();
         }
 
         #region Event handlers
@@ -299,17 +381,39 @@ namespace Fracture.Net.Hosting
             ShuttingDown?.Invoke(this, EventArgs.Empty);
         }
         
-        private void HandleServerEvents(HashSet<int> leavedPeers)
+        /// <summary>
+        /// Polls the server for incoming events and updates application time.
+        /// </summary>
+        private void PollApplication()
         {
-            leavedPeers.Clear();
+            timer.Tick();
             
+            server.Poll();
+        }
+        
+        /// <summary>
+        /// Handles received peer join events.
+        /// </summary>
+        private void HandlePeerJoins()
+        {
+            // Handle all join events.
             while (joinEvents.Count != 0)
             {
                 var joinEvent = joinEvents.Dequeue();
                 
                 Join?.Invoke(this, joinEvent);
             }
+        }
+
+        /// <summary>
+        /// Handles all reset peer events.
+        /// </summary>
+        private void HandlePeerLeaves()
+        {
+            // Make sure this poll frames data is clean.
+            leavedPeers.Clear();
             
+            // Handle all reset events.
             while (resetsEvents.Count != 0)
             {
                 var resetEvent = resetsEvents.Dequeue();
@@ -320,13 +424,17 @@ namespace Fracture.Net.Hosting
             }
         }
         
-        private void DeserializePeerMessages(HashSet<int> leavedPeers, Queue<Request> incomingRequests)
+        /// <summary>
+        /// Deserialize incoming messages from peers.
+        /// </summary>
+        private void DeserializePeerMessages()
         {
             while (incomingEvents.Count != 0)
             {
                 var incomingEvent = incomingEvents.Dequeue();
                 
-                if (leavedPeers.Contains(incomingEvent.Peer.Id))
+                // Skip handling for all peers that are about to leave.
+                if (!server.Connected(incomingEvent.Peer.Id) || leavedPeers.Contains(incomingEvent.Peer.Id))
                 {
                     resources.Buffers.Return(incomingEvent.Data);
                     
@@ -335,15 +443,17 @@ namespace Fracture.Net.Hosting
                 
                 var offset = 0;
                     
+                // Deserialize all incoming messages in this event.
                 while (offset < incomingEvent.Length)
                 {
                     var request = resources.Requests.Take();
 
                     try
                     {
-                        request.Message  = serializer.Deserialize(incomingEvent.Data, offset);
-                        request.Contents = incomingEvent.Data;
-                        request.Peer     = incomingEvent.Peer;
+                        request.Message   = serializer.Deserialize(incomingEvent.Data, offset);
+                        request.Contents  = incomingEvent.Data;
+                        request.Peer      = incomingEvent.Peer;
+                        request.Timestamp = incomingEvent.Timestamp;
                     
                         incomingRequests.Enqueue(request);
                         
@@ -359,7 +469,10 @@ namespace Fracture.Net.Hosting
             }
         }
         
-        private void RunPeerRequestMiddleware(Queue<Request> incomingRequests, Queue<Request> acceptedRequests)
+        /// <summary>
+        /// Runs middleware for all deserialized requests received from peers.
+        /// </summary>
+        private void RunPeerRequestMiddleware()
         {
             while (incomingRequests.Count != 0)
             {
@@ -367,6 +480,7 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {   
+                    // Filter all requests that are rejected by the middleware.
                     if (requestMiddleware.Invoke(new RequestMiddlewareContext(request)))
                         ReleaseRequest(request);
                     else
@@ -381,11 +495,23 @@ namespace Fracture.Net.Hosting
             }
         }
         
-        private void HandlePeerRequests(Queue<Request> acceptedRequests, Queue<RequestResponse> outgoingResponses)
+        /// <summary>
+        /// Handle all accepted peer requests.
+        /// </summary>
+        private void HandlePeerRequests()
         {
             while (acceptedRequests.Count != 0)
             {
-                var request  = acceptedRequests.Dequeue();
+                var request = acceptedRequests.Dequeue();
+                
+                // Do not allow handling of requests where the peer is marked for reset.
+                if (leavingPeers.Contains(request.Peer.Id))
+                {
+                    ReleaseRequest(request);
+                    
+                    continue;
+                }
+                
                 var response = resources.Responses.Take();
 
                 try
@@ -402,6 +528,9 @@ namespace Fracture.Net.Hosting
                             break;
                         case ResponseStatus.Code.Reset:
                             Log.Info("request will reset the peer", response, request);
+                            
+                            // Disallow sending any further messages if the peer is about to be reset.
+                            leavingPeers.Add(request.Peer.Id);
                             break;
                         case ResponseStatus.Code.ServerError:
                             Log.Warn("server error occurred whle processing request", response, request);
@@ -428,6 +557,9 @@ namespace Fracture.Net.Hosting
             }
         }
         
+        /// <summary>
+        /// Runs update logic for all services attached to the application.
+        /// </summary>
         private void UpdateServices()
         {
             foreach (var service in kernel.All<IActiveApplicationService>())
@@ -443,10 +575,23 @@ namespace Fracture.Net.Hosting
             }
         }
         
+        /// <summary>
+        /// Runs update logic for all scripts active inside the application.
+        /// </summary>
         private void UpdateScripts()
             => scripts.Tick();
-        
+
         private void RunPeerRequestResponseMiddleware()
+        {
+            throw new NotImplementedException();
+        }
+        
+        private void RunNotificationMiddleware()
+        {
+            throw new NotImplementedException();
+        }
+        
+        private void HandlePeerNotifications()
         {
             throw new NotImplementedException();
         }
@@ -456,45 +601,38 @@ namespace Fracture.Net.Hosting
             throw new NotImplementedException();
         }
 
-        private void RunNotificationMiddleware()
-        {
-            throw new NotImplementedException();
-        }
-        
         private void SendNotifications()
         {
             throw new NotImplementedException();
         }
-        
-        private void HandleServerMessages()
+
+        /// <summary>
+        /// Runs the application logic once. This includes running the request, response and notification pipelines where scripts and services are allowed to
+        /// interact with the application by being updated in middle.
+        /// </summary>
+        private void Tick()
         {
-            throw new NotImplementedException();
-        }
-        
-        private void Tick(Queue<Request> incomingRequests, 
-                          Queue<Request> acceptedRequests, 
-                          Queue<RequestResponse> outgoingResponses, 
-                          Queue<RequestResponse> acceptedResponses, 
-                          Queue<Notification> outgoingNotifications, 
-                          Queue<Notification> acceptedNotifications, 
-                          HashSet<int> leavedPeers)
-        {
-            timer.Tick();
+            // Step 1: poll server and receive events, update application time. Handle all incoming peer leave and join events first and track all peers that
+            //         are about to leave.
+            PollApplication();
             
-            HandleServerEvents(leavedPeers);
+            HandlePeerJoins();
+            HandlePeerLeaves();
             
-            DeserializePeerMessages(leavedPeers, incomingRequests);
-            RunPeerRequestMiddleware(incomingRequests, acceptedRequests);
-            HandlePeerRequests(acceptedRequests, outgoingResponses);
+            // Step 2: run the actual request pipeline. Deserialize all incoming messages, run request middleware and route the requests.  
+            DeserializePeerMessages();
+            RunPeerRequestMiddleware();
+            HandlePeerRequests();
             
             UpdateServices();
             UpdateScripts();
             
-            RunPeerRequestResponseMiddleware(outgoingResponses, acceptedResponses);
-            HandleEnqueuedNotifications(outgoingNotifications, acceptedNotifications);
+            RunPeerRequestResponseMiddleware();
+            RunNotificationMiddleware();
+            HandlePeerNotifications();
             
-            SendRequestResponses(acceptedResponses);
-            SendNotifications(acceptedNotifications);
+            SendRequestResponses();
+            SendNotifications();
         }
 
         public void Shutdown()
@@ -512,25 +650,8 @@ namespace Fracture.Net.Hosting
             
             Initialize();
 
-            var incomingRequests = new Queue<Request>();
-            var acceptedRequests = new Queue<Request>();
-            
-            var outgoingResponses = new Queue<RequestResponse>();
-            var acceptedResponses = new Queue<RequestResponse>();
-            
-            var outgoingNotifications = new Queue<Notification>();
-            var acceptedNotifications = new Queue<Notification>();
-
-            var leavedPeers = new HashSet<int>();
-            
             while (running)
-                Tick(incomingRequests,
-                     acceptedRequests,
-                     outgoingResponses,
-                     acceptedResponses,
-                     outgoingNotifications,
-                     acceptedNotifications,
-                     leavedPeers);
+                Tick();
             
             Deinitialize();
         }

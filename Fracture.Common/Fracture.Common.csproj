@@ -52,7 +52,6 @@
         <Compile Include="Collections\FreeList.cs" />
         <Compile Include="Collections\LinearGrowthArray.cs" />
         <Compile Include="Collections\LinearRegistry.cs" />
-        <Compile Include="Collections\PriorityQueue.cs" />
         <Compile Include="Collections\Stack.cs" />
         <Compile Include="Di\Attributes\BindingConstructorAttribute.cs" />
         <Compile Include="Di\Attributes\BindingMethodAttribute.cs" />

@@ -5,6 +5,8 @@ using Fracture.Common.Reflection;
 
 namespace Fracture.Common.Memory.Pools
 {
+    public delegate void PoolElementDecoratorDelegate<in T>(T element);
+    
     /// <summary>
     /// Generic interface for implementing generic objects pools.
     /// </summary>
@@ -13,12 +15,12 @@ namespace Fracture.Common.Memory.Pools
         /// <summary>
         /// Takes next available element from the pool.
         /// </summary>
-        T Take();
+        T Take(PoolElementDecoratorDelegate<T> decorator = null);
         
         /// <summary>
         /// Populates given list with elements.
         /// </summary>
-        void Take(IList<T> elements);
+        void Take(IList<T> elements, PoolElementDecoratorDelegate<T> decorator = null);
 
         /// <summary>
         /// Returns given element to the pool.
@@ -68,13 +70,25 @@ namespace Fracture.Common.Memory.Pools
         /// <summary>
         /// Takes next object from the pool.
         /// </summary>
-        public T Take()
-            => storage.Empty ? New() : storage.Take();
+        public T Take(PoolElementDecoratorDelegate<T> decorator = null)
+        {
+            var element = storage.Empty ? New() : storage.Take();
+            
+            decorator?.Invoke(element);
+            
+            return element;
+        }
         
-        public void Take(IList<T> elements)
+        public void Take(IList<T> elements, PoolElementDecoratorDelegate<T> decorator = null)
         {
             for (var i = 0; i < elements.Count; i++)
-                elements[i] = Take();
+            {
+                var element = Take();   
+                
+                decorator?.Invoke(element);
+                
+                elements[i] = element;
+            }
         }
 
         /// <summary>

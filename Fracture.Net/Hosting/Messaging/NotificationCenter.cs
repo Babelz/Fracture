@@ -5,6 +5,8 @@ using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
+    public delegate void NotificationDecoratorDelegate(INotification notification);
+    
     /// <summary>
     /// Interface for implementing notification queues.
     /// </summary>
@@ -13,7 +15,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Enqueues notification to the queue and returns it to the caller.
         /// </summary>
-        INotification Enqueue();
+        INotification Enqueue(NotificationDecoratorDelegate decoratorDelegate = null);
     }
     
     /// <summary>
@@ -54,9 +56,11 @@ namespace Fracture.Net.Hosting.Messaging
             notifications = new Queue<Notification>();
         }
             
-        public INotification Enqueue()
+        public INotification Enqueue(NotificationDecoratorDelegate decorator = null)
         {
             var notification = pool.Take();
+            
+            decorator?.Invoke(notification);
             
             notifications.Enqueue(notification);
             

@@ -78,18 +78,18 @@ namespace Fracture.Net.Hosting.Peers
         #endregion
         
         #region Events
-        public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event EventHandler<PeerResetEventArgs> Reset;
         
-        public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
+        public event EventHandler<PeerMessageEventArgs> Incoming;
+        public event EventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
         private bool IsConnected => socket.Connected;
         private bool HasTimedOut => (DateTime.UtcNow - lastTimeActive) > gracePeriod;
         
-        private bool IsReceivingAsync => !receiveResult?.IsCompleted ?? false;
-        private bool IsDisconnectedAsync => disconnectResult?.IsCompleted ?? false;
+        private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
+        private bool HasDisconnected => disconnectResult?.IsCompleted ?? false;
         
         public int Id
         {
@@ -177,7 +177,7 @@ namespace Fracture.Net.Hosting.Peers
             
                 Array.Copy(receiveBuffer, 0, message, 0, length);
             
-                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length));   
+                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length, DateTime.UtcNow.TimeOfDay));   
             }
             catch (Exception e)
             {
@@ -212,9 +212,9 @@ namespace Fracture.Net.Hosting.Peers
                 Outgoing?.Invoke(this, outgoing);
             
             // Handle all incoming messages.
-            foreach (var incoming in incomingMessages)
+            foreach (var incoming in incomingMessages) 
                 Incoming?.Invoke(this, incoming);
-            
+                
             // Set activity timestamp to be current time if we are sending or receiving any messages.
             lastTimeActive = (outgoingMessages.Length + incomingMessages.Length > 0) ? DateTime.UtcNow : lastTimeActive;
         }
@@ -228,7 +228,7 @@ namespace Fracture.Net.Hosting.Peers
                 InternalDisconnect(PeerResetReason.RemoteReset);
             else if (HasTimedOut)
                 InternalDisconnect(PeerResetReason.TimedOut);
-            else if (!IsReceivingAsync)
+            else if (!IsReceiving)
                 receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
         }
         
@@ -237,12 +237,12 @@ namespace Fracture.Net.Hosting.Peers
             if (state != PeerState.Disconnecting)
                 return;
             
-            if (!IsDisconnectedAsync)
+            if (!HasDisconnected)
                 return;
             
             state = PeerState.Disconnected;
                         
-            Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason));
+            Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason, DateTime.UtcNow.TimeOfDay));
         }
         
         public void Disconnect()

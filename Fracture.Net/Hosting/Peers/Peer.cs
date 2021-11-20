@@ -13,10 +13,18 @@ namespace Fracture.Net.Hosting.Peers
         {
             get;
         }
+        
+        public TimeSpan Timestamp
+        {
+            get;
+        }
         #endregion
 
-        public PeerJoinEventArgs(in PeerConnection peer)
-            => Peer = peer;
+        public PeerJoinEventArgs(in PeerConnection peer, in TimeSpan timestamp)
+        {
+            Peer      = peer;
+            Timestamp = timestamp;
+        }
     }
     
     public readonly struct PeerResetEventArgs : IStructEventArgs
@@ -31,12 +39,18 @@ namespace Fracture.Net.Hosting.Peers
         {
             get;
         }
+        
+        public TimeSpan Timestamp
+        {
+            get;
+        }
         #endregion
         
-        public PeerResetEventArgs(in PeerConnection peer, PeerResetReason reason)
+        public PeerResetEventArgs(in PeerConnection peer, PeerResetReason reason, in TimeSpan timestamp)
         {
-            Peer   = peer;
-            Reason = reason;
+            Peer      = peer;
+            Reason    = reason;
+            Timestamp = timestamp;
         }
     }
 
@@ -56,13 +70,19 @@ namespace Fracture.Net.Hosting.Peers
         {
             get;
         }
+        
+        public TimeSpan Timestamp
+        {
+            get;
+        }
         #endregion
 
-        public PeerMessageEventArgs(in PeerConnection peer, byte[] data, int length)
+        public PeerMessageEventArgs(in PeerConnection peer, byte[] data, int length, in TimeSpan timestamp)
         {
-            Peer   = peer;
-            Data   = data;
-            Length = length;
+            Peer      = peer;
+            Data      = data;
+            Length    = length;
+            Timestamp = timestamp;
         }
     }
     
@@ -86,14 +106,20 @@ namespace Fracture.Net.Hosting.Peers
         {
             get;
         }
+        
+        public TimeSpan Timestamp
+        {
+            get;
+        }
         #endregion
 
-        public ServerMessageEventArgs(in PeerConnection peer, byte[] data, int offset, int length)
+        public ServerMessageEventArgs(in PeerConnection peer, byte[] data, int offset, int length, in TimeSpan timestamp)
         {
-            Peer   = peer;
-            Offset = offset;
-            Length = length;
-            Data   = data;
+            Peer      = peer;
+            Offset    = offset;
+            Length    = length;
+            Data      = data;
+            Timestamp = timestamp;
         }
     }
     

@@ -60,7 +60,6 @@
         <Compile Include="Collections\FreeListTests.cs" />
         <Compile Include="Collections\LinearGrowthArrayTests.cs" />
         <Compile Include="Collections\LinearGrowthStackTests.cs" />
-        <Compile Include="Collections\PriorityQueueTests.cs" />
         <Compile Include="Collections\UniqueLinearGrowthStackTests.cs" />
         <Compile Include="Di\KernelTests.cs" />
         <Compile Include="Di\TestTypes\BaseCtorPropMethodFooBar.cs" />
