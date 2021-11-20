@@ -13,6 +13,7 @@ using Fracture.Net.Hosting.Scripting;
 using Fracture.Net.Hosting.Servers;
 using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
 using Microsoft.Diagnostics.Tracing.Parsers.FrameworkEventSource;
+using Microsoft.Win32;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -240,9 +241,7 @@ namespace Fracture.Net.Hosting
         
         private readonly IApplicationTimer timer;
         
-        private readonly Queue<ServerMessageEventArgs> outgoingEvents;
         private readonly Queue<PeerMessageEventArgs> incomingEvents;
-        
         private readonly Queue<PeerResetEventArgs> resetsEvents;
         private readonly Queue<PeerJoinEventArgs> joinEvents;
 
@@ -255,7 +254,10 @@ namespace Fracture.Net.Hosting
         private readonly Queue<Notification> outgoingNotifications;
         private readonly Queue<Notification> acceptedNotifications;
         
+        // Peers that were marked as leaving by the server during poll call.
         private readonly HashSet<int> leavedPeers;
+        
+        // Peers that were marked as leaving by message pipeline.
         private readonly HashSet<int> leavingPeers;
         
         private bool running;
@@ -316,7 +318,6 @@ namespace Fracture.Net.Hosting
             Requests      = new ApplicationRequestContext(requestRouter, requestMiddleware);
             Notifications = new ApplicationNotificationContext(notificationCenter, notificationMiddleware);
             
-            outgoingEvents = new Queue<ServerMessageEventArgs>();
             incomingEvents = new Queue<PeerMessageEventArgs>();
             resetsEvents   = new Queue<PeerResetEventArgs>();
             joinEvents     = new Queue<PeerJoinEventArgs>();
@@ -336,12 +337,8 @@ namespace Fracture.Net.Hosting
 
         #region Event handlers
         private void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
-        {
-            resources.Buffers.Return(e.Data);
-            
-            outgoingEvents.Enqueue(e);
-        }
-            
+            => resources.Buffers.Return(e.Data);
+           
         private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
             => incomingEvents.Enqueue(e);
 
@@ -419,11 +416,7 @@ namespace Fracture.Net.Hosting
         {
             // Handle all join events.
             while (joinEvents.Count != 0)
-            {
-                var joinEvent = joinEvents.Dequeue();
-                
-                Join?.Invoke(this, joinEvent);
-            }
+                Join?.Invoke(this, joinEvents.Dequeue());
         }
 
         /// <summary>
@@ -565,8 +558,17 @@ namespace Fracture.Net.Hosting
                         default:
                             throw new InvalidOrUnsupportedException(nameof(ResponseStatus.Code), response.StatusCode);
                     }
-
-                    outgoingResponses.Enqueue(new RequestResponse(request, response));
+                    
+                    if (response.ContainsException)
+                        Log.Warn(response.Exception, "response object contains expection");
+                    
+                    if (response.ContainsReply)
+                        outgoingResponses.Enqueue(new RequestResponse(request, response));
+                    else
+                    {
+                        ReleaseRequest(request);
+                        ReleaseResponse(response);
+                    }
                 }
                 catch (Exception e)
                 {
@@ -612,7 +614,7 @@ namespace Fracture.Net.Hosting
                 var requestResponse = acceptedResponses.Dequeue();
                 
                 // Filter out all peers that are about to leave.
-                if (leavingPeers.Contains(requestResponse.Request.Peer.Id))
+                if (leavingPeers.Contains(requestResponse.Request.Peer.Id) && requestResponse.Response.StatusCode != ResponseStatus.Code.Reset)
                 {
                     ReleaseRequestResponse(requestResponse);
                     
@@ -641,11 +643,13 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void RunNotificationMiddleware()
         {
+            // Notification ownership is moved to the application at this point.
             notificationCenter.Handle((notification) =>
             {
-                // Filter out all peers that are about to leave. 
-                var peers = (notification.Peers ?? server.Peers).Where(p => !leavedPeers.Contains(p)).ToArray();
-                
+                // Filter out all peers that are about to leave. Response middleware or response handler might already have detected or enqueued a peer for
+                // reset so no middleware or notifications will be send to these peers.
+                var peers = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)).ToArray();
+
                 try
                 {   
                     // Filter all requests that are rejected by the middleware.
@@ -663,22 +667,160 @@ namespace Fracture.Net.Hosting
             });
         }
         
-        private void SendRequestResponses()
+        /// <summary>
+        /// Send out all enqueued responses. This can possibly disconnect peers.
+        /// </summary>
+        private void HandleOutgoingResponses()
         {
             while (outgoingResponses.Count != 0)
             {
+                var requestResponse = outgoingResponses.Dequeue();
                 
+                if (leavingPeers.Contains(requestResponse.Request.Peer.Id))
+                {
+                    ReleaseRequestResponse(requestResponse);
+                    
+                    continue;
+                }
+                
+                try
+                {
+                    var data = serializer.Serialize(requestResponse.Response.Message);
+                    
+                    server.Send(requestResponse.Request.Peer.Id, data, 0, data.Length);
+                    
+                    if (requestResponse.Response.StatusCode == ResponseStatus.Code.Reset)
+                        leavingPeers.Add(requestResponse.Request.Peer.Id);
+                }
+                catch (Exception e)
+                {
+                    Log.Warn(e, "excetion occurred in notification middleware");
+                }
+                
+                ReleaseRequestResponse(requestResponse);
             }
         }
 
-        private void SendNotifications()
+        /// <summary>
+        /// Send out all enqueued responses
+        /// </summary>
+        /// <exception cref="NotImplementedException"></exception>
+        private void HandleOutgoingNotifications()
         {
-            throw new NotImplementedException();
+            void Send(INotification notification)
+            {
+                var peer = notification.Peers.First();
+                    
+                if (leavingPeers.Contains(peer))
+                    return;
+                    
+                var data = serializer.Serialize(notification.Message);
+                    
+                server.Send(peer, data, 0, data.Length);
+            }
+                
+            void BroadcastNarrow(INotification notification)
+            {
+                var peers = notification.Peers.Where(p => !leavingPeers.Contains(p));
+                var data  = serializer.Serialize(notification.Message);
+                    
+                foreach (var peer in peers)
+                {
+                    var copy = resources.Buffers.Take(data.Length);
+                        
+                    data.CopyTo(copy, 0);
+                        
+                    server.Send(peer, copy, 0, copy.Length);
+                }
+            }
+                
+            void BroadcastWide(INotification notification)
+            {
+                var peers = server.Peers.Where(p => !leavingPeers.Contains(p));
+                var data  = serializer.Serialize(notification.Message);
+                    
+                foreach (var peer in peers)
+                {
+                    var copy = resources.Buffers.Take(data.Length);
+                        
+                    data.CopyTo(copy, 0);
+                        
+                    server.Send(peer, copy, 0, copy.Length);
+                }
+            }
+                
+            void Reset(INotification notification)
+            {
+                var peers = (notification.Peers ?? server.Peers).Where(p => !leavedPeers.Contains(p));
+                var data  = notification.Message != null ? serializer.Serialize(notification.Message) : null;
+                
+                foreach (var peer in peers)
+                {
+                    if (data != null)
+                    {
+                        var copy = resources.Buffers.Take(data.Length);
+                        
+                        data.CopyTo(copy, 0);
+                        
+                        server.Send(peer, copy, 0, copy.Length);
+                    }
+                    
+                    leavingPeers.Add(peer);
+                }
+            }
+            
+            while (outgoingResponses.Count != 0)
+            {
+                var notification = outgoingNotifications.Dequeue();
+
+                try
+                {
+                    switch (notification.Command)
+                    {
+                        case NotificationCommand.Send:
+                            Send(notification);
+                            break;
+                        case NotificationCommand.BroadcastNarrow:
+                            BroadcastNarrow(notification);
+                            break;
+                        case NotificationCommand.BroadcastWide:
+                            BroadcastWide(notification);
+                            break;
+                        case NotificationCommand.Reset:
+                            Reset(notification);
+                            break;
+                        default:
+                            Log.Error("notification command was unset or unsupported", notification);
+                            break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Warn(e, "excetion occurred in notification middleware");
+                }
+                
+                ReleaseNotification(notification);
+            }
         }
         
+        /// <summary>
+        /// Resets (disconnects) all peers that have been marked as leaving.
+        /// </summary>
         private void ResetLeavingPeers()
         {
+            foreach (var peer in leavingPeers)
+            {
+                try
+                {
+                    server.Disconnect(peer);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "exception occurred while disconnecting peer");
+                }
+            }
             
+            leavingPeers.Clear();
         }
 
         /// <summary>
@@ -708,8 +850,8 @@ namespace Fracture.Net.Hosting
             RunNotificationMiddleware();
             
             // Step 5: send out all requests and notifications generated by the server.
-            SendRequestResponses();
-            SendNotifications();
+            HandleOutgoingResponses();
+            HandleOutgoingNotifications();
             
             // Step 6: disconnect all leaving peers.
             ResetLeavingPeers();

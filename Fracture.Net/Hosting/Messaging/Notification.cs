@@ -87,7 +87,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <param name="peer">peer that will be reset</param>
         /// <param name="message">optional last message send to the peer before resetting</param>
         void Reset(int peer, IMessage message = null);
-        
+
         /// <summary>
         /// Enqueues broadcast message for handling. 
         /// </summary>
@@ -100,6 +100,11 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         /// <param name="message">message that will be send to all active peers</param>
         void BroadcastWide(IMessage message);
+        
+        /// <summary>
+        /// Enqueue broadcast message that will reset all connected peers.
+        /// </summary>
+        void Shutdown(IMessage message = null);
     }
     
     /// <summary>
@@ -172,6 +177,15 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.BroadcastWide;
+            Peers   = null;
+            Message = message ?? throw new ArgumentException(nameof(message));
+        }
+
+        public void Shutdown(IMessage message = null)
+        {
+            AssertUnset();
+
+            Command = NotificationCommand.Reset;
             Peers   = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
@@ -29,7 +30,8 @@ namespace Fracture.Net.Hosting.Messaging
     public interface INotificationCenter : INotificationQueue
     {
         /// <summary>
-        /// Handles all queued notifications and invokes given handler callback for them. The queue will be cleared after the handle method returns.
+        /// Handles all queued notifications and invokes given handler callback for them. The queue will be cleared after the handle method returns. Calling
+        /// this method also transfers the ownership of any notifications to the caller.
         /// </summary>
         void Handle(NotificationHandlerDelegate handler);
     }
@@ -40,18 +42,14 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class NotificationCenter : INotificationCenter
     {
         #region Fields
-        private readonly CleanPool<Notification> pool;
+        private readonly IPool<Notification> pool;
         
         private readonly Queue<Notification> notifications;
         #endregion
         
-        public NotificationCenter(int initialNotificationsCapacity, int initialNotifications = 0)
+        public NotificationCenter(IPool<Notification> pool)
         {
-            pool = new CleanPool<Notification>(
-                new Pool<Notification>(
-                    new LinearStorageObject<Notification>(
-                        new LinearGrowthArray<Notification>(initialNotificationsCapacity)), initialNotifications)
-            );
+            this.pool = pool ?? throw new ArgumentException(nameof(pool));
             
             notifications = new Queue<Notification>();
         }
@@ -70,13 +68,7 @@ namespace Fracture.Net.Hosting.Messaging
         public void Handle(NotificationHandlerDelegate handler)
         {
             while (notifications.Count != 0)
-            {
-                var notification = notifications.Dequeue();
-                
-                handler(notification);
-                
-                pool.Return(notification);
-            }
+                handler(notifications.Dequeue());
         }
     }
 }
