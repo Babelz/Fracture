@@ -477,7 +477,7 @@ namespace Fracture.Net.Hosting
                     {
                         ReleaseRequest(request);
                     
-                        Log.Warn(e, "exception occurred while processing request from peer");
+                        Log.Warn(e, "error occurred while processing request from peer");
                     }
                 }
             }
@@ -593,7 +593,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "exception occurred while updating service", service);
+                    Log.Error(e, "error occurred while updating service", service);
                 }
             }
         }
@@ -816,7 +816,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "exception occurred while disconnecting peer");
+                    Log.Error(e, "error occurred while disconnecting peer");
                 }
             }
             

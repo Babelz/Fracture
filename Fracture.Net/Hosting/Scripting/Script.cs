@@ -1,15 +1,8 @@
 using System;
+using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Net.Hosting.Scripting
 {
-    /// <summary>
-    /// Interface for implementing script activation args. Use this interface for passing arguments to your scripts.
-    /// </summary>
-    public interface IScriptActivationArgs
-    {
-        // Marker interface, nothing to implement.
-    }
-    
     /// <summary>
     /// Interface for implementing various scripts. In Fracture scripts and services provide different levels for application programming. Where services
     /// contain the framework code, scripts contain the application specific business logic. Scripts can consume services found in the application and load
@@ -50,17 +43,14 @@ namespace Fracture.Net.Hosting.Scripting
         {
             get;
         }
-        
-        protected IScriptActivationArgs Args
-        {
-            get;
-        }
         #endregion
 
-        protected Script(IApplicationScriptingHost application, IScriptActivationArgs args = null)
+        /// <summary>
+        /// Creates new instance of this script. Mark the constructor with <see cref="BindingConstructorAttribute"/> and use it to locate any dependencies.
+        /// </summary>
+        protected Script(IApplicationScriptingHost application)
         {
             Application = application ?? throw new ArgumentNullException(nameof(application));
-            Args        = args;
         }
 
         protected virtual void Unload()
@@ -76,8 +66,8 @@ namespace Fracture.Net.Hosting.Scripting
     
     public abstract class CommandScript : Script, ICommandScript
     {
-        protected CommandScript(IApplicationScriptingHost application, IScriptActivationArgs args = null) 
-            : base(application, args)
+        protected CommandScript(IApplicationScriptingHost application) 
+            : base(application)
         {
         }
 

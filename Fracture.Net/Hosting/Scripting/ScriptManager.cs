@@ -12,7 +12,7 @@ namespace Fracture.Net.Hosting.Scripting
 {
     public interface IScriptHost
     {
-        void Load<T>(IScriptActivationArgs args) where T : IScript;
+        void Load<T>(params IBindingValue[] args) where T : IScript;
     }
     
     public interface IScriptManager : IScriptHost
@@ -85,9 +85,9 @@ namespace Fracture.Net.Hosting.Scripting
             unloadedActiveScripts.Clear();
         }
         
-        public void Load<T>(IScriptActivationArgs args) where T : IScript
+        public void Load<T>(params IBindingValue[] args) where T : IScript
         {
-            var script = activator.Activate<T>(BindingValue.Const(nameof(args), args));
+            var script = activator.Activate<T>(args);
             
             switch (script)
             {

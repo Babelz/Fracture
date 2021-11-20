@@ -260,6 +260,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Hosting\Application.cs" />
+        <Compile Include="Hosting\ApplicationBuilder.cs" />
         <Compile Include="Hosting\ApplicationClock.cs" />
         <Compile Include="Hosting\ApplicationService.cs" />
         <Compile Include="Hosting\Messaging\MessageSerializer.cs" />
