@@ -118,7 +118,7 @@ namespace Fracture.Net.Hosting.Servers
         {
             // Invoke events for each new connection.
             foreach (var newConnection in newConnections.Read())
-                Connected?.Invoke(this, new ListenerConnectedEventArgs(newConnection));
+                Connected?.Invoke(this, new ListenerConnectedEventArgs(newConnection, DateTime.UtcNow.TimeOfDay));
         }
         
         public void Poll()

@@ -196,17 +196,24 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
+        
+        public IPool<Notification> Notifications
+        {
+            get;
+        }
         #endregion
 
         public ApplicationResources(IMessagePool messages,
                                     IArrayPool<byte> buffers,
                                     IPool<Request> requests,
-                                    IPool<Response> responses)
+                                    IPool<Response> responses,
+                                    IPool<Notification> notifications)
         {
-            Messages  = messages ?? throw new ArgumentNullException(nameof(messages));
-            Buffers   = buffers ?? throw new ArgumentNullException(nameof(buffers));
-            Requests  = requests ?? throw new ArgumentNullException(nameof(requests));
-            Responses = responses ?? throw new ArgumentNullException(nameof(responses));
+            Messages      = messages ?? throw new ArgumentNullException(nameof(messages));
+            Buffers       = buffers ?? throw new ArgumentNullException(nameof(buffers));
+            Requests      = requests ?? throw new ArgumentNullException(nameof(requests));
+            Responses     = responses ?? throw new ArgumentNullException(nameof(responses));
+            Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
         }
     }
     
@@ -345,6 +352,14 @@ namespace Fracture.Net.Hosting
             => joinEvents.Enqueue(e);
         #endregion
         
+        private void ReleaseNotification(Notification notification)
+        {
+            if (notification.Message != null)
+                resources.Messages.Return(notification.Message);
+            
+            resources.Notifications.Return(notification);
+        }
+        
         private void ReleaseRequest(Request request)
         {
             if (request.Message != null)
@@ -364,6 +379,12 @@ namespace Fracture.Net.Hosting
             resources.Responses.Return(response);
         }
         
+        private void ReleaseRequestResponse(in RequestResponse requestResponse)
+        {
+            ReleaseRequest(requestResponse.Request);
+            ReleaseResponse(requestResponse.Response);
+        }
+
         private void Initialize()
         {
             Starting?.Invoke(this, EventArgs.Empty);
@@ -581,29 +602,83 @@ namespace Fracture.Net.Hosting
         private void UpdateScripts()
             => scripts.Tick();
 
+        /// <summary>
+        /// Run response middleware for all outgoing responses.
+        /// </summary>
         private void RunPeerRequestResponseMiddleware()
         {
-            throw new NotImplementedException();
+            while (acceptedResponses.Count != 0)
+            {
+                var requestResponse = acceptedResponses.Dequeue();
+                
+                // Filter out all peers that are about to leave.
+                if (leavingPeers.Contains(requestResponse.Request.Peer.Id))
+                {
+                    ReleaseRequestResponse(requestResponse);
+                    
+                    continue;
+                }
+                
+                try
+                {   
+                    // Filter all requests that are rejected by the middleware.
+                    if (responseMiddleware.Invoke(new RequestResponseMiddlewareContext(requestResponse.Request, requestResponse.Response)))
+                        ReleaseRequestResponse(requestResponse);
+                    else
+                        outgoingResponses.Enqueue(requestResponse);
+                }
+                catch (Exception e)
+                {
+                    ReleaseRequestResponse(requestResponse);
+                    
+                    Log.Warn(e, "excetion occurred in request response middleware");
+                }
+            }
         }
         
+        /// <summary>
+        /// Run notification middleware for all enqueued notifications.
+        /// </summary>
         private void RunNotificationMiddleware()
         {
-            throw new NotImplementedException();
-        }
-        
-        private void HandlePeerNotifications()
-        {
-            throw new NotImplementedException();
+            notificationCenter.Handle((notification) =>
+            {
+                // Filter out all peers that are about to leave. 
+                var peers = (notification.Peers ?? server.Peers).Where(p => !leavedPeers.Contains(p)).ToArray();
+                
+                try
+                {   
+                    // Filter all requests that are rejected by the middleware.
+                    if (notificationMiddleware.Invoke(new NotificationMiddlewareContext(peers, notification)))
+                        ReleaseNotification(notification);
+                    else
+                        outgoingNotifications.Enqueue(notification);
+                }
+                catch (Exception e)
+                {
+                    ReleaseNotification(notification);
+                    
+                    Log.Warn(e, "excetion occurred in notification middleware");
+                }
+            });
         }
         
         private void SendRequestResponses()
         {
-            throw new NotImplementedException();
+            while (outgoingResponses.Count != 0)
+            {
+                
+            }
         }
 
         private void SendNotifications()
         {
             throw new NotImplementedException();
+        }
+        
+        private void ResetLeavingPeers()
+        {
+            
         }
 
         /// <summary>
@@ -624,15 +699,20 @@ namespace Fracture.Net.Hosting
             RunPeerRequestMiddleware();
             HandlePeerRequests();
             
+            // Step 3: allow services and scripts to update their status. At this point scripts can also send out any notifications.
             UpdateServices();
             UpdateScripts();
             
+            // Step 4: run response middleware for responses generated at step 2. Run notification middleware for any notifications. 
             RunPeerRequestResponseMiddleware();
             RunNotificationMiddleware();
-            HandlePeerNotifications();
             
+            // Step 5: send out all requests and notifications generated by the server.
             SendRequestResponses();
             SendNotifications();
+            
+            // Step 6: disconnect all leaving peers.
+            ResetLeavingPeers();
         }
 
         public void Shutdown()

@@ -68,7 +68,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the optional peer list associated with this notification.
         /// </summary>
-        uint[] Peers
+        int[] Peers
         {
             get;
         }
@@ -77,23 +77,23 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Enqueues message notification for handling. 
         /// </summary>
-        /// <param name="peerId">id of the peer this message is send to</param>
+        /// <param name="peer">id of the peer this message is send to</param>
         /// <param name="message">message that will be send</param>
-        void Send(uint peerId, IMessage message);
+        void Send(int peer, IMessage message);
         
         /// <summary>
         /// Enqueues reset notification for handling.
         /// </summary>
-        /// <param name="peerId">peer that will be reset</param>
+        /// <param name="peer">peer that will be reset</param>
         /// <param name="message">optional last message send to the peer before resetting</param>
-        void Reset(uint peerId, IMessage message = null);
+        void Reset(int peer, IMessage message = null);
         
         /// <summary>
         /// Enqueues broadcast message for handling. 
         /// </summary>
         /// <param name="message">message that will be broadcast</param>
         /// <param name="peers">peers that the message will be broadcast to</param>
-        void BroadcastNarrow(IMessage message, params uint[] peers);
+        void BroadcastNarrow(IMessage message, params int[] peers);
         
         /// <summary>
         /// Enqueues broadcast message for handling. This message will be send to all connected peers.
@@ -120,7 +120,7 @@ namespace Fracture.Net.Hosting.Messaging
             private set;
         }
 
-        public uint[] Peers
+        public int[] Peers
         {
             get;
             private set;
@@ -137,25 +137,25 @@ namespace Fracture.Net.Hosting.Messaging
                 throw new InvalidOperationException("notification is not unset");
         }
         
-        public void Send(uint peerId, IMessage message)
+        public void Send(int peer, IMessage message)
         {
             AssertUnset();
             
             Command = NotificationCommand.Send;
-            Peers   = new[] { peerId };
+            Peers   = new[] { peer };
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
-        public void Reset(uint peerId, IMessage message = null)
+        public void Reset(int peer, IMessage message = null)
         {   
             AssertUnset();
 
             Command = NotificationCommand.Reset;
-            Peers   = new[] { peerId };
+            Peers   = new[] { peer };
             Message = message;
         }
         
-        public void BroadcastNarrow(IMessage message, params uint[] peers)
+        public void BroadcastNarrow(IMessage message, params int[] peers)
         {
             AssertUnset();
 
@@ -197,9 +197,17 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
+        
+        public int[] Peers
+        {
+            get;
+        }
         #endregion
 
-        public NotificationMiddlewareContext(INotification notification)
-            => Notification = notification ?? throw new ArgumentNullException(nameof(notification));
+        public NotificationMiddlewareContext(int[] peers, INotification notification)
+        {
+            Peers        = peers;
+            Notification = notification ?? throw new ArgumentNullException(nameof(notification));
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace Fracture.Net.Hosting.Messaging
     /// <summary>
     /// Delegate for creating handlers that are invoked for each notification.
     /// </summary>
-    public delegate void NotificationHandlerDelegate(INotification notification);
+    public delegate void NotificationHandlerDelegate(Notification notification);
     
     /// <summary>
     /// Interface that provides full notification center implementation by functioning as queue and handler.
