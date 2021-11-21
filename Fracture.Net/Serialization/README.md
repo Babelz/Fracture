@@ -11,8 +11,8 @@ Serialization is heavily focusing on improving the following aspects:
 * Binary size of objects
     * MTU is limited to 64kb for now
     * Serializing only minimal required information about objects when serialized, minimal schema information needed
-    ** Nulls in fields and arrays are compated to bit fields
-    ** No type information is required to be send over the network
+    * Nulls in fields and arrays are compated to bit fields
+    * No type information in most cases is required to be send over the network
     * Small primitive types e.g int/uint1/2/3/4/5 etc (wip, not done yet)
 * Message schema as code
     * Easy to share and keep up to date while developing between client and server
