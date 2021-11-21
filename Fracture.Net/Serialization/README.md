@@ -2,7 +2,7 @@
 Fracture serializer provides fast and compact serialization format for serializing objects to binary. However it does
 not attempt to be the best fastest or most compact serializer available. Serialization is developed with online games in
 mind and more precisely the Shattered World MMO. Serialization uses dynamic code generation to avoid overhead from reflection
-when serializing and deserializing messages. This format is purely intended to be used for communication and is not suited
+when serializing and deserializing objects. This format is purely intended to be used for communication and is not suited
 for file serialization as it does not have schema version or migration support.  
 
 Serialization is heavily focusing on improving the following aspects:
@@ -11,8 +11,10 @@ Serialization is heavily focusing on improving the following aspects:
 * Binary size of objects
     * MTU is limited to 64kb for now
     * Serializing only minimal required information about objects when serialized, minimal schema information needed
+    ** Nulls in fields and arrays are compated to bit fields
+    ** No type information is required to be send over the network
     * Small primitive types e.g int/uint1/2/3/4/5 etc (wip, not done yet)
-* Communication schema as code
+* Message schema as code
     * Easy to share and keep up to date while developing between client and server
 
 Serialization of objects has the following constraints:
