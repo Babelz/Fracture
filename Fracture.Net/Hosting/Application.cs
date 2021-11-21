@@ -439,7 +439,8 @@ namespace Fracture.Net.Hosting
         }
         
         /// <summary>
-        /// Deserialize incoming messages from peers.
+        /// Deserialize incoming messages from peers. All requests from peers that have been marked as leaved by server will be filtered
+        /// out and not handled at all.
         /// </summary>
         private void DeserializePeerMessages()
         {
@@ -447,8 +448,8 @@ namespace Fracture.Net.Hosting
             {
                 var incomingEvent = incomingEvents.Dequeue();
                 
-                // Skip handling for all peers that are about to leave.
-                if (!server.Connected(incomingEvent.Peer.Id) || leavedPeers.Contains(incomingEvent.Peer.Id))
+                // Skip handling for all requests where the peer has leaved.
+                if (leavedPeers.Contains(incomingEvent.Peer.Id))
                 {
                     resources.Buffers.Return(incomingEvent.Data);
                     
@@ -510,7 +511,7 @@ namespace Fracture.Net.Hosting
         }
         
         /// <summary>
-        /// Handle all accepted peer requests.
+        /// Handle all accepted peer requests. If the handler resets the peer any remaining requests will not be handled.
         /// </summary>
         private void HandlePeerRequests()
         {
@@ -518,7 +519,7 @@ namespace Fracture.Net.Hosting
             {
                 var request = acceptedRequests.Dequeue();
                 
-                // Do not allow handling of requests where the peer is marked for reset.
+                // Do not allow handling of requests if the handler reset the peer.
                 if (leavingPeers.Contains(request.Peer.Id))
                 {
                     ReleaseRequest(request);
@@ -543,7 +544,7 @@ namespace Fracture.Net.Hosting
                         case ResponseStatus.Code.Reset:
                             Log.Info("request will reset the peer", response, request);
                             
-                            // Disallow sending any further messages if the peer is about to be reset.
+                            // Disallow handling of any remaining requests and mark the peer as leaving.
                             leavingPeers.Add(request.Peer.Id);
                             break;
                         case ResponseStatus.Code.ServerError:
@@ -613,14 +614,6 @@ namespace Fracture.Net.Hosting
             {
                 var requestResponse = acceptedResponses.Dequeue();
                 
-                // Filter out all peers that are about to leave.
-                if (leavingPeers.Contains(requestResponse.Request.Peer.Id) && requestResponse.Response.StatusCode != ResponseStatus.Code.Reset)
-                {
-                    ReleaseRequestResponse(requestResponse);
-                    
-                    continue;
-                }
-                
                 try
                 {   
                     // Filter all requests that are rejected by the middleware.
@@ -646,9 +639,8 @@ namespace Fracture.Net.Hosting
             // Notification ownership is moved to the application at this point.
             notificationCenter.Handle((notification) =>
             {
-                // Filter out all peers that are about to leave. Response middleware or response handler might already have detected or enqueued a peer for
-                // reset so no middleware or notifications will be send to these peers.
-                var peers = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)).ToArray();
+                // All notifications might not have peers associated with them. In this case we broadcast the notification to all peers.
+                var peers = (notification.Peers ?? server.Peers).ToArray();
 
                 try
                 {   
@@ -676,21 +668,12 @@ namespace Fracture.Net.Hosting
             {
                 var requestResponse = outgoingResponses.Dequeue();
                 
-                if (leavingPeers.Contains(requestResponse.Request.Peer.Id))
-                {
-                    ReleaseRequestResponse(requestResponse);
-                    
-                    continue;
-                }
-                
                 try
                 {
+                    // TODO: if this block throws the data object is leaked and not pooled. 
                     var data = serializer.Serialize(requestResponse.Response.Message);
                     
                     server.Send(requestResponse.Request.Peer.Id, data, 0, data.Length);
-                    
-                    if (requestResponse.Response.StatusCode == ResponseStatus.Code.Reset)
-                        leavingPeers.Add(requestResponse.Request.Peer.Id);
                 }
                 catch (Exception e)
                 {
@@ -710,10 +693,6 @@ namespace Fracture.Net.Hosting
             void Send(INotification notification)
             {
                 var peer = notification.Peers.First();
-                    
-                if (leavingPeers.Contains(peer))
-                    return;
-                    
                 var data = serializer.Serialize(notification.Message);
                     
                 server.Send(peer, data, 0, data.Length);
@@ -721,10 +700,9 @@ namespace Fracture.Net.Hosting
                 
             void BroadcastNarrow(INotification notification)
             {
-                var peers = notification.Peers.Where(p => !leavingPeers.Contains(p));
-                var data  = serializer.Serialize(notification.Message);
+                var data = serializer.Serialize(notification.Message);
                     
-                foreach (var peer in peers)
+                foreach (var peer in notification.Peers)
                 {
                     var copy = resources.Buffers.Take(data.Length);
                         
@@ -736,10 +714,9 @@ namespace Fracture.Net.Hosting
                 
             void BroadcastWide(INotification notification)
             {
-                var peers = server.Peers.Where(p => !leavingPeers.Contains(p));
-                var data  = serializer.Serialize(notification.Message);
+                var data = serializer.Serialize(notification.Message);
                     
-                foreach (var peer in peers)
+                foreach (var peer in server.Peers)
                 {
                     var copy = resources.Buffers.Take(data.Length);
                         
@@ -751,10 +728,9 @@ namespace Fracture.Net.Hosting
                 
             void Reset(INotification notification)
             {
-                var peers = (notification.Peers ?? server.Peers).Where(p => !leavedPeers.Contains(p));
-                var data  = notification.Message != null ? serializer.Serialize(notification.Message) : null;
+                var data = notification.Message != null ? serializer.Serialize(notification.Message) : null;
                 
-                foreach (var peer in peers)
+                foreach (var peer in (notification.Peers ?? server.Peers))
                 {
                     if (data != null)
                     {
