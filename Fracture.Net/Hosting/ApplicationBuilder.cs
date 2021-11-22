@@ -1,7 +1,14 @@
+using System;
+using System.Collections.Generic;
+using System.IO.Ports;
+using System.Runtime.CompilerServices;
+using System.ServiceModel.Syndication;
+using Fracture.Common.Collections;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Net.Hosting.Messaging;
-using Fracture.Net.Hosting.Scripting;
 using Fracture.Net.Hosting.Servers;
 
 namespace Fracture.Net.Hosting
@@ -16,6 +23,15 @@ namespace Fracture.Net.Hosting
         /// Registers custom optional resource container for use with the application.
         /// </summary>
         IApplicationBuilder Resources(ApplicationResources resources);
+        
+        /// <summary>
+        /// Register custom optional resources for use with the application.
+        /// </summary>
+        IApplicationBuilder Resources(IMessagePool messages = null,
+                                      IArrayPool<byte> buffers = null,
+                                      IPool<Request> requests = null,
+                                      IPool<Response> responses = null,
+                                      IPool<Notification> notifications = null);
         
         /// <summary>
         /// Registers custom request router for application.
@@ -50,7 +66,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register custom script manager for the application to use.
         /// </summary>
-        IApplicationBuilder Scripts(IScriptManager scripts);
+        IApplicationBuilder Scripts(IApplicationScriptManager applicationScripts);
         
         /// <summary>
         /// Register custom message serializer for the application to use.
@@ -83,6 +99,27 @@ namespace Fracture.Net.Hosting
         IApplication Build();
     }
     
+    public readonly struct ApplicationBuilderBindingContext
+    {
+        #region Properties
+        public Type Type
+        {
+            get;
+        }
+
+        public IBindingValue[] Args
+        {
+            get;
+        }
+        #endregion
+
+        public ApplicationBuilderBindingContext(Type type, params IBindingValue[] args)
+        {
+            Type = type ?? throw new ArgumentException(nameof(type));
+            Args = args;
+        }
+    }
+    
     /// <summary>
     /// Default implementation of <see cref="IApplicationBuilder"/>.
     /// </summary>
@@ -90,81 +127,205 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Kernel kernel;
+        
+        private readonly Queue<ApplicationBuilderBindingContext> startupScriptContexts;
+        private readonly Queue<ApplicationBuilderBindingContext> serviceContexts;
+        
+        private ApplicationResources resources;
+        
+        private IRequestRouter router;
+        private INotificationCenter notifications;
+        
+        private IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware;
+        private IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
+        private IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
+        
+        private IApplicationScriptManager scripts;
+        private IMessageSerializer serializer;
+        private IApplicationTimer timer;
+        
+        private IServer server;
         #endregion
         
         protected ApplicationBuilder()
-            => kernel = new Kernel(DependencyBindingOptions.ClassesInterfaces);
+        {
+            kernel = new Kernel(DependencyBindingOptions.ClassesInterfaces);
+            
+            startupScriptContexts = new Queue<ApplicationBuilderBindingContext>();
+            serviceContexts       = new Queue<ApplicationBuilderBindingContext>();
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ApplicationResources CreateDefaultResources()
+            => new ApplicationResources(
+                new MessagePool(),
+                new BlockArrayPool<byte>(new ArrayPool<byte>(() => new ListStorageObject<byte[]>(new List<byte[]>()), 0), 64, ushort.MaxValue),
+                new CleanPool<Request>(new Pool<Request>(new LinearStorageObject<Request>(new LinearGrowthArray<Request>(256)))),
+                new CleanPool<Response>(new Pool<Response>(new LinearStorageObject<Response>(new LinearGrowthArray<Response>(256)))),
+                new CleanPool<Notification>(new Pool<Notification>(new LinearStorageObject<Notification>(new LinearGrowthArray<Notification>(256))))
+            );
         
         public IApplicationBuilder Resources(ApplicationResources resources)
         {
-            throw new System.NotImplementedException();
+            this.resources = resources ?? throw new ArgumentNullException(nameof(resources));
+            
+            return this;
+        }
+        
+        public IApplicationBuilder Resources(IMessagePool messages = null,
+                                             IArrayPool<byte> buffers = null,
+                                             IPool<Request> requests = null,
+                                             IPool<Response> responses = null,
+                                             IPool<Notification> notifications = null)
+        {
+            var defaultResources = CreateDefaultResources();
+            
+            resources = new ApplicationResources(
+                messages ?? defaultResources.Messages,
+                buffers ?? defaultResources.Buffers,
+                requests ?? defaultResources.Requests,
+                responses ?? defaultResources.Responses,
+                notifications ?? defaultResources.Notifications
+            );
+            
+            return this;
         }
 
         public IApplicationBuilder Router(IRequestRouter router)
         {
-            throw new System.NotImplementedException();
+            this.router = router ?? throw new ArgumentNullException(nameof(router));
+            
+            return this;
         }
-
+        
         public IApplicationBuilder Notifications(INotificationCenter notifications)
         {
-            throw new System.NotImplementedException();
+            this.notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            
+            return this;
         }
-
+        
         public IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> middleware)
         {
-            throw new System.NotImplementedException();
+            requestMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            
+            return this;
         }
 
         public IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> middleware)
         {
-            throw new System.NotImplementedException();
+            responseMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            
+            return this;
         }
-
+        
         public IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> middleware)
         {
-            throw new System.NotImplementedException();
+            notificationMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            
+            return this;
         }
 
         public IApplicationBuilder Server(IServer server)
         {
-            throw new System.NotImplementedException();
-        }
-
-        public IApplicationBuilder Scripts(IScriptManager scripts)
-        {
-            throw new System.NotImplementedException();
+            this.server = server ?? throw new ArgumentNullException(nameof(server));
+            
+            return this;
         }
 
         public IApplicationBuilder Serializer(IMessageSerializer serializer)
         {
-            throw new System.NotImplementedException();
+            this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            
+            return this;
         }
-
+        
         public IApplicationBuilder Timer(IApplicationTimer timer)
         {
-            throw new System.NotImplementedException();
+            this.timer = timer ?? throw new ArgumentNullException(nameof(timer));
+            
+            return this;
         }
-
+        
+        public IApplicationBuilder Scripts(IApplicationScriptManager applicationScripts)
+        {
+            scripts = applicationScripts ?? throw new ArgumentNullException(nameof(applicationScripts));
+            
+            return this;
+        }
+        
         public IApplicationBuilder StartupScript<T>(params IBindingValue[] args)
         {
-            throw new System.NotImplementedException();
+            startupScriptContexts.Enqueue(new ApplicationBuilderBindingContext(typeof(T), args));
+            
+            return this;
         }
 
         public IApplicationBuilder Service<T>(params IBindingValue[] args)
         {
-            throw new System.NotImplementedException();
+            serviceContexts.Enqueue(new ApplicationBuilderBindingContext(typeof(T), args));
+            
+            return this;
         }
-
+        
         public IApplicationBuilder Dependency(object dependency)
         {
-            throw new System.NotImplementedException();
+            kernel.Bind(dependency);
+            
+            return this;
         }
 
         public IApplication Build()
         {
-            throw new System.NotImplementedException();
+            if (server == null)
+                throw new InvalidOperationException("server was not set");
+
+            resources ??= CreateDefaultResources();
+            
+            router        ??= new RequestRouter();
+            notifications ??= new NotificationCenter(resources.Notifications);
+            
+            requestMiddleware      ??= new MiddlewarePipeline<RequestMiddlewareContext>();
+            responseMiddleware     ??= new MiddlewarePipeline<RequestResponseMiddlewareContext>();
+            notificationMiddleware ??= new MiddlewarePipeline<NotificationMiddlewareContext>();
+            
+            scripts    ??= new ApplicationScriptManager();
+            serializer ??= new MessageSerializer(resources.Buffers);
+            timer      ??= new ApplicationTimer();
+            
+            while (serviceContexts.Count != 0)
+            {
+                var context = serviceContexts.Dequeue();
+                
+                kernel.Bind(context.Type, context.Args);
+            }
+            
+            var application = new Application(
+                kernel,
+                resources,
+                router,
+                notifications,
+                requestMiddleware,
+                notificationMiddleware,
+                responseMiddleware,
+                server,
+                scripts,
+                serializer,
+                timer
+            );
+            
+            while (startupScriptContexts.Count != 0)
+            {
+                var context = startupScriptContexts.Dequeue();
+                var script  = (IApplicationScript)kernel.Activate(context.Type, context.Args);
+                
+                scripts.Add(script);
+            }
+            
+            return application;
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ApplicationBuilder Create()
             => new ApplicationBuilder();
     }

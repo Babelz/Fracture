@@ -25,7 +25,7 @@ namespace Fracture.Common.Memory.Pools
 
         private readonly Func<IStorageObject<T[]>> factory;
 
-        private readonly List<IStorageObject<T[]>> storages;
+        private readonly Dictionary<int, IStorageObject<T[]>> storages;
         #endregion
 
         /// <summary>
@@ -40,9 +40,9 @@ namespace Fracture.Common.Memory.Pools
             this.factory         = factory ?? throw new ArgumentNullException(nameof(factory));
             this.storageCapacity = storageCapacity;
             
-            storages = new List<IStorageObject<T[]>>();
+            storages = new Dictionary<int, IStorageObject<T[]>>();
 
-            for (var i = 0; i < initialMaxStorages; i++) storages.Add(factory());
+            for (var i = 0; i < initialMaxStorages; i++) storages.Add(i, factory());
         }
         /// <summary>
         /// Creates new instance of array pool with storage capacity.
@@ -75,7 +75,7 @@ namespace Fracture.Common.Memory.Pools
         private IStorageObject<T[]> GetArrayStorage(int size)
         {
             // Grow storage size.
-            while (size >= storages.Count) storages.Add(factory());
+            while (size >= storages.Count) storages.Add(size, factory());
             
             return storages[size];
         }

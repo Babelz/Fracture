@@ -273,8 +273,7 @@
         <Compile Include="Hosting\Messaging\Notification.cs" />
         <Compile Include="Hosting\Peers\Peer.cs" />
         <Compile Include="Hosting\Peers\TcpPeer.cs" />
-        <Compile Include="Hosting\Scripting\Script.cs" />
-        <Compile Include="Hosting\Scripting\ScriptManager.cs" />
+        <Compile Include="Hosting\ApplicationScript.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpServer.cs" />
         <Compile Include="Messages\Message.cs" />

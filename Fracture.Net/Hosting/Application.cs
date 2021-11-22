@@ -5,11 +5,11 @@ using System.Net;
 using System.Security.Policy;
 using Fracture.Common;
 using Fracture.Common.Di;
+using Fracture.Common.Di.Binding;
 using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Peers;
-using Fracture.Net.Hosting.Scripting;
 using Fracture.Net.Hosting.Servers;
 using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
 using Microsoft.Diagnostics.Tracing.Parsers.FrameworkEventSource;
@@ -150,15 +150,7 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public interface IApplicationScriptingHost : IApplicationMessagingHost
     {
-        #region Properties
-        /// <summary>
-        /// Gets the application scripting host for working with scripts.
-        /// </summary>
-        public IScriptHost Scripts
-        {
-            get;
-        }
-        #endregion
+        void Load<T>(params IBindingValue[] args) where T : IApplicationScript;
     }
 
     /// <summary>
@@ -218,7 +210,7 @@ namespace Fracture.Net.Hosting
         }
     }
     
-    public abstract class Application : IApplication, IApplicationScriptingHost
+    public sealed class Application : IApplication, IApplicationScriptingHost
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -227,7 +219,7 @@ namespace Fracture.Net.Hosting
         #region Fields
         private readonly IRequestRouter requestRouter;
         private readonly INotificationCenter notificationCenter;
-        private readonly IScriptManager scripts;
+        private readonly IApplicationScriptManager scripts;
         
         private readonly IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware;
         private readonly IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
@@ -281,10 +273,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-
-        public IScriptHost Scripts
-            => scripts;
-
+        
         public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses => responseMiddleware;
         
         public IApplicationClock Clock => timer;
@@ -298,7 +287,7 @@ namespace Fracture.Net.Hosting
                            IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware,
                            IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware,
                            IServer server,
-                           IScriptManager scripts,
+                           IApplicationScriptManager scripts,
                            IMessageSerializer serializer,
                            IApplicationTimer timer)
         {
@@ -838,7 +827,10 @@ namespace Fracture.Net.Hosting
             // Step 6: disconnect all leaving peers.
             ResetLeavingPeers();
         }
-
+        
+        public void Load<T>(params IBindingValue[] args) where T : IApplicationScript
+            => scripts.Add(kernel.Activate<T>(args));
+        
         public void Shutdown()
         {
             if (!running)
