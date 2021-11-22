@@ -1,3 +1,4 @@
+using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Scripting;
@@ -87,9 +88,12 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationBuilder : IApplicationBuilder
     {
+        #region Fields
+        private readonly Kernel kernel;
+        #endregion
+        
         protected ApplicationBuilder()
-        {
-        }
+            => kernel = new Kernel(DependencyBindingOptions.ClassesInterfaces);
         
         public IApplicationBuilder Resources(ApplicationResources resources)
         {

@@ -94,7 +94,7 @@ namespace Fracture.Net.Hosting.Servers
             listener.Listen(backlog);
         }
 
-        public void Stop()
+        public void Deafen()
         {
             if (!Accepting)
                 throw new InvalidOperationException("listener not in listen state");

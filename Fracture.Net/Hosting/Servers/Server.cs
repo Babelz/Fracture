@@ -48,9 +48,10 @@ namespace Fracture.Net.Hosting.Servers
         void Listen(int port, int backlog);
         
         /// <summary>
-        /// Stops listening for any incoming connections and stops accepting them.
+        /// Stops listening for any incoming connections and stops accepting them. This does not dispose the internal socket and listening can be continued
+        /// by calling the listen method.
         /// </summary>
-        void Stop();
+        void Deafen();
         
         /// <summary>
         /// Polls the listener and accepts all incoming connections if the listener is in listening state.
@@ -108,7 +109,8 @@ namespace Fracture.Net.Hosting.Servers
         void Send(int id, byte[] data, int offset, int length);
         
         void Start(int port, int backlog);
-        void Stop();
+        
+        void Shutdown();
 
         void Poll();
     }
@@ -214,9 +216,9 @@ namespace Fracture.Net.Hosting.Servers
             listener.Poll();
         }
         
-        public void Stop()
+        public void Shutdown()
         {
-            listener.Stop();
+            listener.Deafen();
             
             for (var i = 0; i < peers.Count; i++)
                 peers[i].Disconnect();

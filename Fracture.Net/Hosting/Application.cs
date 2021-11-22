@@ -169,7 +169,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Starts the application and initializes all of its dependencies.
         /// </summary>
-        void Start();
+        void Start(int port, int backlog);
     }
     
     /// <summary>
@@ -382,7 +382,7 @@ namespace Fracture.Net.Hosting
             ReleaseResponse(requestResponse.Response);
         }
 
-        private void Initialize()
+        private void Initialize(int port, int backlog)
         {
             Starting?.Invoke(this, EventArgs.Empty);
                
@@ -391,12 +391,14 @@ namespace Fracture.Net.Hosting
             server.Incoming += Server_OnIncoming;    
             server.Outgoing += Server_OnOutgoing;
             
-            running = true;
+            server.Start(port, backlog);
         }
 
         private void Deinitialize()
         {
             ShuttingDown?.Invoke(this, EventArgs.Empty);
+            
+            server.Shutdown();
         }
         
         /// <summary>
@@ -693,6 +695,10 @@ namespace Fracture.Net.Hosting
             void Send(INotification notification)
             {
                 var peer = notification.Peers.First();
+                
+                if (leavingPeers.Contains(peer))
+                    return;
+                
                 var data = serializer.Serialize(notification.Message);
                     
                 server.Send(peer, data, 0, data.Length);
@@ -702,7 +708,7 @@ namespace Fracture.Net.Hosting
             {
                 var data = serializer.Serialize(notification.Message);
                     
-                foreach (var peer in notification.Peers)
+                foreach (var peer in notification.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
                     var copy = resources.Buffers.Take(data.Length);
                         
@@ -716,7 +722,7 @@ namespace Fracture.Net.Hosting
             {
                 var data = serializer.Serialize(notification.Message);
                     
-                foreach (var peer in server.Peers)
+                foreach (var peer in server.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
                     var copy = resources.Buffers.Take(data.Length);
                         
@@ -730,7 +736,7 @@ namespace Fracture.Net.Hosting
             {
                 var data = notification.Message != null ? serializer.Serialize(notification.Message) : null;
                 
-                foreach (var peer in (notification.Peers ?? server.Peers))
+                foreach (var peer in (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)))
                 {
                     if (data != null)
                     {
@@ -841,13 +847,15 @@ namespace Fracture.Net.Hosting
             running = false;
         }
 
-        public void Start()
+        public void Start(int port, int backlog)
         {
             if (running)
                 throw new InvalidOperationException("already running");
             
-            Initialize();
+            Initialize(port, backlog);
 
+            running = true;
+            
             while (running)
                 Tick();
             
