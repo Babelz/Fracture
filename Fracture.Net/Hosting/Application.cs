@@ -1,19 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Security.Policy;
 using Fracture.Common;
 using Fracture.Common.Di;
-using Fracture.Common.Di.Binding;
-using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Hosting.Servers;
-using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
-using Microsoft.Diagnostics.Tracing.Parsers.FrameworkEventSource;
-using Microsoft.Win32;
 using NLog;
 
 namespace Fracture.Net.Hosting

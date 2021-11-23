@@ -1,5 +1,4 @@
 using BenchmarkDotNet.Attributes;
-using Fracture.Common.Memory;
 
 namespace Fracture.Benchmarks.Serialization
 {

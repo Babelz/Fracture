@@ -1,13 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using Fracture.Common.Collections;
-using Fracture.Common.Memory;
-using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
-using Microsoft.Diagnostics.Tracing.Parsers.AspNet;
 using NLog;
 
 namespace Fracture.Net.Hosting.Messaging

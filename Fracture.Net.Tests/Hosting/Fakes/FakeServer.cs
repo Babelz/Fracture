@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using Dia2Lib;
 using Fracture.Common.Events;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Hosting.Servers;
