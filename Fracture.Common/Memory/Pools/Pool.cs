@@ -18,21 +18,9 @@ namespace Fracture.Common.Memory.Pools
         T Take(PoolElementDecoratorDelegate<T> decorator = null);
         
         /// <summary>
-        /// Populates given list with elements.
-        /// </summary>
-        void Take(IList<T> elements, PoolElementDecoratorDelegate<T> decorator = null);
-
-        /// <summary>
         /// Returns given element to the pool.
         /// </summary>
         void Return(T element);
-
-        /// <summary>
-        /// Returns collection of elements to the pool.
-        /// </summary>
-        void Return(IList<T> elements);
-
-        void Return(IList<T> elements, int start, int count);
     }
     
     /// <summary>
@@ -78,18 +66,6 @@ namespace Fracture.Common.Memory.Pools
             
             return element;
         }
-        
-        public void Take(IList<T> elements, PoolElementDecoratorDelegate<T> decorator = null)
-        {
-            for (var i = 0; i < elements.Count; i++)
-            {
-                var element = Take();   
-                
-                decorator?.Invoke(element);
-                
-                elements[i] = element;
-            }
-        }
 
         /// <summary>
         /// Returns given object to pool.
@@ -101,20 +77,6 @@ namespace Fracture.Common.Memory.Pools
             
             storage.Return(element);
         }
-        
-        public void Return(IList<T> elements, int start, int count)
-        {
-            for (var i = start; i < count; i++)
-            {
-                if (elements[i] == default(T))
-                    continue;
-
-                Return(elements[i]);
-            }
-        }
-
-        public void Return(IList<T> elements)
-            => Return(elements, 0, elements.Count);
     }
         
     /// <summary>

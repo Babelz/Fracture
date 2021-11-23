@@ -158,7 +158,8 @@ namespace Fracture.Engine.Physics.Spatial
             // Return resources.
             if (owner)
             {
-                listPool.Return(bodyLists);
+                Array.ForEach(bodyLists, listPool.Return);
+                
                 arrayPool.Return(bodyLists);
 
                 owner = false;

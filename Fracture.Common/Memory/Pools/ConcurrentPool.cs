@@ -17,24 +17,9 @@ namespace Fracture.Common.Memory.Pools
             lock (pool) pool.Return(element);
         }
 
-        public void Return(IList<T> elements)
+        public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {
-            lock (pool) pool.Return(elements);
-        }
-
-        public void Return(IList<T> elements, int start, int count)
-        {
-            lock (pool) pool.Return(elements, start, count);
-        }
-
-        public T Take()
-        {
-            lock (pool) return pool.Take();
-        }
-
-        public void Take(IList<T> elements)
-        {
-            lock (pool) pool.Take(elements);
+            lock (pool) return pool.Take(decorator);
         }
     }
 }

@@ -64,32 +64,16 @@ namespace Fracture.Common.Memory.Pools
         public void Return(T element)
             => storage.Return(element);
         
-        public void Return(IList<T> elements, int start, int count)
-        {
-            for (var i = start; i < count; i++)
-            {
-                if (elements[i] == default(T))
-                    continue;
-
-                Return(elements[i]);
-            }
-        }
-
-        public void Return(IList<T> elements)
-            => Return(elements, 0, elements.Count);
-
-        public void Take(IList<T> elements)
-        {
-            for (var i = 0; i < elements.Count; i++)
-                elements[i] = Take();
-        }
-
-        public T Take()
+        public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {
             if (storage.Count == 0)
                 Allocate();
 
-            return storage.Take();
+            var element = storage.Take();
+            
+            decorator?.Invoke(element);
+            
+            return element;
         }
     }
 }

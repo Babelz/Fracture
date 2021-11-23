@@ -20,29 +20,13 @@ namespace Fracture.Common.Memory.Pools
         public CollectionPool(IPool<TCollection> pool)
             => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
         
-        public TCollection Take() => pool.Take();
-
-        public void Take(IList<TCollection> elements) => pool.Take(elements);
-
+        public TCollection Take(PoolElementDecoratorDelegate<TCollection> decorator = null) => pool.Take(decorator);
+        
         public void Return(TCollection element)
         {
             pool.Return(element);
 
             element.Clear();
         }
-
-        public void Return(IList<TCollection> elements, int start, int count)
-        {
-            for (var i = start; i < count; i++)
-            {
-                if (elements[i] == default(TCollection))
-                    continue;
-
-                Return(elements[i]);
-            }
-        }
-
-        public void Return(IList<TCollection> elements)
-            => Return(elements, 0, elements.Count);
     }
 }
