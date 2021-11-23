@@ -85,7 +85,7 @@ namespace Fracture.Net.Hosting.Messaging
         public RequestRouter()
             => routes = new List<RequestRoute>();
         
-        public void Route(MessageMatchDelegate match, RequestHandlerDelegate handler)
+        public void Use(MessageMatchDelegate match, RequestHandlerDelegate handler)
             => routes.Add(new RequestRoute(match, handler));
 
         public void Dispatch(IRequest request, IResponse response)

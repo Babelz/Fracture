@@ -78,10 +78,10 @@ namespace Fracture.Net.Hosting.Peers
         #endregion
         
         #region Events
-        public event EventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerResetEventArgs> Reset;
         
-        public event EventHandler<PeerMessageEventArgs> Incoming;
-        public event EventHandler<ServerMessageEventArgs> Outgoing;
+        public event StructEventHandler<PeerMessageEventArgs> Incoming;
+        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
@@ -261,7 +261,7 @@ namespace Fracture.Net.Hosting.Peers
                              length, 
                              SocketFlags.None, 
                              SendCallback, 
-                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length));
+                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
         }
 
         public void Poll()
