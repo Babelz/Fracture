@@ -150,7 +150,12 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public interface IApplicationScriptingHost : IApplicationMessagingHost
     {
-        void Load<T>(params IBindingValue[] args) where T : IApplicationScript;
+        #region Properties
+        IApplicationScriptLoader Scripts
+        {
+            get;
+        }
+        #endregion
     }
 
     /// <summary>
@@ -219,7 +224,9 @@ namespace Fracture.Net.Hosting
         #region Fields
         private readonly IRequestRouter requestRouter;
         private readonly INotificationCenter notificationCenter;
+        
         private readonly IApplicationScriptManager scripts;
+        private readonly IApplicationServiceManager services;
         
         private readonly IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware;
         private readonly IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
@@ -277,6 +284,9 @@ namespace Fracture.Net.Hosting
         public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses => responseMiddleware;
         
         public IApplicationClock Clock => timer;
+        
+        public IApplicationScriptLoader Scripts
+            => scripts;
         #endregion
 
         public Application(Kernel kernel, 
@@ -288,6 +298,7 @@ namespace Fracture.Net.Hosting
                            IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware,
                            IServer server,
                            IApplicationScriptManager scripts,
+                           IApplicationServiceManager services,
                            IMessageSerializer serializer,
                            IApplicationTimer timer)
         {
@@ -297,6 +308,7 @@ namespace Fracture.Net.Hosting
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             this.timer      = timer ?? throw new ArgumentNullException(nameof(timer));
             this.scripts    = scripts ?? throw new ArgumentNullException(nameof(scripts));
+            this.services   = services ?? throw new ArgumentNullException(nameof(services));
 
             this.requestRouter          = requestRouter ?? throw new ArgumentNullException(nameof(requestRouter));
             this.notificationCenter     = notificationCenter ?? throw new ArgumentNullException(nameof(notificationCenter));
@@ -373,13 +385,20 @@ namespace Fracture.Net.Hosting
 
         private void Initialize(int port, int backlog)
         {
-            Starting?.Invoke(this, EventArgs.Empty);
-               
+            // Hook events before any script does.
             server.Join     += Server_OnJoin;
             server.Reset    += Server_OnReset;
             server.Incoming += Server_OnIncoming;    
             server.Outgoing += Server_OnOutgoing;
+
+            // Initialize scripts and services before startup to allow them run possible initialization logic before starting.
+            services.Initialize(kernel);
             
+            scripts.Initialize(kernel);
+            
+            // Start the actual application by starting the server.
+            Starting?.Invoke(this, EventArgs.Empty);
+
             server.Start(port, backlog);
         }
 
@@ -576,19 +595,7 @@ namespace Fracture.Net.Hosting
         /// Runs update logic for all services attached to the application.
         /// </summary>
         private void UpdateServices()
-        {
-            foreach (var service in kernel.All<IActiveApplicationService>())
-            {
-                try
-                {
-                    service.Tick();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "error occurred while updating service", service);
-                }
-            }
-        }
+            => services.Tick();
         
         /// <summary>
         /// Runs update logic for all scripts active inside the application.
@@ -827,10 +834,7 @@ namespace Fracture.Net.Hosting
             // Step 6: disconnect all leaving peers.
             ResetLeavingPeers();
         }
-        
-        public void Load<T>(params IBindingValue[] args) where T : IApplicationScript
-            => scripts.Add(kernel.Activate<T>(args));
-        
+
         public void Shutdown()
         {
             if (!running)

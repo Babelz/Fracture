@@ -20,6 +20,11 @@ namespace Fracture.Net.Hosting
     public interface IApplicationBuilder
     {
         /// <summary>
+        /// Register custom optional kernel for use with the application. 
+        /// </summary>
+        IApplicationBuilder Kernel(Kernel kernel);
+        
+        /// <summary>
         /// Registers custom optional resource container for use with the application.
         /// </summary>
         IApplicationBuilder Resources(ApplicationResources resources);
@@ -46,17 +51,17 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Registers custom request middleware for application.
         /// </summary>
-        IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> middleware);
+        IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware);
         
         /// <summary>
         /// Registers custom response middleware for application. 
         /// </summary>
-        IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> middleware);
+        IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware);
         
         /// <summary>
         /// Registers custom notification middleware for application. 
         /// </summary>
-        IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> middleware);
+        IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware);
         
         /// <summary>
         /// Register the server for use by the application. 
@@ -66,8 +71,13 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register custom script manager for the application to use.
         /// </summary>
-        IApplicationBuilder Scripts(IApplicationScriptManager applicationScripts);
+        IApplicationBuilder Scripts(IApplicationScriptManager scripts);
         
+        /// <summary>
+        /// Register custom service manager for the application to use.
+        /// </summary>
+        IApplicationBuilder Services(IApplicationServiceManager services);
+
         /// <summary>
         /// Register custom message serializer for the application to use.
         /// </summary>
@@ -126,11 +136,12 @@ namespace Fracture.Net.Hosting
     public sealed class ApplicationBuilder : IApplicationBuilder
     {
         #region Fields
-        private readonly Kernel kernel;
-        
         private readonly Queue<ApplicationBuilderBindingContext> startupScriptContexts;
         private readonly Queue<ApplicationBuilderBindingContext> serviceContexts;
         
+        private readonly Queue<object> dependencies;
+        
+        private Kernel kernel;
         private ApplicationResources resources;
         
         private IRequestRouter router;
@@ -144,13 +155,13 @@ namespace Fracture.Net.Hosting
         private IMessageSerializer serializer;
         private IApplicationTimer timer;
         
+        private IApplicationServiceManager services;
         private IServer server;
         #endregion
         
         protected ApplicationBuilder()
         {
-            kernel = new Kernel(DependencyBindingOptions.ClassesInterfaces);
-            
+            dependencies          = new Queue<object>();
             startupScriptContexts = new Queue<ApplicationBuilderBindingContext>();
             serviceContexts       = new Queue<ApplicationBuilderBindingContext>();
         }
@@ -164,7 +175,14 @@ namespace Fracture.Net.Hosting
                 new CleanPool<Response>(new Pool<Response>(new LinearStorageObject<Response>(new LinearGrowthArray<Response>(256)))),
                 new CleanPool<Notification>(new Pool<Notification>(new LinearStorageObject<Notification>(new LinearGrowthArray<Notification>(256))))
             );
-        
+
+        public IApplicationBuilder Kernel(Kernel kernel)
+        {
+            this.kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
+            
+            return this;
+        }
+
         public IApplicationBuilder Resources(ApplicationResources resources)
         {
             this.resources = resources ?? throw new ArgumentNullException(nameof(resources));
@@ -205,23 +223,23 @@ namespace Fracture.Net.Hosting
             return this;
         }
         
-        public IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> middleware)
+        public IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware)
         {
-            requestMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            this.requestMiddleware = requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware));
             
             return this;
         }
 
-        public IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> middleware)
+        public IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
         {
-            responseMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            this.responseMiddleware = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
             
             return this;
         }
         
-        public IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> middleware)
+        public IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
         {
-            notificationMiddleware = middleware ?? throw new ArgumentNullException(nameof(middleware));
+            this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             
             return this;
         }
@@ -229,6 +247,13 @@ namespace Fracture.Net.Hosting
         public IApplicationBuilder Server(IServer server)
         {
             this.server = server ?? throw new ArgumentNullException(nameof(server));
+            
+            return this;
+        }
+
+        public IApplicationBuilder Services(IApplicationServiceManager services)
+        {
+            this.services = services ?? throw new ArgumentNullException(nameof(services));
             
             return this;
         }
@@ -247,9 +272,9 @@ namespace Fracture.Net.Hosting
             return this;
         }
         
-        public IApplicationBuilder Scripts(IApplicationScriptManager applicationScripts)
+        public IApplicationBuilder Scripts(IApplicationScriptManager scripts)
         {
-            scripts = applicationScripts ?? throw new ArgumentNullException(nameof(applicationScripts));
+            this.scripts = scripts ?? throw new ArgumentNullException(nameof(scripts));
             
             return this;
         }
@@ -270,7 +295,7 @@ namespace Fracture.Net.Hosting
         
         public IApplicationBuilder Dependency(object dependency)
         {
-            kernel.Bind(dependency);
+            dependencies.Enqueue(dependency ?? throw new ArgumentNullException(nameof(dependency)));
             
             return this;
         }
@@ -280,8 +305,10 @@ namespace Fracture.Net.Hosting
             if (server == null)
                 throw new InvalidOperationException("server was not set");
 
+            // Create and locate dependencies injected via builder methods.
             resources ??= CreateDefaultResources();
-            
+
+            kernel        ??= new Kernel(DependencyBindingOptions.Interfaces);
             router        ??= new RequestRouter();
             notifications ??= new NotificationCenter(resources.Notifications);
             
@@ -290,16 +317,11 @@ namespace Fracture.Net.Hosting
             notificationMiddleware ??= new MiddlewarePipeline<NotificationMiddlewareContext>();
             
             scripts    ??= new ApplicationScriptManager();
+            services   ??= new ApplicationServiceManager();
             serializer ??= new MessageSerializer(resources.Buffers);
             timer      ??= new ApplicationTimer();
             
-            while (serviceContexts.Count != 0)
-            {
-                var context = serviceContexts.Dequeue();
-                
-                kernel.Bind(context.Type, context.Args);
-            }
-            
+            // Initialize application.
             var application = new Application(
                 kernel,
                 resources,
@@ -310,16 +332,29 @@ namespace Fracture.Net.Hosting
                 responseMiddleware,
                 server,
                 scripts,
+                services,
                 serializer,
                 timer
             );
             
+            // Register all dependencies.
+            while (dependencies.Count != 0)
+                kernel.Bind(dependencies.Dequeue());
+            
+            // Register all services.
+            while (serviceContexts.Count != 0)
+            {
+                var context = serviceContexts.Dequeue();
+                
+                kernel.Bind(context.Type, context.Args);
+            }
+            
+            // Register all startup scripts.
             while (startupScriptContexts.Count != 0)
             {
                 var context = startupScriptContexts.Dequeue();
-                var script  = (IApplicationScript)kernel.Activate(context.Type, context.Args);
                 
-                scripts.Add(script);
+                scripts.Load(context.Type, context.Args);
             }
             
             return application;

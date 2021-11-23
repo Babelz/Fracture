@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
+using NLog;
 
 namespace Fracture.Net.Hosting
 {
@@ -24,6 +27,45 @@ namespace Fracture.Net.Hosting
         /// Allows the service to run updates.
         /// </summary>
         void Tick();
+    }
+    
+    public interface IApplicationServiceManager
+    {
+        void Initialize(IDependencyLocator locator);
+        
+        void Tick();
+    }
+    
+    public sealed class ApplicationServiceManager : IApplicationServiceManager
+    {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
+        #region Fields
+        private readonly List<IActiveApplicationService> services;
+        #endregion
+        
+        public ApplicationServiceManager()
+            => services = new List<IActiveApplicationService>();
+        
+        public void Initialize(IDependencyLocator locator)
+            => services.AddRange(locator.All<IActiveApplicationService>());
+        
+        public void Tick()
+        {
+            foreach (var service in services)
+            {
+                try
+                {
+                    service.Tick();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "error occurred while updating service", service);
+                }   
+            }
+        }
     }
 
     /// <summary>

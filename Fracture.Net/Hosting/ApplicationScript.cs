@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Fracture.Common;
+using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
+using Fracture.Common.Di.Binding;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -31,9 +33,16 @@ namespace Fracture.Net.Hosting
         void Tick(); 
     }
     
-    public interface IApplicationScriptManager
+    public interface IApplicationScriptLoader
     {
-        void Add(IApplicationScript script);
+        void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript;
+        
+        void Load(Type type, params IBindingValue[] args);
+    }
+    
+    public interface IApplicationScriptManager : IApplicationScriptLoader
+    {
+        void Initialize(IObjectActivator activator);
         
         void Tick();
     }
@@ -52,6 +61,8 @@ namespace Fracture.Net.Hosting
         private readonly List<IActiveApplicationScript> activeScripts;
         
         private readonly List<IActiveApplicationScript> unloadedActiveScripts;
+        
+        private IObjectActivator activator;
         #endregion
         
         public ApplicationScriptManager()
@@ -98,9 +109,23 @@ namespace Fracture.Net.Hosting
             unloadedActiveScripts.ForEach(s => activeScripts.Remove(s));
             unloadedActiveScripts.Clear();
         }
+
+        public void Initialize(IObjectActivator activator)
+            => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
         
-        public void Add(IApplicationScript script)
+        public void Load(Type type, params IBindingValue[] args)
         {
+            if (!typeof(IApplicationScript).IsAssignableFrom(type))
+                throw new ArgumentException($"{type.Name} is not a script type", nameof(type));
+            
+            if (type.IsAbstract || type.IsInterface)
+                throw new ArgumentException($"{type.Name} is abstract", nameof(type));
+            
+            if (type.IsValueType)
+                throw new ArgumentException($"{type.Name} is a value type", nameof(type)); 
+            
+            var script = activator.Activate(type, args);
+            
             switch (script)
             {
                 case ICommandApplicationScript ics:
@@ -109,7 +134,7 @@ namespace Fracture.Net.Hosting
                 case IActiveApplicationScript ias:
                     newActiveScripts.Add(ias);
                     
-                    script.Unloading += delegate
+                    ias.Unloading += delegate
                     {
                         unloadedActiveScripts.Add(ias);
                     };
@@ -118,6 +143,9 @@ namespace Fracture.Net.Hosting
                     throw new InvalidOrUnsupportedException("script type", script.GetType());
             }
         }
+        
+        public void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript
+            => Load(typeof(T), args);
 
         public void Tick()
         {
