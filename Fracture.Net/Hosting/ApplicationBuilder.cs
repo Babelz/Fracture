@@ -337,6 +337,9 @@ namespace Fracture.Net.Hosting
                 timer
             );
             
+            // Register application to kernel as dependency for services and scripts to locate it.
+            kernel.Bind(application);
+            
             // Register all dependencies.
             while (dependencies.Count != 0)
                 kernel.Bind(dependencies.Dequeue());
