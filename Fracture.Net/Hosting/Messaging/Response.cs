@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Security.Policy;
-using Fracture.Common.Collections;
 using Fracture.Common.Memory;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
-using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging

@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 using Fracture.Net.Messages;
 using Fracture.Net.Serialization;
-using Fracture.Net.Serialization.Generation;
-using Fracture.Net.Serialization.Generation.Builders;
 
 namespace Fracture.Net.Hosting.Messaging
 {

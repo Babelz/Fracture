@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO.Ports;
 using System.Runtime.CompilerServices;
-using System.ServiceModel.Syndication;
 using Fracture.Common.Collections;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;

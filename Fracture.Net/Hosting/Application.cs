@@ -854,7 +854,7 @@ namespace Fracture.Net.Hosting
             
             while (running)
                 Tick();
-            
+
             Deinitialize();
         }
     }
