@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using Fracture.Common.Events;
-using Fracture.Net.Hosting.Peers;
 
 namespace Fracture.Net.Hosting.Servers
 {

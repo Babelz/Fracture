@@ -5,7 +5,6 @@ using System.Threading;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
-using Fracture.Net.Hosting.Peers;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -134,8 +133,8 @@ namespace Fracture.Net.Hosting.Servers
     
     public sealed class TcpServer : Server
     {
-        public TcpServer(TimeSpan gracePeriod, IArrayPool<byte> pool)
-            : base(new TcpPeer.TcpPeerFactory(pool, gracePeriod), new TcpListener())
+        public TcpServer(TimeSpan gracePeriod)
+            : base(new TcpPeerFactory(gracePeriod), new TcpListener())
         {
         }
     }

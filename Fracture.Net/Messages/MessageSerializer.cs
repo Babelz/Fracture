@@ -3,10 +3,9 @@ using System.Collections.Generic;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
-using Fracture.Net.Messages;
 using Fracture.Net.Serialization;
 
-namespace Fracture.Net.Hosting.Messaging
+namespace Fracture.Net.Messages
 {
     /// <summary>
     /// Interface for implementing message serializers. Providers layer of abstraction for serializing and deserializing with different schemas.
@@ -86,12 +85,9 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public class MessageSerializer : IMessageSerializer
     {
-        #region Fields
-        private readonly IArrayPool<byte> buffers;
-        #endregion
-        
-        public MessageSerializer(IArrayPool<byte> buffers)
-            => this.buffers = buffers ?? throw new ArgumentNullException(nameof(buffers));
+        public MessageSerializer()
+        {
+        }
 
         public void Serialize(IMessage message, byte[] buffer, int offset)
         {

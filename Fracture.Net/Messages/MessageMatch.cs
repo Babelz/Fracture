@@ -40,7 +40,7 @@ namespace Fracture.Net.Messages
             
             return (message) => messageTypesHash.Contains(message.GetType());
         }
-        
+
         /// <summary>
         /// Matcher that accepts all message types expect one. 
         /// </summary>

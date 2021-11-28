@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Linq;
 using Fracture.Common;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
@@ -33,6 +35,30 @@ namespace Fracture.Net.Hosting
         void Tick(); 
     }
     
+    public readonly struct StartupScriptContext
+    {
+        #region Properties
+        public Type Type
+        {
+            get;
+        }
+
+        public IBindingValue[] Args
+        {
+            get;
+        }
+        #endregion
+
+        public StartupScriptContext(Type type, params IBindingValue[] args)
+        {
+            Type = type ?? throw new ArgumentException(nameof(type));
+            Args = args;
+        }
+    }
+    
+    /// <summary>
+    /// Interface that provides functionality for loading new scripts during runtime inside the application.
+    /// </summary>
     public interface IApplicationScriptLoader
     {
         void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript;
@@ -40,10 +66,13 @@ namespace Fracture.Net.Hosting
         void Load(Type type, params IBindingValue[] args);
     }
     
+    /// <summary>
+    /// Interface that provides functionality required for application level script management.
+    /// </summary>
     public interface IApplicationScriptManager : IApplicationScriptLoader
     {
         void Initialize(IObjectActivator activator);
-        
+
         void Tick();
     }
     
@@ -62,11 +91,15 @@ namespace Fracture.Net.Hosting
         
         private readonly List<IActiveApplicationScript> unloadedActiveScripts;
         
+        private readonly IEnumerable<StartupScriptContext> startupScriptContexts;
+        
         private IObjectActivator activator;
         #endregion
         
-        public ApplicationScriptManager()
+        public ApplicationScriptManager(IEnumerable<StartupScriptContext> startupScriptContexts)
         {
+            this.startupScriptContexts = startupScriptContexts ?? throw new ArgumentNullException(nameof(startupScriptContexts));
+            
             commandScripts        = new Queue<ICommandApplicationScript>();
             activeScripts         = new List<IActiveApplicationScript>();
             unloadedActiveScripts = new List<IActiveApplicationScript>();
@@ -111,8 +144,13 @@ namespace Fracture.Net.Hosting
         }
 
         public void Initialize(IObjectActivator activator)
-            => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
-        
+        {
+            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            
+            foreach (var startupContext in startupScriptContexts)
+                Load(startupContext.Type, startupContext.Args);
+        }
+            
         public void Load(Type type, params IBindingValue[] args)
         {
             if (!typeof(IApplicationScript).IsAssignableFrom(type))

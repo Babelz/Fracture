@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Fracture.Common;
 using Fracture.Common.Di;
 using Fracture.Common.Memory.Pools;
 using Fracture.Net.Hosting.Messaging;
-using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Hosting.Servers;
+using Fracture.Net.Messages;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -162,52 +163,6 @@ namespace Fracture.Net.Hosting
         void Start(int port, int backlog);
     }
     
-    /// <summary>
-    /// Wrapper class containing all application required resources.
-    /// </summary>
-    public sealed class ApplicationResources
-    {
-        #region Properties
-        public IMessagePool Messages
-        {
-            get;
-        }
-
-        public IArrayPool<byte> Buffers
-        {
-            get;
-        }
-
-        public IPool<Request> Requests
-        {
-            get;
-        }
-
-        public IPool<Response> Responses
-        {
-            get;
-        }
-        
-        public IPool<Notification> Notifications
-        {
-            get;
-        }
-        #endregion
-
-        public ApplicationResources(IMessagePool messages,
-                                    IArrayPool<byte> buffers,
-                                    IPool<Request> requests,
-                                    IPool<Response> responses,
-                                    IPool<Notification> notifications)
-        {
-            Messages      = messages ?? throw new ArgumentNullException(nameof(messages));
-            Buffers       = buffers ?? throw new ArgumentNullException(nameof(buffers));
-            Requests      = requests ?? throw new ArgumentNullException(nameof(requests));
-            Responses     = responses ?? throw new ArgumentNullException(nameof(responses));
-            Notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
-        }
-    }
-    
     public sealed class Application : IApplication, IApplicationScriptingHost
     {
         #region Static fields
@@ -225,7 +180,6 @@ namespace Fracture.Net.Hosting
         private readonly IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
         private readonly IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
         
-        private readonly ApplicationResources resources;
         private readonly Kernel kernel;
 
         private readonly IMessageSerializer serializer;
@@ -283,7 +237,6 @@ namespace Fracture.Net.Hosting
         #endregion
 
         public Application(Kernel kernel, 
-                           ApplicationResources resources,
                            IRequestRouter requestRouter,
                            INotificationCenter notificationCenter,
                            IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware,
@@ -296,7 +249,6 @@ namespace Fracture.Net.Hosting
                            IApplicationTimer timer)
         {
             this.kernel     = kernel ?? throw new ArgumentNullException(nameof(kernel));
-            this.resources  = resources ?? throw new ArgumentNullException(nameof(resources));
             this.server     = server ?? throw new ArgumentNullException(nameof(server));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             this.timer      = timer ?? throw new ArgumentNullException(nameof(timer));
@@ -329,9 +281,46 @@ namespace Fracture.Net.Hosting
             leavingPeers = new HashSet<int>();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReleaseNotification(Notification notification)
+        {
+            if (notification.Message != null)
+                Message.Return(notification.Message);
+            
+            ApplicationResources.Notification.Return(notification);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReleaseRequest(Request request)
+        {
+            if (request.Message != null)
+                Message.Return(request.Message);
+                    
+            if (request.Contents != null)
+                ServerResources.BlockBuffer.Return(request.Contents);
+            
+            ApplicationResources.Request.Return(request);
+        }
+            
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReleaseResponse(Response response)
+        {
+            if (response.ContainsReply)
+                Message.Return(response.Message);
+                
+            ApplicationResources.Response.Return(response);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ReleaseRequestResponse(in RequestResponse requestResponse)
+        {
+            ReleaseRequest(requestResponse.Request);
+            ReleaseResponse(requestResponse.Response);
+        }
+        
         #region Event handlers
-        private void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
-            => resources.Buffers.Return(e.Data);
+        private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
+            => ServerResources.BlockBuffer.Return(e.Contents);
            
         private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
             => incomingEvents.Enqueue(e);
@@ -342,39 +331,6 @@ namespace Fracture.Net.Hosting
         private void Server_OnJoin(object sender, in PeerJoinEventArgs e)
             => joinEvents.Enqueue(e);
         #endregion
-        
-        private void ReleaseNotification(Notification notification)
-        {
-            if (notification.Message != null)
-                resources.Messages.Return(notification.Message);
-            
-            resources.Notifications.Return(notification);
-        }
-        
-        private void ReleaseRequest(Request request)
-        {
-            if (request.Message != null)
-                resources.Messages.Return(request.Message);
-                    
-            if (request.Contents != null)
-                resources.Buffers.Return(request.Contents);
-            
-            resources.Requests.Return(request);
-        }
-            
-        private void ReleaseResponse(Response response)
-        {
-            if (response.ContainsReply)
-                resources.Messages.Return(response.Message);
-                
-            resources.Responses.Return(response);
-        }
-        
-        private void ReleaseRequestResponse(in RequestResponse requestResponse)
-        {
-            ReleaseRequest(requestResponse.Request);
-            ReleaseResponse(requestResponse.Response);
-        }
 
         private void Initialize(int port, int backlog)
         {
@@ -454,7 +410,7 @@ namespace Fracture.Net.Hosting
                 // Skip handling for all requests where the peer has leaved.
                 if (leavedPeers.Contains(incomingEvent.Peer.Id))
                 {
-                    resources.Buffers.Return(incomingEvent.Data);
+                    ServerResources.BlockBuffer.Return(incomingEvent.Contents);
                     
                     continue;
                 }
@@ -464,18 +420,18 @@ namespace Fracture.Net.Hosting
                 // Deserialize all incoming messages in this event.
                 while (offset < incomingEvent.Length)
                 {
-                    var request = resources.Requests.Take();
+                    var request = ApplicationResources.Request.Take();
 
                     try
                     {
-                        request.Message   = serializer.Deserialize(incomingEvent.Data, offset);
-                        request.Contents  = incomingEvent.Data;
+                        request.Message   = serializer.Deserialize(incomingEvent.Contents, offset);
+                        request.Contents  = incomingEvent.Contents;
                         request.Peer      = incomingEvent.Peer;
                         request.Timestamp = incomingEvent.Timestamp;
                     
                         incomingRequests.Enqueue(request);
                         
-                        offset += serializer.GetSizeFromBuffer(incomingEvent.Data, offset);
+                        offset += serializer.GetSizeFromBuffer(incomingEvent.Contents, offset);
                     }
                     catch (Exception e)
                     {
@@ -530,7 +486,7 @@ namespace Fracture.Net.Hosting
                     continue;
                 }
                 
-                var response = resources.Responses.Take();
+                var response = ApplicationResources.Response.Take();
 
                 try
                 {
@@ -658,17 +614,20 @@ namespace Fracture.Net.Hosting
             while (outgoingResponses.Count != 0)
             {
                 var requestResponse = outgoingResponses.Dequeue();
-                
+
                 try
                 {
-                    // TODO: if this block throws the data object is leaked and not pooled. 
-                    var data = serializer.Serialize(requestResponse.Response.Message);
+                    // If an exception is thrown here we will leak the buffer and GC will be able to collect it.
+                    var size     = serializer.GetSizeFromMessage(requestResponse.Response.Message);
+                    var contents = ServerResources.BlockBuffer.Take(size);
                     
-                    server.Send(requestResponse.Request.Peer.Id, data, 0, data.Length);
+                    serializer.Serialize(requestResponse.Response.Message, contents, 0);
+                    
+                    server.Send(requestResponse.Request.Peer.Id, contents, 0, contents.Length);
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "excetion occurred in notification middleware");
+                    Log.Warn(e, "exception occurred in notification middleware");
                 }
                 
                 ReleaseRequestResponse(requestResponse);
@@ -688,20 +647,24 @@ namespace Fracture.Net.Hosting
                 if (leavingPeers.Contains(peer))
                     return;
                 
-                var data = serializer.Serialize(notification.Message);
+                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+
+                serializer.Serialize(notification.Message, contents, 0);
                     
-                server.Send(peer, data, 0, data.Length);
+                server.Send(peer, contents, 0, contents.Length);
             }
                 
             void BroadcastNarrow(INotification notification)
             {
-                var data = serializer.Serialize(notification.Message);
+                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+
+                serializer.Serialize(notification.Message, contents, 0);
                     
                 foreach (var peer in notification.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
-                    var copy = resources.Buffers.Take(data.Length);
+                    var copy = ServerResources.BlockBuffer.Take(contents.Length);
                         
-                    data.CopyTo(copy, 0);
+                    contents.CopyTo(copy, 0);
                         
                     server.Send(peer, copy, 0, copy.Length);
                 }
@@ -709,13 +672,15 @@ namespace Fracture.Net.Hosting
                 
             void BroadcastWide(INotification notification)
             {
-                var data = serializer.Serialize(notification.Message);
+                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+
+                serializer.Serialize(notification.Message, contents, 0);
                     
                 foreach (var peer in server.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
-                    var copy = resources.Buffers.Take(data.Length);
+                    var copy = ServerResources.BlockBuffer.Take(contents.Length);
                         
-                    data.CopyTo(copy, 0);
+                    contents.CopyTo(copy, 0);
                         
                     server.Send(peer, copy, 0, copy.Length);
                 }
@@ -723,15 +688,24 @@ namespace Fracture.Net.Hosting
                 
             void Reset(INotification notification)
             {
-                var data = notification.Message != null ? serializer.Serialize(notification.Message) : null;
+                byte[] contents = null;
+                
+                if (notification.Message != null)
+                {
+                    var size = serializer.GetSizeFromMessage(notification.Message);
+                    
+                    contents = ServerResources.BlockBuffer.Take(size);
+                    
+                    serializer.Serialize(notification.Message, contents, 0);
+                }
                 
                 foreach (var peer in (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)))
                 {
-                    if (data != null)
+                    if (contents != null)
                     {
-                        var copy = resources.Buffers.Take(data.Length);
+                        var copy = ServerResources.BlockBuffer.Take(contents.Length);
                         
-                        data.CopyTo(copy, 0);
+                        contents.CopyTo(copy, 0);
                         
                         server.Send(peer, copy, 0, copy.Length);
                     }

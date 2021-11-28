@@ -7,41 +7,13 @@ using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
 
-namespace Fracture.Net.Hosting.Peers
+namespace Fracture.Net.Hosting.Servers
 {
     /// <summary>
     /// Peer implementation that uses the TCP protocol for communication.
     /// </summary>
     public sealed class TcpPeer : IPeer
     {
-        #region Tcp peer factory class
-        /// <summary>
-        /// Peer factory implementation that creates peers that use the TCP protocol for communication.
-        /// </summary>
-        public sealed class TcpPeerFactory : IPeerFactory
-        {
-            #region Fields
-            private readonly IArrayPool<byte> pool;
-            
-            private readonly TimeSpan gracePeriod;
-            #endregion
-        
-            public TcpPeerFactory(IArrayPool<byte> pool, TimeSpan gracePeriod)
-            {
-                this.pool        = pool ?? throw new ArgumentNullException(nameof(pool));
-                this.gracePeriod = gracePeriod;
-            }
-            
-            public IPeer Create(Socket socket)
-            {
-                if (socket.ProtocolType != ProtocolType.Tcp)
-                    throw new ArgumentException("expecting TCP socket");    
-            
-                return new TcpPeer(socket, pool, gracePeriod);
-            }
-        }
-        #endregion
-        
         #region Constant fields
         private const int ReceiveBufferSize = 65536;
         #endregion
@@ -59,7 +31,6 @@ namespace Fracture.Net.Hosting.Peers
         #endregion
 
         #region Fields
-        private readonly IArrayPool<byte> pool;
         private readonly TimeSpan gracePeriod;
         
         private readonly byte[] receiveBuffer;
@@ -105,9 +76,8 @@ namespace Fracture.Net.Hosting.Peers
             => state == PeerState.Connected;
         #endregion
 
-        private TcpPeer(Socket socket, IArrayPool<byte> pool, TimeSpan gracePeriod)
+        public TcpPeer(Socket socket, TimeSpan gracePeriod)
         {
-            this.pool        = pool;
             this.socket      = socket;
             this.gracePeriod = gracePeriod;
 
@@ -173,11 +143,11 @@ namespace Fracture.Net.Hosting.Peers
                 if (length == 0)
                     return;
             
-                var message = pool.Take(length);
+                var contents = ServerResources.BlockBuffer.Take(length);
             
-                Array.Copy(receiveBuffer, 0, message, 0, length);
+                Array.Copy(receiveBuffer, 0, contents, 0, length);
             
-                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), message, length, DateTime.UtcNow.TimeOfDay));   
+                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), contents, length, DateTime.UtcNow.TimeOfDay));   
             }
             catch (Exception e)
             {
@@ -278,5 +248,26 @@ namespace Fracture.Net.Hosting.Peers
         
         public void Dispose()
             => socket.Dispose();
+    }
+    
+    /// <summary>
+    /// Peer factory implementation that creates peers that use the TCP protocol for communication.
+    /// </summary>
+    public sealed class TcpPeerFactory : IPeerFactory
+    {
+        #region Fields
+        private readonly TimeSpan gracePeriod;
+        #endregion
+        
+        public TcpPeerFactory(TimeSpan gracePeriod)
+            => this.gracePeriod = gracePeriod;
+        
+        public IPeer Create(Socket socket)
+        {
+            if (socket.ProtocolType != ProtocolType.Tcp)
+                throw new ArgumentException("expecting TCP socket");    
+            
+            return new TcpPeer(socket, gracePeriod);
+        }
     }
 }

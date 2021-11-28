@@ -1,6 +1,6 @@
 using System;
 using Fracture.Common.Memory;
-using Fracture.Net.Hosting.Peers;
+using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging

@@ -4,7 +4,7 @@ using System.Net.Sockets;
 using Fracture.Common.Events;
 using Fracture.Common.Util;
 
-namespace Fracture.Net.Hosting.Peers
+namespace Fracture.Net.Hosting.Servers
 {
     public readonly struct PeerJoinEventArgs : IStructEventArgs
     {
@@ -62,7 +62,7 @@ namespace Fracture.Net.Hosting.Peers
             get;
         }
         
-        public byte[] Data
+        public byte[] Contents
         {
             get;
         }
@@ -77,10 +77,10 @@ namespace Fracture.Net.Hosting.Peers
         }
         #endregion
 
-        public PeerMessageEventArgs(in PeerConnection peer, byte[] data, int length, in TimeSpan timestamp)
+        public PeerMessageEventArgs(in PeerConnection peer, byte[] contents, int length, in TimeSpan timestamp)
         {
             Peer      = peer;
-            Data      = data;
+            Contents  = contents;
             Length    = length;
             Timestamp = timestamp;
         }
@@ -94,7 +94,7 @@ namespace Fracture.Net.Hosting.Peers
             get;
         }
 
-        public byte[] Data
+        public byte[] Contents
         {
             get;
         }
@@ -113,12 +113,12 @@ namespace Fracture.Net.Hosting.Peers
         }
         #endregion
 
-        public ServerMessageEventArgs(in PeerConnection peer, byte[] data, int offset, int length, in TimeSpan timestamp)
+        public ServerMessageEventArgs(in PeerConnection peer, byte[] contents, int offset, int length, in TimeSpan timestamp)
         {
             Peer      = peer;
             Offset    = offset;
             Length    = length;
-            Data      = data;
+            Contents  = contents;
             Timestamp = timestamp;
         }
     }

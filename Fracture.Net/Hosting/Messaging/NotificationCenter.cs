@@ -4,8 +4,6 @@ using Fracture.Common.Memory.Pools;
 
 namespace Fracture.Net.Hosting.Messaging
 {
-    public delegate void NotificationDecoratorDelegate(INotification notification);
-    
     /// <summary>
     /// Interface for implementing notification queues.
     /// </summary>
@@ -14,7 +12,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Enqueues notification to the queue and returns it to the caller.
         /// </summary>
-        INotification Enqueue(NotificationDecoratorDelegate decoratorDelegate = null);
+        INotification Enqueue();
     }
     
     /// <summary>
@@ -40,23 +38,15 @@ namespace Fracture.Net.Hosting.Messaging
     public sealed class NotificationCenter : INotificationCenter
     {
         #region Fields
-        private readonly IPool<Notification> pool;
-        
         private readonly Queue<Notification> notifications;
         #endregion
         
-        public NotificationCenter(IPool<Notification> pool)
+        public NotificationCenter()
+            => notifications = new Queue<Notification>();
+        
+        public INotification Enqueue()
         {
-            this.pool = pool ?? throw new ArgumentException(nameof(pool));
-            
-            notifications = new Queue<Notification>();
-        }
-            
-        public INotification Enqueue(NotificationDecoratorDelegate decorator = null)
-        {
-            var notification = pool.Take();
-            
-            decorator?.Invoke(notification);
+            var notification = ApplicationResources.Notification.Take();
             
             notifications.Enqueue(notification);
             

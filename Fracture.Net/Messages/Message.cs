@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
+using Fracture.Common.Memory.Pools;
+using Fracture.Net.Hosting.Messaging;
 
 namespace Fracture.Net.Messages
 {
@@ -47,10 +49,18 @@ namespace Fracture.Net.Messages
     }
     
     /// <summary>
-    /// Static utility class containing message related utilities.
+    /// Static utility class containing message related utilities and shared message pool.
     /// </summary>
     public static class Message
     {
+        #region Fields
+        private static IMessagePool pool;
+        #endregion
+        
+        #region Properties
+        private static IMessagePool Pool => pool ??= new MessagePool();
+        #endregion
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
         {
@@ -70,5 +80,13 @@ namespace Fracture.Net.Messages
             
             return message;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
+            => Pool.Take<T>();
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return<T>(T message) where T : class, IMessage
+            => Pool.Return(message);
     }
 }
