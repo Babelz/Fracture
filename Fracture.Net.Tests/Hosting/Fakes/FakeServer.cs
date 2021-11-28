@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Events;
 using Fracture.Net.Hosting.Peers;
 using Fracture.Net.Hosting.Servers;
@@ -10,35 +11,68 @@ namespace Fracture.Net.Tests.Hosting.Fakes
 {
     public sealed class FakeServerFrame
     {
-        #region Properties
-        public IEnumerable<PeerResetEventArgs> Leaves
-        {
-            get;
-        }
-        
-        public IEnumerable<PeerJoinEventArgs> Joins
-        {
-            get;
-        }
-        
-        public IEnumerable<PeerMessageEventArgs> Incoming
-        {
-            get;
-        }
+        #region Fields
+        private readonly Queue<PeerResetEventArgs> leaves;
+        private readonly Queue<PeerJoinEventArgs> joins;
+        private readonly Queue<PeerMessageEventArgs> messages;
         #endregion
         
-        public FakeServerFrame(IEnumerable<PeerResetEventArgs> leaves = null,
-                               IEnumerable<PeerJoinEventArgs> joins = null,
-                               IEnumerable<PeerMessageEventArgs> incoming = null)
+        #region Properties
+        public IEnumerable<PeerResetEventArgs> Leaves
+            => leaves;
+        
+        public IEnumerable<PeerJoinEventArgs> Joins
+            => joins;
+        
+        public IEnumerable<PeerMessageEventArgs> Messages
+            => messages;
+        #endregion
+
+        private FakeServerFrame()
         {
-            Leaves   = leaves;
-            Joins    = joins;
-            Incoming = incoming;
+            leaves   = new Queue<PeerResetEventArgs>();
+            joins    = new Queue<PeerJoinEventArgs>();
+            messages = new Queue<PeerMessageEventArgs>();
         }
-    }
+        
+        public FakeServerFrame Leave(in PeerConnection peer, PeerResetReason reason)
+        {
+            leaves.Enqueue(new PeerResetEventArgs(peer, reason, DateTime.UtcNow.TimeOfDay));
+            
+            return this;
+        }
+        
+        public FakeServerFrame Join(in PeerConnection peer)
+        {
+            joins.Enqueue(new PeerJoinEventArgs(peer, DateTime.UtcNow.TimeOfDay));
+            
+            return this;
+        }
+        
+        public FakeServerFrame Incoming(in PeerConnection peer, byte[] data, int length)
+        {
+            messages.Enqueue(new PeerMessageEventArgs(peer, data, length, DateTime.UtcNow.TimeOfDay));
+            
+            return this;
+        }
+        
+        public static FakeServerFrame Create() => new FakeServerFrame();
+    } 
 
     public sealed class FakeServer : IServer
     {
+        #region Constant fields
+        /// <summary>
+        /// Fake port to use with tests.
+        /// </summary>
+        public const int Port = 2444;
+        
+        /// <summary>
+        /// Fake backlog to use with tests.
+        /// </summary>
+        public const int Backlog = 10;
+        #endregion
+        
         #region Fields
         private readonly HashSet<int> peers;
         
@@ -64,14 +98,13 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         public IEnumerable<int> Peers
             => peers;
 
-        public FakeServer()
+        public FakeServer(params FakeServerFrame[] frames)
         {
-            peers  = new HashSet<int>();
-            frames = new Queue<FakeServerFrame>();
-         
-            leaves   = new HashSet<PeerResetEventArgs>();
-            outgoing = new Queue<ServerMessageEventArgs>();
-            
+            this.frames = new Queue<FakeServerFrame>(frames);
+
+            peers     = new HashSet<int>();
+            leaves    = new HashSet<PeerResetEventArgs>();
+            outgoing  = new Queue<ServerMessageEventArgs>();
             endpoints = new Dictionary<int, IPEndPoint>();
         }
         
@@ -138,8 +171,8 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             }
             
             // Handle incoming
-            foreach (var incoming in frame?.Incoming ?? Array.Empty<PeerMessageEventArgs>())
-                Incoming?.Invoke(this, incoming);
+            foreach (var message in frame?.Messages ?? Array.Empty<PeerMessageEventArgs>())
+                Incoming?.Invoke(this, message);
             
             // Handle outgoing.
             while (outgoing.Count != 0)

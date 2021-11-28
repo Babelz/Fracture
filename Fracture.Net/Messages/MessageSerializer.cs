@@ -16,7 +16,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Serializes given message to buffer and returns it to the caller.
         /// </summary>
-        byte[] Serialize(IMessage message);
+        void Serialize(IMessage message, byte[] buffer, int offset);
         
         /// <summary>
         /// Deserializes message from given buffer at given offset.
@@ -36,7 +36,7 @@ namespace Fracture.Net.Hosting.Messaging
     
     public interface IMessagePool
     {
-        IMessage Take<T>() where T : class, IMessage, new();
+        T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new();
         
         void Return<T>(T message) where T : class, IMessage;
     }
@@ -57,7 +57,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
         }
         
-        public IMessage Take<T>() where T : class, IMessage, new()
+        public T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
         {
             var type = typeof(T);
             
@@ -67,7 +67,11 @@ namespace Fracture.Net.Hosting.Messaging
             if (!Pools.ContainsKey(type))
                 Pools.Add(type, new CleanPool<T>(new Pool<T>(new LinearStorageObject<T>(new LinearGrowthArray<T>(8)), 0)));
             
-            return ((IPool<T>)Pools[type]).Take();
+            var message = ((IPool<T>)Pools[type]).Take();
+            
+            decorator?.Invoke(message);
+            
+            return message;
         }
         
         public void Return<T>(T message) where T : class, IMessage
@@ -89,16 +93,12 @@ namespace Fracture.Net.Hosting.Messaging
         public MessageSerializer(IArrayPool<byte> buffers)
             => this.buffers = buffers ?? throw new ArgumentNullException(nameof(buffers));
 
-        public byte[] Serialize(IMessage message)
+        public void Serialize(IMessage message, byte[] buffer, int offset)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
             
-            var buffer = buffers.Take(GetSizeFromMessage(message));
-            
-            StructSerializer.Serialize(message, buffer, 0);
-            
-            return buffer;
+            StructSerializer.Serialize(message, buffer, offset);
         }
 
         public IMessage Deserialize(byte[] buffer, int offset)
