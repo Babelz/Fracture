@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Fracture.Common.Memory.Storages;
 using Fracture.Common.Reflection;
 

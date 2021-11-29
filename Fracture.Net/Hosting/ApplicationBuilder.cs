@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Fracture.Common.Collections;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -13,81 +10,15 @@ using Fracture.Net.Messages;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Interface for implementing application builders. Builder should provide default implementations for each builder method that is used for injecting
-    /// custom implementations.
+    /// Class that provides interface for building applications. 
     /// </summary>
-    public interface IApplicationBuilder
-    {
-        /// <summary>
-        /// Registers custom request router for application.
-        /// </summary>
-        IApplicationBuilder Router(IRequestRouter router);
-        
-        /// <summary>
-        /// Registers custom notification center for application.
-        /// </summary>
-        IApplicationBuilder Notifications(INotificationCenter notifications);
-        
-        /// <summary>
-        /// Registers custom request middleware for application.
-        /// </summary>
-        IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware);
-        
-        /// <summary>
-        /// Registers custom response middleware for application. 
-        /// </summary>
-        IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware);
-        
-        /// <summary>
-        /// Registers custom notification middleware for application. 
-        /// </summary>
-        IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware);
-        
-        /// <summary>
-        /// Register the server for use by the application. 
-        /// </summary>
-        IApplicationBuilder Server(IServer server);
-
-        /// <summary>
-        /// Register custom application timer for the application to use.
-        /// </summary>
-        IApplicationBuilder Timer(IApplicationTimer timer);
-        
-        /// <summary>
-        /// Register startup script that is loaded to the application before it starts.
-        /// </summary>
-        IApplicationBuilder StartupScript<T>(params IBindingValue[] args);
-        
-        /// <summary>
-        /// Register service to be used by the application.
-        /// </summary>
-        IApplicationBuilder Service<T>(params IBindingValue[] args);
-        
-        /// <summary>
-        /// Register custom dependency for the application that the services and scripts can use.
-        /// </summary>
-        IApplicationBuilder Dependency(object dependency);
-
-        /// <summary>
-        /// Register custom message serializer for the application to use.
-        /// </summary>
-        IApplicationBuilder Serializer(IMessageSerializer serializer);
-
-        /// <summary>
-        /// Builds the application using dependencies and configurations provided.
-        /// </summary>
-        IApplication Build();
-    }
-
-    /// <summary>
-    /// Default implementation of <see cref="IApplicationBuilder"/>.
-    /// </summary>
-    public class ApplicationBuilder : IApplicationBuilder
+    public sealed class ApplicationBuilder
     {
         #region Fields
-        private readonly List<StartupScriptContext> startupScripts;
+        private readonly Queue<BindingContext> serviceContexts;
+        private readonly Queue<BindingContext> scriptContexts;
         
-        private readonly Kernel kernel;
+        private readonly Queue<object> dependencies;
         
         private IRequestRouter router;
         private INotificationCenter notifications;
@@ -104,88 +35,126 @@ namespace Fracture.Net.Hosting
         
         protected ApplicationBuilder()
         {
-            startupScripts = new List<StartupScriptContext>();
+            serviceContexts = new Queue<BindingContext>();
+            scriptContexts  = new Queue<BindingContext>();
             
-            kernel = new Kernel(DependencyBindingOptions.Interfaces);
+            dependencies = new Queue<object>();
         }
 
-        public IApplicationBuilder Router(IRequestRouter router)
+        /// <summary>
+        /// Registers custom request router for application.
+        /// </summary>
+        public ApplicationBuilder Router(IRequestRouter router)
         {
             this.router = router ?? throw new ArgumentNullException(nameof(router));
             
             return this;
         }
         
-        public IApplicationBuilder Notifications(INotificationCenter notifications)
+        /// <summary>
+        /// Registers custom notification center for application.
+        /// </summary>
+        public ApplicationBuilder Notifications(INotificationCenter notifications)
         {
             this.notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
             
             return this;
         }
         
-        public IApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware)
+        /// <summary>
+        /// Registers custom request middleware for application.
+        /// </summary>
+        public ApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware)
         {
             this.requestMiddleware = requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware));
             
             return this;
         }
-
-        public IApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
+        
+        /// <summary>
+        /// Registers custom response middleware for application. 
+        /// </summary>
+        public ApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
         {
             this.responseMiddleware = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
             
             return this;
         }
         
-        public IApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
+        /// <summary>
+        /// Registers custom notification middleware for application. 
+        /// </summary>
+        public ApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
         {
             this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             
             return this;
         }
 
-        public IApplicationBuilder Server(IServer server)
+        /// <summary>
+        /// Register the server for use by the application. 
+        /// </summary>
+        public ApplicationBuilder Server(IServer server)
         {
             this.server = server ?? throw new ArgumentNullException(nameof(server));
             
             return this;
         }
         
-        public IApplicationBuilder Timer(IApplicationTimer timer)
+        /// <summary>
+        /// Register custom application timer for the application to use.
+        /// </summary>
+        public ApplicationBuilder Timer(IApplicationTimer timer)
         {
             this.timer = timer ?? throw new ArgumentNullException(nameof(timer));
             
             return this;
         }
         
-        public IApplicationBuilder Service<T>(params IBindingValue[] args)
-        {
-            kernel.Bind<T>(args);
-            
-            return this;
-        }
-        
-        public IApplicationBuilder StartupScript<T>(params IBindingValue[] args)
-        {
-            startupScripts.Add(new StartupScriptContext(typeof(T), args));
-            
-            return this;
-        }
-        
-        public IApplicationBuilder Dependency(object dependency)
-        {
-            kernel.Bind(dependency);
-            
-            return this;
-        }
-        
-        public IApplicationBuilder Serializer(IMessageSerializer serializer)
+        /// <summary>
+        /// Register custom message serializer for the application to use.
+        /// </summary>
+        public ApplicationBuilder Serializer(IMessageSerializer serializer)
         {
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             
             return this;
         }
+        
+        /// <summary>
+        /// Register service to be used by the application.
+        /// </summary>
+        public ApplicationBuilder Service<T>(params IBindingValue[] args)
+        {
+            serviceContexts.Enqueue(new BindingContext(typeof(T), args));
+            
+            return this;
+        }
+        
+        /// <summary>
+        /// Register startup script that is loaded to the application before it starts.
+        /// </summary>
+        public ApplicationBuilder Script<T>(params IBindingValue[] args)
+        {
+            scriptContexts.Enqueue(new BindingContext(typeof(T), args));
+            
+            return this;
+        }
+        
+        /// <summary>
+        /// Register custom dependency for the application that the services and scripts can use.
+        /// </summary>
+        public ApplicationBuilder Dependency(object dependency)
+        {
+            dependencies.Enqueue(dependency);
+            
+            return this;
+        }
 
+        /// <summary>
+        /// Builds the application using dependencies and configurations provided. To start running the application call the <see cref="IApplication.Start"/>
+        /// method.
+        /// </summary>
         public IApplication Build()
         {
             if (server == null)
@@ -199,27 +168,59 @@ namespace Fracture.Net.Hosting
             timer                  ??= new ApplicationTimer();
             serializer             ??= new MessageSerializer();
 
-            var scripts  = new ApplicationScriptManager(startupScripts);
-            var services = new ApplicationServiceManager();
+            var scriptKernel  = new Kernel(DependencyBindingOptions.Interfaces);
+            var serviceKernel = new Kernel(DependencyBindingOptions.Interfaces);
+            
+            var scripts  = new ApplicationScriptManager(scriptKernel);
+            var services = new ApplicationServiceManager(serviceKernel);
             
             // Initialize application.
             var application = new Application(
-                kernel,
+                server,
                 router,
                 notifications,
                 requestMiddleware,
                 notificationMiddleware,
                 responseMiddleware,
-                server,
                 scripts,
                 services,
                 serializer,
                 timer
             );
             
+            // Register all custom dependencies to both kernels.
+            while (dependencies.Count != 0)
+            {
+                var dependency = dependencies.Dequeue();
+                
+                serviceKernel.Bind(dependency);
+                scriptKernel.Bind(dependency);
+            }
+            
             // Register application to kernel as dependency for services and scripts to locate it.
-            kernel.Bind(application);
+            serviceKernel.Proxy(application, typeof(IApplicationServiceHost));
+            scriptKernel.Proxy(application, typeof(IApplicationScriptingHost));
+            
+            // Register services to service kernel.
+            while (serviceContexts.Count != 0)
+            {
+                var context = serviceContexts.Dequeue();
+                
+                serviceKernel.Bind(context.Type, context.Args);
+            }
 
+            // Cook all service dependencies and inject them to script kernel for scripts to use.
+            foreach (var service in serviceKernel.All<IApplicationService>())
+                scriptKernel.Bind(service);
+            
+            // Load all startup scripts.
+            while (scriptContexts.Count != 0)
+            {
+                var context = scriptContexts.Dequeue();
+                
+                scripts.Load(context.Type, context.Args);
+            }
+            
             return application;
         }
         

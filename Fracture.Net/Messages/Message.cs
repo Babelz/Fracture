@@ -2,7 +2,6 @@ using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
-using Fracture.Net.Hosting.Messaging;
 
 namespace Fracture.Net.Messages
 {

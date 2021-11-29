@@ -31,6 +31,36 @@ namespace Fracture.Common.Di
     }
 
     /// <summary>
+    /// Structure containing context for single binding.
+    /// </summary>
+    public readonly struct BindingContext
+    {
+        #region Properties
+        /// <summary>
+        /// Gets the type for this binding.
+        /// </summary>
+        public Type Type
+        {
+            get;
+        }
+
+        /// <summary>
+        /// Gets the optional binding values for this context.
+        /// </summary>
+        public IBindingValue[] Args
+        {
+            get;
+        }
+        #endregion
+
+        public BindingContext(Type type, params IBindingValue[] args)
+        {
+            Type = type ?? throw new ArgumentException(nameof(type));
+            Args = args;
+        }
+    }
+    
+    /// <summary>
     /// Interface for implementing dependency binders. Binders provide dependency binding in various ways. Also
     /// supports proxy bindings.
     /// </summary>

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common;
-using Fracture.Common.Di;
-using Fracture.Common.Memory.Pools;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -12,39 +10,6 @@ using NLog;
 
 namespace Fracture.Net.Hosting
 {
-    /// <summary>
-    /// Interface for implementing application hosts. Hosts provide interface for tracking application status and time. 
-    /// </summary>
-    public interface IApplicationHost
-    {
-        #region Events
-        /// <summary>
-        /// Event invoked when the application is about to start.
-        /// </summary>
-        event EventHandler Starting;
-        
-        /// <summary>
-        /// Event invoked when the application is about to shut down.
-        /// </summary>
-        event EventHandler ShuttingDown;
-        #endregion
-
-        #region Properties
-        /// <summary>
-        /// Gets the application clock containing current application time.
-        /// </summary>
-        IApplicationClock Clock
-        {
-            get;
-        }
-        #endregion
-
-        /// <summary>
-        /// Signals the application to start shutting down.
-        /// </summary>
-        void Shutdown();
-    }
-    
     /// <summary>
     /// Wrapper class to make working with requests bit more convenient. Use the <see cref="Router"/> to access the application request router and the
     /// <see cref="Middleware"/> to access the notification middleware.
@@ -96,9 +61,42 @@ namespace Fracture.Net.Hosting
     }
     
     /// <summary>
-    /// Interface for application hosts that provide messaging support.
+    /// Interface for application hosts that provides interface for services to interact with the application.
     /// </summary>
-    public interface IApplicationMessagingHost : IApplicationHost
+    public interface IApplicationServiceHost
+    {
+        #region Events
+        /// <summary>
+        /// Event invoked when the application is about to start.
+        /// </summary>
+        event EventHandler Starting;
+        
+        /// <summary>
+        /// Event invoked when the application is about to shut down.
+        /// </summary>
+        event EventHandler ShuttingDown;
+        #endregion
+
+        #region Properties
+        /// <summary>
+        /// Gets the application clock containing current application time.
+        /// </summary>
+        IApplicationClock Clock
+        {
+            get;
+        }
+        #endregion
+
+        /// <summary>
+        /// Signals the application to start shutting down.
+        /// </summary>
+        void Shutdown();
+    }
+    
+    /// <summary>
+    /// Interface for application hosts that provides interface for scripts to interact with the application.
+    /// </summary>
+    public interface IApplicationScriptingHost : IApplicationServiceHost
     {
         #region Events
         /// <summary>
@@ -136,15 +134,10 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        #endregion
-    }
-    
-    /// <summary>
-    /// Interface for application hosts that provide scripting support.
-    /// </summary>
-    public interface IApplicationScriptingHost : IApplicationMessagingHost
-    {
-        #region Properties
+        
+        /// <summary>
+        /// Gets the script loader for interacting with scripts.
+        /// </summary>
         IApplicationScriptLoader Scripts
         {
             get;
@@ -155,7 +148,7 @@ namespace Fracture.Net.Hosting
     /// <summary>
     /// Interface for implementing applications. Applications provide messaging and peer status handling for all scripts and services.
     /// </summary>
-    public interface IApplication : IApplicationHost
+    public interface IApplication : IApplicationScriptingHost
     {
         /// <summary>
         /// Starts the application and initializes all of its dependencies.
@@ -163,7 +156,7 @@ namespace Fracture.Net.Hosting
         void Start(int port, int backlog);
     }
     
-    public sealed class Application : IApplication, IApplicationScriptingHost
+    public sealed class Application : IApplication
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -180,8 +173,6 @@ namespace Fracture.Net.Hosting
         private readonly IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
         private readonly IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
         
-        private readonly Kernel kernel;
-
         private readonly IMessageSerializer serializer;
         private readonly IServer server;
         
@@ -191,13 +182,19 @@ namespace Fracture.Net.Hosting
         private readonly Queue<PeerResetEventArgs> resetsEvents;
         private readonly Queue<PeerJoinEventArgs> joinEvents;
 
+        // Queue holding all incoming requests whose contents could we deserialized successfully.
         private readonly Queue<Request> incomingRequests;
+        
+        // Queue holding all incoming requests that were accepted by the middleware. 
         private readonly Queue<Request> acceptedRequests;
         
+        // Queue holding all non-empty request objects generated by request handlers. 
         private readonly Queue<RequestResponse> outgoingResponses;
+        
+        // Queue holding all RR objects that were accepted by the middleware.
         private readonly Queue<RequestResponse> acceptedResponses;
         
-        private readonly Queue<Notification> outgoingNotifications;
+        // Queue holding all notifications that were accepted by the middleware.
         private readonly Queue<Notification> acceptedNotifications;
         
         // Peers that were marked as leaving by the server during poll call.
@@ -236,19 +233,17 @@ namespace Fracture.Net.Hosting
             => scripts;
         #endregion
 
-        public Application(Kernel kernel, 
+        public Application(IServer server,
                            IRequestRouter requestRouter,
                            INotificationCenter notificationCenter,
                            IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware,
                            IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware,
                            IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware,
-                           IServer server,
                            IApplicationScriptManager scripts,
                            IApplicationServiceManager services,
                            IMessageSerializer serializer,
                            IApplicationTimer timer)
         {
-            this.kernel     = kernel ?? throw new ArgumentNullException(nameof(kernel));
             this.server     = server ?? throw new ArgumentNullException(nameof(server));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             this.timer      = timer ?? throw new ArgumentNullException(nameof(timer));
@@ -271,10 +266,8 @@ namespace Fracture.Net.Hosting
             incomingRequests = new Queue<Request>();
             acceptedRequests = new Queue<Request>();
             
-            outgoingResponses = new Queue<RequestResponse>();
-            acceptedResponses = new Queue<RequestResponse>();
-            
-            outgoingNotifications = new Queue<Notification>();
+            outgoingResponses     = new Queue<RequestResponse>();
+            acceptedResponses     = new Queue<RequestResponse>();
             acceptedNotifications = new Queue<Notification>();
 
             leavedPeers  = new HashSet<int>();
@@ -339,12 +332,7 @@ namespace Fracture.Net.Hosting
             server.Reset    += Server_OnReset;
             server.Incoming += Server_OnIncoming;    
             server.Outgoing += Server_OnOutgoing;
-
-            // Initialize scripts and services before startup to allow them run possible initialization logic before starting.
-            services.Initialize(kernel);
-            
-            scripts.Initialize(kernel);
-            
+   
             // Start the actual application by starting the server.
             Starting?.Invoke(this, EventArgs.Empty);
 
@@ -437,7 +425,7 @@ namespace Fracture.Net.Hosting
                     {
                         ReleaseRequest(request);
                     
-                        Log.Warn(e, "error occurred while processing request from peer");
+                        Log.Warn(e, "unhandled error occurred while processing request from peer");
                     }
                 }
             }
@@ -464,7 +452,7 @@ namespace Fracture.Net.Hosting
                 {
                     ReleaseRequest(request);
                     
-                    Log.Warn(e, "excetion occurred in request middleware");
+                    Log.Warn(e, "unhandled error occurred in request middleware");
                 }
             }
         }
@@ -557,9 +545,9 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void RunPeerRequestResponseMiddleware()
         {
-            while (acceptedResponses.Count != 0)
+            while (outgoingResponses.Count != 0)
             {
-                var requestResponse = acceptedResponses.Dequeue();
+                var requestResponse = outgoingResponses.Dequeue();
                 
                 try
                 {   
@@ -567,13 +555,13 @@ namespace Fracture.Net.Hosting
                     if (responseMiddleware.Invoke(new RequestResponseMiddlewareContext(requestResponse.Request, requestResponse.Response)))
                         ReleaseRequestResponse(requestResponse);
                     else
-                        outgoingResponses.Enqueue(requestResponse);
+                        acceptedResponses.Enqueue(requestResponse);
                 }
                 catch (Exception e)
                 {
                     ReleaseRequestResponse(requestResponse);
                     
-                    Log.Warn(e, "excetion occurred in request response middleware");
+                    Log.Warn(e, "unhandled error occurred in request response middleware");
                 }
             }
         }
@@ -595,13 +583,13 @@ namespace Fracture.Net.Hosting
                     if (notificationMiddleware.Invoke(new NotificationMiddlewareContext(peers, notification)))
                         ReleaseNotification(notification);
                     else
-                        outgoingNotifications.Enqueue(notification);
+                        acceptedNotifications.Enqueue(notification);
                 }
                 catch (Exception e)
                 {
                     ReleaseNotification(notification);
                     
-                    Log.Warn(e, "excetion occurred in notification middleware");
+                    Log.Warn(e, "unhandled error occurred in notification middleware");
                 }
             });
         }
@@ -609,11 +597,11 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Send out all enqueued responses. This can possibly disconnect peers.
         /// </summary>
-        private void HandleOutgoingResponses()
+        private void HandleAcceptedResponses()
         {
-            while (outgoingResponses.Count != 0)
+            while (acceptedResponses.Count != 0)
             {
-                var requestResponse = outgoingResponses.Dequeue();
+                var requestResponse = acceptedResponses.Dequeue();
 
                 try
                 {
@@ -627,7 +615,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "exception occurred in notification middleware");
+                    Log.Warn(e, "unhandled error occurred in notification middleware");
                 }
                 
                 ReleaseRequestResponse(requestResponse);
@@ -638,7 +626,7 @@ namespace Fracture.Net.Hosting
         /// Send out all enqueued responses
         /// </summary>
         /// <exception cref="NotImplementedException"></exception>
-        private void HandleOutgoingNotifications()
+        private void HandleAcceptedNotifications()
         {
             void Send(INotification notification)
             {
@@ -714,9 +702,9 @@ namespace Fracture.Net.Hosting
                 }
             }
             
-            while (outgoingResponses.Count != 0)
+            while (acceptedNotifications.Count != 0)
             {
-                var notification = outgoingNotifications.Dequeue();
+                var notification = acceptedNotifications.Dequeue();
 
                 try
                 {
@@ -741,7 +729,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "excetion occurred in notification middleware");
+                    Log.Warn(e, "unhandled error occurred in notification middleware");
                 }
                 
                 ReleaseNotification(notification);
@@ -761,7 +749,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "error occurred while disconnecting peer");
+                    Log.Error(e, "unhandled error occurred while disconnecting peer");
                 }
             }
             
@@ -792,14 +780,14 @@ namespace Fracture.Net.Hosting
             
             // Step 4: run response middleware for responses generated at step 2. Run notification middleware for any notifications. 
             RunPeerRequestResponseMiddleware();
-            RunNotificationMiddleware();
+            RunNotificationMiddleware();       
             
             // Step 5: send out all requests and notifications generated by the server.
-            HandleOutgoingResponses();
-            HandleOutgoingNotifications();
+            HandleAcceptedResponses();         
+            HandleAcceptedNotifications();     
             
             // Step 6: disconnect all leaving peers.
-            ResetLeavingPeers();
+            ResetLeavingPeers();                
         }
 
         public void Shutdown()

@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
-using NLog;
 
 namespace Fracture.Net.Hosting
 {
@@ -28,45 +25,6 @@ namespace Fracture.Net.Hosting
         /// </summary>
         void Tick();
     }
-    
-    public interface IApplicationServiceManager
-    {
-        void Initialize(IDependencyLocator locator);
-        
-        void Tick();
-    }
-    
-    public sealed class ApplicationServiceManager : IApplicationServiceManager
-    {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
-        #region Fields
-        private readonly List<IActiveApplicationService> services;
-        #endregion
-        
-        public ApplicationServiceManager()
-            => services = new List<IActiveApplicationService>();
-        
-        public void Initialize(IDependencyLocator locator)
-            => services.AddRange(locator.All<IActiveApplicationService>());
-        
-        public void Tick()
-        {
-            foreach (var service in services)
-            {
-                try
-                {
-                    service.Tick();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e, "error occurred while updating service", service);
-                }   
-            }
-        }
-    }
 
     /// <summary>
     /// Base class for implementing services.
@@ -74,7 +32,7 @@ namespace Fracture.Net.Hosting
     public abstract class ApplicationService
     {
         #region Properties
-        protected IApplicationHost Application
+        protected IApplicationServiceHost Application
         {
             get;
         }
@@ -84,7 +42,7 @@ namespace Fracture.Net.Hosting
         /// Creates new instance of <see cref="ApplicationService"/>. Use this constructor for locating any dependencies by annotating it with
         /// <see cref="BindingConstructorAttribute"/>.
         /// </summary>
-        protected ApplicationService(IApplicationHost application)
+        protected ApplicationService(IApplicationServiceHost application)
             => Application = application ?? throw new ArgumentNullException(nameof(application));
     }
     
@@ -93,7 +51,7 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public abstract class ActiveApplicationService : ApplicationService
     {
-        protected ActiveApplicationService(IApplicationHost application) 
+        protected ActiveApplicationService(IApplicationServiceHost application) 
             : base(application)
         {
         }
