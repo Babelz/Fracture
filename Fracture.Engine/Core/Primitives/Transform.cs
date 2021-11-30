@@ -15,7 +15,7 @@ namespace Fracture.Engine.Core.Primitives
       
       #region Static properties
       /// <summary>
-      /// Gets the default transform object that has it's position
+      /// Gets the default transform object that has its position
       /// set to zero (0, 0), scale to one (1, 1) and rotation to zero.
       /// </summary>
       public static Transform Default

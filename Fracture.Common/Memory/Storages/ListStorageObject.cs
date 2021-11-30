@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Fracture.Common.Memory.Storages
 {
     /// <summary>
-    /// Storage object that uses <see cref="List{T}"/> as it's internal storage.
+    /// Storage object that uses <see cref="List{T}"/> as its internal storage.
     /// </summary>
     public sealed class ListStorageObject<T> : IStorageObject<T> where T : class
     {

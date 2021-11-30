@@ -22,7 +22,7 @@ namespace Fracture.Engine.Ui.Controls
         /// <summary>
         /// Sets or gets the render target property of the
         /// control. This controls if the control should render
-        /// it self and it's children to a render target.
+        /// it self and its children to a render target.
         /// </summary>
         bool UseRenderTarget
         {

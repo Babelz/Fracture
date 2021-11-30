@@ -1,6 +1,6 @@
 using System.Net;
 using System.Runtime.CompilerServices;
-using Fracture.Net.Hosting.Peers;
+using Fracture.Net.Hosting.Servers;
 
 namespace Fracture.Net.Tests.Hosting.Fakes
 {

@@ -1,5 +1,7 @@
 using System;
+using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
+using NLog;
 
 namespace Fracture.Net.Hosting
 {
@@ -12,7 +14,7 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public interface IApplicationService
     {
-        // Marker interface, nothing to implement. Each service should provide it's functionality via public interface declaration.
+        // Marker interface, nothing to implement. Each service should provide its functionality via public interface declaration.
     }
     
     /// <summary>
@@ -27,7 +29,7 @@ namespace Fracture.Net.Hosting
     }
 
     /// <summary>
-    /// Base class for implementing services.
+    /// Abstract base class for creating application services.
     /// </summary>
     public abstract class ApplicationService
     {
@@ -39,23 +41,28 @@ namespace Fracture.Net.Hosting
         #endregion
 
         /// <summary>
-        /// Creates new instance of <see cref="ApplicationService"/>. Use this constructor for locating any dependencies by annotating it with
-        /// <see cref="BindingConstructorAttribute"/>.
+        /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.
         /// </summary>
         protected ApplicationService(IApplicationServiceHost application)
             => Application = application ?? throw new ArgumentNullException(nameof(application));
     }
     
     /// <summary>
-    /// Base class for implementing active services.
+    /// Abstract base class for implementing active services that are updated during each application tick. 
     /// </summary>
     public abstract class ActiveApplicationService : ApplicationService
     {
+        /// <summary>
+        /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.
+        /// </summary>
         protected ActiveApplicationService(IApplicationServiceHost application) 
             : base(application)
         {
         }
         
+        /// <summary>
+        /// Allows the service to run updates.
+        /// </summary>
         public abstract void Tick();
     }
 }

@@ -75,7 +75,7 @@ namespace Fracture.Common.Memory.Pools
         private IStorageObject<T[]> GetArrayStorage(int size)
         {
             // Grow storage size.
-            while (size >= storages.Count) storages.Add(size, factory());
+            if (!storages.ContainsKey(size)) storages.Add(size, factory());
             
             return storages[size];
         }

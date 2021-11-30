@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 namespace Fracture.Common.Collections
 {
    /// <summary>
-   /// Data structured that is fixed size buffer that uses it's storage in circular manner.
+   /// Data structured that is fixed size buffer that uses its storage in circular manner.
    /// </summary>
    public sealed class CircularBuffer<T>
    {

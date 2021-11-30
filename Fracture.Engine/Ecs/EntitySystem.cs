@@ -35,7 +35,7 @@ namespace Fracture.Engine.Ecs
       }
       
       /// <summary>
-      /// Event invoked when entity has been unpaired from one of it's parents.
+      /// Event invoked when entity has been unpaired from one of its parents.
       /// </summary>
       IEvent<int, EntityPairEventHandler> UnpairedFromChild
       {
@@ -43,7 +43,7 @@ namespace Fracture.Engine.Ecs
       }
       
       /// <summary>
-      /// Event invoked entity has been unpaired from it's parent.
+      /// Event invoked entity has been unpaired from its parent.
       /// </summary>
       IEvent<int, EntityPairEventHandler> UnpairedFromParent
       {

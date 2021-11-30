@@ -14,22 +14,22 @@ namespace Fracture.Common.Di.Binding
         None = 0,
 
         /// <summary>
-        /// Actual class of the dependency should be binded.
+        /// Actual class of the dependency should be bound.
         /// </summary>
         Class = (1 << 1),
 
         /// <summary>
-        /// All subclasses of the dependency should be binded.
+        /// All subclasses of the dependency should be bound.
         /// </summary>
         Classes = (1 << 2),
 
         /// <summary>
-        /// All interfaces of the class and all it's sub classes should be binded.
+        /// All interfaces of the class and all its sub classes should be bound.
         /// </summary>
         Interfaces = (1 << 3),
 
         /// <summary>
-        /// All abstract classes and subclasses should be binded.
+        /// All abstract classes and subclasses should be bound.
         /// </summary>
         AbstractClasses = (1 << 4),
 
@@ -37,21 +37,6 @@ namespace Fracture.Common.Di.Binding
         /// Causes options to work in strict manner. For example when using class option, all interfaces, abstract classes
         /// and subclasses can be mapped back to the actual dependency. Using strict prevents this kind of behaviour.
         /// </summary>
-        Strict = (1 << 5),
-
-        /// <summary>
-        /// Combination to bind all abstract classes and interfaces.
-        /// </summary>
-        AbstractInterface = AbstractClasses | Interfaces,
-
-        /// <summary>
-        /// Combination to bind the base class and interfaces.
-        /// </summary>
-        ClassInterfaces = Class | Interfaces,
-
-        /// <summary>
-        /// Combination to bind classes and interfaces.
-        /// </summary>
-        ClassesInterfaces = Classes | Interfaces
+        Strict = (1 << 5)
     }
 }

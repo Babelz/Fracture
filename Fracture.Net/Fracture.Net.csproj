@@ -263,9 +263,8 @@
         <Compile Include="Hosting\ApplicationBuilder.cs" />
         <Compile Include="Hosting\ApplicationClock.cs" />
         <Compile Include="Hosting\ApplicationResources.cs" />
-        <Compile Include="Hosting\ApplicationScriptManager.cs" />
         <Compile Include="Hosting\ApplicationService.cs" />
-        <Compile Include="Hosting\ApplicationServiceManager.cs" />
+        <Compile Include="Hosting\ApplicationKernel.cs" />
         <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
         <Compile Include="Hosting\Messaging\NotificationCenter.cs" />
         <Compile Include="Hosting\Messaging\Request.cs" />

@@ -53,7 +53,7 @@ namespace Fracture.Engine.Core
     /// manage their life span.
     ///
     /// Create more specific methods for managing the objects if
-    /// suited. Use this interface to allow system to reset it's state
+    /// suited. Use this interface to allow system to reset its state
     /// to initial state.
     /// </summary>
     public interface IObjectManagementSystem : IGameEngineSystem

@@ -20,7 +20,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
         
         /// <summary>
-        /// Gets the request contents in it's raw serialized format.
+        /// Gets the request contents in its raw serialized format.
         /// </summary>
         byte[] Contents
         {
@@ -28,7 +28,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
      
         /// <summary>
-        /// Gets the request contents in it's deserialized format.
+        /// Gets the request contents in its deserialized format.
         /// </summary>
         IMessage Message
         {

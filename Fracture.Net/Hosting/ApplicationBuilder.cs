@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
@@ -15,10 +16,8 @@ namespace Fracture.Net.Hosting
     public sealed class ApplicationBuilder
     {
         #region Fields
-        private readonly Queue<BindingContext> serviceContexts;
-        private readonly Queue<BindingContext> scriptContexts;
-        
-        private readonly Queue<object> dependencies;
+        private readonly Kernel scripts;
+        private readonly Kernel services;
         
         private IRequestRouter router;
         private INotificationCenter notifications;
@@ -33,12 +32,10 @@ namespace Fracture.Net.Hosting
         private IServer server;
         #endregion
         
-        protected ApplicationBuilder()
+        public ApplicationBuilder()
         {
-            serviceContexts = new Queue<BindingContext>();
-            scriptContexts  = new Queue<BindingContext>();
-            
-            dependencies = new Queue<object>();
+            scripts  = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
+            services = new Kernel(DependencyBindingOptions.Interfaces);
         }
 
         /// <summary>
@@ -124,9 +121,9 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register service to be used by the application.
         /// </summary>
-        public ApplicationBuilder Service<T>(params IBindingValue[] args)
+        public ApplicationBuilder Service<T>(params IBindingValue[] args) where T : class, IApplicationService
         {
-            serviceContexts.Enqueue(new BindingContext(typeof(T), args));
+            services.Bind<T>(args);
             
             return this;
         }
@@ -134,28 +131,18 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register startup script that is loaded to the application before it starts.
         /// </summary>
-        public ApplicationBuilder Script<T>(params IBindingValue[] args)
+        public ApplicationBuilder Script<T>(params IBindingValue[] args) where T : class, IApplicationScript
         {
-            scriptContexts.Enqueue(new BindingContext(typeof(T), args));
+            scripts.Bind<T>(args);
             
             return this;
         }
         
         /// <summary>
-        /// Register custom dependency for the application that the services and scripts can use.
-        /// </summary>
-        public ApplicationBuilder Dependency(object dependency)
-        {
-            dependencies.Enqueue(dependency);
-            
-            return this;
-        }
-
-        /// <summary>
-        /// Builds the application using dependencies and configurations provided. To start running the application call the <see cref="IApplication.Start"/>
+        /// Builds the application using dependencies and configurations provided. To start running the application call the <see cref="Application.Start"/>
         /// method.
         /// </summary>
-        public IApplication Build()
+        public Application Build()
         {
             if (server == null)
                 throw new InvalidOperationException("server was not set");
@@ -167,12 +154,6 @@ namespace Fracture.Net.Hosting
             notificationMiddleware ??= new MiddlewarePipeline<NotificationMiddlewareContext>();
             timer                  ??= new ApplicationTimer();
             serializer             ??= new MessageSerializer();
-
-            var scriptKernel  = new Kernel(DependencyBindingOptions.Interfaces);
-            var serviceKernel = new Kernel(DependencyBindingOptions.Interfaces);
-            
-            var scripts  = new ApplicationScriptManager(scriptKernel);
-            var services = new ApplicationServiceManager(serviceKernel);
             
             // Initialize application.
             var application = new Application(
@@ -182,45 +163,18 @@ namespace Fracture.Net.Hosting
                 requestMiddleware,
                 notificationMiddleware,
                 responseMiddleware,
-                scripts,
-                services,
                 serializer,
                 timer
             );
             
-            // Register all custom dependencies to both kernels.
-            while (dependencies.Count != 0)
-            {
-                var dependency = dependencies.Dequeue();
-                
-                serviceKernel.Bind(dependency);
-                scriptKernel.Bind(dependency);
-            }
+            // Initialize application kernel.
+            var kernel = new ApplicationKernel(application, services, scripts);
             
-            // Register application to kernel as dependency for services and scripts to locate it.
-            serviceKernel.Proxy(application, typeof(IApplicationServiceHost));
-            scriptKernel.Proxy(application, typeof(IApplicationScriptingHost));
-            
-            // Register services to service kernel.
-            while (serviceContexts.Count != 0)
+            application.Tick += delegate
             {
-                var context = serviceContexts.Dequeue();
-                
-                serviceKernel.Bind(context.Type, context.Args);
-            }
+                kernel.Tick();
+            };
 
-            // Cook all service dependencies and inject them to script kernel for scripts to use.
-            foreach (var service in serviceKernel.All<IApplicationService>())
-                scriptKernel.Bind(service);
-            
-            // Load all startup scripts.
-            while (scriptContexts.Count != 0)
-            {
-                var context = scriptContexts.Dequeue();
-                
-                scripts.Load(context.Type, context.Args);
-            }
-            
             return application;
         }
         

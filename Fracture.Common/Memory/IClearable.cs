@@ -6,7 +6,7 @@
     public interface IClearable
     {
         /// <summary>
-        /// Clears the objects state to it's initial state.
+        /// Clears the objects state to its initial state.
         /// </summary>
         void Clear();
     }

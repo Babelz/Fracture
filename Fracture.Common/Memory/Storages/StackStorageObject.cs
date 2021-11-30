@@ -5,7 +5,7 @@ using Fracture.Common.Collections;
 namespace Fracture.Common.Memory.Storages
 {
     /// <summary>
-    /// Storage object that uses <see cref="Stack{T}"/> as it's internal storage object.
+    /// Storage object that uses <see cref="Stack{T}"/> as its internal storage object.
     /// </summary>
     public sealed class StackStorageObject<T> : IStorageObject<T> where T : class
     {

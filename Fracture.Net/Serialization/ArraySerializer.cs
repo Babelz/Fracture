@@ -100,7 +100,7 @@ namespace Fracture.Net.Serialization
                 contentLength += valueSize;
             }
             
-            // Write content length at it's offset and add any null related content variables to length.
+            // Write content length at its offset and add any null related content variables to length.
             if (isSparseCollection)
             {
                 // Move data region to leave space for null mask.
@@ -123,7 +123,7 @@ namespace Fracture.Net.Serialization
             
             Protocol.ContentLength.Write(checked((ushort)contentLength), buffer, contentLengthOffset);
             
-            // Write null mask and it's length at it's offset.
+            // Write null mask and its length at its offset.
             Protocol.TypeData.Write((byte)(isSparseCollection ? 1 : 0), buffer, isSparseCollectionFlagOffset);
         }
             

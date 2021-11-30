@@ -4,7 +4,7 @@ using Fracture.Common.Collections;
 namespace Fracture.Common.Memory.Storages
 {
     /// <summary>
-    /// Storage object that uses <see cref="LinearGrowthArray{T}"/> as it's internal storage object.
+    /// Storage object that uses <see cref="LinearGrowthArray{T}"/> as its internal storage object.
     /// </summary>
     public sealed class LinearStorageObject<T> : IStorageObject<T> where T : class
     {

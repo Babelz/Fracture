@@ -114,8 +114,8 @@ namespace Fracture.Common.Di
         private readonly List<Dependency> dependencies;
         #endregion
         
-        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.ClassesInterfaces, 
-                      DependencyBindingOptions proxyOptions = DependencyBindingOptions.ClassesInterfaces)
+        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.Classes | DependencyBindingOptions.Interfaces, 
+                      DependencyBindingOptions proxyOptions = DependencyBindingOptions.Classes | DependencyBindingOptions.Interfaces)
         {
             this.bindingOptions = bindingOptions;
             this.proxyOptions   = proxyOptions;

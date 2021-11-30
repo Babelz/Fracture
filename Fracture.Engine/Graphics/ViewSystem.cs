@@ -140,7 +140,7 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         /// <summary>
-        /// Creates new instance of view using given view port and sets it's
+        /// Creates new instance of view using given view port and sets its
         /// origin to the center of the viewport.
         /// </summary>
         public View(int id, in Viewport viewport)

@@ -32,6 +32,14 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
+        
+        /// <summary>
+        /// Gets the total count of application ticks that have passed since start.
+        /// </summary>
+        int Ticks
+        {
+            get;
+        }
         #endregion
     }
     
@@ -67,6 +75,12 @@ namespace Fracture.Net.Hosting
 
         public TimeSpan Total
             => total;
+
+        public int Ticks
+        {
+            get;
+            private set;
+        }
         #endregion
 
         public ApplicationTimer()
@@ -74,6 +88,8 @@ namespace Fracture.Net.Hosting
         
         public void Tick()
         {
+            Ticks++;
+            
             total   += timer.Elapsed;
             elapsed = timer.Elapsed;
             

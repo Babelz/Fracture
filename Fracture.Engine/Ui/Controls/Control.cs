@@ -329,7 +329,7 @@ namespace Fracture.Engine.Ui.Controls
         #endregion
 
         /// <summary>
-        /// Forces the control to update it's layout.
+        /// Forces the control to update its layout.
         /// </summary>
         void UpdateLayout();
 
@@ -1000,7 +1000,7 @@ namespace Fracture.Engine.Ui.Controls
             {
                 case Positioning.Offset:
                 case Positioning.Anchor:
-                    // Anchor control based on it's anchor.
+                    // Anchor control based on its anchor.
                     UpdateAnchor();
                     break;
                 case Positioning.Relative:

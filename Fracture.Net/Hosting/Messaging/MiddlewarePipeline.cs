@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -16,10 +17,39 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public delegate bool MiddlewareMatchDelegate<T>(in T context) where T : IMiddlewareRequestContext;
     
+    public static class MiddlewareMatch<T> where T : IMiddlewareRequestContext
+    {
+        /// <summary>
+        /// Matcher that accepts any message type and kind.
+        /// </summary>
+        public static MiddlewareMatchDelegate<T> Any() => delegate { return true; };
+    }
+    
+    /// <summary>
+    /// Enumeration containing all possible middleware responses.
+    /// </summary>
+    public enum MiddlewareHandlerResult : byte
+    {
+        /// <summary>
+        /// Middleware accepted the object and it will be passed to next function. 
+        /// </summary>
+        Accept = 0,
+        
+        /// <summary>
+        /// Middleware accepted the object but it will not be passed to next function. 
+        /// </summary>
+        Halt,
+        
+        /// <summary>
+        /// Middleware rejected the object and it should not be accepted by the next entity in the pipeline.
+        /// </summary>
+        Reject
+    }
+    
     /// <summary>
     /// Delegate for handling middleware request objects.
     /// </summary>
-    public delegate void MiddlewareHandlerDelegate<T>(in T context, out bool reject) where T : IMiddlewareRequestContext;
+    public delegate MiddlewareHandlerResult MiddlewareHandlerDelegate<T>(in T context) where T : IMiddlewareRequestContext;
 
     /// <summary>
     /// Interface for implementing middleware consumers that are used for registering middleware callbacks.
@@ -42,7 +72,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Invoke middleware for given middleware request.
         /// </summary>
-        /// <param name="context">context object containing that is the middleware request</param>
+        /// <param name="context">context object containing the middleware request</param>
         /// <returns>boolean declaring whether the request was rejected by the middleware</returns>
         bool Invoke(in T context);
     }
@@ -98,14 +128,18 @@ namespace Fracture.Net.Hosting.Messaging
                     continue;
                 
                 // Invoke the middleware that matched given request.
-                middleware.Handler(context, out var reject);
-                
-                // Immediately return if the middleware rejected the request.
-                if (reject)
-                    return true;
+                switch (middleware.Handler(context))
+                {
+                    // Stop processing at this point
+                    case MiddlewareHandlerResult.Halt:
+                        return false;
+                    // Reject the whole object.
+                    case MiddlewareHandlerResult.Reject:
+                        return true;
+                }
             }
             
-            return true;
+            return false;
         }
     }
 }

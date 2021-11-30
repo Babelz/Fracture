@@ -123,7 +123,7 @@ namespace Fracture.Engine.Core.Primitives
       }
       
       /// <summary>
-      /// Creates new AABB with given position and computes it's bounds from
+      /// Creates new AABB with given position and computes its bounds from
       /// given vertices. Assumes the vertices are already rotated.
       /// </summary>
       public Aabb(in Vector2 position, float rotation, Vector2[] vertices)

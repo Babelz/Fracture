@@ -87,7 +87,7 @@ namespace Fracture.Engine.Graphics
    }
    
    /// <summary>
-   /// Structure that defines graphics element as it's geometry data
+   /// Structure that defines graphics element as its geometry data
    /// and type hint. Elements do not have presentation data associated
    /// with them.
    ///
@@ -405,7 +405,7 @@ namespace Fracture.Engine.Graphics
          
          ClampAabb(ref aabb, out clamped);
          
-         // If the element does not move enough to cause it's cell range
+         // If the element does not move enough to cause its cell range
          // to change, we can skip reinserting it to the grid.
          if (location.Begin.Column == updateLocation.Begin.Column &&
              location.Begin.Row == updateLocation.Begin.Row &&

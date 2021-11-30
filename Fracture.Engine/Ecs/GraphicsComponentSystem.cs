@@ -284,7 +284,7 @@ namespace Fracture.Engine.Ecs
          
          component.Layer = name;
          
-         // We can assume the component is clean if we change it's layer
+         // We can assume the component is clean if we change its layer
          // regardless of the past changes.
          dirty.Remove(id);
       }

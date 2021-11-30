@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using Fracture.Common.Events;
 using Fracture.Net.Hosting.Servers;
 
@@ -54,7 +55,9 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             return this;
         }
         
-        public static FakeServerFrame Create() => new FakeServerFrame();
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeServerFrame Create() 
+            => new FakeServerFrame();
     } 
 
     public sealed class FakeServer : IServer
@@ -181,5 +184,9 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         {
             // Nop.
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeServer Create(params FakeServerFrame[] frames) 
+            => new FakeServer(frames);
     }
 }
