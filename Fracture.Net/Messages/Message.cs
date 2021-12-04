@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
+using Fracture.Net.Serialization;
 
 namespace Fracture.Net.Messages
 {
@@ -64,6 +65,12 @@ namespace Fracture.Net.Messages
         }
         #endregion
 
+        static Message()
+        {
+            // Map and reduce all generic message types to their underlying types.
+            StructSerializer.Reduce<IMessage>(m => m.GetType());
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
         {

@@ -42,6 +42,9 @@ namespace Fracture.Net.Messages
     
     /// <summary>
     /// Default implementation of <see cref="IMessagePool"/>.
+    ///
+    /// TODO: no initial allocations is done for the object pools, this might negatively affect the performance so monitor this and checkout if pre-allocation
+    /// can fix this.
     /// </summary>
     public sealed class MessagePool : IMessagePool
     {
@@ -51,9 +54,6 @@ namespace Fracture.Net.Messages
 
         static MessagePool()
         {
-            // Map and reduce all generic message types to their underlying types.
-            StructSerializer.Reduce<IMessage>(m => m.GetType());
-            
             Pools = new Dictionary<Type, IPool<IMessage>>();
         }
             

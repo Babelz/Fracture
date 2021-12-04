@@ -5,6 +5,8 @@ using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Net.Hosting
 {
+    /// TODO: no initial allocations is done for the object pools, this might negatively affect the performance so monitor this and checkout if
+    ///       pre-allocation can fix this.
     public static class ApplicationResources
     {
         public static class Notification

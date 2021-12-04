@@ -24,6 +24,10 @@ namespace Fracture.Net.Hosting.Servers
             public static void Return(byte[] buffer) => Pool.Return(buffer);
         }
         
+        /// <summary>
+        /// TODO: no initial allocations is done for the object pools, this might negatively affect the performance so monitor this and checkout if
+        ///       pre-allocation can fix this.
+        /// </summary>
         public static class EventArgs
         {
             public static class ServerMessage 
@@ -38,12 +42,10 @@ namespace Fracture.Net.Hosting.Servers
                        );
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static ServerMessageEventArgs Take(PoolElementDecoratorDelegate<ServerMessageEventArgs> decorator = null) 
-                    => Pool.Take(decorator);
+                public static ServerMessageEventArgs Take(PoolElementDecoratorDelegate<ServerMessageEventArgs> decorator = null) => Pool.Take(decorator);
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static void Return(ServerMessageEventArgs args)
-                    => Pool.Return(args);
+                public static void Return(ServerMessageEventArgs args) => Pool.Return(args);
             }
             public static class PeerMessage 
             {
@@ -57,12 +59,10 @@ namespace Fracture.Net.Hosting.Servers
                        );
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static PeerMessageEventArgs Take(PoolElementDecoratorDelegate<PeerMessageEventArgs> decorator = null) 
-                    => Pool.Take(decorator);
+                public static PeerMessageEventArgs Take(PoolElementDecoratorDelegate<PeerMessageEventArgs> decorator = null) => Pool.Take(decorator);
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static void Return(PeerMessageEventArgs args)
-                    => Pool.Return(args);
+                public static void Return(PeerMessageEventArgs args) => Pool.Return(args);
             }
             public static class PeerReset 
             {
@@ -76,12 +76,10 @@ namespace Fracture.Net.Hosting.Servers
                        );
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static PeerResetEventArgs Take(PoolElementDecoratorDelegate<PeerResetEventArgs> decorator = null) 
-                    => Pool.Take(decorator);
+                public static PeerResetEventArgs Take(PoolElementDecoratorDelegate<PeerResetEventArgs> decorator = null) => Pool.Take(decorator);
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static void Return(PeerResetEventArgs args)
-                    => Pool.Return(args);
+                public static void Return(PeerResetEventArgs args) => Pool.Return(args);
             }
             public static class PeerJoin
             {
@@ -95,12 +93,10 @@ namespace Fracture.Net.Hosting.Servers
                         );
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static PeerJoinEventArgs Take(PoolElementDecoratorDelegate<PeerJoinEventArgs> decorator = null) 
-                    => Pool.Take(decorator);
+                public static PeerJoinEventArgs Take(PoolElementDecoratorDelegate<PeerJoinEventArgs> decorator = null) => Pool.Take(decorator);
                 
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                public static void Return(PeerJoinEventArgs args)
-                    => Pool.Return(args);
+                public static void Return(PeerJoinEventArgs args) => Pool.Return(args);
             }
         }
     }
