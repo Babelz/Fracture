@@ -57,7 +57,11 @@ namespace Fracture.Net.Messages
         #endregion
         
         #region Properties
-        private static IMessagePool Pool => pool ??= new MessagePool();
+        private static IMessagePool Pool
+        {
+            get => pool ??= new MessagePool();
+            set => pool = value;
+        }
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -81,11 +85,11 @@ namespace Fracture.Net.Messages
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
+        public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
             => Pool.Take<T>();
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return<T>(T message) where T : class, IMessage
+        public static void Return(IMessage message)
             => Pool.Return(message);
     }
 }

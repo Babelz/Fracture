@@ -4,7 +4,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
-using Fracture.Common.Events;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -48,10 +47,10 @@ namespace Fracture.Net.Hosting.Servers
         #endregion
         
         #region Events
-        public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event EventHandler<PeerResetEventArgs> Reset;
         
-        public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
+        public event EventHandler<PeerMessageEventArgs> Incoming;
+        public event EventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
@@ -146,7 +145,13 @@ namespace Fracture.Net.Hosting.Servers
             
                 Array.Copy(receiveBuffer, 0, contents, 0, length);
             
-                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), contents, length, DateTime.UtcNow.TimeOfDay));   
+                incomingMessageBuffer.Push(ServerResources.EventArgs.PeerMessage.Take(args =>
+                {
+                    args.Peer      = new PeerConnection(Id, EndPoint);
+                    args.Contents  = contents;
+                    args.Length    = length;
+                    args.Timestamp = DateTime.UtcNow.TimeOfDay;
+                }));   
             }
             catch (Exception e)
             {
@@ -211,7 +216,12 @@ namespace Fracture.Net.Hosting.Servers
             
             state = PeerState.Disconnected;
                         
-            Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason, DateTime.UtcNow.TimeOfDay));
+            Reset?.Invoke(this, ServerResources.EventArgs.PeerReset.Take(args =>
+            {
+                args.Peer      = new PeerConnection(Id, EndPoint);
+                args.Reason    = reason;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
         }
         
         public void Disconnect()
@@ -230,7 +240,14 @@ namespace Fracture.Net.Hosting.Servers
                              length, 
                              SocketFlags.None, 
                              SendCallback, 
-                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
+                             ServerResources.EventArgs.ServerMessage.Take(args =>
+                             {
+                                args.Peer      = new PeerConnection(Id, EndPoint);
+                                args.Contents  = data;
+                                args.Offset    = offset;
+                                args.Length    = length;
+                                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+                             }));
         }
 
         public void Poll()

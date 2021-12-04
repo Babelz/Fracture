@@ -1,4 +1,3 @@
-using System;
 using Fracture.Common.Di.Attributes;
 using Fracture.Net.Hosting;
 
@@ -10,7 +9,7 @@ namespace Fracture.Net.Tests.Hosting.Utils
     public class TickLimiterScript : ActiveApplicationScript
     {
         #region Fields
-        private readonly int limit;
+        private readonly ulong limit;
         #endregion
 
         /// <summary>
@@ -19,7 +18,7 @@ namespace Fracture.Net.Tests.Hosting.Utils
         /// <param name="application">application which tick counts this script will be limiting</param>
         /// <param name="limit">after how many ticks are executed before the <see cref="Application.Shutdown"/> method is called</param>
         [BindingConstructor]
-        public TickLimiterScript(IApplicationScriptingHost application, int limit) 
+        public TickLimiterScript(IApplicationScriptingHost application, ulong limit) 
             : base(application)
         {
             this.limit = limit;

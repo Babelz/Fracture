@@ -36,7 +36,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Gets the total count of application ticks that have passed since start.
         /// </summary>
-        int Ticks
+        ulong Ticks
         {
             get;
         }
@@ -76,7 +76,7 @@ namespace Fracture.Net.Hosting
         public TimeSpan Total
             => total;
 
-        public int Ticks
+        public ulong Ticks
         {
             get;
             private set;

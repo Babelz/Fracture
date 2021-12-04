@@ -67,22 +67,22 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Event invoked when peer joins the server.
         /// </summary>
-        event StructEventHandler<PeerJoinEventArgs> Join;
+        event EventHandler<PeerJoinEventArgs> Join;
         
         /// <summary>
         /// Event invoked when peer leaves the server. 
         /// </summary>
-        event StructEventHandler<PeerResetEventArgs> Reset;
+        event EventHandler<PeerResetEventArgs> Reset;
         
         /// <summary>
         /// Event invoked when server receives message from a peer.
         /// </summary>
-        event StructEventHandler<PeerMessageEventArgs> Incoming;
+        event EventHandler<PeerMessageEventArgs> Incoming;
         
         /// <summary>
         /// Event invoked when server is sending message to peer.
         /// </summary>
-        event StructEventHandler<ServerMessageEventArgs> Outgoing;
+        event EventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Properties
@@ -117,11 +117,11 @@ namespace Fracture.Net.Hosting.Servers
     public abstract class Server : IServer
     {
         #region Events
-        public event StructEventHandler<PeerJoinEventArgs> Join;
-        public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event EventHandler<PeerJoinEventArgs> Join;
+        public event EventHandler<PeerResetEventArgs> Reset;
         
-        public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
+        public event EventHandler<PeerMessageEventArgs> Incoming;
+        public event EventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Fields
@@ -150,7 +150,7 @@ namespace Fracture.Net.Hosting.Servers
         }
 
         #region Event handlers
-        private void Peer_OnReset(object sender, in PeerResetEventArgs e)
+        private void Peer_OnReset(object sender, PeerResetEventArgs e)
         {
             var peer = lookup[e.Peer.Id];
             
@@ -166,14 +166,15 @@ namespace Fracture.Net.Hosting.Servers
             Reset?.Invoke(this, e);
         }
         
-        private void Peer_OnSending(object sender, in ServerMessageEventArgs e)
+        private void Peer_OnSending(object sender, ServerMessageEventArgs e)
             => Outgoing?.Invoke(this, e);
 
-        private void Peer_OnReceived(object sender, in PeerMessageEventArgs e)
+        private void Peer_OnReceived(object sender, PeerMessageEventArgs e)
             => Incoming?.Invoke(this, e);
         
         private void Listener_OnConnected(object sender, in ListenerConnectedEventArgs e)
         {
+            // Create peer state in the server and listen for events.
             var peer = factory.Create(e.Socket);
             
             lookup.Add(peer.Id, peer);
@@ -183,7 +184,14 @@ namespace Fracture.Net.Hosting.Servers
             peer.Outgoing += Peer_OnSending;
             peer.Reset    += Peer_OnReset;
             
-            Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint), e.Timestamp));
+            // Create args without decorator because lambda can't capture in parameter e.
+            var args = ServerResources.EventArgs.PeerJoin.Take();
+            
+            args.Peer      = new PeerConnection(peer.Id, peer.EndPoint);
+            args.Timestamp = e.Timestamp;
+
+            // Invoke joining.
+            Join?.Invoke(this, args);
         }
         #endregion
         

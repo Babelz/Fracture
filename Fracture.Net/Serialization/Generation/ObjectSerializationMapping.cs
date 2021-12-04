@@ -306,7 +306,7 @@ namespace Fracture.Net.Serialization.Generation
         private bool discoverPublicProperties;
         #endregion
 
-        private ObjectSerializationMapper()
+        public ObjectSerializationMapper()
         {
             serializationValueHints = new List<SerializationValueHint>();
             objectActivationHints   = new List<ObjectActivationHint>();

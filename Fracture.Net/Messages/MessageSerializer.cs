@@ -37,7 +37,7 @@ namespace Fracture.Net.Messages
     {
         T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new();
         
-        void Return<T>(T message) where T : class, IMessage;
+        void Return(IMessage message);
     }
     
     /// <summary>
@@ -46,12 +46,17 @@ namespace Fracture.Net.Messages
     public sealed class MessagePool : IMessagePool
     {
         #region Static fields
-        private static readonly Dictionary<Type, object> Pools; 
+        private static readonly Dictionary<Type, IPool<IMessage>> Pools;
         #endregion
 
         static MessagePool()
-            => Pools = new Dictionary<Type, object>();
-
+        {
+            // Map and reduce all generic message types to their underlying types.
+            StructSerializer.Reduce<IMessage>(m => m.GetType());
+            
+            Pools = new Dictionary<Type, IPool<IMessage>>();
+        }
+            
         public MessagePool()
         {
         }
@@ -60,21 +65,28 @@ namespace Fracture.Net.Messages
         {
             var type = typeof(T);
             
-            if (StructSerializer.SupportsType(type))
+            if (!StructSerializer.SupportsType(type))
                 throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
             
-            if (!Pools.ContainsKey(type))
-                Pools.Add(type, new CleanPool<T>(new Pool<T>(new LinearStorageObject<T>(new LinearGrowthArray<T>(8)), 0)));
-            
-            var message = ((IPool<T>)Pools[type]).Take();
+            if (!Pools.TryGetValue(type, out var pool))
+            {
+                pool = new CleanPool<IMessage>(
+                    new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
+                                               () => new T())
+                );
+                
+                Pools.Add(type, pool);
+            }
+                
+            var message = (T)pool.Take();
             
             decorator?.Invoke(message);
             
             return message;
         }
         
-        public void Return<T>(T message) where T : class, IMessage
-            => ((IPool<T>)Pools[typeof(T)]).Return(message);
+        public void Return(IMessage message) 
+            => Pools[message.GetType()].Return(message);
     }
 
     /// <summary>

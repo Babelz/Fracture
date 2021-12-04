@@ -296,16 +296,20 @@ namespace Fracture.Net.Hosting
         }
         
         #region Event handlers
-        private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
-            => ServerResources.BlockBuffer.Return(e.Contents);
-           
-        private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
+        private static void Server_OnOutgoing(object sender, ServerMessageEventArgs e)
+        {
+            ServerResources.BlockBuffer.Return(e.Contents);
+            
+            ServerResources.EventArgs.ServerMessage.Return(e);
+        }
+            
+        private void Server_OnIncoming(object sender, PeerMessageEventArgs e)
             => incomingEvents.Enqueue(e);
 
-        private void Server_OnReset(object sender, in PeerResetEventArgs e)
+        private void Server_OnReset(object sender, PeerResetEventArgs e)
             => resetsEvents.Enqueue(e);
 
-        private void Server_OnJoin(object sender, in PeerJoinEventArgs e)
+        private void Server_OnJoin(object sender, PeerJoinEventArgs e)
             => joinEvents.Enqueue(e);
         #endregion
 
@@ -350,7 +354,16 @@ namespace Fracture.Net.Hosting
             {
                 var joinEvent = joinEvents.Dequeue();
                 
-                Join?.Invoke(this, joinEvent);
+                try
+                {
+                    Join?.Invoke(this, joinEvent);
+                }
+                catch (Exception e)
+                {
+                    Log.Warn("unhandled error occurred notifying about joining peer");
+                }
+                
+                ServerResources.EventArgs.PeerJoin.Return(joinEvent);
             }
         }
 
@@ -367,7 +380,16 @@ namespace Fracture.Net.Hosting
             {
                 var resetEvent = resetsEvents.Dequeue();
                 
-                Reset?.Invoke(this, resetEvent);
+                try
+                {
+                    Reset?.Invoke(this, resetEvent);
+                }
+                catch (Exception e)
+                {
+                    Log.Warn("unhandled error occurred notifying about reseting peer");
+                }
+                
+                ServerResources.EventArgs.PeerReset.Return(resetEvent);
                 
                 leavedPeers.Add(resetEvent.Peer.Id);
             }
@@ -387,6 +409,7 @@ namespace Fracture.Net.Hosting
                 if (leavedPeers.Contains(incomingEvent.Peer.Id))
                 {
                     ServerResources.BlockBuffer.Return(incomingEvent.Contents);
+                    ServerResources.EventArgs.PeerMessage.Return(incomingEvent);
                     
                     continue;
                 }
@@ -416,6 +439,8 @@ namespace Fracture.Net.Hosting
                         Log.Warn(e, "unhandled error occurred while processing request from peer");
                     }
                 }
+                
+                ServerResources.EventArgs.PeerMessage.Return(incomingEvent);
             }
         }
         
@@ -519,7 +544,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Invoke tick event and notify external application consumers.
         /// </summary>
-        public void TickApplication()
+        private void TickApplication()
         {
             try
             {

@@ -1,7 +1,5 @@
 using System;
-using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
-using NLog;
 
 namespace Fracture.Net.Hosting
 {

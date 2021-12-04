@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
-using Fracture.Common.Events;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -30,6 +28,11 @@ namespace Fracture.Net.Hosting
         {
             this.kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
         }
+
+        #region Event handlers
+        private void Script_OnUnloading(object sender, EventArgs e)
+            => kernel.Unbind(sender);
+        #endregion
         
         public void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript
         {
@@ -59,10 +62,7 @@ namespace Fracture.Net.Hosting
                     break;
             }
             
-            script.Unloading += delegate
-            {
-                kernel.Unbind(script);
-            };
+            script.Unloading += Script_OnUnloading;
             
             kernel.Bind(script);
         }
@@ -95,10 +95,32 @@ namespace Fracture.Net.Hosting
                 scripts.Bind(service);
             
             // Bind script proxies.
+            var loader = new ApplicationScriptLoader(scripts);
+            
             scripts.Proxy(application, typeof(IApplicationScriptingHost));
-            scripts.Proxy(new ApplicationScriptLoader(scripts), typeof(IApplicationScriptLoader));
+            scripts.Proxy(loader, typeof(IApplicationScriptLoader));
+            
+            // Unload all scripts when the application exists.
+            application.ShuttingDown += Application_OnShuttingDown;
         }
-        
+
+        #region Event handlers
+        private void Application_OnShuttingDown(object sender, EventArgs e)
+        {
+            foreach (var script in scripts.All<IApplicationScript>().ToList())
+            {
+                try
+                {
+                    script.Unload();
+                }
+                catch (Exception ex)
+                {
+                    Log.Warn(ex, "unhandled error occurred while unloading script");
+                }
+            }
+        }
+        #endregion
+
         private void UpdateServices()
         {
             foreach (var service in services.All<IActiveApplicationService>())

@@ -5,7 +5,7 @@ using Fracture.Common.Reflection;
 namespace Fracture.Common.Memory.Pools
 {
     public delegate void PoolElementDecoratorDelegate<in T>(T element);
-    
+
     /// <summary>
     /// Generic interface for implementing generic objects pools.
     /// </summary>
@@ -21,7 +21,7 @@ namespace Fracture.Common.Memory.Pools
         /// </summary>
         void Return(T element);
     }
-    
+
     /// <summary>
     /// Base class for implementing generic object pools.
     /// </summary>
@@ -79,7 +79,7 @@ namespace Fracture.Common.Memory.Pools
     }
         
     /// <summary>
-    /// Basic generic pool that uses dynamic binded constructor for creating new objects.
+    /// Basic generic pool that uses dynamic constructor binding for creating new objects.
     /// </summary>
     public sealed class Pool<T> : PoolBase<T> where T : class, new()
     {
@@ -94,7 +94,7 @@ namespace Fracture.Common.Memory.Pools
         public Pool(IStorageObject<T> storage, int initialStoredObjectsCount, int capacity)
             : base(storage, initialStoredObjectsCount, capacity)
         {
-            // Wrap constructor call to delegate, this is a much faster than calling new on the generic T.
+            // Wrap constructor call to delegate, this should be faster than calling new on the generic T.
             instantiate = (Func<T>)DynamicConstructorBinder.Bind(typeof(T).GetConstructor(Type.EmptyTypes), typeof(Func<T>));
 
             CreateObjects(initialStoredObjectsCount);

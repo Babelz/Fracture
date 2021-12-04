@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
-using Fracture.Common.Di.Binding;
 using NLog;
 
 namespace Fracture.Net.Hosting
@@ -20,6 +17,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         event EventHandler Unloading;
         #endregion
+        
+        void Unload();
     }
     
     /// <summary>
@@ -75,7 +74,7 @@ namespace Fracture.Net.Hosting
             Application = application ?? throw new ArgumentNullException(nameof(application));
         }
 
-        protected void Unload()
+        public void Unload()
         {
             if (unloaded)
                 throw new InvalidOperationException("script is already unloaded");

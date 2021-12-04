@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
-using Fracture.Common.Events;
 using Fracture.Net.Hosting.Servers;
+using Fracture.Net.Messages;
+using Fracture.Net.Serialization;
 
 namespace Fracture.Net.Tests.Hosting.Fakes
 {
@@ -34,23 +35,56 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             messages = new Queue<PeerMessageEventArgs>();
         }
         
-        public FakeServerFrame Leave(in PeerConnection peer, PeerResetReason reason)
+        public FakeServerFrame Leave(PeerConnection peer, PeerResetReason reason)
         {
-            leaves.Enqueue(new PeerResetEventArgs(peer, reason, DateTime.UtcNow.TimeOfDay));
+            leaves.Enqueue(ServerResources.EventArgs.PeerReset.Take(args =>
+            {
+                args.Peer      = peer;
+                args.Reason    = reason;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
             
             return this;
         }
         
-        public FakeServerFrame Join(in PeerConnection peer)
+        public FakeServerFrame Join(PeerConnection peer)
         {
-            joins.Enqueue(new PeerJoinEventArgs(peer, DateTime.UtcNow.TimeOfDay));
+            joins.Enqueue(ServerResources.EventArgs.PeerJoin.Take(args =>
+            {
+                args.Peer      = new PeerConnection(peer.Id, peer.EndPoint);
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
             
             return this;
         }
         
-        public FakeServerFrame Incoming(in PeerConnection peer, byte[] data, int length)
+        public FakeServerFrame Incoming(PeerConnection peer, byte[] data, int length)
         {
-            messages.Enqueue(new PeerMessageEventArgs(peer, data, length, DateTime.UtcNow.TimeOfDay));
+            messages.Enqueue(ServerResources.EventArgs.PeerMessage.Take(args =>
+            {
+                args.Peer      = peer;
+                args.Contents  = data;
+                args.Length    = length;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
+            
+            return this;
+        }
+        
+        public FakeServerFrame Incoming(PeerConnection peer, IMessage message)
+        {
+            var size = StructSerializer.GetSizeFromValue(message);
+            var data = ServerResources.BlockBuffer.Take(size);
+            
+            StructSerializer.Serialize(message, data, 0);
+            
+            messages.Enqueue(ServerResources.EventArgs.PeerMessage.Take(args =>
+            {
+                args.Peer      = peer;
+                args.Contents  = data;
+                args.Length    = size;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
             
             return this;
         }
@@ -86,11 +120,11 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         #endregion
         
         #region Events
-        public event StructEventHandler<PeerJoinEventArgs> Join;
-        public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event EventHandler<PeerJoinEventArgs> Join;
+        public event EventHandler<PeerResetEventArgs> Reset;
         
-        public event StructEventHandler<PeerMessageEventArgs> Incoming;
-        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
+        public event EventHandler<PeerMessageEventArgs> Incoming;
+        public event EventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         public int PeersCount
@@ -113,19 +147,25 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
         
         public void Disconnect(int id)
-            => leaves.Add(new PeerResetEventArgs(new PeerConnection(id, endpoints[id]), 
-                                                 PeerResetReason.ServerReset, 
-                                                 DateTime.UtcNow.TimeOfDay));
+            => leaves.Add(ServerResources.EventArgs.PeerReset.Take(args =>
+            {
+                args.Peer      = new PeerConnection(id, endpoints[id]);
+                args.Reason    = PeerResetReason.ServerReset;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
 
         public bool Connected(int id)
             => peers.Contains(id);
 
         public void Send(int id, byte[] data, int offset, int length)
-            => outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(id, endpoints[id]), 
-                                                           data, 
-                                                           offset, 
-                                                           length, 
-                                                           DateTime.UtcNow.TimeOfDay));
+            => outgoing.Enqueue(ServerResources.EventArgs.ServerMessage.Take(args =>
+            {
+                args.Peer      = new PeerConnection(id, endpoints[id]);
+                args.Contents  = data;
+                args.Offset    = offset;
+                args.Length    = length;
+                args.Timestamp = DateTime.UtcNow.TimeOfDay;
+            }));
 
         public void Start(int port, int backlog)
         {
@@ -136,9 +176,12 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         {
             foreach (var peer in peers)
             {
-                Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peer, endpoints[peer]), 
-                                                           PeerResetReason.ServerReset, 
-                                                           DateTime.UtcNow.TimeOfDay));
+                Reset?.Invoke(this, ServerResources.EventArgs.PeerReset.Take(args =>
+                {
+                    args.Peer      = new PeerConnection(peer, endpoints[peer]);
+                    args.Reason    = PeerResetReason.ServerReset;
+                    args.Timestamp = DateTime.UtcNow.TimeOfDay;
+                }));
             }
             
             peers.Clear();
