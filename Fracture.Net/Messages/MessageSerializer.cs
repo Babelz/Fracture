@@ -54,6 +54,9 @@ namespace Fracture.Net.Messages
 
         static MessagePool()
         {
+            // Map and reduce all generic message types to their underlying types.
+            StructSerializer.Reduce<IMessage>(m => m.GetType());
+            
             Pools = new Dictionary<Type, IPool<IMessage>>();
         }
             
