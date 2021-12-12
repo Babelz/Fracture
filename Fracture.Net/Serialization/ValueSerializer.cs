@@ -8,6 +8,11 @@ using NLog;
 
 namespace Fracture.Net.Serialization
 {
+    /// <summary>
+    /// Attribute for annotating classes that provide non-generic value serialization for specific type. For example primitive types (int, float etc) are good
+    /// candidates for this level of serialization as their types can be inferred at runtime easily without introducing any boxing. Non-generic value serializers
+    /// should always resolve the serialization type to specific run time type.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class ValueSerializerAttribute : Attribute
     {
@@ -24,6 +29,11 @@ namespace Fracture.Net.Serialization
         }
     }
     
+    /// <summary>
+    /// Attribute annotating classes that provide generic value serialization for subset of types. Examples for generic serialization types are enums and classes
+    /// where the serialization type is know only at run time and the type must be inferred during runtime from the object being serialized or deserialized.
+    /// Generic value serializers should resolve the serialization type based on value schematics and type information provided by generics at run time. 
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class GenericValueSerializerAttribute : Attribute
     {

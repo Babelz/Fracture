@@ -20,22 +20,15 @@ namespace Fracture.Net.Serialization
         #region Static fields
         private static readonly Dictionary<Type, ushort> SerializationTypeIdMappings = new Dictionary<Type, ushort>();
         private static readonly Dictionary<ushort, Type> RunTypeMappings             = new Dictionary<ushort, Type>();
-        private static readonly Dictionary<Type, Func<object, Type>> Reducers        = new Dictionary<Type, Func<object, Type>>();
 
         private static readonly Dictionary<Type, ObjectSerializer> Serializers = new Dictionary<Type, ObjectSerializer>();
         
         private static ushort NextSerializationTypeId;
         #endregion
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Type ReduceType(Type serializationType, object value)
-            => Reducers.TryGetValue(serializationType, out var reducer) ? reducer(value) : serializationType;
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort InternalGetSizeFromValue(Type serializationType, object value)
         {
-            serializationType = ReduceType(serializationType, value);
-
             return checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
         }
 
@@ -55,8 +48,6 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void InternalSerialize(Type serializationType, object value, byte[] buffer, int offset)
         {
-            serializationType = ReduceType(serializationType, value);
-
             var serializationTypeId = SerializationTypeIdMappings[serializationType];
             
             var contentLength = checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + 
@@ -95,21 +86,13 @@ namespace Fracture.Net.Serialization
 
             NextSerializationTypeId++;
         }
-        
-        /// <summary>
-        /// Registers reducer callback for specific type. Reducers are useful when working in generic context and the serialization type can't be directly
-        /// inferred from a generic argument. 
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Reduce<T>(Func<object, Type> reducer)
-            => Reducers.Add(typeof(T), reducer ?? throw new ArgumentNullException(nameof(reducer)));
 
         /// <summary>
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize<T>(T value, byte[] buffer, int offset)
-            => InternalSerialize(typeof(T), value, buffer, offset);
+            => InternalSerialize(value.GetType(), value, buffer, offset);
 
         /// <summary>
         /// Writes given structure to given buffer beginning at given offset.
@@ -144,7 +127,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T value)
-            => InternalGetSizeFromValue(typeof(T), value);
+            => InternalGetSizeFromValue(value.GetType(), value);
         
         /// <summary>
         /// Returns size of structure value, size will vary. Type information is retrieved from the provided object.
