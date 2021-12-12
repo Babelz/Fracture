@@ -169,8 +169,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Value_Type_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypeFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ValueTypeFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -198,8 +197,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Value_Type_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypePropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ValueTypePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -227,8 +225,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Objects_Containing_Value_Type_Fields_And_Properties_With_Parametrized_Constructor()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypePropertyAndFieldWithParametrizedConstructorTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ValueTypePropertyAndFieldWithParametrizedConstructorTestClass>()
                                                    .PublicProperties()
                                                    .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
                                                                            ObjectActivationHint.Field("y", "Y"),
@@ -267,8 +264,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Nullable_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullableFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -310,8 +306,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Nullable_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullablePropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullablePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -353,8 +348,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Deserialize_Non_Value_Type_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypeFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NonValueTypeFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             

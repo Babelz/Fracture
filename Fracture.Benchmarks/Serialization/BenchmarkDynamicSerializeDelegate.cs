@@ -126,8 +126,7 @@ namespace Fracture.Benchmarks.Serialization
         
         public BenchmarkDynamicSerializeDelegate()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<TestClass>()
+            var mapping = ObjectSerializationMapper.ForType<TestClass>()
                                                    .PublicFields()
                                                    .PublicProperties()
                                                    .Map();

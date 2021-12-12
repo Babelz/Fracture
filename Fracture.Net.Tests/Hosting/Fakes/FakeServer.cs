@@ -133,7 +133,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         public IEnumerable<int> Peers
             => peers;
 
-        public FakeServer(params FakeServerFrame[] frames)
+        private FakeServer(params FakeServerFrame[] frames)
         {
             this.frames = new Queue<FakeServerFrame>(frames);
 
@@ -167,7 +167,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
                 args.Timestamp = DateTime.UtcNow.TimeOfDay;
             }));
 
-        public void Start(int port, int backlog)
+        public void Start()
         {
             // Nop.
         }

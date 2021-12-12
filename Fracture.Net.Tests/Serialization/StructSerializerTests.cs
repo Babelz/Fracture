@@ -86,22 +86,18 @@ namespace Fracture.Net.Tests.Serialization
 
         static StructSerializerTests()
         {
-            StructSerializer.Map(ObjectSerializationMapper.Create()
-                                                                .FromType<Vec2>()
-                                                                .PublicFields()
-                                                                .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
-                                                                .Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
+                                                          .PublicFields()
+                                                          .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
+                                                          .Map());
             
-            StructSerializer.Map(ObjectSerializationMapper.Create()
-                                                                .FromType<ClassComposedOfStructs>()
-                                                                .PublicFields()
-                                                                .Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<ClassComposedOfStructs>().PublicFields().Map());
             
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Inner4>().PublicFields().Map());
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Inner3>().PublicFields().Map());
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Inner2>().PublicFields().Map());
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Inner1>().PublicFields().Map());
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Inner>().PublicFields().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Inner4>().PublicFields().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Inner3>().PublicFields().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Inner2>().PublicFields().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Inner1>().PublicFields().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<Inner>().PublicFields().Map());
         }
         
         public StructSerializerTests()
@@ -111,7 +107,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Register_Throws_If_Type_Is_Already_Registered()
             => Assert.IsType<InvalidOperationException>(
-                Record.Exception(() => StructSerializer.Map(ObjectSerializationMapper.Create().FromType<Vec2>().Map()))
+                Record.Exception(() => StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>().Map()))
             );
         
         [Fact]
@@ -119,8 +115,7 @@ namespace Fracture.Net.Tests.Serialization
         {
             var testValueIn = new IndirectlyActivatedTestClass();
             
-            StructSerializer.Map(ObjectSerializationMapper.Create()
-                                                          .FromType<IndirectlyActivatedTestClass>()
+            StructSerializer.Map(ObjectSerializationMapper.ForType<IndirectlyActivatedTestClass>()
                                                           .PublicFields()
                                                           .IndirectActivation(() =>
                                                            {

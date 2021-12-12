@@ -39,7 +39,7 @@ namespace Fracture.Net.Tests.Hosting
 
         static ApplicationPeerTests()
         {
-            StructSerializer.Map(ObjectSerializationMapper.Create().FromType<TestValueMessage>().PublicProperties().Map());
+            StructSerializer.Map(ObjectSerializationMapper.ForType<TestValueMessage>().PublicProperties().Map());
         }
         
         public ApplicationPeerTests()
@@ -60,10 +60,10 @@ namespace Fracture.Net.Tests.Hosting
                 FakeServerFrame.Create().Join(second).Leave(first, PeerResetReason.ServerReset),
             };
             
-            var application = ApplicationBuilder.Create()
-                                                .Server(FakeServer.Create(frames))
-                                                .Script<TickLimiterScript>(BindingValue.Const("limit", (ulong)2))
+            var application = ApplicationBuilder.FromServer(FakeServer.Create(frames))
                                                 .Build();
+
+            ApplicationTestUtils.Limit(application, 2);
             
             application.Join += (s, e) =>
             {
@@ -75,7 +75,7 @@ namespace Fracture.Net.Tests.Hosting
                 handledPeers.Enqueue(e.Peer);
             };
             
-            application.Start(FakeServer.Port, FakeServer.Backlog);
+            application.Start();
             
             Assert.Equal(handledPeers.Dequeue(), first);
             Assert.Equal(handledPeers.Dequeue(), second);
@@ -93,16 +93,14 @@ namespace Fracture.Net.Tests.Hosting
                 FakeServerFrame.Create().Incoming(peer, Message.Take<TestValueMessage>()).Leave(peer, PeerResetReason.RemoteReset)
             };
             
-            var application = ApplicationBuilder.Create()
-                                                .Server(FakeServer.Create(frames))
-                                                .Script<TickLimiterScript>(BindingValue.Const("limit", (ulong)2))
+            var application = ApplicationBuilder.FromServer(FakeServer.Create(frames))
                                                 .Build();
+            
+            ApplicationTestUtils.Limit(application, 4);
             
             application.Request.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(), (in RequestMiddlewareContext _) =>
                 throw new Exception("not expecting messages to reach this part")
             );
-
-            application.Start(FakeServer.Port, FakeServer.Backlog);
         }
         
         [Fact]
@@ -120,16 +118,16 @@ namespace Fracture.Net.Tests.Hosting
 
             var resetPeers = new List<PeerConnection>();
             
-            var application = ApplicationBuilder.Create()
-                                                .Server(FakeServer.Create(frames))
-                                                .Script<TickLimiterScript>(BindingValue.Const("limit", (ulong)4))
+            var application = ApplicationBuilder.FromServer(FakeServer.Create(frames))
                                                 .Build();
+            
+            ApplicationTestUtils.Limit(application, 4);
             
             application.Request.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
 
             application.Reset += (sender, args) => resetPeers.Add(args.Peer);
             
-            application.Start(FakeServer.Port, FakeServer.Backlog);
+            application.Start();
             
             Assert.Single(resetPeers);
             Assert.Contains(first, resetPeers);
@@ -149,18 +147,15 @@ namespace Fracture.Net.Tests.Hosting
 
             var resetPeers = new List<PeerConnection>();
 
-            var application = ApplicationBuilder.Create()
-                                                .Server(FakeServer.Create(frames))
-                                                .Script<TickLimiterScript>(BindingValue.Const("limit", (ulong)3))
-                                                .Script<FrameActorScript>(BindingValue.Const("actions", new []
-                                                 {
-                                                     FrameAction.Create(1, (a) => a.Notification.Queue.Enqueue().Reset(first.Id)) 
-                                                 }))
+            var application = ApplicationBuilder.FromServer(FakeServer.Create(frames))
                                                 .Build();
 
+            ApplicationTestUtils.Limit(application, 3);
+            ApplicationTestUtils.FrameAction(application, 1, () => application.Notification.Queue.Enqueue().Reset(first.Id));
+            
             application.Reset += (sender, args) => resetPeers.Add(args.Peer);
             
-            application.Start(FakeServer.Port, FakeServer.Backlog);
+            application.Start();
             
             Assert.Single(resetPeers);
             Assert.Contains(first, resetPeers);

@@ -279,8 +279,7 @@
         <Compile Include="Hosting\ApplicationPeerTests.cs" />
         <Compile Include="Hosting\Fakes\FakePeer.cs" />
         <Compile Include="Hosting\Fakes\FakeServer.cs" />
-        <Compile Include="Hosting\Utils\FrameActorScript.cs" />
-        <Compile Include="Hosting\Utils\TickLimiterScript.cs" />
+        <Compile Include="Hosting\Utils\ApplicationTestUtils.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Serialization\ArraySerializerTests.cs" />
         <Compile Include="Serialization\BitFieldSerializerTests.cs" />

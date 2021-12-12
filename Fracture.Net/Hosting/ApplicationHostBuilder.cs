@@ -42,6 +42,26 @@ namespace Fracture.Net.Hosting
             return this;
         }
         
+        /// <summary>
+        /// Register custom service dependency that can injected to services.
+        /// </summary>
+        public ApplicationHostBuilder ServiceDependency(object dependency)
+        {
+            services.Bind(dependency);
+            
+            return this;
+        }
+        
+        /// <summary>
+        /// Register custom script dependency that can injected to scripts.
+        /// </summary>
+        public ApplicationHostBuilder ScriptDependency(object dependency)
+        {
+            scripts.Bind(dependency);
+            
+            return this;
+        }
+
         public ApplicationHost Build()
             => new ApplicationHost(application, 
                                    new ApplicationScriptingHost(application, services, scripts), 

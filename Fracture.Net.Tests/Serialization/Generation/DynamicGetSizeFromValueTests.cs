@@ -121,8 +121,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Non_Value_Type_Values_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypeTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NonValueTypeTestClass>()
                                                    .PublicFields()
                                                    .PublicProperties()
                                                    .Map();
@@ -145,8 +144,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Non_Value_Type_Nullable_Values_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableNonValueTypeTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullableNonValueTypeTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -169,8 +167,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Nullable_Fields_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullableFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -192,8 +189,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Nullable_Properties_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullablePropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullablePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -215,8 +211,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Value_Type_Structure_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypeTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ValueTypeTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -238,8 +233,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Compute_Size_Of_Value_Type_Structure_With_Parametrized_Activator_Correctly()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ValueTypeParametrizedActivationTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ValueTypeParametrizedActivationTestClass>()
                                                    .PublicFields()
                                                    .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
                                                                            ObjectActivationHint.Field("y", "Y"))

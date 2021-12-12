@@ -1,3 +1,4 @@
+using System.Linq;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 
@@ -221,8 +222,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_No_Default_Constructor_Exists()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<NoDefaultConstructorTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
                                                                             .PublicProperties()
                                                                             .Map());
             
@@ -233,8 +233,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Constructor_Does_Not_Exist()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<NoDefaultConstructorTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
                                                                             .PublicProperties()
                                                                             .ParametrizedActivation(new []
                                                                              {
@@ -249,19 +248,18 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Type_Is_Left_Null()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType(null)
                                                                             .PublicProperties()
                                                                             .Map());
             
             Assert.NotNull(exception);
-            Assert.Contains("can't map null type", exception.Message);
+            Assert.Contains("Value cannot be null", exception.Message);
         }
         
         [Fact]
         public void Should_Throw_If_Serialization_Type_Is_Abstract()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<AbstractTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<AbstractTestClass>()
                                                                             .PublicProperties()
                                                                             .Map());
             
@@ -272,8 +270,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Type_Is_Interface()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<ITestInterface>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ITestInterface>()
                                                                             .PublicProperties()
                                                                             .Map());
             
@@ -284,8 +281,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Map_Correctly_To_Default_Constructor()
         {            
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<DefaultConstructorTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<DefaultConstructorTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -295,8 +291,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Map_Correctly_To_Parametrized_Constructor()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NoDefaultConstructorTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
                                                    .ParametrizedActivation(new []
                                                     {
                                                         ObjectActivationHint.Property("foo", "Foo")
@@ -311,8 +306,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Property_Is_Readonly()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<ReadOnlyPropertyTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ReadOnlyPropertyTestClass>()
                                                                             .PublicProperties()
                                                                             .Map());
             
@@ -323,8 +317,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Property_Is_Write_Only()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<WriteOnlyPropertyTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<WriteOnlyPropertyTestClass>()
                                                                             .PublicProperties()
                                                                             .Map());
             
@@ -335,8 +328,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Field_Is_Readonly()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<ReadOnlyFieldTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ReadOnlyFieldTestClass>()
                                                                             .Values(new []
                                                                              {
                                                                                  SerializationValueHint.Field("x")
@@ -350,8 +342,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Allow_Readonly_Fields_When_They_Are_Used_With_Object_Activation()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ParametrizedReadOnlyFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ParametrizedReadOnlyFieldTestClass>()
                                                    .ParametrizedActivation(ObjectActivationHint.Field("x", "X"))
                                                    .Map();
             
@@ -362,8 +353,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Allow_Readonly_Properties_When_They_Are_Used_With_Object_Activation()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ParametrizedReadOnlyPropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ParametrizedReadOnlyPropertyTestClass>()
                                                    .ParametrizedActivation(ObjectActivationHint.Property("x", "X"))
                                                    .Map();
             
@@ -374,8 +364,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Field_Is_Static()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<StaticFieldTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<StaticFieldTestClass>()
                                                                             .Values(SerializationValueHint.Field("x"))
                                                                             .Map());
             
@@ -386,8 +375,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Property_Is_Static()
         {
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<StaticPropertyTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<StaticPropertyTestClass>()
                                                                             .Values(SerializationValueHint.Property("Foo"))
                                                                             .Map());
             
@@ -398,8 +386,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Field_Does_Not_Exist()
         {            
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<EmptyTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<EmptyTestClass>()
                                                                             .Values(SerializationValueHint.Field("x"))
                                                                             .Map());
             
@@ -410,8 +397,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Throw_If_Serialization_Property_Does_Not_Exist()
         {            
-            var exception = Record.Exception(() => ObjectSerializationMapper.Create()
-                                                                            .FromType<EmptyTestClass>()
+            var exception = Record.Exception(() => ObjectSerializationMapper.ForType<EmptyTestClass>()
                                                                             .Values(SerializationValueHint.Property("Foo"))
                                                                             .Map());
             
@@ -422,8 +408,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Map_All_Public_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<PublicFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<PublicFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -437,8 +422,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Map_All_Public_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<PublicPropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<PublicPropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -452,8 +436,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Map_Nullable_Types()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullableTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -465,8 +448,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact()]
         public void Should_Order_Activation_Values_First()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<ActivationTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<ActivationTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),

@@ -267,8 +267,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<FieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<FieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
             
@@ -294,8 +293,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Nullable_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullableFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullableFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
 
@@ -330,8 +328,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Non_Value_Type_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypeFieldTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NonValueTypeFieldTestClass>()
                                                    .PublicFields()
                                                    .Map();
 
@@ -375,8 +372,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<PropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<PropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -408,8 +404,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Nullable_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NullablePropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NullablePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -441,8 +436,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Non_Value_Type_Properties()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonValueTypePropertyTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NonValueTypePropertyTestClass>()
                                                    .PublicProperties()
                                                    .Map();
             
@@ -486,8 +480,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Both_Properties_And_Fields()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<FieldAndPropertyTestClassClass>()
+            var mapping = ObjectSerializationMapper.ForType<FieldAndPropertyTestClassClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -516,8 +509,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_Non_Zero_Null_Offset_Mixed_Value_Types()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<NonZeroNullValueOffsetMixedTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<NonZeroNullValueOffsetMixedTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
@@ -575,8 +567,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         [Fact]
         public void Should_Serialize_All_Supported_Field_And_Property_Kinds_Mixed()
         {
-            var mapping = ObjectSerializationMapper.Create()
-                                                   .FromType<AllPropertyAndFieldKindsMixTestClass>()
+            var mapping = ObjectSerializationMapper.ForType<AllPropertyAndFieldKindsMixTestClass>()
                                                    .PublicProperties()
                                                    .PublicFields()
                                                    .Map();
