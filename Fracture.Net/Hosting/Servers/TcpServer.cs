@@ -13,6 +13,9 @@ namespace Fracture.Net.Hosting.Servers
     public sealed class TcpListener : IListener
     {
         #region Fields
+        private readonly int port;
+        private readonly int backlog;
+        
         private readonly LockedDoubleBuffer<Socket> newConnections;
         private readonly Socket listener;
         
@@ -41,8 +44,11 @@ namespace Fracture.Net.Hosting.Servers
         private bool Listening => (!listenResult?.IsCompleted ?? false);
         #endregion
         
-        public TcpListener()
+        public TcpListener(int port, int backlog)
         {
+            this.port    = port;
+            this.backlog = backlog;
+            
             listener       = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             newConnections = new LockedDoubleBuffer<Socket>();
         }
@@ -79,7 +85,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public void Listen(int port, int backlog)
+        public void Listen()
         {   
             if (Accepting)
                 throw new InvalidOperationException("listener already listening");
@@ -132,8 +138,8 @@ namespace Fracture.Net.Hosting.Servers
     
     public sealed class TcpServer : Server
     {
-        public TcpServer(TimeSpan gracePeriod)
-            : base(new TcpPeerFactory(gracePeriod), new TcpListener())
+        public TcpServer(int port, int backlog, TimeSpan gracePeriod)
+            : base(new TcpPeerFactory(gracePeriod), new TcpListener(port, backlog))
         {
         }
     }

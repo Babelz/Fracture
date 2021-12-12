@@ -1,7 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using Fracture.Common.Di;
-using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -14,8 +12,7 @@ namespace Fracture.Net.Hosting
     public sealed class ApplicationBuilder
     {
         #region Fields
-        private readonly Kernel scripts;
-        private readonly Kernel services;
+        private readonly IServer server;
         
         private IRequestRouter router;
         private INotificationCenter notifications;
@@ -26,16 +23,11 @@ namespace Fracture.Net.Hosting
         
         private IMessageSerializer serializer;
         private IApplicationTimer timer;
-        
-        private IServer server;
         #endregion
         
-        public ApplicationBuilder()
-        {
-            scripts  = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
-            services = new Kernel(DependencyBindingOptions.Interfaces);
-        }
-
+        private ApplicationBuilder(IServer server)
+            => this.server = server ?? throw new ArgumentNullException(nameof(server));
+        
         /// <summary>
         /// Registers custom request router for application.
         /// </summary>
@@ -87,16 +79,6 @@ namespace Fracture.Net.Hosting
         }
 
         /// <summary>
-        /// Register the server for use by the application. 
-        /// </summary>
-        public ApplicationBuilder Server(IServer server)
-        {
-            this.server = server ?? throw new ArgumentNullException(nameof(server));
-            
-            return this;
-        }
-        
-        /// <summary>
         /// Register custom application timer for the application to use.
         /// </summary>
         public ApplicationBuilder Timer(IApplicationTimer timer)
@@ -115,36 +97,13 @@ namespace Fracture.Net.Hosting
             
             return this;
         }
-        
-        /// <summary>
-        /// Register service to be used by the application.
-        /// </summary>
-        public ApplicationBuilder Service<T>(params IBindingValue[] args) where T : class, IApplicationService
-        {
-            services.Bind<T>(args);
-            
-            return this;
-        }
-        
-        /// <summary>
-        /// Register startup script that is loaded to the application before it starts.
-        /// </summary>
-        public ApplicationBuilder Script<T>(params IBindingValue[] args) where T : class, IApplicationScript
-        {
-            scripts.Bind<T>(args);
-            
-            return this;
-        }
-        
+
         /// <summary>
         /// Builds the application using dependencies and configurations provided. To start running the application call the <see cref="Application.Start"/>
         /// method.
         /// </summary>
         public Application Build()
         {
-            if (server == null)
-                throw new InvalidOperationException("server was not set");
-            
             router                 ??= new RequestRouter();
             notifications          ??= new NotificationCenter();
             requestMiddleware      ??= new MiddlewarePipeline<RequestMiddlewareContext>();
@@ -165,19 +124,14 @@ namespace Fracture.Net.Hosting
                 timer
             );
             
-            // Initialize application kernel.
-            var kernel = new ApplicationKernel(application, services, scripts);
-            
-            application.Tick += delegate
-            {
-                kernel.Tick();
-            };
-
             return application;
         }
         
+        /// <summary>
+        /// Register the server for use by the application. 
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ApplicationBuilder Create()
-            => new ApplicationBuilder();
+        public static ApplicationBuilder FromServer(IServer server)
+            => new ApplicationBuilder(server);
     }
 }

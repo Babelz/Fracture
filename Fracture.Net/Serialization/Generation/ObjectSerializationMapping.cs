@@ -293,6 +293,8 @@ namespace Fracture.Net.Serialization.Generation
     public sealed class ObjectSerializationMapper 
     {
         #region Fields
+        private readonly Type serializationType;
+
         private readonly HashSet<string> excludedProperties;
         private readonly HashSet<string> excludedFields;
         
@@ -300,14 +302,15 @@ namespace Fracture.Net.Serialization.Generation
         private readonly List<ObjectActivationHint> objectActivationHints;
         
         private ObjectActivationDelegate activator;
-        private Type serializationType;
         
         private bool discoverPublicFields;
         private bool discoverPublicProperties;
         #endregion
 
-        public ObjectSerializationMapper()
+        private ObjectSerializationMapper(Type serializationType)
         {
+            this.serializationType = serializationType ?? throw new ArgumentNullException(nameof(serializationType));
+            
             serializationValueHints = new List<SerializationValueHint>();
             objectActivationHints   = new List<ObjectActivationHint>();
             
@@ -489,26 +492,7 @@ namespace Fracture.Net.Serialization.Generation
         private ObjectActivator GetObjectActivator()
             => activator != null ? new ObjectActivator(activator) : 
                                    new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
-        
-        /// <summary>
-        /// Directs the builder that given type is being mapped.
-        /// </summary>
-        public ObjectSerializationMapper FromType(Type type)
-        {
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-            
-            serializationType = type;
-            
-            return this;
-        }
-        
-        /// <summary>
-        /// Directs the builder that given type is being mapped.
-        /// </summary>
-        public ObjectSerializationMapper FromType<T>()
-            => FromType(typeof(T));
-        
+
         /// <summary>
         /// Directs the builder to map the types constructor that matches given hints.
         /// </summary>
@@ -602,9 +586,13 @@ namespace Fracture.Net.Serialization.Generation
                                                   serializationValues,
                                                   objectActivator);
         }
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationMapper Create() 
-            => new ObjectSerializationMapper();
+        public static ObjectSerializationMapper ForType(Type type)
+            => new ObjectSerializationMapper(type);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static ObjectSerializationMapper ForType<T>()
+            => new ObjectSerializationMapper(typeof(T));
     }
 }

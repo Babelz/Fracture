@@ -1,4 +1,3 @@
-using System.Linq;
 using Fracture.Net.Serialization.Generation;
 using Xunit;
 

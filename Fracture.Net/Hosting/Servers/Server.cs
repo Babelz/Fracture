@@ -40,11 +40,9 @@ namespace Fracture.Net.Hosting.Servers
         #endregion
         
         /// <summary>
-        /// Places the listener to listen state and begins listening for new connections at given port with given backlog size.
+        /// Places the listener to listen state and begins listening for new connections.
         /// </summary>
-        /// <param name="port">port the listener will be bound to</param>
-        /// <param name="backlog">how many pending clients should be accepted</param>
-        void Listen(int port, int backlog);
+        void Listen();
         
         /// <summary>
         /// Stops listening for any incoming connections and stops accepting them. This does not dispose the internal socket and listening can be continued
@@ -107,7 +105,7 @@ namespace Fracture.Net.Hosting.Servers
         bool Connected(int id);
         void Send(int id, byte[] data, int offset, int length);
         
-        void Start(int port, int backlog);
+        void Start();
         
         void Shutdown();
 
@@ -214,9 +212,9 @@ namespace Fracture.Net.Hosting.Servers
             peer.Send(data, offset, length);
         }
         
-        public void Start(int port, int backlog)
+        public void Start()
         {
-            listener.Listen(port, backlog);
+            listener.Listen();
             
             listener.Connected += Listener_OnConnected;
             

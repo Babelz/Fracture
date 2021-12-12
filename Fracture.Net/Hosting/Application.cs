@@ -59,94 +59,11 @@ namespace Fracture.Net.Hosting
             Middleware = middleware;
         }
     }
-    
-    /// <summary>
-    /// Interface that provides common application host schematics between different host types.
-    /// </summary>
-    public interface IApplicationHost
-    {
-        #region Properties
-        /// <summary>
-        /// Gets the application clock containing current application time.
-        /// </summary>
-        IApplicationClock Clock
-        {
-            get;
-        }
-        #endregion
-
-        /// <summary>
-        /// Signals the application to start shutting down.
-        /// </summary>
-        void Shutdown();
-    }
-    
-    /// <summary>
-    /// Interface for application hosts that provides interface for services to interact with the application.
-    /// </summary>
-    public interface IApplicationServiceHost : IApplicationHost
-    {
-        #region Events
-        /// <summary>
-        /// Event invoked when the application is about to start.
-        /// </summary>
-        event EventHandler Starting;
-        
-        /// <summary>
-        /// Event invoked when the application is about to shut down.
-        /// </summary>
-        event EventHandler ShuttingDown;
-        #endregion
-    }
-    
-    /// <summary>
-    /// Interface for application hosts that provides interface for scripts to interact with the application.
-    /// </summary>
-    public interface IApplicationScriptingHost : IApplicationHost
-    {
-        #region Events
-        /// <summary>
-        /// Event invoked when peer has joined.
-        /// </summary>
-        event EventHandler<PeerJoinEventArgs> Join;
-        
-        /// <summary>
-        /// Event invoked when peer has reset.
-        /// </summary>
-        event EventHandler<PeerResetEventArgs> Reset; 
-        #endregion
-        
-        #region Properties
-        /// <summary>
-        /// Gets the application request context for working with the request pipeline.
-        /// </summary>
-        ApplicationRequestContext Request
-        {
-            get;
-        }
-
-        /// <summary>
-        /// Gets the application notification context for working with notification pipeline.
-        /// </summary>
-        ApplicationNotificationContext Notification
-        {
-            get;
-        }
-        
-        /// <summary>
-        /// Gets the application response middleware consumer.
-        /// </summary>
-        IMiddlewareConsumer<RequestResponseMiddlewareContext> Response
-        {
-            get;
-        }
-        #endregion
-    }
 
     /// <summary>
     /// Class for creating applications. Applications provide messaging pipeline and can be extended by services and scripts.
     /// </summary>
-    public sealed class Application : IApplicationServiceHost, IApplicationScriptingHost
+    public sealed class Application
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -313,7 +230,7 @@ namespace Fracture.Net.Hosting
             => joinEvents.Enqueue(e);
         #endregion
 
-        private void Initialize(int port, int backlog)
+        private void Initialize()
         {
             // Hook events before any script does.
             server.Join     += Server_OnJoin;
@@ -324,7 +241,7 @@ namespace Fracture.Net.Hosting
             // Start the actual application by starting the server.
             Starting?.Invoke(this, EventArgs.Empty);
 
-            server.Start(port, backlog);
+            server.Start();
         }
 
         private void Deinitialize()
@@ -779,12 +696,12 @@ namespace Fracture.Net.Hosting
             running = false;
         }
         
-        public void Start(int port, int backlog)
+        public void Start()
         {
             if (running)
                 throw new InvalidOperationException("already running");
             
-            Initialize(port, backlog);
+            Initialize();
 
             running = true;
             
