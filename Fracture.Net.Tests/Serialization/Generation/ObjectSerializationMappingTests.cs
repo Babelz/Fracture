@@ -235,10 +235,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
                                                                             .PublicProperties()
-                                                                            .ParametrizedActivation(new []
-                                                                             {
-                                                                                 ObjectActivationHint.Property("bar", "Bar")
-                                                                             })
+                                                                            .ParametrizedActivation(ObjectActivationHint.Property("bar", "Bar"))
                                                                             .Map());
             
             Assert.NotNull(exception);
@@ -292,10 +289,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_Correctly_To_Parametrized_Constructor()
         {
             var mapping = ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
-                                                   .ParametrizedActivation(new []
-                                                    {
-                                                        ObjectActivationHint.Property("foo", "Foo")
-                                                    })
+                                                   .ParametrizedActivation(ObjectActivationHint.Property("foo", "Foo"))
                                                    .PublicProperties()
                                                    .Map();
             
@@ -329,10 +323,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Field_Is_Readonly()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ReadOnlyFieldTestClass>()
-                                                                            .Values(new []
-                                                                             {
-                                                                                 SerializationValueHint.Field("x")
-                                                                             })
+                                                                            .Values(SerializationValueHint.Field("x"))
                                                                             .Map());
             
             Assert.NotNull(exception);

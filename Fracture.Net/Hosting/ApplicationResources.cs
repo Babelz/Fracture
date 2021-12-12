@@ -2,6 +2,7 @@ using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
+using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting
 {
@@ -9,6 +10,21 @@ namespace Fracture.Net.Hosting
     ///       pre-allocation can fix this.
     public static class ApplicationResources
     {
+        public static class Message
+        {
+            #region Fields
+            private static readonly IMessagePool Pool = new MessagePool();
+            #endregion
+        
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
+                => Pool.Take<T>();
+        
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public static void Return(IMessage message)
+                => Pool.Return(message);
+        }
+        
         public static class Notification
         {
             #region Fields

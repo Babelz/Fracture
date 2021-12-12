@@ -180,7 +180,7 @@ namespace Fracture.Net.Hosting
         private static void ReleaseNotification(Notification notification)
         {
             if (notification.Message != null)
-                Message.Return(notification.Message);
+                ApplicationResources.Message.Return(notification.Message);
             
             ApplicationResources.Notification.Return(notification);
         }
@@ -189,7 +189,7 @@ namespace Fracture.Net.Hosting
         private static void ReleaseRequest(Request request)
         {
             if (request.Message != null)
-                Message.Return(request.Message);
+                ApplicationResources.Message.Return(request.Message);
                     
             if (request.Contents != null)
                 ServerResources.BlockBuffer.Return(request.Contents);
@@ -201,7 +201,7 @@ namespace Fracture.Net.Hosting
         private static void ReleaseResponse(Response response)
         {
             if (response.ContainsReply)
-                Message.Return(response.Message);
+                ApplicationResources.Message.Return(response.Message);
                 
             ApplicationResources.Response.Return(response);
         }

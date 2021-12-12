@@ -48,22 +48,10 @@ namespace Fracture.Net.Messages
     }
     
     /// <summary>
-    /// Static utility class containing message related utilities and shared message pool.
+    /// Static utility class containing message related utilities.
     /// </summary>
     public static class Message
     {
-        #region Fields
-        private static IMessagePool pool;
-        #endregion
-        
-        #region Properties
-        private static IMessagePool Pool
-        {
-            get => pool ??= new MessagePool();
-            set => pool = value;
-        }
-        #endregion
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
         {
@@ -83,13 +71,5 @@ namespace Fracture.Net.Messages
             
             return message;
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
-            => Pool.Take<T>();
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(IMessage message)
-            => Pool.Return(message);
     }
 }

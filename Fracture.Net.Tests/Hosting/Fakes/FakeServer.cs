@@ -229,7 +229,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeServer Create(params FakeServerFrame[] frames) 
+        public static FakeServer FromFrames(params FakeServerFrame[] frames) 
             => new FakeServer(frames);
     }
 }
