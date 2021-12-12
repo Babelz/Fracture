@@ -5,6 +5,9 @@ using Fracture.Common.Di.Binding;
 
 namespace Fracture.Net.Hosting
 {
+    /// <summary>
+    /// Class that provides application host building functionality.
+    /// </summary>
     public sealed class ApplicationHostBuilder
     {
         #region Fields
@@ -47,7 +50,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationHostBuilder ServiceDependency(object dependency)
         {
-            services.Bind(dependency);
+            services.Bind(dependency ?? throw new ArgumentNullException(nameof(dependency)));
             
             return this;
         }
@@ -57,11 +60,17 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationHostBuilder ScriptDependency(object dependency)
         {
-            scripts.Bind(dependency);
+            scripts.Bind(dependency ?? throw new ArgumentNullException(nameof(dependency)));
             
             return this;
         }
-
+        
+        /// <summary>
+        /// Registers custom dependency for both scripts and services to use.
+        /// </summary>
+        public ApplicationHostBuilder SharedDependency(object dependency)
+            => ScriptDependency(dependency).ServiceDependency(dependency);
+        
         public ApplicationHost Build()
             => new ApplicationHost(application, 
                                    new ApplicationScriptingHost(application, services, scripts), 

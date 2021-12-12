@@ -9,7 +9,8 @@ using NLog;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Interface that provides common application host schematics between different host types.
+    /// Interface that provides common application host schematics between different host types. Application hosts extend on the application and provide
+    /// model view controller style for application programming.
     /// </summary>
     public interface IApplicationHost
     {
@@ -93,6 +94,9 @@ namespace Fracture.Net.Hosting
         void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript;
     }
 
+    /// <summary>
+    /// Default implementation of <see cref="IApplicationServiceHost"/>.
+    /// </summary>
     public sealed class ApplicationServiceHost : IApplicationServiceHost
     {
         #region Static fields
@@ -145,6 +149,9 @@ namespace Fracture.Net.Hosting
             => application.Shutdown();
     }
     
+    /// <summary>
+    /// Default implementation of <see cref="IApplicationScriptingHost"/>.
+    /// </summary>
     public sealed class ApplicationScriptingHost : IApplicationScriptingHost
     {
         #region Static fields
@@ -275,6 +282,10 @@ namespace Fracture.Net.Hosting
             => application.Shutdown();
     }
     
+    /// <summary>
+    /// Class that serves as application host in cases the service and script layer is used for application programming. This class groups application,
+    /// services and scripts together.
+    /// </summary>
     public sealed class ApplicationHost
     {
         #region Fields
@@ -291,9 +302,15 @@ namespace Fracture.Net.Hosting
             this.services    = services ?? throw new ArgumentNullException(nameof(services));
         }
         
+        /// <summary>
+        /// Signals the application to shutdown.
+        /// </summary>
         public void Shutdown()
             => application.Shutdown();
         
+        /// <summary>
+        /// Starts running the application.
+        /// </summary>
         public void Start()
         {
             application.Tick += delegate

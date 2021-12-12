@@ -5,9 +5,10 @@ using NLog;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Interface for implementing various scripts. In Fracture scripts and services provide different levels for application programming. Where services
-    /// contain the framework code, scripts contain the application specific business logic. Scripts can consume services found in the application and load
-    /// new scripts at will, but scripts should be kept isolated from each other and they should not directly communicate with each other.  
+    /// Interface for implementing scripts. Scripts provide controller functionality for the application host model. Scripts can consume services but can't
+    /// access or directly communicate with other scripts. Scripts should live in isolation from other scripts.
+    ///
+    /// Scripts are the controller part in any application. 
     /// </summary>
     public interface IApplicationScript
     {

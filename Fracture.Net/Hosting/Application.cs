@@ -61,7 +61,8 @@ namespace Fracture.Net.Hosting
     }
 
     /// <summary>
-    /// Class for creating applications. Applications provide messaging pipeline and can be extended by services and scripts.
+    /// Class that provides functionality for creating net applications. Application provides request and response pipeline support for handling peer requests
+    /// and state. 
     /// </summary>
     public sealed class Application
     {

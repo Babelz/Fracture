@@ -7,7 +7,7 @@ using Fracture.Net.Messages;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Class that provides interface for building applications. 
+    /// Class that provides application building functionality.
     /// </summary>
     public sealed class ApplicationBuilder
     {

@@ -4,11 +4,11 @@ using Fracture.Common.Di.Attributes;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Provides interface for creating application services. Services are reusable stateful objects that contain shared framework level code inside the
-    /// application. Services should be thought to model framework level concepts such as session state containers, schedulers and database clients. Services
-    /// should not be able to access the messaging pipeline or scripting host of the application. Services can communicate with each other directly if needed.
+    /// Provides interface for creating application services. Services are reusable stateful objects that function as the model part in applications. Services
+    /// can communicate to each other and should have limited access to application. 
     ///
-    /// Services are initialized once for the application and they are unloaded only when the application exists.
+    /// Services are the model part in any application and services are initialized once for the application and they are unloaded only when the application
+    /// exists.
     /// </summary>
     public interface IApplicationService
     {
