@@ -5,7 +5,7 @@ namespace Fracture.Net.Messages
     /// <summary>
     /// Simple message that is used for testing connection status.
     /// </summary>
-    public sealed class PingMessage : IClockMessage
+    public sealed class PingMessage : Message
     {
         #region Properties
         /// <summary>
@@ -22,9 +22,7 @@ namespace Fracture.Net.Messages
         {
         }
 
-        public void Clear()
-        {
-            RequestTime = default;
-        }
+        public override void Clear()
+            => RequestTime = default;
     }
 }

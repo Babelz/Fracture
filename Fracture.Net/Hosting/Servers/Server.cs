@@ -138,7 +138,7 @@ namespace Fracture.Net.Hosting.Servers
             => peers.Select(p => p.Id);
         #endregion
         
-        protected Server(IPeerFactory factory, IListener listener)
+        public Server(IPeerFactory factory, IListener listener)
         {
             this.factory  = factory ?? throw new ArgumentNullException(nameof(factory));
             this.listener = listener ?? throw new ArgumentNullException(nameof(listener));

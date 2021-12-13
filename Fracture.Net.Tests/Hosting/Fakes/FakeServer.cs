@@ -81,11 +81,6 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         /// Fake port to use with tests.
         /// </summary>
         public const int Port = 2444;
-        
-        /// <summary>
-        /// Fake backlog to use with tests.
-        /// </summary>
-        public const int Backlog = 10;
         #endregion
         
         #region Fields

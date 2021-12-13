@@ -66,9 +66,8 @@ namespace Fracture.Net.Messages
         
         public virtual void Clear()
         {
-            throw new NotImplementedException();
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
         {

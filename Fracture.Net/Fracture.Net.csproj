@@ -278,6 +278,7 @@
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpPeer.cs" />
         <Compile Include="Hosting\Servers\TcpListener.cs" />
+        <Compile Include="Hosting\Services\SessionService.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />
         <Compile Include="Messages\MessageSerializer.cs" />
