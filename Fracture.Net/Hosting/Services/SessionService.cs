@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di.Attributes;
+using NLog;
 
 namespace Fracture.Net.Hosting.Services
 {
@@ -13,18 +14,18 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Returns boolean declaring whether given peer id has session associated with it. 
         /// </summary>
-        bool Exists(int id);
+        bool Active(int id);
     }
     
     /// <summary>
     /// Interface for implementing services that provide peer session management for application.
     /// </summary>
-    public interface ISessionService<T> : ISessionService where T : class
+    public interface ISessionService<T> : ISessionService
     {
         /// <summary>
-        /// Creates and associates given session object with given peer.
+        /// Creates or updates session of specific peer.
         /// </summary>
-        void Create(int id, T session);
+        void Update(int id, T session);
         
         /// <summary>
         /// Clears session object from given peer.
@@ -40,8 +41,12 @@ namespace Fracture.Net.Hosting.Services
     /// <summary>
     /// Default implementation of <see cref="ISessionService"/>.
     /// </summary>
-    public class SessionService<T> : ApplicationService, ISessionService<T> where T : class
+    public class SessionService<T> : ApplicationService, ISessionService<T>
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly Dictionary<int, T> sessions;
         #endregion
@@ -53,15 +58,35 @@ namespace Fracture.Net.Hosting.Services
             sessions = new Dictionary<int, T>();
         }
 
-        public bool Exists(int id)
+        public bool Active(int id)
             => sessions.ContainsKey(id);
 
-        public void Create(int id, T session)
-            => sessions.Add(id, session ?? throw new ArgumentNullException(nameof(session)));
-
+        public void Update(int id, T session)
+        {
+            if (!Active(id))
+            {
+                Log.Info($"creating session for peer {id}", session);
+                
+                sessions.Add(id, session ?? throw new ArgumentNullException(nameof(session)));
+            }
+            else
+            {
+                Log.Info($"updating session for peer {id}", session);
+                
+                sessions[id] = session;
+            }
+        }
+        
         public void Clear(int id)
-            => sessions.Remove(id);
-
+        {
+            if (!sessions.TryGetValue(id, out var session))
+                return;
+            
+            Log.Info($"clearing session for peer {id}", session);
+                
+            sessions.Remove(id);
+        }
+            
         public bool TryGet(int id, out T session)
             => sessions.TryGetValue(id, out session);
     }
