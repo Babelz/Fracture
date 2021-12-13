@@ -73,8 +73,8 @@ namespace Fracture.Net.Hosting
         
         public ApplicationHost Build()
             => new ApplicationHost(application, 
-                                   new ApplicationScriptingHost(application, services, scripts), 
-                                   new ApplicationServiceHost(application, services));
+                                   new ApplicationScriptingHost(scripts, application, services.All<IApplicationService>()), 
+                                   new ApplicationServiceHost(services, application));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ApplicationHostBuilder FromApplication(Application application)

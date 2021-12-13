@@ -4,6 +4,8 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
+using Fracture.Common.Events;
+using Fracture.Common.Memory.Pools;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -37,6 +39,8 @@ namespace Fracture.Net.Hosting.Servers
         private readonly LockedDoubleBuffer<PeerMessageEventArgs> incomingMessageBuffer;
         private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
         
+        private readonly IArrayPool<byte> buffers;
+        
         private IAsyncResult receiveResult;
         private IAsyncResult disconnectResult;
 
@@ -47,10 +51,10 @@ namespace Fracture.Net.Hosting.Servers
         #endregion
         
         #region Events
-        public event EventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerResetEventArgs> Reset;
         
-        public event EventHandler<PeerMessageEventArgs> Incoming;
-        public event EventHandler<ServerMessageEventArgs> Outgoing;
+        public event StructEventHandler<PeerMessageEventArgs> Incoming;
+        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
@@ -74,10 +78,11 @@ namespace Fracture.Net.Hosting.Servers
             => state == PeerState.Connected;
         #endregion
 
-        public TcpPeer(Socket socket, TimeSpan gracePeriod)
+        public TcpPeer(Socket socket, TimeSpan gracePeriod, IArrayPool<byte> buffers)
         {
             this.socket      = socket;
             this.gracePeriod = gracePeriod;
+            this.buffers     = buffers;
 
             Id       = IdCounter++;
             EndPoint = (IPEndPoint)socket.RemoteEndPoint;
@@ -141,17 +146,11 @@ namespace Fracture.Net.Hosting.Servers
                 if (length == 0)
                     return;
             
-                var contents = ServerResources.BlockBuffer.Take(length);
+                var contents = buffers.Take(length);
             
                 Array.Copy(receiveBuffer, 0, contents, 0, length);
             
-                incomingMessageBuffer.Push(ServerResources.EventArgs.PeerMessage.Take(args =>
-                {
-                    args.Peer      = new PeerConnection(Id, EndPoint);
-                    args.Contents  = contents;
-                    args.Length    = length;
-                    args.Timestamp = DateTime.UtcNow.TimeOfDay;
-                }));   
+                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), contents, length, DateTime.UtcNow.TimeOfDay));   
             }
             catch (Exception e)
             {
@@ -216,12 +215,7 @@ namespace Fracture.Net.Hosting.Servers
             
             state = PeerState.Disconnected;
                         
-            Reset?.Invoke(this, ServerResources.EventArgs.PeerReset.Take(args =>
-            {
-                args.Peer      = new PeerConnection(Id, EndPoint);
-                args.Reason    = reason;
-                args.Timestamp = DateTime.UtcNow.TimeOfDay;
-            }));
+            Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason, DateTime.UtcNow.TimeOfDay));
         }
         
         public void Disconnect()
@@ -240,14 +234,7 @@ namespace Fracture.Net.Hosting.Servers
                              length, 
                              SocketFlags.None, 
                              SendCallback, 
-                             ServerResources.EventArgs.ServerMessage.Take(args =>
-                             {
-                                args.Peer      = new PeerConnection(Id, EndPoint);
-                                args.Contents  = data;
-                                args.Offset    = offset;
-                                args.Length    = length;
-                                args.Timestamp = DateTime.UtcNow.TimeOfDay;
-                             }));
+                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
         }
 
         public void Poll()
@@ -273,17 +260,22 @@ namespace Fracture.Net.Hosting.Servers
     {
         #region Fields
         private readonly TimeSpan gracePeriod;
+        
+        private readonly IArrayPool<byte> buffers;
         #endregion
         
-        public TcpPeerFactory(TimeSpan gracePeriod)
-            => this.gracePeriod = gracePeriod;
-        
+        public TcpPeerFactory(TimeSpan gracePeriod, IArrayPool<byte> buffers)
+        {
+            this.buffers     = buffers ?? throw new ArgumentNullException(nameof(buffers));
+            this.gracePeriod = gracePeriod;
+        }
+            
         public IPeer Create(Socket socket)
         {
             if (socket.ProtocolType != ProtocolType.Tcp)
                 throw new ArgumentException("expecting TCP socket");    
             
-            return new TcpPeer(socket, gracePeriod);
+            return new TcpPeer(socket, gracePeriod, buffers);
         }
     }
 }

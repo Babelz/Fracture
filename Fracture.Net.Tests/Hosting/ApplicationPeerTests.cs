@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
@@ -84,13 +83,13 @@ namespace Fracture.Net.Tests.Hosting
             var peer = FakePeer.Create();
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(peer),
-                                                                                  FakeServerFrame.Create().Incoming(peer, ApplicationResources.Message.Take<TestValueMessage>())
+                                                                                  FakeServerFrame.Create().Incoming(peer, Message.Take<TestValueMessage>())
                                                                                                  .Leave(peer, PeerResetReason.RemoteReset)))
                                                 .Build();
             
             ApplicationTestUtils.LimitFrames(application, 4);
             
-            application.Request.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(), (in RequestMiddlewareContext _) =>
+            application.Requests.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(), (in RequestMiddlewareContext _) =>
                 throw new Exception("not expecting messages to reach this part")
             );
         }
@@ -105,12 +104,12 @@ namespace Fracture.Net.Tests.Hosting
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
                                                                                   FakeServerFrame.Create().Join(second),
-                                                                                  FakeServerFrame.Create().Incoming(first, ApplicationResources.Message.Take<TestValueMessage>())))
+                                                                                  FakeServerFrame.Create().Incoming(first, Message.Take<TestValueMessage>())))
                                                 .Build();
             
             ApplicationTestUtils.LimitFrames(application, 4);
             
-            application.Request.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
+            application.Requests.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
 
             application.Reset += (sender, args) => resetPeers.Add(args.Peer);
             
@@ -133,7 +132,7 @@ namespace Fracture.Net.Tests.Hosting
                                                 .Build();
 
             ApplicationTestUtils.LimitFrames(application, 3);
-            ApplicationTestUtils.FrameAction(application, 1, () => application.Notification.Queue.Enqueue().Reset(first.Id));
+            ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue().Reset(first.Id));
             
             application.Reset += (sender, args) => resetPeers.Add(args.Peer);
             

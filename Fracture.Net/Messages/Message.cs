@@ -1,7 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Fracture.Common.Collections;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
+using Fracture.Net.Serialization;
 
 namespace Fracture.Net.Messages
 {
@@ -48,10 +52,23 @@ namespace Fracture.Net.Messages
     }
     
     /// <summary>
-    /// Static utility class containing message related utilities.
+    /// Abstract base class for creating messages that also provides message pooling and message related utilities.
     /// </summary>
-    public static class Message
+    public abstract class Message : IMessage
     {
+        #region Static fields
+        private static readonly Dictionary<Type, IPool<IMessage>> Pools = new Dictionary<Type, IPool<IMessage>>();
+        #endregion
+
+        protected Message()
+        {
+        }
+        
+        public virtual void Clear()
+        {
+            throw new NotImplementedException();
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
         {
@@ -71,5 +88,34 @@ namespace Fracture.Net.Messages
             
             return message;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
+        {
+            var type = typeof(T);
+            
+            if (!StructSerializer.SupportsType(type))
+                throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
+            
+            if (!Pools.TryGetValue(type, out var pool))
+            {
+                pool = new CleanPool<IMessage>(
+                    new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
+                                               () => new T(), 8)
+                );
+                
+                Pools.Add(type, pool);
+            }
+                
+            var message = (T)pool.Take();
+            
+            decorator?.Invoke(message);
+            
+            return message;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(IMessage message) 
+            => Pools[message.GetType()].Return(message);
     }
 }

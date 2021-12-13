@@ -1,5 +1,9 @@
 using System;
+using System.Runtime.CompilerServices;
+using Fracture.Common.Collections;
 using Fracture.Common.Memory;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
 
@@ -61,6 +65,13 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public sealed class Request : IRequest, IClearable
     {
+        #region Static fields
+        private static readonly IPool<Request> Pool = new ConcurrentPool<Request>(
+            new CleanPool<Request>(
+                new Pool<Request>(new LinearStorageObject<Request>(new LinearGrowthArray<Request>(128)), 128))
+        );
+        #endregion
+        
         #region Properties
         public PeerConnection Peer
         {
@@ -98,5 +109,11 @@ namespace Fracture.Net.Hosting.Messaging
             Message   = default;
             Timestamp = default;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Request Take() => Pool.Take();
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(Request request) => Pool.Return(request);
     }
 }

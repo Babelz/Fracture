@@ -65,22 +65,22 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Event invoked when peer joins the server.
         /// </summary>
-        event EventHandler<PeerJoinEventArgs> Join;
+        event StructEventHandler<PeerJoinEventArgs> Join;
         
         /// <summary>
         /// Event invoked when peer leaves the server. 
         /// </summary>
-        event EventHandler<PeerResetEventArgs> Reset;
+        event StructEventHandler<PeerResetEventArgs> Reset;
         
         /// <summary>
         /// Event invoked when server receives message from a peer.
         /// </summary>
-        event EventHandler<PeerMessageEventArgs> Incoming;
+        event StructEventHandler<PeerMessageEventArgs> Incoming;
         
         /// <summary>
         /// Event invoked when server is sending message to peer.
         /// </summary>
-        event EventHandler<ServerMessageEventArgs> Outgoing;
+        event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Properties
@@ -112,14 +112,14 @@ namespace Fracture.Net.Hosting.Servers
         void Poll();
     }
     
-    public abstract class Server : IServer
+    public sealed class Server : IServer
     {
         #region Events
-        public event EventHandler<PeerJoinEventArgs> Join;
-        public event EventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerJoinEventArgs> Join;
+        public event StructEventHandler<PeerResetEventArgs> Reset;
         
-        public event EventHandler<PeerMessageEventArgs> Incoming;
-        public event EventHandler<ServerMessageEventArgs> Outgoing;
+        public event StructEventHandler<PeerMessageEventArgs> Incoming;
+        public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
         
         #region Fields
@@ -127,7 +127,7 @@ namespace Fracture.Net.Hosting.Servers
         private readonly List<IPeer> peers;
      
         private readonly IPeerFactory factory;
-        private readonly IListener listener;   
+        private readonly IListener listener;
         #endregion
         
         #region Properties
@@ -142,13 +142,13 @@ namespace Fracture.Net.Hosting.Servers
         {
             this.factory  = factory ?? throw new ArgumentNullException(nameof(factory));
             this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
-            
+
             peers  = new List<IPeer>();
             lookup = new Dictionary<int, IPeer>();
         }
 
         #region Event handlers
-        private void Peer_OnReset(object sender, PeerResetEventArgs e)
+        private void Peer_OnReset(object sender, in PeerResetEventArgs e)
         {
             var peer = lookup[e.Peer.Id];
             
@@ -164,10 +164,10 @@ namespace Fracture.Net.Hosting.Servers
             Reset?.Invoke(this, e);
         }
         
-        private void Peer_OnSending(object sender, ServerMessageEventArgs e)
+        private void Peer_OnSending(object sender, in ServerMessageEventArgs e)
             => Outgoing?.Invoke(this, e);
 
-        private void Peer_OnReceived(object sender, PeerMessageEventArgs e)
+        private void Peer_OnReceived(object sender, in PeerMessageEventArgs e)
             => Incoming?.Invoke(this, e);
         
         private void Listener_OnConnected(object sender, in ListenerConnectedEventArgs e)
@@ -182,14 +182,8 @@ namespace Fracture.Net.Hosting.Servers
             peer.Outgoing += Peer_OnSending;
             peer.Reset    += Peer_OnReset;
             
-            // Create args without decorator because lambda can't capture in parameter e.
-            var args = ServerResources.EventArgs.PeerJoin.Take();
-            
-            args.Peer      = new PeerConnection(peer.Id, peer.EndPoint);
-            args.Timestamp = e.Timestamp;
-
             // Invoke joining.
-            Join?.Invoke(this, args);
+            Join?.Invoke(this, new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint), e.Timestamp));
         }
         #endregion
         

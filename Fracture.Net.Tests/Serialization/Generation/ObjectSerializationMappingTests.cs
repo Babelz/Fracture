@@ -118,7 +118,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
 
             public ParametrizedReadOnlyFieldTestClass(int x)
-                => this.X = x;
+                => X = x;
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.

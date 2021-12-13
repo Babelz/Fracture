@@ -1,8 +1,4 @@
 using System;
-using System.Collections.Generic;
-using Fracture.Common.Collections;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
 using Fracture.Net.Serialization;
 
 namespace Fracture.Net.Messages
@@ -31,62 +27,6 @@ namespace Fracture.Net.Messages
         /// Gets size of given message.
         /// </summary>
         int GetSizeFromMessage(IMessage message);
-    }
-    
-    public interface IMessagePool
-    {
-        T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new();
-        
-        void Return(IMessage message);
-    }
-    
-    /// <summary>
-    /// Default implementation of <see cref="IMessagePool"/>.
-    ///
-    /// TODO: no initial allocations is done for the object pools, this might negatively affect the performance so monitor this and checkout if pre-allocation
-    /// can fix this.
-    /// </summary>
-    public sealed class MessagePool : IMessagePool
-    {
-        #region Static fields
-        private static readonly Dictionary<Type, IPool<IMessage>> Pools;
-        #endregion
-
-        static MessagePool()
-        {
-            Pools = new Dictionary<Type, IPool<IMessage>>();
-        }
-            
-        public MessagePool()
-        {
-        }
-        
-        public T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
-        {
-            var type = typeof(T);
-            
-            if (!StructSerializer.SupportsType(type))
-                throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
-            
-            if (!Pools.TryGetValue(type, out var pool))
-            {
-                pool = new CleanPool<IMessage>(
-                    new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
-                                               () => new T())
-                );
-                
-                Pools.Add(type, pool);
-            }
-                
-            var message = (T)pool.Take();
-            
-            decorator?.Invoke(message);
-            
-            return message;
-        }
-        
-        public void Return(IMessage message) 
-            => Pools[message.GetType()].Return(message);
     }
 
     /// <summary>

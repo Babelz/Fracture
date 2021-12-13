@@ -1,5 +1,9 @@
 using System;
+using System.Runtime.CompilerServices;
+using Fracture.Common.Collections;
 using Fracture.Common.Memory;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
@@ -105,6 +109,13 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public sealed class Notification : INotification, IClearable
     {
+        #region Static fields
+        private static readonly IPool<Notification> Pool = new ConcurrentPool<Notification>(
+            new CleanPool<Notification>(
+                new Pool<Notification>(new LinearStorageObject<Notification>(new LinearGrowthArray<Notification>(128)), 128))
+            );
+        #endregion
+        
         #region Properties
         public IMessage Message
         {
@@ -189,6 +200,12 @@ namespace Fracture.Net.Hosting.Messaging
             Peers   = default;
             Message = default;
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static Notification Take() => Pool.Take();
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(Notification notification) => Pool.Return(notification);
     }
     
     /// <summary>

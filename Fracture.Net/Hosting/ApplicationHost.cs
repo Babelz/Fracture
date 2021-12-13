@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Di;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
@@ -9,8 +12,8 @@ using NLog;
 namespace Fracture.Net.Hosting
 {
     /// <summary>
-    /// Interface that provides common application host schematics between different host types. Application hosts extend on the application and provide
-    /// model view controller style for application programming.
+    /// Interface that provides common application host schematics between different host types. Application hosts extend the application by providing service
+    /// and script hosting for isolating different parts of the application from each other.
     /// </summary>
     public interface IApplicationHost
     {
@@ -69,7 +72,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Gets the application request context for working with the request pipeline.
         /// </summary>
-        ApplicationRequestContext Request
+        ApplicationRequestContext Requests
         {
             get;
         }
@@ -77,7 +80,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Gets the application notification context for working with notification pipeline.
         /// </summary>
-        ApplicationNotificationContext Notification
+        ApplicationNotificationContext Notifications
         {
             get;
         }
@@ -85,7 +88,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Gets the application response middleware consumer.
         /// </summary>
-        IMiddlewareConsumer<RequestResponseMiddlewareContext> Response
+        IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
         {
             get;
         }
@@ -119,7 +122,8 @@ namespace Fracture.Net.Hosting
             => application.Clock;
         #endregion
         
-        public ApplicationServiceHost(Application application, Kernel services)
+        [BindingConstructor]
+        public ApplicationServiceHost(Kernel services, Application application)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             this.services    = services ?? throw new ArgumentNullException(nameof(services));
@@ -170,26 +174,26 @@ namespace Fracture.Net.Hosting
         #endregion
         
         #region Properties
-        public ApplicationRequestContext Request
-            => application.Request;
+        public ApplicationRequestContext Requests
+            => application.Requests;
 
-        public ApplicationNotificationContext Notification
-            => application.Notification;
+        public ApplicationNotificationContext Notifications
+            => application.Notifications;
 
-        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Response
-            => application.Response;
-        
+        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
+            => application.Responses;
+
         public IApplicationClock Clock
             => application.Clock;
         #endregion
         
-        public ApplicationScriptingHost(Application application, IDependencyLocator services, Kernel scripts)
+        public ApplicationScriptingHost(Kernel scripts, Application application, IEnumerable<IApplicationService> services)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
             
             // Bind services to scripts.
-            foreach (var service in services.All())
+            foreach (var service in services)
                 scripts.Bind(service);
             
             // Bind host to kernel.

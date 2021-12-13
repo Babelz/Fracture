@@ -135,12 +135,4 @@ namespace Fracture.Net.Hosting.Servers
         public void Dispose()
             => listener.Dispose();
     }
-    
-    public sealed class TcpServer : Server
-    {
-        public TcpServer(int port, int backlog, TimeSpan gracePeriod)
-            : base(new TcpPeerFactory(gracePeriod), new TcpListener(port, backlog))
-        {
-        }
-    }
 }

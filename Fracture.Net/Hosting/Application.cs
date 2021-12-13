@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common;
+using Fracture.Common.Di.Attributes;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -79,6 +80,7 @@ namespace Fracture.Net.Hosting
         private readonly IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
         
         private readonly IMessageSerializer serializer;
+        
         private readonly IServer server;
         
         private readonly IApplicationTimer timer;
@@ -122,23 +124,24 @@ namespace Fracture.Net.Hosting
         #endregion
 
         #region Properties
-        public ApplicationRequestContext Request
+        public ApplicationRequestContext Requests
         {
             get;
         }
 
-        public ApplicationNotificationContext Notification
+        public ApplicationNotificationContext Notifications
         {
             get;
         }
         
-        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Response
+        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
             => responseMiddleware;
-        
+
         public IApplicationClock Clock 
             => timer;
         #endregion
 
+        [BindingConstructor]
         public Application(IServer server,
                            IRequestRouter requestRouter,
                            INotificationCenter notificationCenter,
@@ -158,8 +161,8 @@ namespace Fracture.Net.Hosting
             this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             this.responseMiddleware     = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
             
-            Request      = new ApplicationRequestContext(requestRouter, requestMiddleware);
-            Notification = new ApplicationNotificationContext(notificationCenter, notificationMiddleware);
+            Requests      = new ApplicationRequestContext(requestRouter, requestMiddleware);
+            Notifications = new ApplicationNotificationContext(notificationCenter, notificationMiddleware);
             
             incomingEvents = new Queue<PeerMessageEventArgs>();
             resetsEvents   = new Queue<PeerResetEventArgs>();
@@ -180,30 +183,30 @@ namespace Fracture.Net.Hosting
         private static void ReleaseNotification(Notification notification)
         {
             if (notification.Message != null)
-                ApplicationResources.Message.Return(notification.Message);
+                Message.Return(notification.Message);
             
-            ApplicationResources.Notification.Return(notification);
+            Notification.Return(notification);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReleaseRequest(Request request)
         {
             if (request.Message != null)
-                ApplicationResources.Message.Return(request.Message);
+                Message.Return(request.Message);
                     
             if (request.Contents != null)
-                ServerResources.BlockBuffer.Return(request.Contents);
+                BufferPool.Return(request.Contents);
             
-            ApplicationResources.Request.Return(request);
+            Request.Return(request);
         }
             
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReleaseResponse(Response response)
         {
             if (response.ContainsReply)
-                ApplicationResources.Message.Return(response.Message);
+                Message.Return(response.Message);
                 
-            ApplicationResources.Response.Return(response);
+            Response.Return(response);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -214,20 +217,16 @@ namespace Fracture.Net.Hosting
         }
         
         #region Event handlers
-        private static void Server_OnOutgoing(object sender, ServerMessageEventArgs e)
-        {
-            ServerResources.BlockBuffer.Return(e.Contents);
+        private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
+            => BufferPool.Return(e.Contents);
             
-            ServerResources.EventArgs.ServerMessage.Return(e);
-        }
-            
-        private void Server_OnIncoming(object sender, PeerMessageEventArgs e)
+        private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
             => incomingEvents.Enqueue(e);
 
-        private void Server_OnReset(object sender, PeerResetEventArgs e)
+        private void Server_OnReset(object sender, in PeerResetEventArgs e)
             => resetsEvents.Enqueue(e);
 
-        private void Server_OnJoin(object sender, PeerJoinEventArgs e)
+        private void Server_OnJoin(object sender, in PeerJoinEventArgs e)
             => joinEvents.Enqueue(e);
         #endregion
 
@@ -280,8 +279,6 @@ namespace Fracture.Net.Hosting
                 {
                     Log.Warn("unhandled error occurred notifying about joining peer");
                 }
-                
-                ServerResources.EventArgs.PeerJoin.Return(joinEvent);
             }
         }
 
@@ -307,8 +304,6 @@ namespace Fracture.Net.Hosting
                     Log.Warn("unhandled error occurred notifying about reseting peer");
                 }
                 
-                ServerResources.EventArgs.PeerReset.Return(resetEvent);
-                
                 leavedPeers.Add(resetEvent.Peer.Id);
             }
         }
@@ -326,8 +321,7 @@ namespace Fracture.Net.Hosting
                 // Skip handling for all requests where the peer has leaved.
                 if (leavedPeers.Contains(incomingEvent.Peer.Id))
                 {
-                    ServerResources.BlockBuffer.Return(incomingEvent.Contents);
-                    ServerResources.EventArgs.PeerMessage.Return(incomingEvent);
+                    BufferPool.Return(incomingEvent.Contents);
                     
                     continue;
                 }
@@ -337,7 +331,7 @@ namespace Fracture.Net.Hosting
                 // Deserialize all incoming messages in this event.
                 while (offset < incomingEvent.Length)
                 {
-                    var request = ApplicationResources.Request.Take();
+                    var request = Request.Take();
 
                     try
                     {
@@ -357,8 +351,6 @@ namespace Fracture.Net.Hosting
                         Log.Warn(e, "unhandled error occurred while processing request from peer");
                     }
                 }
-                
-                ServerResources.EventArgs.PeerMessage.Return(incomingEvent);
             }
         }
         
@@ -405,7 +397,7 @@ namespace Fracture.Net.Hosting
                     continue;
                 }
                 
-                var response = ApplicationResources.Response.Take();
+                var response = Response.Take();
 
                 try
                 {
@@ -541,7 +533,7 @@ namespace Fracture.Net.Hosting
                 {
                     // If an exception is thrown here we will leak the buffer and GC will be able to collect it.
                     var size     = serializer.GetSizeFromMessage(requestResponse.Response.Message);
-                    var contents = ServerResources.BlockBuffer.Take(size);
+                    var contents = BufferPool.Take(size);
                     
                     serializer.Serialize(requestResponse.Response.Message, contents, 0);
                     
@@ -568,7 +560,7 @@ namespace Fracture.Net.Hosting
                 if (leavingPeers.Contains(peer))
                     return;
                 
-                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
 
                 serializer.Serialize(notification.Message, contents, 0);
                     
@@ -577,13 +569,13 @@ namespace Fracture.Net.Hosting
                 
             void BroadcastNarrow(INotification notification)
             {
-                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
 
                 serializer.Serialize(notification.Message, contents, 0);
                     
                 foreach (var peer in notification.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
-                    var copy = ServerResources.BlockBuffer.Take(contents.Length);
+                    var copy = BufferPool.Take(contents.Length);
                         
                     contents.CopyTo(copy, 0);
                         
@@ -593,13 +585,13 @@ namespace Fracture.Net.Hosting
                 
             void BroadcastWide(INotification notification)
             {
-                var contents = ServerResources.BlockBuffer.Take(serializer.GetSizeFromMessage(notification.Message));
+                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
 
                 serializer.Serialize(notification.Message, contents, 0);
                     
                 foreach (var peer in server.Peers.Where(p => !leavingPeers.Contains(p)))
                 {
-                    var copy = ServerResources.BlockBuffer.Take(contents.Length);
+                    var copy = BufferPool.Take(contents.Length);
                         
                     contents.CopyTo(copy, 0);
                         
@@ -615,7 +607,7 @@ namespace Fracture.Net.Hosting
                 {
                     var size = serializer.GetSizeFromMessage(notification.Message);
                     
-                    contents = ServerResources.BlockBuffer.Take(size);
+                    contents = BufferPool.Take(size);
                     
                     serializer.Serialize(notification.Message, contents, 0);
                 }
@@ -624,7 +616,7 @@ namespace Fracture.Net.Hosting
                 {
                     if (contents != null)
                     {
-                        var copy = ServerResources.BlockBuffer.Take(contents.Length);
+                        var copy = BufferPool.Take(contents.Length);
                         
                         contents.CopyTo(copy, 0);
                         

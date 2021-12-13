@@ -259,12 +259,12 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="BufferPool.cs" />
         <Compile Include="Hosting\Application.cs" />
         <Compile Include="Hosting\ApplicationBuilder.cs" />
         <Compile Include="Hosting\ApplicationClock.cs" />
         <Compile Include="Hosting\ApplicationHost.cs" />
         <Compile Include="Hosting\ApplicationHostBuilder.cs" />
-        <Compile Include="Hosting\ApplicationResources.cs" />
         <Compile Include="Hosting\ApplicationService.cs" />
         <Compile Include="Hosting\Messaging\MiddlewarePipeline.cs" />
         <Compile Include="Hosting\Messaging\NotificationCenter.cs" />
@@ -276,9 +276,8 @@
         <Compile Include="Hosting\ApplicationScript.cs" />
         <Compile Include="Hosting\Servers\Peer.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
-        <Compile Include="Hosting\Servers\ServerResources.cs" />
         <Compile Include="Hosting\Servers\TcpPeer.cs" />
-        <Compile Include="Hosting\Servers\TcpServer.cs" />
+        <Compile Include="Hosting\Servers\TcpListener.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />
         <Compile Include="Messages\MessageSerializer.cs" />

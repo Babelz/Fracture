@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Fracture.Common.Memory.Pools;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -40,11 +42,13 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
         
         public NotificationCenter()
-            => notifications = new Queue<Notification>();
-        
+        {
+            notifications = new Queue<Notification>();
+        }
+            
         public INotification Enqueue()
         {
-            var notification = ApplicationResources.Notification.Take();
+            var notification = Notification.Take();
             
             notifications.Enqueue(notification);
             

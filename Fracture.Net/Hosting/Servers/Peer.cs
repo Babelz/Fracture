@@ -1,155 +1,125 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using Fracture.Common.Memory;
+using Fracture.Common.Events;
 using Fracture.Common.Util;
 
 namespace Fracture.Net.Hosting.Servers
 {
-    public sealed class PeerJoinEventArgs : EventArgs, IClearable
+    public readonly struct PeerJoinEventArgs : IStructEventArgs
     {
         #region Properties
         public PeerConnection Peer
         {
             get;
-            set;
         }
         
         public TimeSpan Timestamp
         {
             get;
-            set;
         }
         #endregion
 
-        public PeerJoinEventArgs()
+        public PeerJoinEventArgs(PeerConnection peer, TimeSpan timestamp)
         {
-        }
-
-        public void Clear()
-        {
-            Peer      = default;
-            Timestamp = default;
+            Peer      = peer;
+            Timestamp = timestamp;
         }
     }
     
-    public sealed class PeerResetEventArgs : EventArgs, IClearable
+    public readonly struct PeerResetEventArgs : IStructEventArgs
     {
         #region Fields
         public PeerConnection Peer
         {
             get;
-            set;
         }
         
         public PeerResetReason Reason
         {
             get;
-            set;
         }
         
         public TimeSpan Timestamp
         {
             get;
-            set;
         }
         #endregion
         
-        public PeerResetEventArgs()
+        public PeerResetEventArgs(PeerConnection peer, PeerResetReason reason, TimeSpan timestamp)
         {
-        }
-        
-        public void Clear()
-        {
-            Peer      = default;
-            Reason    = default;
-            Timestamp = default;
+            Peer      = peer;
+            Reason    = reason;
+            Timestamp = timestamp;
         }
     }
     
-    public sealed class PeerMessageEventArgs : EventArgs, IClearable
+    public readonly struct PeerMessageEventArgs : IStructEventArgs
     {
         #region Properties
         public PeerConnection Peer
         {
             get;
-            set;
         }
         
         public byte[] Contents
         {
             get;
-            set;
         }
         public int Length
         {
             get;
-            set;
         }
         
         public TimeSpan Timestamp
         {
             get;
-            set;
         }
         #endregion
-
-        public PeerMessageEventArgs()
-        {
-        }
         
-        public void Clear()
+        public PeerMessageEventArgs(PeerConnection peer, byte[] contents, int length, TimeSpan timestamp)
         {
-            Peer      = default;
-            Contents  = default;
-            Length    = default;
-            Timestamp = default;
+            Peer      = peer;
+            Contents  = contents;
+            Length    = length;
+            Timestamp = timestamp;
         }
     }
     
-    public sealed class ServerMessageEventArgs : EventArgs, IClearable
+    public readonly struct ServerMessageEventArgs : IStructEventArgs
     {
         #region Properties
         public PeerConnection Peer
         {
             get;
-            set;
         }
 
         public byte[] Contents
         {
             get;
-            set;
         }
         public int Offset
         {
             get;
-            set;
         }
         public int Length
         {
             get;
-            set;
         }
         
         public TimeSpan Timestamp
         {
             get;
-            set;
         }
         #endregion
-
-        public ServerMessageEventArgs()
-        {
-        }
         
-        public void Clear()
+        public ServerMessageEventArgs(PeerConnection peer, byte[] contents, int offset, int length, TimeSpan timestamp)
         {
-            Peer      = default;
-            Contents  = default;
-            Offset    = default;
-            Length    = default;
-            Timestamp = default;
+            Peer      = peer;
+            Contents  = contents;
+            Offset    = offset;
+            Length    = length;
+            Timestamp = timestamp;
         }
     }
     
@@ -238,17 +208,17 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Event invoked when the peer connection has been reset.
         /// </summary>
-        event EventHandler<PeerResetEventArgs> Reset;
+        event StructEventHandler<PeerResetEventArgs> Reset;
         
         /// <summary>
         /// Event invoked when the peer has incoming messages.
         /// </summary>
-        event EventHandler<PeerMessageEventArgs> Incoming;
+        event StructEventHandler<PeerMessageEventArgs> Incoming;
         
         /// <summary>
         /// Event invoked when the peer has outgoing messages.
         /// </summary>
-        event EventHandler<ServerMessageEventArgs> Outgoing;
+        event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties

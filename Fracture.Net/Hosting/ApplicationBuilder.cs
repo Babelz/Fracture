@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using Fracture.Common.Di;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -12,28 +13,22 @@ namespace Fracture.Net.Hosting
     public sealed class ApplicationBuilder
     {
         #region Fields
-        private readonly IServer server;
-        
-        private IRequestRouter router;
-        private INotificationCenter notifications;
-        
-        private IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware;
-        private IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
-        private IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
-        
-        private IMessageSerializer serializer;
-        private IApplicationTimer timer;
+        private readonly Kernel binder;
         #endregion
         
         private ApplicationBuilder(IServer server)
-            => this.server = server ?? throw new ArgumentNullException(nameof(server));
-        
+        {
+            binder = new Kernel();
+            
+            binder.Bind(server ?? throw new ArgumentNullException(nameof(server)));
+        }
+
         /// <summary>
         /// Registers custom request router for application.
         /// </summary>
         public ApplicationBuilder Router(IRequestRouter router)
         {
-            this.router = router ?? throw new ArgumentNullException(nameof(router));
+            binder.Bind(router ?? throw new ArgumentNullException(nameof(router)));
             
             return this;
         }
@@ -43,7 +38,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Notifications(INotificationCenter notifications)
         {
-            this.notifications = notifications ?? throw new ArgumentNullException(nameof(notifications));
+            binder.Bind(notifications ?? throw new ArgumentNullException(nameof(notifications)));
             
             return this;
         }
@@ -53,7 +48,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware)
         {
-            this.requestMiddleware = requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware));
+            binder.Bind(requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware)));
             
             return this;
         }
@@ -63,7 +58,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
         {
-            this.responseMiddleware = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
+            binder.Bind(responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware)));
             
             return this;
         }
@@ -73,7 +68,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
         {
-            this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
+            binder.Bind(notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware)));
             
             return this;
         }
@@ -83,7 +78,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Timer(IApplicationTimer timer)
         {
-            this.timer = timer ?? throw new ArgumentNullException(nameof(timer));
+            binder.Bind(timer ?? throw new ArgumentNullException(nameof(timer)));
             
             return this;
         }
@@ -93,7 +88,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Serializer(IMessageSerializer serializer)
         {
-            this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            binder.Bind(serializer ?? throw new ArgumentNullException(nameof(serializer)));
             
             return this;
         }
@@ -104,27 +99,30 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public Application Build()
         {
-            router                 ??= new RequestRouter();
-            notifications          ??= new NotificationCenter();
-            requestMiddleware      ??= new MiddlewarePipeline<RequestMiddlewareContext>();
-            responseMiddleware     ??= new MiddlewarePipeline<RequestResponseMiddlewareContext>();
-            notificationMiddleware ??= new MiddlewarePipeline<NotificationMiddlewareContext>();
-            timer                  ??= new ApplicationTimer();
-            serializer             ??= new MessageSerializer();
+            // Check application bindings and bind default values if any are missing.
+            if (!binder.Exists<IRequestRouter>()) 
+                binder.Bind<RequestRouter>();
+            
+            if (!binder.Exists<INotificationCenter>()) 
+                binder.Bind<NotificationCenter>();
+            
+            if (!binder.Exists<IMiddlewarePipeline<RequestMiddlewareContext>>()) 
+                binder.Bind<MiddlewarePipeline<RequestMiddlewareContext>>();
+            
+            if (!binder.Exists<IMiddlewarePipeline<NotificationMiddlewareContext>>()) 
+                binder.Bind<MiddlewarePipeline<NotificationMiddlewareContext>>();
+            
+            if (!binder.Exists<IMiddlewarePipeline<RequestResponseMiddlewareContext>>()) 
+                binder.Bind<MiddlewarePipeline<RequestResponseMiddlewareContext>>();
+            
+            if (!binder.Exists<IMessageSerializer>()) 
+                binder.Bind<MessageSerializer>();
+            
+            if (!binder.Exists<IApplicationTimer>()) 
+                binder.Bind<ApplicationTimer>();
             
             // Initialize application.
-            var application = new Application(
-                server,
-                router,
-                notifications,
-                requestMiddleware,
-                notificationMiddleware,
-                responseMiddleware,
-                serializer,
-                timer
-            );
-            
-            return application;
+            return binder.Activate<Application>();
         }
         
         /// <summary>
