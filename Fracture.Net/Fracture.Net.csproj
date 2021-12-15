@@ -264,6 +264,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="BufferPool.cs" />
+        <Compile Include="Clients\Client.cs" />
+        <Compile Include="Clients\ClientEvent.cs" />
+        <Compile Include="Clients\ClientMessageHandler.cs" />
+        <Compile Include="Clients\ClientSession.cs" />
+        <Compile Include="Clients\TcpClient.cs" />
         <Compile Include="Hosting\Application.cs" />
         <Compile Include="Hosting\ApplicationBuilder.cs" />
         <Compile Include="Hosting\ApplicationClock.cs" />
@@ -285,7 +290,7 @@
         <Compile Include="Hosting\Services\AuthenticationService.cs" />
         <Compile Include="Hosting\Services\EventService.cs" />
         <Compile Include="Hosting\Services\LatencyMonitoringService.cs" />
-        <Compile Include="Hosting\Services\SchedulingService.cs" />
+        <Compile Include="Hosting\Services\EventSchedulerService.cs" />
         <Compile Include="Hosting\Services\SessionService.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />

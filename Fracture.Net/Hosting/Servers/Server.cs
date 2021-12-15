@@ -101,8 +101,14 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
 
+        /// <summary>
+        /// Disconnects peer with given id.
+        /// </summary>
         void Disconnect(int id);
-        bool Connected(int id);
+        
+        /// <summary>
+        /// Sends message to peer with given id.
+        /// </summary>
         void Send(int id, byte[] data, int offset, int length);
         
         void Start();
@@ -195,9 +201,6 @@ namespace Fracture.Net.Hosting.Servers
             peer.Disconnect();
         }
         
-        public bool Connected(int id)
-            => lookup.TryGetValue(id, out var peer) && peer.Connected;
-
         public void Send(int id, byte[] data, int offset, int length)
         {
             if (!lookup.TryGetValue(id, out var peer))

@@ -9,9 +9,9 @@ namespace Fracture.Net.Messages
     {
         #region Properties
         /// <summary>
-        /// Gets or sets the request time for this message. Contains the time this message was created.
+        /// Gets or sets the request id used for identifying ping messages between communicating parties. 
         /// </summary>
-        public TimeSpan RequestTime
+        public ulong RequestId
         {
             get;
             set;
@@ -23,6 +23,6 @@ namespace Fracture.Net.Messages
         }
 
         public override void Clear()
-            => RequestTime = default;
+            => RequestId = default;
     }
 }

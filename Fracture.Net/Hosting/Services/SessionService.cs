@@ -72,7 +72,7 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Creates or updates session of specific peer.
         /// </summary>
-        void Update(int id, T session);
+        void Update(int peer, T session);
         
         /// <summary>
         /// Clears session object from given peer.
@@ -83,6 +83,11 @@ namespace Fracture.Net.Hosting.Services
         /// Attempts to get the session for given session id and returns boolean declaring whether a active session could be retrieved for the peer.
         /// </summary>
         bool TryGet(int id, out T session);
+        
+        /// <summary>
+        /// Gets session for peer with given id.
+        /// </summary>
+        T Get(int id);
     }
     
     public static class SessionServiceMiddleware<T> where T : Session
@@ -120,19 +125,19 @@ namespace Fracture.Net.Hosting.Services
         public bool Active(int id)
             => sessions.ContainsKey(id);
 
-        public void Update(int id, T session)
+        public void Update(int peer, T session)
         {
-            if (!Active(id))
+            if (!Active(peer))
             {
-                Log.Info($"creating session for peer {id}", session);
+                Log.Info($"creating session for peer {peer}", session);
                 
-                sessions.Add(id, session ?? throw new ArgumentNullException(nameof(session)));
+                sessions.Add(peer, session ?? throw new ArgumentNullException(nameof(session)));
             }
             else
             {
-                Log.Info($"updating session for peer {id}", session);
+                Log.Info($"updating session for peer {peer}", session);
                 
-                sessions[id] = session;
+                sessions[peer] = session;
             }
         }
         
@@ -148,6 +153,9 @@ namespace Fracture.Net.Hosting.Services
             
         public bool TryGet(int id, out T session)
             => sessions.TryGetValue(id, out session);
+        
+        public T Get(int id)
+            => sessions[id];
     }
     
     public sealed class ClearSessionScript<T> : ApplicationScript where T : Session
@@ -164,10 +172,10 @@ namespace Fracture.Net.Hosting.Services
             
             void ClearSession(object sender, in PeerResetEventArgs args)
             {
-                if (args.Peer.Id != id || !sessions.TryGet(args.Peer.Id, out var session))
+                if (args.Peer.Id != id) 
                     return;
                 
-                Log.Info($"clearing session for peer {id}", session);
+                Log.Info($"clearing session for peer {id}", sessions.Get(id));
                 
                 sessions.Clear(id);
                 
