@@ -5,6 +5,7 @@ using System.Linq;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
+using Fracture.Common.Events;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using NLog;
@@ -60,12 +61,12 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Event invoked when peer has joined.
         /// </summary>
-        event EventHandler<PeerJoinEventArgs> Join;
+        event StructEventHandler<PeerJoinEventArgs> Join;
         
         /// <summary>
         /// Event invoked when peer has reset.
         /// </summary>
-        event EventHandler<PeerResetEventArgs> Reset; 
+        event StructEventHandler<PeerResetEventArgs> Reset; 
         #endregion
         
         #region Properties
@@ -169,8 +170,8 @@ namespace Fracture.Net.Hosting
         #endregion
 
         #region Events
-        public event EventHandler<PeerJoinEventArgs> Join;
-        public event EventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerJoinEventArgs> Join;
+        public event StructEventHandler<PeerResetEventArgs> Reset;
         #endregion
         
         #region Properties

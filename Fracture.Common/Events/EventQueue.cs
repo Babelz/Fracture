@@ -165,6 +165,9 @@ namespace Fracture.Common.Events
       {
          if (!Exists(key))
             return;
+         
+         if (count >= events.Length);
+            events.Grow();
   
          events.Insert(count++, new EventDispatchContext<TKey, TSubscriber>(key, dispatcher));
       }

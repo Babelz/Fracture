@@ -189,7 +189,7 @@ namespace Fracture.Net.Hosting.Servers
                 Incoming?.Invoke(this, incoming);
                 
             // Set activity timestamp to be current time if we are sending or receiving any messages.
-            lastTimeActive = (outgoingMessages.Length + incomingMessages.Length > 0) ? DateTime.UtcNow : lastTimeActive;
+            lastTimeActive = incomingMessages.Length > 0 ? DateTime.UtcNow : lastTimeActive;
         }
         
         private void UpdateConnectedState()

@@ -89,6 +89,10 @@
           <Private>True</Private>
         </Reference>
         <Reference Include="mscorlib" />
+        <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
+          <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
         <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
           <HintPath>..\packages\NLog.4.7.8\lib\net45\NLog.dll</HintPath>
           <Private>True</Private>
@@ -278,6 +282,10 @@
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpPeer.cs" />
         <Compile Include="Hosting\Servers\TcpListener.cs" />
+        <Compile Include="Hosting\Services\AuthenticationService.cs" />
+        <Compile Include="Hosting\Services\EventService.cs" />
+        <Compile Include="Hosting\Services\LatencyMonitoringService.cs" />
+        <Compile Include="Hosting\Services\SchedulingService.cs" />
         <Compile Include="Hosting\Services\SessionService.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />
@@ -314,6 +322,7 @@
       </ProjectReference>
     </ItemGroup>
     <ItemGroup>
+      <Content Include="Hosting\README.md" />
       <Content Include="README.md" />
       <Content Include="Serialization\README.md" />
     </ItemGroup>

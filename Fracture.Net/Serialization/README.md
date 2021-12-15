@@ -11,9 +11,8 @@ Serialization is heavily focusing on improving the following aspects:
 * Binary size of objects
     * MTU is limited to 64kb for now
     * Serializing only minimal required information about objects when serialized, minimal schema information needed
-    * Nulls in fields and arrays are compated to bit fields
+    * Nulls in fields and arrays are compacted to bit fields
     * No type information in most cases is required to be send over the network
-    * Small primitive types e.g int/uint1/2/3/4/5 etc (wip, not done yet)
 * Message schema as code
     * Easy to share and keep up to date while developing between client and server
 
@@ -43,6 +42,8 @@ Fracture serializer provides serialization for the following types:
 - [x] Dictionaries
 - [x] Nullable values and null references in possible cases
 - [x] Sparse collections with possible null references or nullable values
+- [x] Deserialization to pre-allocated objects
+- [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
 ## How to setup serialization 
 TODO
@@ -51,9 +52,6 @@ TODO
 TODO
 
 ## Protocol headers
-TODO
-
-## MTU of 64kb
 TODO
 
 ## Example objects and how they are represented in binary format
