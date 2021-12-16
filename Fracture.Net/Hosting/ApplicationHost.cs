@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Di;
@@ -27,7 +26,7 @@ namespace Fracture.Net.Hosting
             get;
         }
         #endregion
-
+        
         /// <summary>
         /// Signals the application to start shutting down.
         /// </summary>
@@ -90,6 +89,14 @@ namespace Fracture.Net.Hosting
         /// Gets the application response middleware consumer.
         /// </summary>
         IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
+        {
+            get;
+        }
+        
+        /// <summary>
+        /// Gets all peers currently connected to the application.
+        /// </summary>
+        IEnumerable<int> Peers
         {
             get;
         }
@@ -186,6 +193,9 @@ namespace Fracture.Net.Hosting
 
         public IApplicationClock Clock
             => application.Clock;
+        
+        public IEnumerable<int> Peers
+            => application.Peers;
         #endregion
         
         public ApplicationScriptingHost(Kernel scripts, Application application, IEnumerable<IApplicationService> services)

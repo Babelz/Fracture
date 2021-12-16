@@ -4,8 +4,10 @@ using Fracture.Common.Collections;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
+using Fracture.Common.Util;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
+using Newtonsoft.Json;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -109,7 +111,17 @@ namespace Fracture.Net.Hosting.Messaging
             Message   = default;
             Timestamp = default;
         }
-        
+
+        public override string ToString()
+            => JsonConvert.ToString(this);
+
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Peer)
+                        .Append(Contents)
+                        .Append(Message)
+                        .Append(Timestamp);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Request Take() => Pool.Take();
         

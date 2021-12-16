@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
 using Fracture.Net.Hosting.Messaging;
@@ -19,6 +18,11 @@ namespace Fracture.Net.Hosting.Services
         /// Returns boolean declaring whether given peer id has session associated with it. 
         /// </summary>
         bool Active(int id);
+        
+        /// <summary>
+        /// Clears session object from given peer.
+        /// </summary>
+        void Clear(int id);
     }
     
     /// <summary>
@@ -73,11 +77,6 @@ namespace Fracture.Net.Hosting.Services
         /// Creates or updates session of specific peer.
         /// </summary>
         void Update(int peer, T session);
-        
-        /// <summary>
-        /// Clears session object from given peer.
-        /// </summary>
-        void Clear(int id);
 
         /// <summary>
         /// Attempts to get the session for given session id and returns boolean declaring whether a active session could be retrieved for the peer.
@@ -158,31 +157,38 @@ namespace Fracture.Net.Hosting.Services
             => sessions[id];
     }
     
-    public sealed class ClearSessionScript<T> : ApplicationScript where T : Session
+    /// <summary>
+    /// Script that automatically clears peer session when the peer resets.
+    /// </summary>
+    public sealed class ClearSessionScript : ApplicationScript
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
+
+        #region Fields
+        private readonly ISessionService sessions;
+        #endregion
         
         [BindingConstructor]
-        public ClearSessionScript(IApplicationScriptingHost application, ISessionService<T> sessions, int id) 
+        public ClearSessionScript(IApplicationScriptingHost application, ISessionService sessions) 
             : base(application)
         {
-            Log.Info($"session auto clearing setup for peer {id}");
+            this.sessions = sessions ?? throw new ArgumentNullException(nameof(sessions));
             
-            void ClearSession(object sender, in PeerResetEventArgs args)
-            {
-                if (args.Peer.Id != id) 
-                    return;
-                
-                Log.Info($"clearing session for peer {id}", sessions.Get(id));
-                
-                sessions.Clear(id);
-                
-                Application.Reset -= ClearSession;
-            }
-            
-            application.Reset += ClearSession;
+            application.Reset += Application_OnReset;
         }
+
+        #region Event handlers
+        private void Application_OnReset(object sender, in PeerResetEventArgs e)
+        {
+            if (!sessions.Active(e.Peer.Id))
+                return;
+            
+            Log.Info($"clearing session for peer {e.Peer.Id}");
+                
+            sessions.Clear(e.Peer.Id);
+        }
+        #endregion
     }
 }

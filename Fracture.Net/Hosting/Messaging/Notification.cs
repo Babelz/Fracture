@@ -4,7 +4,9 @@ using Fracture.Common.Collections;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
+using Fracture.Common.Util;
 using Fracture.Net.Messages;
+using Newtonsoft.Json;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -200,6 +202,15 @@ namespace Fracture.Net.Hosting.Messaging
             Peers   = default;
             Message = default;
         }
+        
+        public override string ToString()
+            => JsonConvert.ToString(this);
+
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Command)
+                        .Append(Peers)
+                        .Append(Message);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Notification Take() => Pool.Take();

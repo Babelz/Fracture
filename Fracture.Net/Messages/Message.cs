@@ -6,6 +6,7 @@ using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 using Fracture.Net.Serialization;
+using Newtonsoft.Json;
 
 namespace Fracture.Net.Messages
 {
@@ -67,6 +68,9 @@ namespace Fracture.Net.Messages
         public virtual void Clear()
         {
         }
+
+        public override string ToString()
+            => JsonConvert.ToString(this);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage

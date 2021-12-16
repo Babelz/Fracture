@@ -139,6 +139,9 @@ namespace Fracture.Net.Hosting
 
         public IApplicationClock Clock 
             => timer;
+        
+        public IEnumerable<int> Peers
+            => server.Peers;
         #endregion
 
         [BindingConstructor]

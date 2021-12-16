@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using Fracture.Common.Events;
 
@@ -141,7 +140,7 @@ namespace Fracture.Net.Hosting.Servers
             => peers.Count;
         
         public IEnumerable<int> Peers
-            => peers.Select(p => p.Id);
+            => lookup.Keys;
         #endregion
         
         public Server(IPeerFactory factory, IListener listener)

@@ -289,13 +289,13 @@
         <Compile Include="Hosting\Servers\TcpListener.cs" />
         <Compile Include="Hosting\Services\AuthenticationService.cs" />
         <Compile Include="Hosting\Services\EventService.cs" />
-        <Compile Include="Hosting\Services\LatencyMonitoringService.cs" />
+        <Compile Include="Hosting\Services\EchoService.cs" />
         <Compile Include="Hosting\Services\EventSchedulerService.cs" />
         <Compile Include="Hosting\Services\SessionService.cs" />
         <Compile Include="Messages\Message.cs" />
         <Compile Include="Messages\MessageMatch.cs" />
         <Compile Include="Messages\MessageSerializer.cs" />
-        <Compile Include="Messages\PingMessage.cs" />
+        <Compile Include="Messages\EchoMessage.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Protocol.cs" />
         <Compile Include="Serialization\ArraySerializer.cs" />
