@@ -1,4 +1,5 @@
-﻿using Fracture.Common.Di;
+﻿using System.Collections.Generic;
+using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Common.Tests.Di.TestTypes;
 using Xunit;
@@ -337,6 +338,34 @@ namespace Fracture.Common.Tests.Di
             var kernel = new Kernel();
 
             Assert.Throws<DependencyBinderException>(() => kernel.Activate<CtroFooBar>());
+        }
+        
+        [Fact]
+        public void Binding_Works_With_Default_Parameters()
+        {
+            var dep2   = new Dep2();
+            var kernel = new Kernel();
+            
+            kernel.Bind(dep2);
+            kernel.Bind<OptionalCtroFooBar>();
+            
+            var value = kernel.First<OptionalCtroFooBar>();
+            
+            Assert.Null(value.Dep0);
+            Assert.Null(value.Dep1);
+            Assert.Equal(dep2, value.Dep2);
+        }
+        
+        [Fact]
+        public void Activate_Works_With_Default_Parameters()
+        {
+            var dep1   = new Dep1();
+            var kernel = new Kernel();
+            var value  = kernel.Activate<OptionalCtroFooBar>(BindingValue.Const("dep1", dep1));
+            
+            Assert.Null(value.Dep0);
+            Assert.Equal(dep1, value.Dep1);
+            Assert.Null(value.Dep2);
         }
     }
 }

@@ -83,7 +83,7 @@ namespace Fracture.Common.Di.Binding
     public static class BindingValue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IBindingValue Variable(string name, Func<object> locator) => new VariableBinding(name, locator);
+        public static IBindingValue Var(string name, Func<object> locator) => new VariableBinding(name, locator);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IBindingValue Const(string name, object value) => new ConstantBinding(name, value);

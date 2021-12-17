@@ -198,7 +198,7 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       [BindingConstructor]
-      public EntitySystem(IGameEngine engine, IEventQueueSystem events)
+      public EntitySystem(IGameEngine engine, IEventQueueSystem events, int entityBucketSize = 1024)
          : base(engine)
       {
          systemId = IdCounter++;
@@ -216,7 +216,7 @@ namespace Fracture.Engine.Ecs
          
          freeEntityIds     = new FreeList<int>(() => idc++);
          aliveEntityIds    = new HashSet<int>();
-         entities          = new LinearGrowthArray<Entity>(1024);
+         entities          = new LinearGrowthArray<Entity>(entityBucketSize);
          remoteEntityIdMap = new Dictionary<int, int>();
       }
       
