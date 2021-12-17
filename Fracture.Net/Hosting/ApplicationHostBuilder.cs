@@ -2,6 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
+using NLog;
 
 namespace Fracture.Net.Hosting
 {
@@ -10,6 +11,10 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationHostBuilder
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly Application application;
         
@@ -23,13 +28,28 @@ namespace Fracture.Net.Hosting
             
             scripts  = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
             services = new Kernel(DependencyBindingOptions.Interfaces);
+            
+            LogBinding(application);
+            
+            scripts.Bind(application);
+            services.Bind(application);
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogBinding(Type type, string asWhat = "")
+            => Log.Info($"binding {type.FullName} to application host builder {(string.IsNullOrEmpty(asWhat) ? "..." : $"as {asWhat}...")}");
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogBinding(object value, string asWhat = "")
+            => LogBinding(value.GetType(), asWhat);
         
         /// <summary>
         /// Register service to be used by the application.
         /// </summary>
         public ApplicationHostBuilder Service<T>(params IBindingValue[] args) where T : class, IApplicationService
         {
+            LogBinding(typeof(T), "as service");
+            
             services.Bind<T>(args);
             
             return this;
@@ -40,6 +60,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationHostBuilder Script<T>(params IBindingValue[] args) where T : class, IApplicationScript
         {
+            LogBinding(typeof(T), "as script");
+
             scripts.Bind<T>(args);
             
             return this;
@@ -50,7 +72,9 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationHostBuilder ServiceDependency(object dependency)
         {
-            services.Bind(dependency ?? throw new ArgumentNullException(nameof(dependency)));
+            LogBinding(dependency, "as service dependency");
+
+            services.Bind(dependency);
             
             return this;
         }
@@ -60,7 +84,9 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationHostBuilder ScriptDependency(object dependency)
         {
-            scripts.Bind(dependency ?? throw new ArgumentNullException(nameof(dependency)));
+            LogBinding(dependency, "as script dependency");
+
+            scripts.Bind(dependency);
             
             return this;
         }
@@ -72,10 +98,14 @@ namespace Fracture.Net.Hosting
             => ScriptDependency(dependency).ServiceDependency(dependency);
         
         public ApplicationHost Build()
-            => new ApplicationHost(application, 
-                                   new ApplicationScriptingHost(scripts, application, services.All<IApplicationService>()), 
-                                   new ApplicationServiceHost(services, application));
-
+        {
+            Log.Info("building application host"); 
+            
+            return new ApplicationHost(application, 
+                                       new ApplicationScriptingHost(scripts, application, services.All<IApplicationService>()), 
+                                       new ApplicationServiceHost(services, application));
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ApplicationHostBuilder FromApplication(Application application)
             => new ApplicationHostBuilder(application);

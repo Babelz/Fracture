@@ -14,7 +14,7 @@ namespace Fracture.Net.Hosting.Services
     /// <summary>
     /// Interface for implementing services that provide latency recording of peers.
     /// </summary>
-    public interface IEchoService : IApplicationService
+    public interface ILatencyService : IApplicationService
     {
         /// <summary>
         /// Records ping timestamp for peer with given id.
@@ -36,22 +36,24 @@ namespace Fracture.Net.Hosting.Services
         void Reset(int id);
     }
     
-    public sealed class EchoService : ApplicationService, IEchoService
+    public sealed class LatencyService : ApplicationService, ILatencyService
     {
         #region Static fields
         private static ulong RequestCounter = 0u;
         #endregion
         
         #region Fields
+        // Lookup containing each peers received samples.
         private readonly Dictionary<int, Queue<TimeSpan>> samples;
         
+        // Lookup containing each peers ping requests.
         private readonly Dictionary<int, Dictionary<ulong, TimeSpan>> pings;
         
         private readonly int maxSamples;
         #endregion
         
         [BindingConstructor]
-        public EchoService(IApplicationServiceHost application, int maxSamples = 10) 
+        public LatencyService(IApplicationServiceHost application, int maxSamples = 10) 
             : base(application)
         {
             this.maxSamples = maxSamples > 0 ? maxSamples : throw new ArgumentOutOfRangeException(nameof(maxSamples));
@@ -62,6 +64,7 @@ namespace Fracture.Net.Hosting.Services
 
         public ulong RecordPing(int id)
         {
+            // Create latency "session" if it does not exist.
             if (!samples.ContainsKey(id))
             {
                 samples.Add(id, new Queue<TimeSpan>());
@@ -69,6 +72,7 @@ namespace Fracture.Net.Hosting.Services
                 pings.Add(id, new Dictionary<ulong, TimeSpan>());
             }
             
+            // Record the ping and create new request id.
             var requestId = RequestCounter++;
             
             pings[id].Add(requestId, DateTime.UtcNow.TimeOfDay);
@@ -78,16 +82,20 @@ namespace Fracture.Net.Hosting.Services
 
         public bool RecordPong(int id, ulong requestId)
         {
+            // Make sure peer has active session.
             if (!samples.TryGetValue(id, out var sampleBuffer))
                 return false;
             
             if (!pings[id].TryGetValue(requestId, out var pingTime))
                 return false;
             
+            // Remove the ping request from pending ones.
             pings[id].Remove(requestId);
             
+            // Get pong time that is the current time.
             var pongTime = DateTime.UtcNow.TimeOfDay;
             
+            // Remove oldest sample from the buffer if 
             if (sampleBuffer.Count + 1 >= maxSamples)
                 sampleBuffer.Dequeue();
             
@@ -119,16 +127,16 @@ namespace Fracture.Net.Hosting.Services
         #endregion
         
         #region Fields
-        private readonly IEchoService echo;
+        private readonly ILatencyService latency;
         private readonly IEventSchedulerService scheduler;
         #endregion
         
         [BindingConstructor]
-        public EchoControlScript(IApplicationScriptingHost application, IEchoService echo, IEventSchedulerService scheduler) 
+        public EchoControlScript(IApplicationScriptingHost application, ILatencyService latency, IEventSchedulerService scheduler) 
             : base(application)
         {
-            this.echo      = echo ?? throw new ArgumentNullException(nameof(echo));
-            this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(echo));
+            this.latency   = latency ?? throw new ArgumentNullException(nameof(latency));
+            this.scheduler = scheduler ?? throw new ArgumentNullException(nameof(latency));
             
             application.Join += Application_OnJoin;
 
@@ -142,6 +150,8 @@ namespace Fracture.Net.Hosting.Services
             switch (message.Phase)
             {
                 case EchoPhase.Ping:
+                    Log.Info($"received echo request from peer {request.Peer.Id}");
+                    
                     response.Ok(Message.Take<EchoMessage>(m =>
                     {
                         m.Phase     = EchoPhase.Pong;
@@ -149,11 +159,11 @@ namespace Fracture.Net.Hosting.Services
                     }));
                     break;
                 case EchoPhase.Pong:
-                    if (echo.RecordPong(request.Peer.Id, message.RequestId))
+                    if (latency.RecordPong(request.Peer.Id, message.RequestId))
                         response.Ok();
                     else
                     {
-                        Log.Warn("got unexpected echo response from client", request);
+                        Log.Warn($"got unexpected echo response from peer {request.Peer.Id}", request);
                         
                         response.BadRequest();
                     }
@@ -169,10 +179,10 @@ namespace Fracture.Net.Hosting.Services
             {
                 if (!Application.Peers.Contains(id))
                     return PulseEventResult.Break;
-                
+
                 Application.Notifications.Queue.Enqueue().Send(id, Message.Take<EchoMessage>(m =>
                 {
-                    m.RequestId = echo.RecordPing(id);
+                    m.RequestId = latency.RecordPing(id);
                 }));
                 
                 return PulseEventResult.Continue;

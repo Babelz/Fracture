@@ -689,6 +689,8 @@ namespace Fracture.Net.Hosting
             if (!running)
                 throw new InvalidOperationException("already running");
             
+            Log.Info("application shutdown signaled");
+            
             running = false;
         }
         
@@ -697,9 +699,13 @@ namespace Fracture.Net.Hosting
             if (running)
                 throw new InvalidOperationException("already running");
             
+            Log.Info("starting application...");
+            
             Initialize();
 
             running = true;
+            
+            Log.Info("entering application event loop");
             
             while (running)
             {
@@ -730,6 +736,8 @@ namespace Fracture.Net.Hosting
                 ResetLeavingPeers(); 
             }
 
+            Log.Info("exited application event loop");
+            
             Deinitialize();
         }
     }

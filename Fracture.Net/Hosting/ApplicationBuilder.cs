@@ -4,6 +4,7 @@ using Fracture.Common.Di;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
+using NLog;
 
 namespace Fracture.Net.Hosting
 {
@@ -12,6 +13,10 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationBuilder
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly Kernel binder;
         #endregion
@@ -19,15 +24,27 @@ namespace Fracture.Net.Hosting
         private ApplicationBuilder(IServer server)
         {
             binder = new Kernel();
+         
+            LogBinding(server);
             
             binder.Bind(server ?? throw new ArgumentNullException(nameof(server)));
         }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogBinding(Type type, string asWhat = "")
+            => Log.Info($"binding {type.FullName} to application builder {(string.IsNullOrEmpty(asWhat) ? "..." : $"as {asWhat}...")}");
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogBinding(object value, string asWhat = "")
+            => LogBinding(value.GetType(), asWhat);
 
         /// <summary>
         /// Registers custom request router for application.
         /// </summary>
         public ApplicationBuilder Router(IRequestRouter router)
         {
+            LogBinding(router);
+            
             binder.Bind(router ?? throw new ArgumentNullException(nameof(router)));
             
             return this;
@@ -38,6 +55,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Notifications(INotificationCenter notifications)
         {
+            LogBinding(notifications);
+
             binder.Bind(notifications ?? throw new ArgumentNullException(nameof(notifications)));
             
             return this;
@@ -48,6 +67,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder RequestMiddleware(IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware)
         {
+            LogBinding(requestMiddleware, "as request middleware");
+
             binder.Bind(requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware)));
             
             return this;
@@ -58,6 +79,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
         {
+            LogBinding(responseMiddleware, "as response middleware");
+            
             binder.Bind(responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware)));
             
             return this;
@@ -68,6 +91,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
         {
+            LogBinding(notificationMiddleware, "as notification middleware");
+            
             binder.Bind(notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware)));
             
             return this;
@@ -78,6 +103,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Timer(IApplicationTimer timer)
         {
+            LogBinding(timer);
+            
             binder.Bind(timer ?? throw new ArgumentNullException(nameof(timer)));
             
             return this;
@@ -88,6 +115,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public ApplicationBuilder Serializer(IMessageSerializer serializer)
         {
+            LogBinding(serializer);
+
             binder.Bind(serializer ?? throw new ArgumentNullException(nameof(serializer)));
             
             return this;
@@ -99,6 +128,8 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public Application Build()
         {
+            Log.Info("building application");
+            
             // Check application bindings and bind default values if any are missing.
             if (!binder.Exists<IRequestRouter>()) 
                 binder.Bind<RequestRouter>();
