@@ -44,7 +44,7 @@ namespace Fracture.Net.Hosting.Servers
         private bool Listening => (!listenResult?.IsCompleted ?? false);
         #endregion
         
-        public TcpListener(int port, int backlog)
+        public TcpListener(int port, int backlog = 0)
         {
             this.port    = port;
             this.backlog = backlog;

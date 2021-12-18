@@ -39,8 +39,6 @@ namespace Fracture.Net.Hosting.Servers
         private readonly LockedDoubleBuffer<PeerMessageEventArgs> incomingMessageBuffer;
         private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
         
-        private readonly IArrayPool<byte> buffers;
-        
         private IAsyncResult receiveResult;
         private IAsyncResult disconnectResult;
 
@@ -78,11 +76,10 @@ namespace Fracture.Net.Hosting.Servers
             => state == PeerState.Connected;
         #endregion
 
-        public TcpPeer(Socket socket, TimeSpan gracePeriod, IArrayPool<byte> buffers)
+        public TcpPeer(Socket socket, TimeSpan gracePeriod)
         {
             this.socket      = socket;
             this.gracePeriod = gracePeriod;
-            this.buffers     = buffers;
 
             Id       = IdCounter++;
             EndPoint = (IPEndPoint)socket.RemoteEndPoint;
@@ -146,7 +143,7 @@ namespace Fracture.Net.Hosting.Servers
                 if (length == 0)
                     return;
             
-                var contents = buffers.Take(length);
+                var contents = BufferPool.Take(length);
             
                 Array.Copy(receiveBuffer, 0, contents, 0, length);
             
@@ -260,13 +257,10 @@ namespace Fracture.Net.Hosting.Servers
     {
         #region Fields
         private readonly TimeSpan gracePeriod;
-        
-        private readonly IArrayPool<byte> buffers;
         #endregion
         
-        public TcpPeerFactory(TimeSpan gracePeriod, IArrayPool<byte> buffers)
+        public TcpPeerFactory(TimeSpan gracePeriod)
         {
-            this.buffers     = buffers ?? throw new ArgumentNullException(nameof(buffers));
             this.gracePeriod = gracePeriod;
         }
             
@@ -275,7 +269,7 @@ namespace Fracture.Net.Hosting.Servers
             if (socket.ProtocolType != ProtocolType.Tcp)
                 throw new ArgumentException("expecting TCP socket");    
             
-            return new TcpPeer(socket, gracePeriod, buffers);
+            return new TcpPeer(socket, gracePeriod);
         }
     }
 }

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -495,6 +496,7 @@ namespace Fracture.Engine.Graphics
       private readonly List<GraphicsElementLayer> layers;
       #endregion
       
+      [BindingConstructor]
       public GraphicsLayerSystem(IGameEngine engine)
          : base(engine) => layers = new List<GraphicsElementLayer>();
       

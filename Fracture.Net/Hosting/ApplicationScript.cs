@@ -47,7 +47,7 @@ namespace Fracture.Net.Hosting
     /// <summary>
     /// Abstract base class for implementing various scripts. 
     /// </summary>
-    public abstract class ApplicationScript
+    public abstract class ApplicationScript : IApplicationScript
     {
         #region Fields
         private bool unloaded;

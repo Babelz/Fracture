@@ -49,6 +49,11 @@ namespace Fracture.Engine
         #endregion
         
         #region Properties
+        protected GraphicsDeviceManager GraphicsDeviceManager
+        {
+            get;
+        }
+        
         public IGameEngineTime Time
             => time;
 
@@ -66,8 +71,10 @@ namespace Fracture.Engine
             
             systems = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.Strict);
             
+            systems.Bind(this);
+            
             // Mono game specific initialization.
-            services.Bind(new GraphicsDeviceManager(this)
+            services.Bind(GraphicsDeviceManager = new GraphicsDeviceManager(this)
             {
                 GraphicsProfile = GraphicsProfile.HiDef
             });
