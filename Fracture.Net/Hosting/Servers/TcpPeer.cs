@@ -44,7 +44,7 @@ namespace Fracture.Net.Hosting.Servers
 
         private DateTime lastTimeActive;
         
-        private PeerResetReason reason;
+        private ResetReason reason;
         private PeerState state;
         #endregion
         
@@ -156,7 +156,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        private void InternalDisconnect(PeerResetReason reason)
+        private void InternalDisconnect(ResetReason reason)
         {
             // Omit calls if peer is not in connected state.
             if (state != PeerState.Connected)
@@ -195,9 +195,9 @@ namespace Fracture.Net.Hosting.Servers
                 return;
             
             if (!IsConnected)
-                InternalDisconnect(PeerResetReason.RemoteReset);
+                InternalDisconnect(ResetReason.RemoteReset);
             else if (HasTimedOut)
-                InternalDisconnect(PeerResetReason.TimedOut);
+                InternalDisconnect(ResetReason.TimedOut);
             else if (!IsReceiving)
                 receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
         }
@@ -216,7 +216,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         
         public void Disconnect()
-            => InternalDisconnect(PeerResetReason.ServerReset);
+            => InternalDisconnect(ResetReason.ServerReset);
         
         public void Send(byte[] data, int offset, int length)
         {

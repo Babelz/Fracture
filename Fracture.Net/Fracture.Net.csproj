@@ -283,6 +283,7 @@
         <Compile Include="Hosting\Messaging\Response.cs" />
         <Compile Include="Hosting\Messaging\Notification.cs" />
         <Compile Include="Hosting\ApplicationScript.cs" />
+        <Compile Include="Hosting\Servers\EventArgs.cs" />
         <Compile Include="Hosting\Servers\Peer.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
         <Compile Include="Hosting\Servers\TcpPeer.cs" />
@@ -298,6 +299,7 @@
         <Compile Include="Messages\EchoMessage.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Protocol.cs" />
+        <Compile Include="ResetReason.cs" />
         <Compile Include="Serialization\ArraySerializer.cs" />
         <Compile Include="Serialization\ByteSerializer.cs" />
         <Compile Include="Serialization\DateTimeSerializer.cs" />

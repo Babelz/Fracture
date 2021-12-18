@@ -1,6 +1,6 @@
 namespace Fracture.Net.Clients
 {
-    public class TcpClient
+    public sealed class TcpClient : IClient 
     {
         
     }
