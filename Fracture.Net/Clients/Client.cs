@@ -92,7 +92,7 @@ namespace Fracture.Net.Clients
         /// <summary>
         /// Gets boolean declaring whether the client is still connected.
         /// </summary>
-        public bool Connected => State == ClientState.Connected;
+        public bool IsConnected => State == ClientState.Connected;
         #endregion
         
         protected Client(Socket socket, IMessageSerializer serializer, TimeSpan gracePeriod)
@@ -126,7 +126,7 @@ namespace Fracture.Net.Clients
                         ThrowInvalidStateTransition(current, next);
                     break;
                 case ClientState.Disconnecting:
-                    if (current != ClientState.Connected)
+                    if (current != ClientState.Connected && current != ClientState.Connecting)
                         ThrowInvalidStateTransition(current, next);
                     break;
                 default:

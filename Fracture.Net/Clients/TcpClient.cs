@@ -34,8 +34,6 @@ namespace Fracture.Net.Clients
         private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) >= GracePeriod;
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
-        
-        private bool IsConnected => State == ClientState.Connected;
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
@@ -61,7 +59,7 @@ namespace Fracture.Net.Clients
                 
                 var message = Serializer.Deserialize(contents, 0);
             
-                Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketDirection.In, message, contents, length));  
+                Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Remote, message, contents, length));  
                 
                 lastReceiveTime = DateTime.UtcNow;
             }
@@ -69,7 +67,7 @@ namespace Fracture.Net.Clients
             {
                 Log.Error(e, "socket error occurred while receiving message");
                 
-                if (State == ClientState.Connected)
+                if (IsConnected)
                     Disconnect();
             }
             catch (ObjectDisposedException)
@@ -108,15 +106,17 @@ namespace Fracture.Net.Clients
                 
                 Updates.Push((ClientUpdate)ar.AsyncState);
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
-                Log.Error(e, "socket error occurred connecting");
+                Log.Error(se, "socket error occurred connecting");
                 
-                DisconnectSoft(new ClientUpdate.ConnectFailed(e, e.SocketErrorCode));
+                InternalDisconnect(new ClientUpdate.ConnectFailed(se, se.SocketErrorCode));
             }
-            catch (ObjectDisposedException)
+            catch (ObjectDisposedException ode)
             {
                 Log.Warn("socket already disposed");
+                
+                InternalDisconnect(new ClientUpdate.ConnectFailed(ode));
             }
         }
         
@@ -135,25 +135,20 @@ namespace Fracture.Net.Clients
                 Log.Warn("socket already disposed");
             }
             
-            DisconnectSoft((ClientUpdate)ar.AsyncState);
+            UpdateState(ClientState.Disconnected);
+            
+            Updates.Push((ClientUpdate)ar.AsyncState);
         }
         #endregion
 
-        private void DisconnectHard(ResetReason reason)
+        private void InternalDisconnect(ClientUpdate update)
         {
             if (State == ClientState.Disconnecting) 
                 return;
             
             UpdateState(ClientState.Disconnecting);
-                
-            Socket.BeginDisconnect(true, DisconnectCallback, new ClientUpdate.Disconnected(ResetReason.LocalReset));
-        }
-        
-        private void DisconnectSoft(ClientUpdate update)
-        {
-            UpdateState(ClientState.Disconnected);
             
-            Updates.Push(update);
+            Socket.BeginDisconnect(true, DisconnectCallback, update);
         }
 
         public override void Send(IMessage message)
@@ -169,7 +164,7 @@ namespace Fracture.Net.Clients
                              0, 
                              size, 
                              SocketFlags.None, 
-                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketDirection.Out, message, buffer, size)); 
+                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
         }
 
         public override void Connect(IPEndPoint endPoint)
@@ -185,19 +180,19 @@ namespace Fracture.Net.Clients
         {
             base.Disconnect();
             
-            DisconnectHard(ResetReason.LocalReset);
+            InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.LocalReset));
         }
 
         public override IEnumerable<ClientUpdate> Poll()
         {
-            if (!IsConnected) 
-                return base.Poll();
+            if (IsConnected)
+            {
+                if (HasTimedOut)
+                    InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.TimedOut));
+                else if (!IsReceiving)
+                    receiveResult = Socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
+            }
             
-            if (HasTimedOut)
-                DisconnectHard(ResetReason.TimedOut);
-            else if (!IsReceiving)
-                receiveResult = Socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
-
             return base.Poll();
         }
     }
