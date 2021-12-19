@@ -276,6 +276,8 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
+                    Log.Info($"peer {joinEvent.Peer.Id} joining");
+
                     Join?.Invoke(this, joinEvent);
                 }
                 catch (Exception e)
@@ -300,6 +302,8 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
+                    Log.Info($"peer {resetEvent.Peer.Id} resetting");
+                    
                     Reset?.Invoke(this, resetEvent);
                 }
                 catch (Exception e)

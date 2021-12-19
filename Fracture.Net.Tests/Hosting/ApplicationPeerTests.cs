@@ -55,7 +55,7 @@ namespace Fracture.Net.Tests.Hosting
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
                                                                                   FakeServerFrame.Create().Join(second)
-                                                                                                          .Leave(first, ResetReason.ServerReset)))
+                                                                                                          .Leave(first, ResetReason.LocalReset)))
                                                 .Build();
 
             ApplicationTestUtils.LimitFrames(application, 2);

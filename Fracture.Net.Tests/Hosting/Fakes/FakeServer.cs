@@ -122,7 +122,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
         
         public void Disconnect(int id)
-            => leaves.Add(new PeerResetEventArgs(new PeerConnection(id, endpoints[id]), ResetReason.ServerReset, DateTime.UtcNow.TimeOfDay));
+            => leaves.Add(new PeerResetEventArgs(new PeerConnection(id, endpoints[id]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
 
         public bool Connected(int id)
             => peers.Contains(id);
@@ -139,7 +139,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         {
             foreach (var peer in peers)
             {
-                Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peer, endpoints[peer]), ResetReason.ServerReset, DateTime.UtcNow.TimeOfDay));
+                Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peer, endpoints[peer]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
             }
             
             peers.Clear();

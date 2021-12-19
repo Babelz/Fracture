@@ -6,12 +6,12 @@ namespace Fracture.Net
     public enum ResetReason : byte
     {
         /// <summary>
-        /// Server has reset the peer and disconnected it.
+        /// Local entity has reset the connection and disconnected it.
         /// </summary>
-        ServerReset = 0,
+        LocalReset = 0,
         
         /// <summary>
-        /// Remote client has reset the peer by closing the connection.
+        /// Remote entity has reset the connection.
         /// </summary>
         RemoteReset,
         

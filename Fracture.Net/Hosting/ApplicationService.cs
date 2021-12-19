@@ -29,7 +29,7 @@ namespace Fracture.Net.Hosting
     /// <summary>
     /// Abstract base class for creating application services.
     /// </summary>
-    public abstract class ApplicationService
+    public abstract class ApplicationService : IApplicationService
     {
         #region Properties
         protected IApplicationServiceHost Application
@@ -48,7 +48,7 @@ namespace Fracture.Net.Hosting
     /// <summary>
     /// Abstract base class for implementing active services that are updated during each application tick. 
     /// </summary>
-    public abstract class ActiveApplicationService : ApplicationService
+    public abstract class ActiveApplicationService : ApplicationService, IActiveApplicationService
     {
         /// <summary>
         /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.

@@ -82,15 +82,24 @@ namespace Fracture.Net.Clients
         }
         
         /// <summary>
+        /// Gets the max grace period for which the client is allowed to be idle.
+        /// </summary>
+        public TimeSpan GracePeriod
+        {
+            get;
+        }
+
+        /// <summary>
         /// Gets boolean declaring whether the client is still connected.
         /// </summary>
         public bool Connected => State == ClientState.Connected;
         #endregion
         
-        protected Client(Socket socket, IMessageSerializer serializer)
+        protected Client(Socket socket, IMessageSerializer serializer, TimeSpan gracePeriod)
         {
-            Serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            Socket     = socket ?? throw new ArgumentNullException(nameof(socket));
+            GracePeriod = gracePeriod;
+            Serializer  = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            Socket      = socket ?? throw new ArgumentNullException(nameof(socket));
             
             Updates = new LockedDoubleBuffer<ClientUpdate>();
         }
@@ -105,7 +114,7 @@ namespace Fracture.Net.Clients
             switch (next)
             {
                 case ClientState.Disconnected:
-                    if (current != ClientState.Disconnecting)
+                    if (current != ClientState.Disconnecting || current != ClientState.Connecting)
                         ThrowInvalidStateTransition(current, next);
                     break;
                 case ClientState.Connecting:
@@ -131,6 +140,9 @@ namespace Fracture.Net.Clients
         {
             if (State != ClientState.Connected)
                 throw new InvalidOperationException($"calls to {nameof(Send)} are invalid when client state is not {nameof(ClientState.Connected)}");
+            
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
         }
         
         public virtual void Disconnect()
@@ -139,13 +151,16 @@ namespace Fracture.Net.Clients
                 throw new InvalidOperationException($"calls to {nameof(Disconnect)} are invalid when client state is not {nameof(ClientState.Connected)}");
         }
 
-        public virtual void Connect(string ip, int port)
+        public virtual void Connect(IPEndPoint endPoint)
         {
             if (State != ClientState.Disconnected)
                 throw new InvalidOperationException($"calls to {nameof(Connect)} are invalid when client state is not {nameof(ClientState.Disconnected)}");
+            
+            if (endPoint == null)
+                throw new ArgumentNullException(nameof(endPoint));
         }
 
-        public IEnumerable<ClientUpdate> Poll()
+        public virtual IEnumerable<ClientUpdate> Poll()
             => Updates.Read();
 
         public virtual void Dispose()

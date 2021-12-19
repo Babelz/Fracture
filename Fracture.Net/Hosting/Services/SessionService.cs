@@ -28,7 +28,7 @@ namespace Fracture.Net.Hosting.Services
     /// <summary>
     /// Abstract base class for implementing sessions.
     /// </summary>
-    public abstract class Session
+    public abstract class SessionBase
     {
         #region Properties
         /// <summary>
@@ -49,7 +49,7 @@ namespace Fracture.Net.Hosting.Services
         }
         #endregion
 
-        protected Session()
+        protected SessionBase()
         {
             Created   = DateTime.UtcNow;
             Refreshed = Created;
@@ -71,7 +71,7 @@ namespace Fracture.Net.Hosting.Services
     /// <summary>
     /// Interface for implementing services that provide peer session management for application.
     /// </summary>
-    public interface ISessionService<T> : ISessionService where T : Session
+    public interface ISessionService<T> : ISessionService where T : SessionBase
     {
         /// <summary>
         /// Creates or updates session of specific peer.
@@ -89,7 +89,7 @@ namespace Fracture.Net.Hosting.Services
         T Get(int id);
     }
     
-    public static class SessionServiceMiddleware<T> where T : Session
+    public static class SessionServiceMiddleware<T> where T : SessionBase
     {
         public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions)
             => (in RequestMiddlewareContext context) =>
@@ -104,7 +104,7 @@ namespace Fracture.Net.Hosting.Services
     /// <summary>
     /// Default implementation of <see cref="ISessionService"/>.
     /// </summary>
-    public class SessionService<T> : ApplicationService, ISessionService<T> where T : Session
+    public class SessionService<T> : ApplicationService, ISessionService<T> where T : SessionBase
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -190,5 +190,30 @@ namespace Fracture.Net.Hosting.Services
             sessions.Clear(e.Peer.Id);
         }
         #endregion
+    }
+    
+    /// <summary>
+    /// Script that authenticates new connections by creating new sessions for them.
+    /// </summary>
+    public sealed class SessionAuthenticateScript<T> : ApplicationScript where T : SessionBase, new()
+    {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
+        [BindingConstructor]
+        public SessionAuthenticateScript(IApplicationScriptingHost application, ISessionService<T> sessions) 
+            : base(application)
+        {
+            if (sessions == null)
+                throw new ArgumentNullException(nameof(sessions));
+            
+            application.Join += (object sender, in PeerJoinEventArgs e) =>
+            {
+                Log.Info($"new peer {e.Peer.Id} connected, creating session");
+                
+                sessions.Update(e.Peer.Id, new T());
+            };
+        }
     }
 }

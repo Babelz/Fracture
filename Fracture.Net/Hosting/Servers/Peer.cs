@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using Fracture.Common.Events;
 using Fracture.Common.Util;
+using Newtonsoft.Json;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -30,7 +31,7 @@ namespace Fracture.Net.Hosting.Servers
         }
 
         public override string ToString()
-            => $"{Id}, {EndPoint.Address}:{EndPoint.Port}";
+            => JsonConvert.ToString(this);
 
         public override int GetHashCode()
             => HashUtils.Create()

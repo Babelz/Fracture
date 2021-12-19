@@ -42,7 +42,7 @@ namespace Fracture.Net.Hosting.Servers
         private IAsyncResult receiveResult;
         private IAsyncResult disconnectResult;
 
-        private DateTime lastTimeActive;
+        private DateTime lastReceiveTime;
         
         private ResetReason reason;
         private PeerState state;
@@ -57,7 +57,7 @@ namespace Fracture.Net.Hosting.Servers
 
         #region Properties
         private bool IsConnected => socket.Connected;
-        private bool HasTimedOut => (DateTime.UtcNow - lastTimeActive) > gracePeriod;
+        private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) > gracePeriod;
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
         private bool HasDisconnected => disconnectResult?.IsCompleted ?? false;
@@ -88,8 +88,8 @@ namespace Fracture.Net.Hosting.Servers
             outgoingMessageBuffer = new LockedDoubleBuffer<ServerMessageEventArgs>();
             receiveBuffer         = new byte[ReceiveBufferSize];
             
-            state          = PeerState.Connected;
-            lastTimeActive = DateTime.UtcNow;
+            state           = PeerState.Connected;
+            lastReceiveTime = DateTime.UtcNow;
         }        
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -186,7 +186,7 @@ namespace Fracture.Net.Hosting.Servers
                 Incoming?.Invoke(this, incoming);
                 
             // Set activity timestamp to be current time if we are sending or receiving any messages.
-            lastTimeActive = incomingMessages.Length > 0 ? DateTime.UtcNow : lastTimeActive;
+            lastReceiveTime = incomingMessages.Length > 0 ? DateTime.UtcNow : lastReceiveTime;
         }
         
         private void UpdateConnectedState()
@@ -216,7 +216,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         
         public void Disconnect()
-            => InternalDisconnect(ResetReason.ServerReset);
+            => InternalDisconnect(ResetReason.LocalReset);
         
         public void Send(byte[] data, int offset, int length)
         {

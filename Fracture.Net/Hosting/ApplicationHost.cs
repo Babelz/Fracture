@@ -209,7 +209,7 @@ namespace Fracture.Net.Hosting
             
             // Bind host to kernel.
             scripts.Bind(this);
-            
+
             // Unload all scripts when the application exists.
             application.ShuttingDown += delegate
             {
@@ -310,11 +310,11 @@ namespace Fracture.Net.Hosting
         private readonly ApplicationServiceHost services;
         #endregion
         
-        public ApplicationHost(Application application, ApplicationScriptingHost scripts, ApplicationServiceHost services)
+        public ApplicationHost(Application application, ApplicationServiceHost services, ApplicationScriptingHost scripts)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
-            this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
             this.services    = services ?? throw new ArgumentNullException(nameof(services));
+            this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
         }
         
         /// <summary>

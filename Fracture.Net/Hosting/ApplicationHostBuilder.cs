@@ -27,12 +27,7 @@ namespace Fracture.Net.Hosting
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             
             scripts  = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
-            services = new Kernel(DependencyBindingOptions.Interfaces);
-            
-            LogBinding(application);
-            
-            scripts.Bind(application);
-            services.Bind(application);
+            services = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,8 +97,8 @@ namespace Fracture.Net.Hosting
             Log.Info("building application host"); 
             
             return new ApplicationHost(application, 
-                                       new ApplicationScriptingHost(scripts, application, services.All<IApplicationService>()), 
-                                       new ApplicationServiceHost(services, application));
+                                       new ApplicationServiceHost(services, application),
+                                       new ApplicationScriptingHost(scripts, application, services.All<IApplicationService>()));
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
