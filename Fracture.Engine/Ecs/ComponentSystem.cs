@@ -127,6 +127,8 @@ namespace Fracture.Engine.Ecs
          // Delete the component when entity is deleted.
          entities.Deleted.Subscribe(entityId, delegate
          {
+            deletedEvents.Delete(id);
+            
             if (!Alive(id))
                return;
             

@@ -45,21 +45,30 @@ namespace Fracture.Net.Serialization.Generation
         {
             get;
         }
+        
+        /// <summary>
+        /// Optional type parameter hint used in cases where constructor with same parameter name signature exists but with different types.
+        /// </summary>
+        public Type Type
+        {
+            get;
+        }
         #endregion
 
-        private ObjectActivationHint(string parameterName, SerializationValueHint value)
+        private ObjectActivationHint(string parameterName, SerializationValueHint value, Type type = null)
         {
             ParameterName = !string.IsNullOrEmpty(parameterName) ? parameterName : throw new ArgumentNullException(nameof(parameterName));
             Value         = value;
+            Type          = type;
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectActivationHint Field(string parameterName, string fieldName)
-            => new ObjectActivationHint(parameterName, SerializationValueHint.Field(fieldName));
+        public static ObjectActivationHint Field(string parameterName, string fieldName, Type type = null)
+            => new ObjectActivationHint(parameterName, SerializationValueHint.Field(fieldName), type);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectActivationHint Property(string parameterName, string propertyName)
-            => new ObjectActivationHint(parameterName, SerializationValueHint.Property(propertyName));
+        public static ObjectActivationHint Property(string parameterName, string propertyName, Type type = null)
+            => new ObjectActivationHint(parameterName, SerializationValueHint.Property(propertyName), type);
     }
     
     /// <summary>
@@ -372,6 +381,16 @@ namespace Fracture.Net.Serialization.Generation
                                                   .Where(c => c.GetParameters().Length == objectActivationHints.Count)
                                                   .ToArray();
                 
+                if (objectActivationHints.Any(h => h.Type != null))
+                {
+                    if (objectActivationHints.Count(h => h.Type != null) != objectActivationHints.Count)
+                        throw new InvalidOperationException("type hints are used but all activation hints don't have it");
+
+                    candidates = candidates.Where(c => c.GetParameters().Select(p => p.ParameterType)
+                                                        .SequenceEqual(objectActivationHints.Select(h => h.Type)))
+                                           .ToArray();
+                }
+                
                 // Go trough all arguments and make sure types match.
                 var expectedParameterNames = objectActivationHints.Select(h => h.ParameterName).ToArray();
                 
@@ -388,8 +407,9 @@ namespace Fracture.Net.Serialization.Generation
                 }
 
                 if (constructor == null)
-                    throw new InvalidOperationException($"type {serializationType.Name} has no parameterless constructor" +
-                                                        $"that accepts {objectActivationHints.Count} arguments");
+                    throw new InvalidOperationException($"type {serializationType.Name} has no constructor " +
+                                                        $"that accepts {objectActivationHints.Count} arguments, this might also be caused by mismatched" +
+                                                         "binding names");
             }
             
             return constructor;

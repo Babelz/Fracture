@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Security.Policy;
 using Fracture.Common.Collections;
 
 namespace Fracture.Common.Events
@@ -126,16 +127,18 @@ namespace Fracture.Common.Events
    {
       #region Fields
       private readonly LinearGrowthArray<EventDispatchContext<TKey, TSubscriber>> events;
-
-      private readonly Dictionary<TKey, List<TSubscriber>> topics;
       
+      private readonly Dictionary<TKey, List<TSubscriber>> topics;
+      private readonly HashSet<TKey> deleted;
+
       private int count;
       #endregion
 
       public SharedEventQueue(int queueBucketSize)
       {
-         events = new LinearGrowthArray<EventDispatchContext<TKey, TSubscriber>>(queueBucketSize);
-         topics = new Dictionary<TKey, List<TSubscriber>>();
+         events  = new LinearGrowthArray<EventDispatchContext<TKey, TSubscriber>>(queueBucketSize);
+         topics  = new Dictionary<TKey, List<TSubscriber>>();
+         deleted = new HashSet<TKey>();
       }
       
       public bool Exists(TKey key)
@@ -150,8 +153,8 @@ namespace Fracture.Common.Events
       }
       
       public bool Delete(TKey key)
-         => topics.Remove(key);
-
+         => deleted.Add(key);
+      
       public void Subscribe(TKey key, TSubscriber handler) 
          => topics[key].Add(handler);
       
@@ -193,6 +196,12 @@ namespace Fracture.Common.Events
             for (var j = 0; j < subscribers.Count; j++)
                context.Dispatcher(subscribers[j]);
          }
+         
+         // Delete all topics that were marked for deletion.
+         foreach (var topic in deleted)
+            topics.Remove(topic);
+         
+         deleted.Clear();
          
          // Clear events.
          count = 0;

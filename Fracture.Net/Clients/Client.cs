@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -53,7 +51,7 @@ namespace Fracture.Net.Clients
         /// </summary>
         protected ClientState State
         {
-            get => (ClientState)Interlocked.Read(ref state);
+            get         => (ClientState)Interlocked.Read(ref state);
             private set => Interlocked.Exchange(ref state, (long)value);
         }
         
@@ -104,9 +102,21 @@ namespace Fracture.Net.Clients
             Updates = new LockedDoubleBuffer<ClientUpdate>();
         }
         
-        private static void ThrowInvalidStateTransition(ClientState current, ClientState next)
+        private static void ThrowIllegalStateTransition(ClientState current, ClientState next)
             => throw new InvalidOperationException($"illegal state transition from {current} to {next}");
         
+        /// <summary>
+        /// Defines following state machine for client:
+        /// 
+        /// from state        | next legal states
+        /// ------------------------------------------------
+        /// disconnected      | connecting
+        /// connecting        | disconnecting, connected
+        /// disconnecting     | disconnected
+        /// connected         | disconnecting
+        ///
+        /// Raises exception if the state machine rules are violated.
+        /// </summary>
         protected void UpdateState(ClientState next)
         {
             var current = State;
@@ -115,19 +125,19 @@ namespace Fracture.Net.Clients
             {
                 case ClientState.Disconnected:
                     if (current != ClientState.Disconnecting && current != ClientState.Connecting)
-                        ThrowInvalidStateTransition(current, next);
+                        ThrowIllegalStateTransition(current, next);
                     break;
                 case ClientState.Connecting:
                     if (current != ClientState.Disconnected)
-                        ThrowInvalidStateTransition(current, next);
+                        ThrowIllegalStateTransition(current, next);
                     break;
                 case ClientState.Connected:
                     if (current != ClientState.Connecting)
-                        ThrowInvalidStateTransition(current, next);
+                        ThrowIllegalStateTransition(current, next);
                     break;
                 case ClientState.Disconnecting:
                     if (current != ClientState.Connected && current != ClientState.Connecting)
-                        ThrowInvalidStateTransition(current, next);
+                        ThrowIllegalStateTransition(current, next);
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(next), next);

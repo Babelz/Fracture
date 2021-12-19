@@ -302,7 +302,7 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
-                    Log.Info($"peer {resetEvent.Peer.Id} resetting");
+                    Log.Info($"peer {resetEvent.Peer.Id} resetting, reason: {resetEvent.Reason}");
                     
                     Reset?.Invoke(this, resetEvent);
                 }
@@ -345,21 +345,28 @@ namespace Fracture.Net.Hosting
                         // Make sure next message in packet is non-zero sized.
                         var size = serializer.GetSizeFromBuffer(incomingEvent.Contents, offset);
                         
-                        if (size == 0)
+                        if (size <= 0)
                         {
-                            ReleaseRequest(request);
-                            
                             Log.Warn($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
                             
+                            BufferPool.Return(incomingEvent.Contents);
+                            
+                            ReleaseRequest(request);
+
                             break;
                         }
                         
-                        // Proceed to create request.
-                        request.Message   = serializer.Deserialize(incomingEvent.Contents, offset);
-                        request.Contents  = incomingEvent.Contents;
+                        // Proceed to create request, get subset from received contents for single request.
+                        var contents = BufferPool.Take(size);
+                        
+                        Array.Copy(incomingEvent.Contents, offset, contents, 0, size); 
+                        
+                        // Deserialize and create the actual request.
+                        request.Message   = serializer.Deserialize(contents, 0);
+                        request.Contents  = contents;
                         request.Peer      = incomingEvent.Peer;
                         request.Timestamp = incomingEvent.Timestamp;
-                    
+                        
                         incomingRequests.Enqueue(request);
 
                         offset += size;
@@ -557,7 +564,7 @@ namespace Fracture.Net.Hosting
                     
                     serializer.Serialize(requestResponse.Response.Message, contents, 0);
                     
-                    server.Send(requestResponse.Request.Peer.Id, contents, 0, contents.Length);
+                    server.Send(requestResponse.Request.Peer.Id, contents, 0, size);
                 }
                 catch (Exception e)
                 {
@@ -580,71 +587,51 @@ namespace Fracture.Net.Hosting
                 if (leavingPeers.Contains(peer))
                     return;
                 
-                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
+                var size     = serializer.GetSizeFromMessage(notification.Message);
+                var contents = BufferPool.Take(size);
 
                 serializer.Serialize(notification.Message, contents, 0);
                     
-                server.Send(peer, contents, 0, contents.Length);
+                server.Send(peer, contents, 0, size);
             }
                 
-            void BroadcastNarrow(INotification notification)
+            void Broadcast(IMessage message, IEnumerable<int> peers)
             {
-                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
+                var size     = serializer.GetSizeFromMessage(message);
+                var contents = BufferPool.Take(size);
 
-                serializer.Serialize(notification.Message, contents, 0);
+                serializer.Serialize(message, contents, 0);
                     
-                foreach (var peer in notification.Peers.Where(p => !leavingPeers.Contains(p)))
+                foreach (var peer in peers)
                 {
-                    var copy = BufferPool.Take(contents.Length);
+                    var copy = BufferPool.Take(size);
                         
                     contents.CopyTo(copy, 0);
                         
-                    server.Send(peer, copy, 0, copy.Length);
+                    server.Send(peer, copy, 0, size);
                 }
+                
+                BufferPool.Return(contents);
             }
+            
+            void BroadcastNarrow(INotification notification)
+                => Broadcast(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
                 
             void BroadcastWide(INotification notification)
-            {
-                var contents = BufferPool.Take(serializer.GetSizeFromMessage(notification.Message));
-
-                serializer.Serialize(notification.Message, contents, 0);
-                    
-                foreach (var peer in server.Peers.Where(p => !leavingPeers.Contains(p)))
-                {
-                    var copy = BufferPool.Take(contents.Length);
-                        
-                    contents.CopyTo(copy, 0);
-                        
-                    server.Send(peer, copy, 0, copy.Length);
-                }
-            }
+                => Broadcast(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
                 
             void Reset(INotification notification)
             {
-                byte[] contents = null;
-                
                 if (notification.Message != null)
                 {
-                    var size = serializer.GetSizeFromMessage(notification.Message);
-                    
-                    contents = BufferPool.Take(size);
-                    
-                    serializer.Serialize(notification.Message, contents, 0);
+                    if (notification.Peers.Length > 1)
+                        BroadcastNarrow(notification);
+                    else
+                        Send(notification);
                 }
-                
-                foreach (var peer in (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)))
-                {
-                    if (contents != null)
-                    {
-                        var copy = BufferPool.Take(contents.Length);
-                        
-                        contents.CopyTo(copy, 0);
-                        
-                        server.Send(peer, copy, 0, copy.Length);
-                    }
                     
+                foreach (var peer in notification.Peers)
                     leavingPeers.Add(peer);
-                }
             }
             
             while (acceptedNotifications.Count != 0)

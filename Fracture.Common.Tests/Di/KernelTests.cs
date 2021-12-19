@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Fracture.Common.Di;
+﻿using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Common.Tests.Di.TestTypes;
 using Xunit;

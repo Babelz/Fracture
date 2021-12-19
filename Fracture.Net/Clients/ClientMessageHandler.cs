@@ -1,4 +1,3 @@
-using System.ServiceModel.Security;
 using Fracture.Net.Messages;
 
 namespace Fracture.Net.Clients

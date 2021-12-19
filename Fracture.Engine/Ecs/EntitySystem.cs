@@ -71,7 +71,7 @@ namespace Fracture.Engine.Ecs
       /// Creates new entity with optional parameters.
       /// </summary>
       /// <returns>id of the new entity</returns>
-      void Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "");
+      int Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "");
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
@@ -226,7 +226,7 @@ namespace Fracture.Engine.Ecs
             throw new InvalidOperationException($"entity {id} does not exist");
       }
       
-      public void Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "")
+      public int Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "")
       {
          var id = freeEntityIds.Take();
          
@@ -260,6 +260,8 @@ namespace Fracture.Engine.Ecs
          // Lastly pair.
          if (parentId.HasValue)
             Pair(parentId.Value, id);
+         
+         return id;
       }
 
       public void Delete(int id)
@@ -268,9 +270,9 @@ namespace Fracture.Engine.Ecs
          
          ref var entity = ref entities.AtIndex(id);
          
-         // Notify events.
+         // Notify events and delete topic when entity is deleted.
          deletedEvents.Publish(id, e => e(id));
-         
+
          // Delete and unpair children.
          foreach (var childId in entity.ChildrenIds)
          {

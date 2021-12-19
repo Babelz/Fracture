@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.ServiceModel;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Binding;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 using Fracture.Net.Serialization;
+using Fracture.Net.Serialization.Generation;
 using Newtonsoft.Json;
 
 namespace Fracture.Net.Messages
@@ -52,6 +55,8 @@ namespace Fracture.Net.Messages
         #endregion
     }
     
+    public delegate void ObjectSchemaMapDelegate(ObjectSerializationMapper schema);
+
     /// <summary>
     /// Abstract base class for creating messages that also provides message pooling and message related utilities.
     /// </summary>
@@ -91,7 +96,7 @@ namespace Fracture.Net.Messages
             
             return message;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
         {
@@ -120,5 +125,32 @@ namespace Fracture.Net.Messages
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return(IMessage message) 
             => Pools[message.GetType()].Return(message);
+    }
+    
+    public static class Schema
+    {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : class, IMessage, new()
+        {
+            var mapper = ObjectSerializationMapper.ForType<T>().IndirectActivation(() => Message.Take<T>());
+            
+            map(mapper);
+            
+            var mapping = mapper.Map();
+            
+            StructSerializer.Map(mapping);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ForStruct<T>(ObjectSchemaMapDelegate map) 
+        {
+            var mapper = ObjectSerializationMapper.ForType<T>();
+            
+            map(mapper);
+            
+            var mapping = mapper.Map();
+            
+            StructSerializer.Map(mapping);
+        }
     }
 }

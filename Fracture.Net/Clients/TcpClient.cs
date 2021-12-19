@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Threading;
 using Fracture.Net.Messages;
-using Newtonsoft.Json;
 using NLog;
 
 namespace Fracture.Net.Clients
@@ -52,14 +50,30 @@ namespace Fracture.Net.Clients
                 
                 if (length == 0)
                     return;
-            
-                var contents = BufferPool.Take(length);
-            
-                Array.Copy(receiveBuffer, 0, contents, 0, length);
                 
-                var message = Serializer.Deserialize(contents, 0);
-            
-                Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Remote, message, contents, length));  
+                var offset = 0;
+                
+                while (offset < length)
+                {
+                    var size = Serializer.GetSizeFromBuffer(receiveBuffer, offset);
+                    
+                    if (size <= 0)
+                    {
+                        Log.Warn("packet contains zero sized message from server");
+                        
+                        break;
+                    }
+                    
+                    var contents = BufferPool.Take(size);
+                    
+                    Array.Copy(receiveBuffer, offset, contents, 0, size);
+                    
+                    var message = Serializer.Deserialize(contents, offset);
+
+                    Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Remote, message, contents, length, offset));
+                    
+                    offset += size;
+                }
                 
                 lastReceiveTime = DateTime.UtcNow;
             }
@@ -164,7 +178,7 @@ namespace Fracture.Net.Clients
                              0, 
                              size, 
                              SocketFlags.None, 
-                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
+                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size, 0)); 
         }
 
         public override void Connect(IPEndPoint endPoint)

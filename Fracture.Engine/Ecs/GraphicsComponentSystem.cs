@@ -192,17 +192,20 @@ namespace Fracture.Engine.Ecs
          
          if (id >= Components.Length)
             Components.Grow();
-         
+
          return id;
       }
 
       public override bool Delete(int id)
       {
          var deleted = base.Delete(id);
+         var layer   = Components.AtIndex(id).Layer;
+         
+         Layers.First(l => l.Name == layer).Remove(id);
          
          if (deleted)
             Components.Insert(id, default);
-         
+
          return deleted;
       }
 

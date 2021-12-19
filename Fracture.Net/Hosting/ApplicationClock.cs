@@ -10,7 +10,7 @@ namespace Fracture.Net.Hosting
     {
         #region Properties
         /// <summary>
-        /// Gets the time it took to run the lat tick frame.
+        /// Gets the time it took to run the last tick frame.
         /// </summary>
         public TimeSpan Elapsed
         {

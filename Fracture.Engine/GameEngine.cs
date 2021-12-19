@@ -34,6 +34,9 @@ namespace Fracture.Engine
         public IGameEngineTime Time
             => time;
 
+        public IDependencyLocator Systems 
+            => systems;
+        
         public new IDependencyLocator Services
             => services;
         #endregion

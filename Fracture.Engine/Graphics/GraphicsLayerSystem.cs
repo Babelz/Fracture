@@ -380,14 +380,14 @@ namespace Fracture.Engine.Graphics
          
          // Remove to actual cells.
          if (location.Unique())
-            grid[location.Begin.Row][location.Begin.Column].Add(id);
+            grid[location.Begin.Row][location.Begin.Column].Remove(id);
          else
          {
             // Multiple cells in range, remove from them all.
             for (var i = location.Begin.Row; i <= location.End.Row; i++)
             {
                for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                  grid[i][j].Add(id);
+                  grid[i][j].Remove(id);
             }
          }
       }
@@ -498,7 +498,10 @@ namespace Fracture.Engine.Graphics
       
       [BindingConstructor]
       public GraphicsLayerSystem(IGameEngine engine)
-         : base(engine) => layers = new List<GraphicsElementLayer>();
+         : base(engine)
+      {
+         layers = new List<GraphicsElementLayer>();
+      }
       
       public GraphicsElementLayer Create(string name, int order)
       {
@@ -603,6 +606,8 @@ namespace Fracture.Engine.Graphics
             
             fragment.End();
          }
+         
+         results.Clear();
       }
    }
 }

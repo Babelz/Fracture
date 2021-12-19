@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
-using Fracture.Common.Memory.Pools;
+using NLog;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -124,7 +124,7 @@ namespace Fracture.Net.Hosting.Servers
             try
             {
                 socket.EndSend(ar);
-                
+
                 outgoingMessageBuffer.Push((ServerMessageEventArgs)ar.AsyncState);
             }
             catch (Exception e)
