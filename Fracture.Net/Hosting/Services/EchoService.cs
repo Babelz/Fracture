@@ -160,7 +160,13 @@ namespace Fracture.Net.Hosting.Services
                     break;
                 case EchoPhase.Pong:
                     if (latency.RecordPong(request.Peer.Id, message.RequestId))
+                    {
+                        Log.Info($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
+                                 $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
+                                 $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
+                        
                         response.Ok();
+                    }
                     else
                     {
                         Log.Warn($"got unexpected echo response from peer {request.Peer.Id}", request);
@@ -178,7 +184,15 @@ namespace Fracture.Net.Hosting.Services
             scheduler.Pulse(() =>
             {
                 if (!Application.Peers.Contains(id))
+                {
+                    Log.Info($"clearing peer {id} latency metrics");
+                    
+                    latency.Reset(id);
+                    
                     return PulseEventResult.Break;
+                }
+                
+                Log.Info($"testing peer {id} latency...");
 
                 Application.Notifications.Queue.Enqueue().Send(id, Message.Take<EchoMessage>(m =>
                 {

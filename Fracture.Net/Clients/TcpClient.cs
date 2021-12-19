@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using Fracture.Net.Messages;
+using Newtonsoft.Json;
 using NLog;
 
 namespace Fracture.Net.Clients
@@ -33,6 +34,8 @@ namespace Fracture.Net.Clients
         private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) >= GracePeriod;
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
+        
+        private bool IsConnected => State == ClientState.Connected;
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
@@ -138,10 +141,10 @@ namespace Fracture.Net.Clients
 
         private void DisconnectHard(ResetReason reason)
         {
-            if (State == ClientState.Connecting) 
+            if (State == ClientState.Disconnecting) 
                 return;
             
-            UpdateState(ClientState.Connecting);
+            UpdateState(ClientState.Disconnecting);
                 
             Socket.BeginDisconnect(true, DisconnectCallback, new ClientUpdate.Disconnected(ResetReason.LocalReset));
         }
@@ -160,7 +163,7 @@ namespace Fracture.Net.Clients
             var size   = Serializer.GetSizeFromMessage(message);
             var buffer = BufferPool.Take(size);
             
-            Serializer.Deserialize(buffer, 0);
+            Serializer.Serialize(message, buffer, 0);
             
             Socket.BeginSend(buffer, 
                              0, 
@@ -187,11 +190,14 @@ namespace Fracture.Net.Clients
 
         public override IEnumerable<ClientUpdate> Poll()
         {
+            if (!IsConnected) 
+                return base.Poll();
+            
             if (HasTimedOut)
                 DisconnectHard(ResetReason.TimedOut);
             else if (!IsReceiving)
                 receiveResult = Socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
- 
+
             return base.Poll();
         }
     }

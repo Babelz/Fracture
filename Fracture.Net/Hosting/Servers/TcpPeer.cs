@@ -162,12 +162,9 @@ namespace Fracture.Net.Hosting.Servers
             if (state != PeerState.Connected)
                 return;
             
-            // Only begin disconnecting the socket if it is still connected. 
-            if (IsConnected)
-                disconnectResult = socket.BeginDisconnect(false, DisconnectCallback, null);
-            
-            state = PeerState.Disconnecting;
-            
+            disconnectResult = socket.BeginDisconnect(false, DisconnectCallback, null);
+            state            = PeerState.Disconnecting;
+
             this.reason = reason;
         }
         

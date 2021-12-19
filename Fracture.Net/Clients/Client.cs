@@ -114,7 +114,7 @@ namespace Fracture.Net.Clients
             switch (next)
             {
                 case ClientState.Disconnected:
-                    if (current != ClientState.Disconnecting || current != ClientState.Connecting)
+                    if (current != ClientState.Disconnecting && current != ClientState.Connecting)
                         ThrowInvalidStateTransition(current, next);
                     break;
                 case ClientState.Connecting:

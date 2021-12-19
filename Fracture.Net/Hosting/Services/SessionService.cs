@@ -62,7 +62,7 @@ namespace Fracture.Net.Hosting.Services
             => Refreshed = DateTime.UtcNow;
 
         public override string ToString()
-            => JsonConvert.ToString(this);
+            => JsonConvert.SerializeObject(this);
 
         public override int GetHashCode()
             => HashUtils.Create().Append(Created);
@@ -127,17 +127,9 @@ namespace Fracture.Net.Hosting.Services
         public void Update(int peer, T session)
         {
             if (!Active(peer))
-            {
-                Log.Info($"creating session for peer {peer}", session);
-                
                 sessions.Add(peer, session ?? throw new ArgumentNullException(nameof(session)));
-            }
             else
-            {
-                Log.Info($"updating session for peer {peer}", session);
-                
                 sessions[peer] = session;
-            }
         }
         
         public void Clear(int id)
@@ -145,8 +137,6 @@ namespace Fracture.Net.Hosting.Services
             if (!sessions.TryGetValue(id, out var session))
                 return;
             
-            Log.Info($"clearing session for peer {id}", session);
-                
             sessions.Remove(id);
         }
             

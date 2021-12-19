@@ -32,7 +32,7 @@ namespace Fracture.Net.Hosting
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(Type type, string asWhat = "")
-            => Log.Info($"binding {type.FullName} to application builder {(string.IsNullOrEmpty(asWhat) ? "..." : $"as {asWhat}...")}");
+            => Log.Info($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(object value, string asWhat = "")

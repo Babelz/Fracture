@@ -6,6 +6,44 @@ using Fracture.Net.Serialization.Generation;
 namespace Fracture.Net.Serialization
 {
     /// <summary>
+    /// Exception that occurs when no run type is mapped for serialization type. 
+    /// </summary>
+    public sealed class RunTypeNotMappedException : Exception
+    {
+        #region Properties
+        public ushort SerializationTypeId
+        {
+            get;
+        }
+        #endregion
+
+        public RunTypeNotMappedException(ushort serializationTypeId)
+            : base($"no run type is mapped for serialization type {serializationTypeId}")
+        {
+            SerializationTypeId = serializationTypeId;
+        }
+    }
+    
+    /// <summary>
+    /// Exception that occurs when no serialization type is mapped for run type.
+    /// </summary>
+    public sealed class SerializationTypeNotMappedException : Exception
+    {
+        #region Properties
+        public Type SerializationType
+        {
+            get;
+        }
+        #endregion
+
+        public SerializationTypeNotMappedException(Type serializationType)
+            : base($"no serialization type is mapped for run type {serializationType?.Name ?? "null"}")
+        {
+            SerializationType = serializationType;
+        }
+    }
+    
+    /// <summary>
     /// Generic value serializer that provides serialization for structure types. Structure types are any user defined value types or structures that can be
     /// mapped for serialization. The serializer can be used for serialization and deserialization in two ways:
     ///     - Type information is passed via generic interface when the type is known at runtime
@@ -40,6 +78,9 @@ namespace Fracture.Net.Serialization
             var serializationTypeId = Protocol.SerializationTypeId.Read(buffer, offset);
             offset += Protocol.SerializationTypeId.Size;
             
+            if (!RunTypeMappings.ContainsKey(serializationTypeId))
+                throw new RunTypeNotMappedException(serializationTypeId);
+            
             var runType = RunTypeMappings[serializationTypeId];
             
             return Serializers[runType].Deserialize(buffer, offset);
@@ -48,6 +89,9 @@ namespace Fracture.Net.Serialization
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void InternalSerialize(Type serializationType, object value, byte[] buffer, int offset)
         {
+            if (!SerializationTypeIdMappings.ContainsKey(serializationType))
+                throw new SerializationTypeNotMappedException(serializationType);
+            
             var serializationTypeId = SerializationTypeIdMappings[serializationType];
             
             var contentLength = checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + 

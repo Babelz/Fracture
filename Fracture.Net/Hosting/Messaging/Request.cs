@@ -113,7 +113,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
 
         public override string ToString()
-            => JsonConvert.ToString(this);
+            => JsonConvert.SerializeObject(this);
 
         public override int GetHashCode()
             => HashUtils.Create()

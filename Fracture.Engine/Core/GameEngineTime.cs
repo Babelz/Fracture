@@ -24,6 +24,14 @@ namespace Fracture.Engine.Core
         {
             get;
         }
+        
+        /// <summary>
+        /// Gets the current frame number.
+        /// </summary>
+        ulong Frame
+        {
+            get;
+        }
         #endregion
     }
     
@@ -41,6 +49,12 @@ namespace Fracture.Engine.Core
         }
 
         public TimeSpan Total
+        {
+            get;
+            set;
+        }
+
+        public ulong Frame
         {
             get;
             set;

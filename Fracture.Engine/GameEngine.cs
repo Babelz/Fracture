@@ -14,29 +14,6 @@ namespace Fracture.Engine
     /// </summary>
     public abstract class GameEngine : Game, IGameEngine
     {
-        #region Game engine time class
-        private class GameEngineTime : IGameEngineTime
-        {
-            #region Properties
-            public TimeSpan Elapsed
-            {
-                get;
-                set;
-            }
-
-            public TimeSpan Total
-            {
-                get;
-                set;
-            }
-            #endregion
-
-            public GameEngineTime()
-            {
-            }
-        }
-        #endregion
-
         #region Events
         public new event EventHandler Exiting;
         #endregion
@@ -123,6 +100,8 @@ namespace Fracture.Engine
             
             foreach (var system in systems.All<IActiveGameEngineSystem>().OrderBy(s => s.Priority))
                 system.Update();
+            
+            time.Frame++;
         }
 
         #region Sealed members

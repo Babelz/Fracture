@@ -342,14 +342,27 @@ namespace Fracture.Net.Hosting
 
                     try
                     {
+                        // Make sure next message in packet is non-zero sized.
+                        var size = serializer.GetSizeFromBuffer(incomingEvent.Contents, offset);
+                        
+                        if (size == 0)
+                        {
+                            ReleaseRequest(request);
+                            
+                            Log.Warn($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
+                            
+                            break;
+                        }
+                        
+                        // Proceed to create request.
                         request.Message   = serializer.Deserialize(incomingEvent.Contents, offset);
                         request.Contents  = incomingEvent.Contents;
                         request.Peer      = incomingEvent.Peer;
                         request.Timestamp = incomingEvent.Timestamp;
                     
                         incomingRequests.Enqueue(request);
-                        
-                        offset += serializer.GetSizeFromBuffer(incomingEvent.Contents, offset);
+
+                        offset += size;
                     }
                     catch (Exception e)
                     {
