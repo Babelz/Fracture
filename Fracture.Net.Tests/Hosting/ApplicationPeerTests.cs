@@ -132,7 +132,7 @@ namespace Fracture.Net.Tests.Hosting
                                                 .Build();
 
             ApplicationTestUtils.LimitFrames(application, 3);
-            ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue().Reset(first.Id));
+            ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue(n => n.Reset(first.Id)));
             
             application.Reset += (sender, args) => resetPeers.Add(args.Peer);
             

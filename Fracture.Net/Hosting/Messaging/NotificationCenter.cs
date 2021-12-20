@@ -3,10 +3,21 @@ using System.Collections.Generic;
 namespace Fracture.Net.Hosting.Messaging
 {
     /// <summary>
+    /// Delegate used for decorating notifications.
+    /// </summary>
+    /// <param name="notification"></param>
+    public delegate void NotificationDecoratorDelegate(INotification notification);
+    
+    /// <summary>
     /// Interface for implementing notification queues.
     /// </summary>
     public interface INotificationQueue
     {
+        /// <summary>
+        /// Enqueues notification to the queue and decorates it using given decorator.
+        /// </summary>
+        void Enqueue(NotificationDecoratorDelegate decorator);
+        
         /// <summary>
         /// Enqueues notification to the queue and returns it to the caller.
         /// </summary>
@@ -44,6 +55,15 @@ namespace Fracture.Net.Hosting.Messaging
             notifications = new Queue<Notification>();
         }
             
+        public void Enqueue(NotificationDecoratorDelegate decorator)
+        {
+            var notification = Notification.Take();
+            
+            notifications.Enqueue(notification);
+            
+            decorator(notification);
+        }
+        
         public INotification Enqueue()
         {
             var notification = Notification.Take();
