@@ -98,7 +98,7 @@ namespace Fracture.Net.Messages
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Take<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
+        public static T Create<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
         {
             var type = typeof(T);
             
@@ -123,7 +123,7 @@ namespace Fracture.Net.Messages
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(IMessage message) 
+        public static void Release(IMessage message) 
             => Pools[message.GetType()].Return(message);
     }
     
@@ -132,7 +132,7 @@ namespace Fracture.Net.Messages
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : class, IMessage, new()
         {
-            var mapper = ObjectSerializationMapper.ForType<T>().IndirectActivation(() => Message.Take<T>());
+            var mapper = ObjectSerializationMapper.ForType<T>().IndirectActivation(() => Message.Create<T>());
             
             map(mapper);
             

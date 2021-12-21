@@ -10,26 +10,9 @@ namespace Fracture.Engine.Scripting
         #region Events
         public event EventHandler Unloaded;
         #endregion
-
-        #region Properties
-        /// <summary>
-        /// Name of the script.
-        /// </summary>
-        public string Name
+        
+        protected CsScript()
         {
-            get;
-        }
-
-        public IGameEngine Engine
-        {
-            get;
-        }
-        #endregion
-
-        protected CsScript(IGameEngine engine, string name)
-        {
-            Engine = engine ?? throw new ArgumentNullException(nameof(engine));
-            Name   = !string.IsNullOrEmpty(name) ? name : throw new InvalidOperationException(nameof(name));
         }
 
         /// <summary>

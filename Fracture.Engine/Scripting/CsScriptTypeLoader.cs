@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using NLog;
 
 namespace Fracture.Engine.Scripting
 {
@@ -12,6 +13,10 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public static class CsScriptTypeLoader
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         /// <summary>
         /// Attempts to get <see cref="CsScriptDefinitionAttribute"/> from given type.
         /// </summary>
@@ -38,11 +43,18 @@ namespace Fracture.Engine.Scripting
             // Load classes that have the same attribute and are not abstract.
             Parallel.ForEach(AppDomain.CurrentDomain.GetAssemblies(), assembly =>
             {
-                types.AddRange(assembly.GetTypes()
-                                       .Where(t => !t.IsAbstract && 
-                                                    t.IsClass && 
-                                                    t.GetCustomAttributes().Contains(definition) &&
-                                                    t.GetCustomAttribute<CsScriptIgnoreAttribute>() == null));
+                try
+                {
+                    types.AddRange(assembly.GetTypes()
+                                           .Where(t => !t.IsAbstract && 
+                                                       t.IsClass && 
+                                                       t.GetCustomAttributes().Contains(definition) &&
+                                                       t.GetCustomAttribute<CsScriptIgnoreAttribute>() == null));   
+                }
+                catch (ReflectionTypeLoadException e)
+                {
+                    Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
+                }
             });
             
             return types;

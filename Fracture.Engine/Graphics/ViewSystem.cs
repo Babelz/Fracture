@@ -244,8 +244,7 @@ namespace Fracture.Engine.Graphics
         #endregion
         
         [BindingConstructor]
-        public ViewSystem(IGameEngine engine)
-            : base(engine)
+        public ViewSystem()
         {
             var idc = 0;
             

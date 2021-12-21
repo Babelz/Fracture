@@ -1,54 +1,27 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Security.Policy;
 using Fracture.Common.Collections;
 
 namespace Fracture.Common.Events
 {
-   /// <summary>
-   /// Static class containing usage hints that define bucket size for event queues.
-   /// </summary>
-   public static class EventQueueUsageHint
-   {
-      #region Constant fields
-      /// <summary>
-      /// Queue is idle for most of the time containing few events at max. Suitable for queues with
-      /// few topics and publishers.
-      /// </summary>
-      public const int Lazy = 8;
-      
-      /// <summary>
-      /// Queue is being used by few publishers and has more than few events during one frame.
-      /// </summary>
-      public const int Moderate = 128;
-      
-      /// <summary>
-      /// Queue is being published to often during a frame. Suitable when the queue has multiple topics
-      /// and events are being posted frequently.
-      /// </summary>
-      public const int Normal = 256;
-      
-      /// <summary>
-      /// Queue is being used heavily during a frame. Consumes more memory but can keep dispatching performance higher.
-      /// </summary>
-      public const int Frequent = 1024;
-      #endregion
-   }
-   
+   public delegate void EventCallbackDelegate<T>(in T args);
+
    /// <summary>
    /// Interface for implementing events. This interface provides subscription related operations regarding events. 
    /// </summary>
-   public interface IEvent<in TKey, in TSubscriber> where TSubscriber : Delegate
+   public interface IEvent<in TKey, TArgs>
    {
       /// <summary>
       /// Subscribe handler to topic with given key.
       /// </summary>
-      void Subscribe(TKey key, TSubscriber handler);
+      void Subscribe(TKey key, EventCallbackDelegate<TArgs> callback);
 
       /// <summary>
       /// Unsubscribe handler from topic with given key.
       /// </summary>
-      void Unsubscribe(TKey key, TSubscriber handler);
+      void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback);
    }
    
    /// <summary>
@@ -66,8 +39,7 @@ namespace Fracture.Common.Events
    /// Interface for implementing event queues. Event queues allow creation of topics and subscribers can listen for
    /// events published to those topics. Event queues provide managed, predicable and delayed way of invoking events.
    /// </summary>
-   public interface IEventQueue<in TKey, TSubscriber> : IEventDispatcher, IEvent<TKey, TSubscriber> 
-                                                        where TSubscriber : Delegate
+   public interface IEventQueue<in TKey, TArgs> : IEventDispatcher, IEvent<TKey, TArgs>
    {
       /// <summary>
       /// Returns boolean declaring whether topic with given key exists.
@@ -78,133 +50,83 @@ namespace Fracture.Common.Events
       /// Creates new topic and associates given key with it. This allows subscriptions to be made to the topic.
       /// </summary>
       void Create(TKey key);
-
-      /// <summary>
-      /// Deletes topic with given key.
-      /// </summary>
-      bool Delete(TKey key);
-
+      
       /// <summary>
       /// Publishes event to the queue.
       /// </summary>
-      void Publish(TKey key, EventDispatcher<TSubscriber> dispatcher);
+      void Publish(TKey key, in TArgs args);
    }
-   
-   /// <summary>
-   /// Delegate that is used to capture arguments that are passed to the event when it is invoked.
-   /// </summary>
-   public delegate void EventDispatcher<in T>(T handler) where T : Delegate;
 
-   /// <summary>
-   /// Struct that contains context for dispatching events from the queue to the actual subscribers.
-   /// </summary>
-   public readonly struct EventDispatchContext<TKey, TSubscriber> where TSubscriber : Delegate
-   {
-      #region Properties
-      public TKey Key
-      {
-         get;
-      }
-         
-      public EventDispatcher<TSubscriber> Dispatcher
-      {
-         get;
-      }
-      #endregion
-
-      public EventDispatchContext(TKey key, EventDispatcher<TSubscriber> dispatcher)
-      {
-         Key        = key;
-         Dispatcher = dispatcher;
-      }
-   }
-   
    /// <summary>
    /// Event queue that supports generic event dispatch for multiple event sources and allows single topic to contain
    /// multiple events at any time.
    /// </summary>
-   public class SharedEventQueue<TKey, TSubscriber> : IEventQueue<TKey, TSubscriber> where TSubscriber : Delegate
+   public class SharedEventQueue<TKey, TArgs> : IEventQueue<TKey, TArgs>
    {
       #region Fields
-      private readonly LinearGrowthArray<EventDispatchContext<TKey, TSubscriber>> events;
+      private readonly Dictionary<TKey, List<TArgs>> published;
+      private readonly Dictionary<TKey, List<EventCallbackDelegate<TArgs>>> callbacks;
       
-      private readonly Dictionary<TKey, List<TSubscriber>> topics;
-      private readonly HashSet<TKey> deleted;
-
-      private int count;
+      // Set of topic keys that have published events.
+      private readonly HashSet<TKey> dirty;
       #endregion
 
-      public SharedEventQueue(int queueBucketSize)
+      public SharedEventQueue()
       {
-         events  = new LinearGrowthArray<EventDispatchContext<TKey, TSubscriber>>(queueBucketSize);
-         topics  = new Dictionary<TKey, List<TSubscriber>>();
-         deleted = new HashSet<TKey>();
+         published = new Dictionary<TKey, List<TArgs>>();
+         callbacks = new Dictionary<TKey, List<EventCallbackDelegate<TArgs>>>();
+         
+         dirty   = new HashSet<TKey>();
       }
       
       public bool Exists(TKey key)
-         => topics.ContainsKey(key);
+         => callbacks.ContainsKey(key);
       
       public void Create(TKey key)
       {
          if (Exists(key)) 
-            throw new InvalidOperationException($"event {key} already exists");
+            throw new InvalidOperationException($"topic with key {key} already exists");
          
-         topics.Add(key, new List<TSubscriber>());
+         callbacks.Add(key, new List<EventCallbackDelegate<TArgs>>());
+         published.Add(key, new List<TArgs>());
       }
-      
-      public bool Delete(TKey key)
-         => deleted.Add(key);
-      
-      public void Subscribe(TKey key, TSubscriber handler) 
-         => topics[key].Add(handler);
-      
-      public void Unsubscribe(TKey key, TSubscriber handler)
+
+      public void Subscribe(TKey key, EventCallbackDelegate<TArgs> callback)
       {
-         if (!topics[key].Remove(handler)) 
-            throw new InvalidOperationException("subscription not present in the topic");
+         if (!callbacks.ContainsKey(key))
+            throw new InvalidOperationException($"topic with key {key} does not exist");
+
+         callbacks[key].Add(callback);
+      }
+         
+      public void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback)
+      {
+         if (!callbacks.ContainsKey(key))
+            throw new InvalidOperationException($"topic with key {key} does not exist");
+         
+         callbacks[key].Remove(callback);
       }
       
-      public virtual void Publish(TKey key, EventDispatcher<TSubscriber> dispatcher)
+      public virtual void Publish(TKey key, in TArgs args)
       {
          if (!Exists(key))
             return;
+
+         published[key].Add(args);
          
-         if (count >= events.Length);
-            events.Grow();
-  
-         events.Insert(count++, new EventDispatchContext<TKey, TSubscriber>(key, dispatcher));
+         dirty.Add(key);
       }
 
       public virtual void Dispatch()
       {
-         // No events, quick return.
-         if (count == 0) 
-            return;
-
-         for (var i = 0; i < count; i++)
+         foreach (var key in dirty)
          {
-            // Handle for each dispatch context.
-            ref var context = ref events.AtIndex(i);
-            
-            // Check that this this topic still exists.
-            if (!Exists(context.Key))
-               continue;
-         
-            // Dispatch all events to subscriptions.
-            var subscribers = topics[context.Key];
-            
-            for (var j = 0; j < subscribers.Count; j++)
-               context.Dispatcher(subscribers[j]);
+            foreach (var args in published[key])
+               foreach (var callback in callbacks[key])
+                  callback(args);
          }
          
-         // Delete all topics that were marked for deletion.
-         foreach (var topic in deleted)
-            topics.Remove(topic);
-         
-         deleted.Clear();
-         
-         // Clear events.
-         count = 0;
+         dirty.Clear();
       }
    }
 
@@ -212,19 +134,18 @@ namespace Fracture.Common.Events
    /// Event queue that supports generic event dispatch for multiple event sources
    /// and allows single topic to contain one event at time.
    /// </summary>
-   public sealed class UniqueEventQueue<TKey, TSubscriber> : SharedEventQueue<TKey, TSubscriber> where TSubscriber : Delegate
+   public sealed class UniqueEventQueue<TKey, TArgs> : SharedEventQueue<TKey, TArgs> 
    {
       #region Fields
       private readonly HashSet<TKey> lookup;
       #endregion
       
-      public UniqueEventQueue(int queueBucketSize)
-         : base(queueBucketSize)
+      public UniqueEventQueue()
       {
          lookup = new HashSet<TKey>();
       }
       
-      public override void Publish(TKey key, EventDispatcher<TSubscriber> dispatcher)
+      public override void Publish(TKey key, in TArgs args)
       {
          if (!Exists(key))
             return;
@@ -232,7 +153,7 @@ namespace Fracture.Common.Events
          if (!lookup.Add(key))
             return;
             
-         base.Publish(key, dispatcher);
+         base.Publish(key, args);
       }
 
       public override void Dispatch()

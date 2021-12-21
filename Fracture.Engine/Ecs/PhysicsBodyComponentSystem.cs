@@ -14,7 +14,26 @@ using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Ecs
 {
-   public delegate void BodyContactEventHandler(int firstBodyId, int secondBodyId);
+   public readonly struct BodyContactEventArgs
+   {
+      #region Properties
+      public int FirstBodyId
+      {
+         get;
+      }
+
+      public int SecondBodyId
+      {
+         get;
+      }
+      #endregion
+
+      public BodyContactEventArgs(int firstBodyId, int secondBodyId)
+      {
+         FirstBodyId  = firstBodyId;
+         SecondBodyId = secondBodyId;
+      }
+   }
    
    /// <summary>
    /// Interface for implementing physics body component systems. Bodies
@@ -22,15 +41,15 @@ namespace Fracture.Engine.Ecs
    /// entity surroundings. Body will automatically bind entity transform position
    /// and rotation.
    /// </summary>
-   public interface IPhysicsBodyComponentSystem : IComponentSystem, IActiveGameEngineSystem
+   public interface IPhysicsBodyComponentSystem : IComponentSystem
    {
       #region Properties
-      IEvent<int, BodyContactEventHandler> BeginContact
+      IEvent<int, BodyContactEventArgs> BeginContact
       {
          get;
       }
       
-      IEvent<int, BodyContactEventHandler> EndContact
+      IEvent<int, BodyContactEventArgs> EndContact
       {
          get;
       } 
@@ -150,8 +169,8 @@ namespace Fracture.Engine.Ecs
       #region Fields
       private readonly LinearGrowthArray<PhysicsBodyComponent> bodies;
       
-      private readonly IEventQueue<int, BodyContactEventHandler> beginContactEvents;
-      private readonly IEventQueue<int, BodyContactEventHandler> endContactEvents;
+      private readonly IEventQueue<int, BodyContactEventArgs> beginContactEvents;
+      private readonly IEventQueue<int, BodyContactEventArgs> endContactEvents;
       
       private readonly ITransformComponentSystem transforms;
       private readonly IPhysicsWorldSystem world;
@@ -165,21 +184,19 @@ namespace Fracture.Engine.Ecs
          get;
       }
 
-      public IEvent<int, BodyContactEventHandler> BeginContact
+      public IEvent<int, BodyContactEventArgs> BeginContact
          => beginContactEvents;
 
-      public IEvent<int, BodyContactEventHandler> EndContact
+      public IEvent<int, BodyContactEventArgs> EndContact
          => endContactEvents;
       #endregion
 
       [BindingConstructor]
-      public PhysicsBodyComponentSystem(IGameEngine engine, 
-                                        IEntitySystem entities,
+      public PhysicsBodyComponentSystem(IEntitySystem entities,
                                         IEventQueueSystem events,
                                         IPhysicsWorldSystem world, 
-                                        ITransformComponentSystem transforms, 
-                                        int priority)
-         : base(engine, entities, events)
+                                        ITransformComponentSystem transforms)
+         : base(entities, events)
       {
          this.world      = world ?? throw new ArgumentNullException(nameof(world));
          this.transforms = transforms ?? throw new ArgumentNullException(nameof(transforms));
@@ -189,10 +206,8 @@ namespace Fracture.Engine.Ecs
          world.Moved        += WorldOnRelocated;
          
          // Create events.
-         beginContactEvents = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
-         endContactEvents   = events.CreateUnique<int, BodyContactEventHandler>(EventQueueUsageHint.Normal);
-         
-         Priority = priority;
+         beginContactEvents = events.CreateUnique<int, BodyContactEventArgs>();
+         endContactEvents   = events.CreateUnique<int, BodyContactEventArgs>();
          
          bodies = new LinearGrowthArray<PhysicsBodyComponent>();
          dirty  = new List<int>();
@@ -200,23 +215,22 @@ namespace Fracture.Engine.Ecs
 
       #region Event handlers
       private void WorldOnRelocated(object sender, BodyEventArgs e)
-
          => UpdateBodyDirtyState((int)world.Bodies.WithId(e.BodyId).UserData, BodyDirtyFlags.Position);
       
-      private void WorldOnEndContact(object sender, BodyContactEventArgs e)
+      private void WorldOnEndContact(object sender, Physics.BodyContactEventArgs e)
       {
          var firstBodyComponentId  = (int)world.Bodies.WithId(e.FirstBodyId).UserData;
          var secondBodyComponentId = (int)world.Bodies.WithId(e.SecondBodyId).UserData;
          
-         endContactEvents.Publish(firstBodyComponentId, d => d(firstBodyComponentId, secondBodyComponentId));
+         endContactEvents.Publish(firstBodyComponentId, new BodyContactEventArgs(firstBodyComponentId, secondBodyComponentId));
       }
 
-      private void WorldOnBeginContact(object sender, BodyContactEventArgs e)
+      private void WorldOnBeginContact(object sender, Physics.BodyContactEventArgs e)
       {
          var firstBodyComponentId  = (int)world.Bodies.WithId(e.FirstBodyId).UserData;
          var secondBodyComponentId = (int)world.Bodies.WithId(e.SecondBodyId).UserData;
          
-         beginContactEvents.Publish(firstBodyComponentId, d => d(firstBodyComponentId, secondBodyComponentId));
+         beginContactEvents.Publish(firstBodyComponentId, new BodyContactEventArgs(firstBodyComponentId, secondBodyComponentId));
       }
       #endregion
 
@@ -317,8 +331,11 @@ namespace Fracture.Engine.Ecs
          });
          
          // Create events.
-         beginContactEvents.Create(id);
-         endContactEvents.Create(id);
+         if (!beginContactEvents.Exists(id))
+            beginContactEvents.Create(id);
+            
+         if (!endContactEvents.Exists(id))
+            endContactEvents.Create(id);
 
          return id;
       }
@@ -328,9 +345,6 @@ namespace Fracture.Engine.Ecs
          // Delete world data.           
          world.Delete(bodies.AtIndex(id).BodyId);
          
-         // Delete events and state from the system.
-         beginContactEvents.Delete(id);
-         endContactEvents.Delete(id);
          dirty.Remove(id);
          
          return base.Delete(id);

@@ -36,46 +36,8 @@ namespace Fracture.Engine.Physics
             SecondBodyId = secondBodyId;
         }
     }
-    
-    public interface IPhysicsSimulationTime
-    {
-        #region Properties
-        public TimeSpan Elapsed
-        {
-            get;
-        }
-        #endregion
-    }
-    
-    public struct FixedPhysicsSimulationTime : IPhysicsSimulationTime
-    {
-        #region Properties
-        public TimeSpan Elapsed
-        {
-            get;
-        }
-        #endregion
 
-        public FixedPhysicsSimulationTime(TimeSpan delta)
-            => Elapsed = delta;
-    }
-    
-    public struct EnginePhysicsSimulationTime : IPhysicsSimulationTime
-    {
-        #region Fields
-        private readonly IGameEngine engine;
-        #endregion
-
-        #region Properties
-        public TimeSpan Elapsed
-            => engine.Time.Elapsed;
-        #endregion
-        
-        public EnginePhysicsSimulationTime(IGameEngine engine)
-            => this.engine = engine ?? throw new ArgumentException(nameof(engine));
-    }
-    
-    public interface IPhysicsWorldSystem : IActiveGameEngineSystem, IObjectManagementSystem
+    public interface IPhysicsWorldSystem : IObjectManagementSystem
     {
         #region Events
         /// <summary>
@@ -124,11 +86,12 @@ namespace Fracture.Engine.Physics
         }
 
         /// <summary>
-        /// Gets the simulation timer of the world.
+        /// Gets or sets the fixed simulation time step timer of the world.
         /// </summary>
-        IPhysicsSimulationTime Time
+        TimeSpan FixedTimeStep
         {
             get;
+            set;
         }
 
         /// <summary>
@@ -151,9 +114,7 @@ namespace Fracture.Engine.Physics
         int Create(BodyType type, in Shape shape, object userData = null);
         
         void Delete(int id);
-        
-        void Update(int id);
-        
+
         /// <summary>
         /// Resizes the simulation area of the world. This is heavy operation as the whole
         /// quad tree must be rebuild. Calling this each frame in tight loops will kill your
@@ -184,7 +145,7 @@ namespace Fracture.Engine.Physics
     ///
     /// TODO: does not support large speeds, add integration logic for handling that.
     /// </summary>
-    public sealed class PhysicsWorldSystem : ActiveGameEngineSystem, IPhysicsWorldSystem
+    public sealed class PhysicsWorldSystem : GameEngineSystem, IPhysicsWorldSystem
     {
         #region Static fields
         /// <summary>
@@ -236,34 +197,27 @@ namespace Fracture.Engine.Physics
             get;
             set;
         }
-        
-        public IPhysicsSimulationTime Time
+
+        public TimeSpan FixedTimeStep
         {
             get;
+            set;
         }
-    
+
         public IReadOnlyBodyList Bodies
              => bodies;
         #endregion
 
         /// <summary>
         /// Creates new instance of <see cref="PhysicsWorldSystem"/> with given configuration.
-        /// <param name="time">time delta used for simulations</param>
         /// <param name="treeNodeBodyLimit">max bodies one node can hold in the tree before it will be split</param>
         /// <param name="treeNodeMaxDepth">max splits one node can have</param>
         /// </summary>
         [BindingConstructor]
-        public PhysicsWorldSystem(IGameEngine engine,
-                                  IPhysicsSimulationTime time, 
-                                  int treeNodeBodyLimit, 
-                                  int treeNodeMaxDepth,
-                                  int priority = 0)
-            : base(engine, priority)
+        public PhysicsWorldSystem(int treeNodeBodyLimit, int treeNodeMaxDepth)
         {
             this.treeNodeBodyLimit = treeNodeBodyLimit;
             this.treeNodeMaxDepth  = treeNodeMaxDepth;
-            
-            Time = time ?? throw new ArgumentNullException(nameof(time));
             
             rootLink            = new QuadTreeNodeLink();
             rayCastBroadLink    = new QuadTreeNodeLink();
@@ -287,11 +241,11 @@ namespace Fracture.Engine.Physics
         #endregion
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void ApplySeparation(ref Body body, in NarrowContactSolverResult contact, IPhysicsSimulationTime time)
+        private static void ApplySeparation(ref Body body, in NarrowContactSolverResult contact, TimeSpan delta)
         {
             body.ForcedPosition = contact.Translation;
             
-            body.ApplyLinearForces(time);
+            body.ApplyLinearForces(delta);
             body.TransformLinearForces();
             body.ResetForces();
         }
@@ -305,14 +259,14 @@ namespace Fracture.Engine.Physics
             body.ApplyLinearImpulse(Gravity, Vector2.UnitY);
         }
         
-        private void ApplyConstantForces(QuadTreeNode node, IPhysicsSimulationTime time)
+        private void ApplyConstantForces(QuadTreeNode node, TimeSpan delta)
         {
             if (node.IsSplit)
             {
-                ApplyForces(node.TopLeft, time);
-                ApplyForces(node.TopRight, time);
-                ApplyForces(node.BottomRight, time);
-                ApplyForces(node.BottomLeft, time);
+                ApplyForces(node.TopLeft, delta);
+                ApplyForces(node.TopRight, delta);
+                ApplyForces(node.BottomRight, delta);
+                ApplyForces(node.BottomLeft, delta);
 
                 return;
             }
@@ -321,7 +275,7 @@ namespace Fracture.Engine.Physics
                 ApplyConstantForces(id);
         }
         
-        private void ApplyForces(int id, IPhysicsSimulationTime time)
+        private void ApplyForces(int id, TimeSpan delta)
         {
             ref var body = ref bodies.WithId(id);
                 
@@ -329,8 +283,8 @@ namespace Fracture.Engine.Physics
                 return;
                 
             // Apply angular and linear forces.
-            var angularApplied = body.ApplyAngularForces(time);
-            var linearApplied  = body.ApplyLinearForces(time);
+            var angularApplied = body.ApplyAngularForces(delta);
+            var linearApplied  = body.ApplyLinearForces(delta);
                 
             if (angularApplied) 
                 body.TransformAngularForces();
@@ -342,26 +296,26 @@ namespace Fracture.Engine.Physics
             Moved?.Invoke(this, new BodyEventArgs(id));
         }
         
-        private void ApplyForces(QuadTreeNode node, IPhysicsSimulationTime time)
+        private void ApplyForces(QuadTreeNode node, TimeSpan delta)
         {
             if (node.IsSplit)
             {
-                ApplyForces(node.TopLeft, time);
-                ApplyForces(node.TopRight, time);
-                ApplyForces(node.BottomRight, time);
-                ApplyForces(node.BottomLeft, time);
+                ApplyForces(node.TopLeft, delta);
+                ApplyForces(node.TopRight, delta);
+                ApplyForces(node.BottomRight, delta);
+                ApplyForces(node.BottomLeft, delta);
 
                 return;
             }
 
             foreach (var id in node.Dynamics.Concat(node.Sensors))
-                ApplyForces(id, time);
+                ApplyForces(id, delta);
 
             foreach (var id in node.Statics)
-                ApplyForces(id, time);
+                ApplyForces(id, delta);
         }
         
-        private void RelocateLostBody(int id, IPhysicsSimulationTime time)
+        private void RelocateLostBody(int id, TimeSpan delta)
         {
             // Compute distance between bounding box points.
             ref var body = ref bodies.WithId(id);
@@ -395,7 +349,7 @@ namespace Fracture.Engine.Physics
             // Apply overlap translation and update.
             body.ForcedPosition = body.Position + tr;
             
-            body.ApplyLinearForces(time);
+            body.ApplyLinearForces(delta);
             body.TransformLinearForces();
             body.ResetForces();
             
@@ -429,7 +383,7 @@ namespace Fracture.Engine.Physics
             var id = bodies.Create(type, position, rotation, shape, userData);
             
             if (!tree.Add(id))
-                RelocateLostBody(id, Time);
+                RelocateLostBody(id, TimeSpan.Zero);
             
             // Static bodies should not have contact lists.
             if (type == BodyType.Static) 
@@ -465,18 +419,6 @@ namespace Fracture.Engine.Physics
             bodies.Delete(id);
         }
         
-        public void Update(int id)
-        {
-            // Add constant world gravity and wind forces.
-            ApplyConstantForces(id);
-            
-            // Sweep quad tree and re-position lost bodies.
-            RelocateLostBody(id, Time);
-            
-            // Normalize user transformations before solve.
-            ApplyForces(id, Time);
-        }
-
         public void RootQuery(QuadTreeNodeLink link)
         {
             link.Clear();
@@ -550,10 +492,12 @@ namespace Fracture.Engine.Physics
         public IEnumerable<int> ContactsOf(int id)
             => contactListLookup.TryGetValue(id, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
 
-        public override void Update()
+        public override void Update(IGameEngineTime time)
         {
             if (tree == null)
                 return;
+            
+            var delta = FixedTimeStep != TimeSpan.Zero ? FixedTimeStep : time.Elapsed;
             
             // Steps for running the so called simulation are as follows:
             // 
@@ -566,14 +510,14 @@ namespace Fracture.Engine.Physics
             // 7) invoke contact events
             
             // Add constant world gravity and wind forces.
-            ApplyConstantForces(tree.Root, Time);
+            ApplyConstantForces(tree.Root, delta);
             
             // Sweep quad tree and re-position lost bodies.
             foreach (var id in tree.RelocateLostBodies())
-                RelocateLostBody(id, Time);
+                RelocateLostBody(id, delta);
             
             // Normalize user transformations before solve.
-            ApplyForces(tree.Root, Time);
+            ApplyForces(tree.Root, delta);
             
             // Solve all broad pairs.
             broad.Solve(tree, bodies);
@@ -600,9 +544,9 @@ namespace Fracture.Engine.Physics
 
                 // Separate bodies.
                 if (firstBody.Type == BodyType.Dynamic)
-                    ApplySeparation(ref firstBody, contact, Time);
+                    ApplySeparation(ref firstBody, contact, delta);
                 else
-                    ApplySeparation(ref secondBody, contact, Time);
+                    ApplySeparation(ref secondBody, contact, delta);
             }
             
             // Invoke all contact events.

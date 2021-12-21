@@ -151,7 +151,7 @@ namespace Fracture.Net.Hosting.Services
                 case EchoPhase.Ping:
                     Log.Info($"received echo request from peer {request.Peer.Id}");
                     
-                    response.Ok(Message.Take<EchoMessage>(m =>
+                    response.Ok(Message.Create<EchoMessage>(m =>
                     {
                         m.Phase     = EchoPhase.Pong;
                         m.RequestId = message.RequestId;
@@ -180,7 +180,7 @@ namespace Fracture.Net.Hosting.Services
         
         private void CreatePeerLatencyTestScheduler(int id)
         {
-            scheduler.Pulse(() =>
+            scheduler.Pulse((args) =>
             {
                 if (!Application.Peers.Contains(id))
                 {
@@ -193,7 +193,7 @@ namespace Fracture.Net.Hosting.Services
                 
                 Log.Info($"testing peer {id} latency...");
 
-                Application.Notifications.Queue.Enqueue(n => n.Send(id, Message.Take<EchoMessage>(m =>
+                Application.Notifications.Queue.Enqueue(n => n.Send(id, Message.Create<EchoMessage>(m =>
                 {
                     m.RequestId = latency.RecordPing(id);
                 })));

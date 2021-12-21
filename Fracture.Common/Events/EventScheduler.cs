@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Fracture.Common.Events
 {
@@ -51,32 +52,22 @@ namespace Fracture.Common.Events
          
         public void Tick(TimeSpan elapsed)
         {
-            var i = 0;
-
-            while (i < scheduledEvents.Count)
+            foreach (var scheduledEvent in scheduledEvents.Where(e => e.Waiting))
             {
-                var scheduledEvent       = scheduledEvents[i];
-                var wasRunningBeforeTick = scheduledEvent.Waiting;
-                
                 scheduledEvent.Tick(elapsed);
 
-                if (wasRunningBeforeTick && !scheduledEvent.Waiting)
+                if (scheduledEvent.Waiting)
+                    continue;
+                
+                if (scheduledEvent.Type == ScheduledEventType.Pulse)
                 {
-                    if (scheduledEvent.Type == ScheduledEventType.Pulse)
-                    {
-                        scheduledEvent.Wait();
-                    }
-                    else
-                    {
-                        // Continue from current index as the event was removed.
-                        scheduledEvents.RemoveAt(i);
-
-                        continue;
-                    }
+                    scheduledEvent.Wait();
                 }
-
-                // Advance as no events was removed.
-                i++;
+                else
+                {
+                    // Continue from current index as the event was removed.
+                    scheduledEvents.Remove(scheduledEvent);
+                }
             }
         }
     }

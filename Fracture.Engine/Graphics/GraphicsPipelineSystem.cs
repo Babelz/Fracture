@@ -24,7 +24,7 @@ namespace Fracture.Engine.Graphics
         } 
         #endregion
 
-        public MissingTexture2D(GraphicsDevice graphicsDevice)
+        public MissingTexture2D(IGraphicsDeviceSystem graphics)
         {
             var data = new byte[]
             {
@@ -94,9 +94,7 @@ namespace Fracture.Engine.Graphics
                 174, 66, 96, 130
             };
 
-            using var ms = new MemoryStream(data);
-            
-            Value = Texture2D.FromStream(graphicsDevice, ms);
+            Value = graphics.CreateTexture2D(data);
         }
        
         private void Dispose(bool disposing)
@@ -128,7 +126,7 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
 
-      public EmptyTexture2D(GraphicsDevice graphicsDevice)
+      public EmptyTexture2D(IGraphicsDeviceSystem graphics)
       {
          var data = new byte[]
          {
@@ -148,9 +146,7 @@ namespace Fracture.Engine.Graphics
             73, 69, 78, 68, 174, 66, 96, 130
          };
 
-         using var ms = new MemoryStream(data);
-         
-         Value = Texture2D.FromStream(graphicsDevice, ms);
+         Value = graphics.CreateTexture2D(data);
       }
         
       private void Dispose(bool disposing)
@@ -341,7 +337,7 @@ namespace Fracture.Engine.Graphics
       private readonly EmptyTexture2D emptyTexture;
       
       private readonly GraphicsFragmentSettings settings;
-      private readonly GraphicsDeviceManager manager;
+      private readonly IGraphicsDeviceSystem graphics;
       
       private readonly SpriteBatch spriteBatch;
       
@@ -371,16 +367,16 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
       
-      public GraphicsFragment(int order, GraphicsDeviceManager manager, GraphicsFragmentSettings settings)
+      public GraphicsFragment(int order, IGraphicsDeviceSystem graphics, GraphicsFragmentSettings settings)
       {
          Order = order;
          
-         this.manager  = manager ?? throw new ArgumentException(nameof(manager));
+         this.graphics  = graphics ?? throw new ArgumentException(nameof(graphics));
          this.settings = settings ?? throw new ArgumentNullException(nameof(settings));
          
-         missingTexture = new MissingTexture2D(manager.GraphicsDevice);
-         emptyTexture   = new EmptyTexture2D(manager.GraphicsDevice);
-         spriteBatch    = new SpriteBatch(manager.GraphicsDevice);
+         missingTexture = new MissingTexture2D(graphics);
+         emptyTexture   = new EmptyTexture2D(graphics);
+         spriteBatch    = graphics.CreateSpriteBatch();
          
          UpdateBuffers();
       }
@@ -406,9 +402,9 @@ namespace Fracture.Engine.Graphics
 
          if (workBuffer != null && 
              presentationBuffer != null &&
-             width == manager.GraphicsDevice.PresentationParameters.BackBufferWidth &&
-             height == manager.GraphicsDevice.PresentationParameters.BackBufferHeight &&
-             samples == manager.GraphicsDevice.PresentationParameters.MultiSampleCount)
+             width == graphics.BackBufferWidth &&
+             height == graphics.BackBufferHeight &&
+             samples == graphics.MultiSampleCount)
          {
             return;
          }
@@ -416,23 +412,21 @@ namespace Fracture.Engine.Graphics
          workBuffer?.Dispose();
          presentationBuffer?.Dispose();
             
-         workBuffer = new RenderTarget2D(manager.GraphicsDevice,
-                                         manager.GraphicsDevice.PresentationParameters.BackBufferWidth,
-                                         manager.GraphicsDevice.PresentationParameters.BackBufferHeight,
-                                         false,
-                                         SurfaceFormat.Color,
-                                         DepthFormat.None,
-                                         manager.GraphicsDevice.PresentationParameters.MultiSampleCount,
-                                         RenderTargetUsage.DiscardContents);
+         workBuffer = graphics.CreateRenderTarget2D(graphics.BackBufferWidth,
+                                                    graphics.BackBufferHeight,
+                                                    graphics.MultiSampleCount,
+                                                    false,
+                                                    SurfaceFormat.Color,
+                                                    DepthFormat.None,
+                                                    RenderTargetUsage.DiscardContents);
             
-         presentationBuffer = new RenderTarget2D(manager.GraphicsDevice,
-                                                 manager.GraphicsDevice.PresentationParameters.BackBufferWidth,
-                                                 manager.GraphicsDevice.PresentationParameters.BackBufferHeight,
-                                                 false,
-                                                 SurfaceFormat.Color,
-                                                 DepthFormat.None,
-                                                 0,
-                                                 RenderTargetUsage.DiscardContents);
+         presentationBuffer = graphics.CreateRenderTarget2D(graphics.BackBufferWidth,
+                                                            graphics.BackBufferHeight,
+                                                            graphics.MultiSampleCount,
+                                                            false,
+                                                            SurfaceFormat.Color,
+                                                            DepthFormat.None,
+                                                            RenderTargetUsage.DiscardContents);
       }
 
       public void DrawSurface(Texture2D texture, Rectangle center, Rectangle destination, Color color)
@@ -693,10 +687,10 @@ namespace Fracture.Engine.Graphics
       {
          AssertEndCalled();
          
-         manager.GraphicsDevice.Viewport = viewport;
+         graphics.Viewport = viewport;
          
-         manager.GraphicsDevice.SetRenderTarget(renderTarget);
-         manager.GraphicsDevice.Clear(Color.Transparent);
+         graphics.SetRenderTarget(renderTarget);
+         graphics.Clear(Color.Transparent);
          
          spriteBatch.Begin(settings.SpriteSortMode,
                            settings.BlendState,
@@ -717,17 +711,11 @@ namespace Fracture.Engine.Graphics
          UpdateBuffers();
          
          // Update viewport.
-         manager.GraphicsDevice.Viewport = view?.Viewport ?? 
-                                           new Viewport(
-                                              0, 
-                                              0, 
-                                              manager.PreferredBackBufferWidth, 
-                                              manager.PreferredBackBufferHeight
-                                          );
+         graphics.Viewport = view?.Viewport ?? new Viewport(0, 0, graphics.BackBufferWidth, graphics.BackBufferHeight);
          
          // Begin rendering.
-         manager.GraphicsDevice.SetRenderTarget(workBuffer);
-         manager.GraphicsDevice.Clear(Color.Transparent);
+         graphics.SetRenderTarget(workBuffer);
+         graphics.Clear(Color.Transparent);
          
          spriteBatch.Begin(settings.SpriteSortMode,
                            settings.BlendState,
@@ -749,9 +737,9 @@ namespace Fracture.Engine.Graphics
 
       public void Clear()
       {
-         manager.GraphicsDevice.SetRenderTarget(presentationBuffer);
-         manager.GraphicsDevice.Clear(Color.Transparent);
-         manager.GraphicsDevice.SetRenderTarget(null);
+         graphics.SetRenderTarget(presentationBuffer);
+         graphics.Clear(Color.Transparent);
+         graphics.SetRenderTarget(null);
       }
 
       public void End()
@@ -764,7 +752,7 @@ namespace Fracture.Engine.Graphics
          if (!suppressed)
          {
             // Swap buffer to presentation buffer.
-            manager.GraphicsDevice.SetRenderTarget(presentationBuffer);
+            graphics.SetRenderTarget(presentationBuffer);
 
             // Draw the work buffer to presentation buffer.
             spriteBatch.Begin(SpriteSortMode.Deferred,
@@ -798,7 +786,7 @@ namespace Fracture.Engine.Graphics
          AssertEndCalled();
          
          // Reset render target to default.
-         manager.GraphicsDevice.SetRenderTarget(null);
+         graphics.SetRenderTarget(null);
          
          // Draw the presentation buffer to the default buffer.
          spriteBatch.Begin(SpriteSortMode.Deferred,
@@ -897,7 +885,7 @@ namespace Fracture.Engine.Graphics
       }
       #endregion
 
-      protected GraphicsPipelinePhase(IGameEngine engine, IGraphicsPipelineSystem pipeline, int index, GraphicsFragmentSettings settings = null)
+      protected GraphicsPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipeline, int index, GraphicsFragmentSettings settings = null)
       {  
          Pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
          Index    = index;
@@ -926,7 +914,7 @@ namespace Fracture.Engine.Graphics
    /// and rendering associated with it. This systems handles presentation
    /// from commanding other systems to draw to commanding the GPU to draw.
    /// </summary>
-   public interface IGraphicsPipelineSystem : IActiveGameEngineSystem
+   public interface IGraphicsPipelineSystem : IGameEngineSystem
    {
       void CreateFragment(int index, GraphicsFragmentSettings settings);
       void DeleteFragment(int index);
@@ -947,23 +935,13 @@ namespace Fracture.Engine.Graphics
       
       private readonly List<IGraphicsPipelinePhase> phases;
       
-      private readonly GraphicsDeviceManager manager;
-      #endregion
-      
-      #region Properties
-      public int Priority
-      {
-         get;
-      }
+      private readonly IGraphicsDeviceSystem graphics;
       #endregion
       
       [BindingConstructor]
-      public GraphicsPipelineSystem(IGameEngine engine, int priority)
-         : base(engine)
+      public GraphicsPipelineSystem(IGraphicsDeviceSystem graphics)
       {
-         manager = Engine.Services.First<GraphicsDeviceManager>();
-         
-         Priority = priority;
+         this.graphics = graphics ?? throw new ArgumentNullException(nameof(graphics));
          
          // Initialize system.
          fragments = new LinearRegistry<GraphicsFragment>();
@@ -972,7 +950,7 @@ namespace Fracture.Engine.Graphics
       
       public void CreateFragment(int index, GraphicsFragmentSettings settings)
       {
-         fragments.Register(index, new GraphicsFragment(index, manager, settings));
+         fragments.Register(index, new GraphicsFragment(index, graphics, settings));
       }
 
       public void AddPhase(IGraphicsPipelinePhase phase)
@@ -998,11 +976,11 @@ namespace Fracture.Engine.Graphics
       public IGraphicsFragment FragmentAtIndex(int index) 
          => fragments.AtLocation(index);
 
-      public void Update()
+      public override void Update(IGameEngineTime time)
       {
          // Clear graphics device default back buffer.
-         manager.GraphicsDevice.SetRenderTarget(null);
-         manager.GraphicsDevice.Clear(Color.Transparent);
+         graphics.SetRenderTarget(null);
+         graphics.Clear(Color.Transparent);
          
          // Clear all fragments
          foreach (var fragment in fragments.Values)
@@ -1010,7 +988,7 @@ namespace Fracture.Engine.Graphics
          
          // Execute all phases.
          foreach (var phase in phases.Where(p => !p.Disabled))
-            phase.Execute(Engine.Time);
+            phase.Execute(time);
          
          // Present all results.
          foreach (var fragment in fragments.Values)

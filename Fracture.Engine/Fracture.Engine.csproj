@@ -62,6 +62,7 @@
         <Compile Include="Core\Primitives\Line.cs" />
         <Compile Include="Core\Primitives\Rectf.cs" />
         <Compile Include="Core\Primitives\Transform.cs" />
+        <Compile Include="Core\Systems\ContentSystem.cs" />
         <Compile Include="Core\Systems\SceneSystem.cs" />
         <Compile Include="Ecs\ComponentSystem.cs" />
         <Compile Include="Ecs\EntitySystem.cs" />
@@ -71,12 +72,13 @@
         <Compile Include="Ecs\TransformComponentSystem.cs" />
         <Compile Include="Events\EventQueueSystem.cs" />
         <Compile Include="Events\EventSchedulerSystem.cs" />
-        <Compile Include="GameEngine.cs" />
+        <Compile Include="GameHost.cs" />
+        <Compile Include="Graphics\GraphicsDeviceSystem.cs" />
         <Compile Include="Graphics\GraphicsLayerSystem.cs" />
         <Compile Include="Graphics\GraphicsPipelineSystem.cs" />
         <Compile Include="Graphics\GraphicsUtils.cs" />
         <Compile Include="Graphics\ViewSystem.cs" />
-        <Compile Include="IGameEngine.cs" />
+        <Compile Include="IGameHost.cs" />
         <Compile Include="Input\Devices\InputDeviceSystem.cs" />
         <Compile Include="Input\Devices\KeyboardDevice.cs" />
         <Compile Include="Input\Devices\MouseDevice.cs" />

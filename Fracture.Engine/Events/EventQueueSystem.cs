@@ -14,58 +14,58 @@ namespace Fracture.Engine.Events
       /// <summary>
       /// Creates new shared event queue and returns it to the caller.
       /// </summary>
-      IEventQueue<TKey, TEvent> CreateShared<TKey, TEvent>(int queueBucketSize) where TEvent : Delegate;
+      IEventQueue<TKey, TArgs> CreateShared<TKey, TArgs>();
 
       /// <summary>
       /// Creates new unique event queue and returns it to the caller.
       /// </summary>
-      IEventQueue<TKey, TEvent> CreateUnique<TKey, TEvent>(int queueBucketSize) where TEvent : Delegate;
+      IEventQueue<TKey, TArgs> CreateUnique<TKey, TArgs>();
 
       /// <summary>
       /// Deletes given event queue.
       /// </summary>
-      bool Delete<TKey, TEvent>(IEventQueue<TKey, TEvent> queue) where TEvent : Delegate;
+      bool Delete<TKey, TEvent>(IEventQueue<TKey, TEvent> queue);
    }
    
    /// <summary>
    /// Game engine system that manages <see cref="SharedEventQueue{TKey,TSubscriber}"/> handles invoking events added
    /// to event queues in managed manner.
    /// </summary>
-   public sealed class EventQueueSystem : ActiveGameEngineSystem, IEventQueueSystem
+   public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
    {
       #region Fields
       private readonly List<IEventDispatcher> queues;
       #endregion
 
       [BindingConstructor]
-      public EventQueueSystem(IGameEngine engine, int priority)
-         : base(engine, priority) => queues = new List<IEventDispatcher>();
+      public EventQueueSystem()
+         => queues = new List<IEventDispatcher>();
 
-      public IEventQueue<TKey, TEvent> CreateShared<TKey, TEvent>(int queueBucketSize) where TEvent : Delegate
+      public IEventQueue<TKey, TArgs> CreateShared<TKey, TArgs>()
       {
-         var queue = new SharedEventQueue<TKey, TEvent>(queueBucketSize);
+         var queue = new SharedEventQueue<TKey, TArgs>();
          
          queues.Add(queue);
          
          return queue;
       }
       
-      public IEventQueue<TKey, TEvent> CreateUnique<TKey, TEvent>(int queueBucketSize) where TEvent : Delegate
+      public IEventQueue<TKey, TArgs> CreateUnique<TKey, TArgs>()
       {
-         var queue = new UniqueEventQueue<TKey, TEvent>(queueBucketSize);
+         var queue = new UniqueEventQueue<TKey, TArgs>();
          
          queues.Add(queue);
          
          return queue;
       }
 
-      public bool Delete<TKey, TEvent>(IEventQueue<TKey, TEvent> queue) where TEvent : Delegate
+      public bool Delete<TKey, TArgs>(IEventQueue<TKey, TArgs> queue)
          => queues.Remove(queue);
       
       public void Clear()
          => queues.Clear();
       
-      public override void Update()
+      public override void Update(IGameEngineTime time)
       {
          foreach (var queue in queues)
             queue.Dispatch();

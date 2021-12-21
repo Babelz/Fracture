@@ -62,7 +62,7 @@ namespace Fracture.Engine.Ui.Controls
         /// Gets or sets the graphics device associated
         /// with this control.
         /// </summary>
-        GraphicsDevice GraphicsDevice
+        IGraphicsDeviceSystem Graphics
         {
             get;
             set;
@@ -90,7 +90,7 @@ namespace Fracture.Engine.Ui.Controls
 
         private bool disposed;
         
-        private GraphicsDevice graphicsDevice;
+        private IGraphicsDeviceSystem graphics;
         #endregion
 
         #region Events
@@ -145,12 +145,12 @@ namespace Fracture.Engine.Ui.Controls
             }
         }
 
-        public GraphicsDevice GraphicsDevice
+        public IGraphicsDeviceSystem Graphics
         {
-            get => graphicsDevice;
+            get => graphics;
             set
             {
-                graphicsDevice = value;
+                graphics = value;
 
                 if (useRenderTarget)
                     UpdateRenderTarget();
@@ -158,7 +158,7 @@ namespace Fracture.Engine.Ui.Controls
                 foreach (var container in Children.Controls.Where(c => c is IStaticContainerControl)
                                                            .Cast<IStaticContainerControl>())
                 {
-                    container.GraphicsDevice = value;
+                    container.Graphics = value;
                 }
             }
         }
@@ -212,7 +212,7 @@ namespace Fracture.Engine.Ui.Controls
             control.Parent = null;
             control.Style  = null;
 
-            if (control is IStaticContainerControl container) container.GraphicsDevice = null;
+            if (control is IStaticContainerControl container) container.Graphics = null;
 
             if (useRenderTarget) UpdateRenderTarget();
 
@@ -231,7 +231,7 @@ namespace Fracture.Engine.Ui.Controls
             control.Parent = this;
             control.Style  = Style;
 
-            if (control is IStaticContainerControl container) container.GraphicsDevice = graphicsDevice;
+            if (control is IStaticContainerControl container) container.Graphics = graphics;
             
             UpdateChildrenLayout();
         }
@@ -266,19 +266,18 @@ namespace Fracture.Engine.Ui.Controls
                 RenderTarget = null;
             }
 
-            if (graphicsDevice == null)
+            if (graphics == null)
                 return;
 
             var bounds = UiCanvas.ToScreenUnits(ActualBoundingBox.Bounds);
 
-            RenderTarget = new RenderTarget2D(GraphicsDevice,
-                                              (int)Math.Floor(bounds.X),
-                                              (int)Math.Floor(bounds.Y),
-                                              false,
-                                              SurfaceFormat.Color,
-                                              DepthFormat.None,
-                                              GraphicsDevice.PresentationParameters.MultiSampleCount,
-                                              RenderTargetUsage.DiscardContents);
+            RenderTarget = graphics.CreateRenderTarget2D((int)Math.Floor(bounds.X),
+                                                         (int)Math.Floor(bounds.Y),
+                                                         graphics.MultiSampleCount,
+                                                         false,
+                                                         SurfaceFormat.Color,
+                                                         DepthFormat.None,
+                                                         RenderTargetUsage.DiscardContents);
         }
         
         /// <summary>

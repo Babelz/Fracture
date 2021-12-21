@@ -129,11 +129,6 @@ namespace Fracture.Net.Clients
                 get;
             }
 
-            public int Offset
-            {
-                get;
-            }
-
             /// <summary>
             /// Gets the length of the packet.
             /// </summary>
@@ -151,13 +146,12 @@ namespace Fracture.Net.Clients
             }
             #endregion
 
-            public Packet(PacketOrigin origin, IMessage message, byte[] contents, int length, int offset)
+            public Packet(PacketOrigin origin, IMessage message, byte[] contents, int length)
             {
                 Origin   = origin;
                 Message  = message ?? throw new ArgumentNullException(nameof(message));
                 Contents = contents ?? throw new ArgumentNullException(nameof(contents));
                 Length   = length >= 0 ? length : throw new ArgumentOutOfRangeException(nameof(length));
-                Offset   = offset >= 0 ? offset : throw new ArgumentOutOfRangeException(nameof(offset));
             }
         }
     }

@@ -10,16 +10,10 @@ namespace Fracture.Engine.Core.Systems
     /// </summary>
     public abstract class Scene
     {
-        #region Properties
-        protected IGameEngine Engine
+        protected Scene()
         {
-            get;
         }
-        #endregion
-
-        protected Scene(IGameEngine engine)
-            => Engine = engine ?? throw new ArgumentNullException(nameof(engine));
-
+        
         /// <summary>
         /// Initializes the scene, allowing it to allocate, locate
         /// and initialize resources it require if required.
@@ -53,11 +47,9 @@ namespace Fracture.Engine.Core.Systems
         private readonly SceneUpdateCallback update;
         #endregion
 
-        public DelegateScene(IGameEngine engine, 
-                             SceneInitializeCallback initialize, 
+        public DelegateScene(SceneInitializeCallback initialize, 
                              SceneDeinitializeCallback deinitialize,
                              SceneUpdateCallback update)
-            : base(engine)
         {
             this.initialize   = initialize;
             this.deinitialize = deinitialize;
@@ -116,7 +108,7 @@ namespace Fracture.Engine.Core.Systems
     /// <summary>
     /// System responsible of scene management.
     /// </summary>
-    public sealed class SceneSystem : ActiveGameEngineSystem, ISceneSystem
+    public sealed class SceneSystem : GameEngineSystem, ISceneSystem
     {
         #region Fields
         private readonly Stack<Scene> scenes;
@@ -137,8 +129,8 @@ namespace Fracture.Engine.Core.Systems
         #endregion
         
         [BindingConstructor]
-        public SceneSystem(IGameEngine engine)
-            : base(engine, 0) => scenes = new Stack<Scene>();
+        public SceneSystem()
+            => scenes = new Stack<Scene>();
         
         public void Push(Scene scene, SceneChangedCallback callback = null)
         {
@@ -213,7 +205,7 @@ namespace Fracture.Engine.Core.Systems
             throw new InvalidOperationException("no scene matches predicate");
         }
 
-        public override void Update()
-            => Current?.Update(Engine.Time);
+        public override void Update(IGameEngineTime time)
+            => Current?.Update(time);
     }
 }

@@ -9,16 +9,42 @@ using Fracture.Engine.Events;
 
 namespace Fracture.Engine.Ecs
 {
-   /// <summary>
-   /// Event handler for handling entity events.
-   /// </summary>
-   public delegate void EntityEventHandler(int id);
+   public readonly struct EntityEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+      #endregion
+
+      public EntityEventArgs(int id)
+      {
+         Id = id;
+      }
+   }
    
-   /// <summary>
-   /// Event handler for handling pair entity events.
-   /// </summary>
-   public delegate void EntityPairEventHandler(int parentId, int childId);
-   
+   public readonly struct EntityPairEventArgs
+   {
+      #region Properties
+      public int ParentId
+      {
+         get;
+      }
+
+      public int ChildId
+      {
+         get;
+      }
+      #endregion
+
+      public EntityPairEventArgs(int parentId, int childId)
+      {
+         ParentId = parentId;
+         ChildId  = childId;
+      }
+   }
+
    /// <summary>
    /// Interface for implementing entity systems. Entity in Minima is
    /// just a identifier and systems associated them with data and operations.
@@ -29,7 +55,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when entity has been deleted.
       /// </summary>
-      IEvent<int, EntityEventHandler> Deleted
+      IEvent<int, EntityEventArgs> Deleted
       {
          get;
       }
@@ -37,7 +63,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when entity has been unpaired from one of its parents.
       /// </summary>
-      IEvent<int, EntityPairEventHandler> UnpairedFromChild
+      IEvent<int, EntityPairEventArgs> UnpairedFromChild
       {
          get;
       }
@@ -45,7 +71,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked entity has been unpaired from its parent.
       /// </summary>
-      IEvent<int, EntityPairEventHandler> UnpairedFromParent
+      IEvent<int, EntityPairEventArgs> UnpairedFromParent
       {
          get;
       }
@@ -53,7 +79,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when entity is made parent of other entity.
       /// </summary>
-      IEvent<int, EntityPairEventHandler> MadeParentOf
+      IEvent<int, EntityPairEventArgs> MadeParentOf
       {
          get;
       }
@@ -61,7 +87,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when entity is made child of other entity.
       /// </summary>
-      IEvent<int, EntityPairEventHandler> MadeChildOf
+      IEvent<int, EntityPairEventArgs> MadeChildOf
       {
          get;
       }
@@ -173,50 +199,49 @@ namespace Fracture.Engine.Ecs
       private readonly LinearGrowthArray<Entity> entities;
 
       // Entity events. 
-      private readonly IEventQueue<int, EntityEventHandler> deletedEvents;
-      private readonly IEventQueue<int, EntityPairEventHandler> unpairedFromChildEvents;
-      private readonly IEventQueue<int, EntityPairEventHandler> unpairedFromParentEvents;
-      private readonly IEventQueue<int, EntityPairEventHandler> madeParentOfEvents;
-      private readonly IEventQueue<int, EntityPairEventHandler> madeChildOfEvents;
+      private readonly IEventQueue<int, EntityEventArgs> deletedEvents;
+      private readonly IEventQueue<int, EntityPairEventArgs> unpairedFromChildEvents;
+      private readonly IEventQueue<int, EntityPairEventArgs> unpairedFromParentEvents;
+      private readonly IEventQueue<int, EntityPairEventArgs> madeParentOfEvents;
+      private readonly IEventQueue<int, EntityPairEventArgs> madeChildOfEvents;
       #endregion
 
       #region Properties
-      public IEvent<int, EntityEventHandler> Deleted
+      public IEvent<int, EntityEventArgs> Deleted
          => deletedEvents;
       
-      public IEvent<int, EntityPairEventHandler> UnpairedFromChild
+      public IEvent<int, EntityPairEventArgs> UnpairedFromChild
          => unpairedFromChildEvents;
       
-      public IEvent<int, EntityPairEventHandler> UnpairedFromParent
+      public IEvent<int, EntityPairEventArgs> UnpairedFromParent
          => unpairedFromParentEvents;
       
-      public IEvent<int, EntityPairEventHandler> MadeParentOf
+      public IEvent<int, EntityPairEventArgs> MadeParentOf
          => madeParentOfEvents;
       
-      public IEvent<int, EntityPairEventHandler> MadeChildOf
+      public IEvent<int, EntityPairEventArgs> MadeChildOf
          => madeChildOfEvents;
       #endregion
 
       [BindingConstructor]
-      public EntitySystem(IGameEngine engine, IEventQueueSystem events, int entityBucketSize = 1024)
-         : base(engine)
+      public EntitySystem(IEventQueueSystem events)
       {
          systemId = IdCounter++;
          
-         deletedEvents = events.CreateShared<int, EntityEventHandler>(EventQueueUsageHint.Lazy);
+         deletedEvents = events.CreateShared<int, EntityEventArgs>();
          
-         unpairedFromChildEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
-         unpairedFromParentEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+         unpairedFromChildEvents  = events.CreateShared<int, EntityPairEventArgs>();
+         unpairedFromParentEvents = events.CreateShared<int, EntityPairEventArgs>();
          
-         madeParentOfEvents = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
-         madeChildOfEvents  = events.CreateShared<int, EntityPairEventHandler>(EventQueueUsageHint.Lazy);
+         madeParentOfEvents = events.CreateShared<int, EntityPairEventArgs>();
+         madeChildOfEvents  = events.CreateShared<int, EntityPairEventArgs>();
 
          // Create entity data. 
          var idc = 0;
          
          freeEntityIds     = new FreeList<int>(() => idc++);
          aliveEntityIds    = new HashSet<int>();
-         entities          = new LinearGrowthArray<Entity>(entityBucketSize);
+         entities          = new LinearGrowthArray<Entity>(128);
          remoteEntityIdMap = new Dictionary<int, int>();
       }
       
@@ -247,13 +272,20 @@ namespace Fracture.Engine.Ecs
             remoteEntityIdMap.Add(remoteId.Value, id);
          
          // Create events.
-         deletedEvents.Create(id);
-         
-         unpairedFromChildEvents.Create(id);
-         unpairedFromParentEvents.Create(id);
-         
-         madeParentOfEvents.Create(id);
-         madeChildOfEvents.Create(id);
+         if (!deletedEvents.Exists(id))
+            deletedEvents.Create(id);
+            
+         if (!unpairedFromChildEvents.Exists(id))
+            unpairedFromChildEvents.Create(id);
+            
+         if (!unpairedFromParentEvents.Exists(id))
+            unpairedFromParentEvents.Create(id);
+            
+         if (!madeParentOfEvents.Exists(id))
+            madeParentOfEvents.Create(id);
+            
+         if (!madeChildOfEvents.Exists(id))
+            madeChildOfEvents.Create(id);
          
          aliveEntityIds.Add(id);
          
@@ -270,8 +302,8 @@ namespace Fracture.Engine.Ecs
          
          ref var entity = ref entities.AtIndex(id);
          
-         // Notify events and delete topic when entity is deleted.
-         deletedEvents.Publish(id, e => e(id));
+         // Publish deleted event.
+         deletedEvents.Publish(id, new EntityEventArgs(id));
 
          // Delete and unpair children.
          foreach (var childId in entity.ChildrenIds)
@@ -290,14 +322,6 @@ namespace Fracture.Engine.Ecs
             remoteEntityIdMap.Remove(entity.RemoteId.Value);
 
          // Clear rest of the state and return id to pool.
-         deletedEvents.Delete(id);
-         
-         unpairedFromChildEvents.Delete(id);
-         unpairedFromParentEvents.Delete(id);
-         
-         madeParentOfEvents.Delete(id);
-         madeChildOfEvents.Delete(id);
-         
          freeEntityIds.Return(id);
        
          // Mark as not alive.
@@ -351,8 +375,8 @@ namespace Fracture.Engine.Ecs
          // Pair with new parent.
          child.ParentId = parentId;
          
-         madeParentOfEvents.Publish(parentId, e => e.Invoke(parentId, childId));
-         madeChildOfEvents.Publish(childId, e => e.Invoke(parentId, childId));
+         madeParentOfEvents.Publish(parentId, new EntityPairEventArgs(parentId, childId));
+         madeChildOfEvents.Publish(childId, new EntityPairEventArgs(parentId, childId));
       }
 
       public void Unpair(int parentId, int childId)
@@ -369,8 +393,8 @@ namespace Fracture.Engine.Ecs
          // Unpair child from parent.
          child.ParentId = null;
 
-         unpairedFromChildEvents.Publish(parentId, e => e.Invoke(parentId, childId));
-         unpairedFromParentEvents.Publish(childId, e => e.Invoke(parentId, childId));
+         unpairedFromChildEvents.Publish(parentId, new EntityPairEventArgs(parentId, childId));
+         unpairedFromParentEvents.Publish(childId, new EntityPairEventArgs(parentId, childId));
       }
       
       public bool HasParent(int id)

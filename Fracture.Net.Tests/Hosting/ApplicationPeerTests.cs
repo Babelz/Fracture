@@ -83,7 +83,7 @@ namespace Fracture.Net.Tests.Hosting
             var peer = FakePeer.Create();
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(peer),
-                                                                                  FakeServerFrame.Create().Incoming(peer, Message.Take<TestValueMessage>())
+                                                                                  FakeServerFrame.Create().Incoming(peer, Message.Create<TestValueMessage>())
                                                                                                  .Leave(peer, ResetReason.RemoteReset)))
                                                 .Build();
             
@@ -104,7 +104,7 @@ namespace Fracture.Net.Tests.Hosting
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
                                                                                   FakeServerFrame.Create().Join(second),
-                                                                                  FakeServerFrame.Create().Incoming(first, Message.Take<TestValueMessage>())))
+                                                                                  FakeServerFrame.Create().Incoming(first, Message.Create<TestValueMessage>())))
                                                 .Build();
             
             ApplicationTestUtils.LimitFrames(application, 4);

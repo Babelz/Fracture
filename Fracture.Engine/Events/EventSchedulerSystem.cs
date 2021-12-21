@@ -8,20 +8,19 @@ namespace Fracture.Engine.Events
     /// Interface for implementing systems that provide basic event scheduling support
     /// for the game engine.
     /// </summary>
-    public interface IEventSchedulerSystem : IActiveGameEngineSystem, IEventScheduler
+    public interface IEventSchedulerSystem : IGameEngineSystem, IEventScheduler
     {
         // Nothing to implement. Union interface.
     }
     
-    public sealed class EventSchedulerSystem : ActiveGameEngineSystem, IEventSchedulerSystem
+    public sealed class EventSchedulerSystem : GameEngineSystem, IEventSchedulerSystem
     {
         #region Fields
         private readonly EventScheduler scheduler;
         #endregion
         
         [BindingConstructor]
-        public EventSchedulerSystem(IGameEngine engine, int priority)
-            : base(engine, priority) => scheduler = new EventScheduler();
+        public EventSchedulerSystem() => scheduler = new EventScheduler();
 
         public void Add(IScheduledEvent scheduledEvent)
             => scheduler.Add(scheduledEvent);
@@ -35,7 +34,7 @@ namespace Fracture.Engine.Events
         public void Clear()
             => scheduler.Clear();
         
-        public override void Update()
-            => scheduler.Tick(Engine.Time.Elapsed);
+        public override void Update(IGameEngineTime time)
+            => scheduler.Tick(time.Elapsed);
     }
 }

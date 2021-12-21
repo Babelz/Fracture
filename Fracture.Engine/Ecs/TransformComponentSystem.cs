@@ -7,9 +7,69 @@ using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Ecs
 {
-   public delegate void TransformPositionEventHandler(int id, Vector2 position);
-   public delegate void TransformScaleEventHandler(int id, Vector2 scale);
-   public delegate void TransformRotationEventHandler(int id, float rotation); 
+   public readonly struct TransformPositionEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+
+      public Vector2 Position
+      {
+         get;
+      }
+      #endregion
+
+      public TransformPositionEventArgs(int id, Vector2 position)
+      {
+         Id       = id;
+         Position = position;
+      }
+   }
+   
+   public readonly struct TransformScaleEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+
+      public Vector2 Scale
+      {
+         get;
+      }
+      #endregion
+
+      public TransformScaleEventArgs(int id, Vector2 scale)
+      {
+         Id    = id;
+         Scale = scale;
+      }
+   }
+   
+   public readonly struct TransformRotationEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+
+      public float Rotation
+      {
+         get;
+      }
+      #endregion
+
+      public TransformRotationEventArgs(int id, float rotation)
+      {
+         Id       = id;
+         Rotation = rotation;
+      }
+   }
+    
    
    /// <summary>
    /// Interface for implementing transform component systems.
@@ -20,21 +80,21 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when transform position changes.
       /// </summary>
-      IEvent<int, TransformPositionEventHandler> PositionChanged
+      IEvent<int, TransformPositionEventArgs> PositionChanged
       {
          get;
       }
       /// <summary>
       /// Event invoked when transform scale changes.
       /// </summary>
-      IEvent<int, TransformScaleEventHandler> ScaleChanged
+      IEvent<int, TransformScaleEventArgs> ScaleChanged
       {
          get;
       }
       /// <summary>
       /// Event invoked when transform rotation changes.
       /// </summary>
-      IEvent<int, TransformRotationEventHandler> RotationChanged
+      IEvent<int, TransformRotationEventArgs> RotationChanged
       {
          get;
       }
@@ -74,29 +134,29 @@ namespace Fracture.Engine.Ecs
       private readonly LinearGrowthArray<Transform> transforms;
       
       // Transform component events.
-      private IEventQueue<int, TransformPositionEventHandler> positionEvents;
-      private IEventQueue<int, TransformScaleEventHandler> scaleEvents;
-      private IEventQueue<int, TransformRotationEventHandler> rotationEvents;
+      private readonly IEventQueue<int, TransformPositionEventArgs> positionEvents;
+      private readonly IEventQueue<int, TransformScaleEventArgs> scaleEvents;
+      private readonly IEventQueue<int, TransformRotationEventArgs> rotationEvents;
       #endregion
       
       #region Properties
-      public IEvent<int, TransformPositionEventHandler> PositionChanged
+      public IEvent<int, TransformPositionEventArgs> PositionChanged
          => positionEvents;
       
-      public IEvent<int, TransformScaleEventHandler> ScaleChanged
+      public IEvent<int, TransformScaleEventArgs> ScaleChanged
          => scaleEvents;
       
-      public IEvent<int, TransformRotationEventHandler> RotationChanged
+      public IEvent<int, TransformRotationEventArgs> RotationChanged
          => rotationEvents;
       #endregion
       
       [BindingConstructor]
-      public TransformComponentComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events)
-         : base(engine, entities, events)
+      public TransformComponentComponentSystem(IEntitySystem entities, IEventQueueSystem events)
+         : base(entities, events)
       {
-         positionEvents = events.CreateUnique<int, TransformPositionEventHandler>(EventQueueUsageHint.Normal);
-         scaleEvents    = events.CreateUnique<int, TransformScaleEventHandler>(EventQueueUsageHint.Normal);
-         rotationEvents = events.CreateUnique<int, TransformRotationEventHandler>(EventQueueUsageHint.Normal);
+         positionEvents = events.CreateUnique<int, TransformPositionEventArgs>();
+         scaleEvents    = events.CreateUnique<int, TransformScaleEventArgs>();
+         rotationEvents = events.CreateUnique<int, TransformRotationEventArgs>();
          
          // Allocate data.
          transforms = new LinearGrowthArray<Transform>(1024);
@@ -121,10 +181,15 @@ namespace Fracture.Engine.Ecs
          transforms.Insert(id, transform);
          
          // Create events.
-         positionEvents.Create(id);
-         scaleEvents.Create(id);
-         rotationEvents.Create(id);
-
+         if (!positionEvents.Exists(id)) 
+            positionEvents.Create(id);
+            
+         if (!scaleEvents.Exists(id)) 
+            scaleEvents.Create(id);
+            
+         if (!rotationEvents.Exists(id)) 
+            rotationEvents.Create(id);
+         
          return id;
       }
       
@@ -138,12 +203,7 @@ namespace Fracture.Engine.Ecs
          
          // Reset state data.
          transforms.Insert(id, Transform.Default);
-         
-         // Remove all events.
-         positionEvents.Delete(id);
-         scaleEvents.Delete(id);
-         rotationEvents.Delete(id);
-         
+
          return true;
       }
 
@@ -177,7 +237,7 @@ namespace Fracture.Engine.Ecs
          
          // Publish event about changes. Always refer to the field using the component
          // to get the latest value for the event.
-         positionEvents.Publish(id, e => e(id, transforms.AtIndex(id).Position));
+         positionEvents.Publish(id, new TransformPositionEventArgs(id, transforms.AtIndex(id).Position));
       }
 
       public void TranslateScale(int id, in Vector2 translation)
@@ -186,7 +246,7 @@ namespace Fracture.Engine.Ecs
          
          transforms.Insert(id, Transform.TranslateScale(transforms.AtIndex(id), translation));
          
-         scaleEvents.Publish(id, e => e(id, transforms.AtIndex(id).Scale));
+         scaleEvents.Publish(id, new TransformScaleEventArgs(id, transforms.AtIndex(id).Scale));
       }
 
       public void TranslateRotation(int id, float translation)
@@ -195,7 +255,7 @@ namespace Fracture.Engine.Ecs
          
          transforms.Insert(id, Transform.TranslateRotation(transforms.AtIndex(id), translation));
          
-         rotationEvents.Publish(id, e => e(id, transforms.AtIndex(id).Rotation));
+         rotationEvents.Publish(id, new TransformRotationEventArgs(id, transforms.AtIndex(id).Rotation));
       }
 
       public void TransformPosition(int id, in Vector2 transformation)
@@ -204,7 +264,7 @@ namespace Fracture.Engine.Ecs
          
          transforms.Insert(id, Transform.TransformPosition(transforms.AtIndex(id), transformation));
          
-         positionEvents.Publish(id, e => e(id, transforms.AtIndex(id).Position));
+         positionEvents.Publish(id, new TransformPositionEventArgs(id, transforms.AtIndex(id).Position));
       }
 
       public void TransformScale(int id, in Vector2 transformation)
@@ -213,7 +273,7 @@ namespace Fracture.Engine.Ecs
          
          transforms.Insert(id, Transform.TransformScale(transforms.AtIndex(id), transformation));
          
-         scaleEvents.Publish(id, e => e(id, transforms.AtIndex(id).Scale));
+         scaleEvents.Publish(id, new TransformScaleEventArgs(id, transforms.AtIndex(id).Scale));
       }
 
       public void TransformRotation(int id, float transformation)
@@ -222,7 +282,7 @@ namespace Fracture.Engine.Ecs
          
          transforms.Insert(id, Transform.TransformRotation(transforms.AtIndex(id), transformation));
          
-         rotationEvents.Publish(id, e => e(id, transforms.AtIndex(id).Rotation));
+         rotationEvents.Publish(id, new TransformRotationEventArgs(id, transforms.AtIndex(id).Rotation));
       }
    }
 }

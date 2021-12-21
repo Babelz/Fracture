@@ -20,6 +20,27 @@ namespace Fracture.Common.Events
         Pulse
     }
     
+    public sealed class ScheduledEventArgs : EventArgs
+    {
+        #region Properties
+        public TimeSpan Elapsed
+        {
+            get;
+        }
+
+        public object State
+        {
+            get;
+        }
+        #endregion
+
+        public ScheduledEventArgs(TimeSpan elapsed, object state)
+        {
+            Elapsed = elapsed;
+            State   = state;
+        }
+    }
+    
     /// <summary>
     /// Interface for implementing scheduled events. See <see cref="ScheduledEventType"/>
     /// how events behave.
@@ -27,7 +48,7 @@ namespace Fracture.Common.Events
     public interface IScheduledEvent
     {
         #region Events
-        event EventHandler Invoke;
+        event EventHandler<ScheduledEventArgs> Invoke;
         #endregion
 
         #region Properties
@@ -79,8 +100,12 @@ namespace Fracture.Common.Events
     /// </summary>
     public sealed class AsyncScheduledEvent : IScheduledEvent
     {
+        #region Fields
+        private readonly object state;
+        #endregion
+        
         #region Events
-        public event EventHandler Invoke;
+        public event EventHandler<ScheduledEventArgs> Invoke;
         #endregion
 
         #region Properties
@@ -108,8 +133,12 @@ namespace Fracture.Common.Events
         }
         #endregion
 
-        public AsyncScheduledEvent(ScheduledEventType type)
-            => Type = type;
+        public AsyncScheduledEvent(ScheduledEventType type, object state = null)
+        {
+            this.state = state;
+            
+            Type = type;
+        }
 
         public void Resume()
         {
@@ -157,7 +186,7 @@ namespace Fracture.Common.Events
                 return;
             }
             
-            Task.Factory.StartNew(() => Invoke?.Invoke(this, EventArgs.Empty));
+            Task.Factory.StartNew(() => Invoke?.Invoke(this, new ScheduledEventArgs(ElapsedTime, state)));
             
             Waiting = false;
         }
@@ -165,8 +194,12 @@ namespace Fracture.Common.Events
     
     public class SyncScheduledEvent : IScheduledEvent
     {
+        #region Fields
+        private readonly object state;
+        #endregion
+        
         #region Events
-        public event EventHandler Invoke;
+        public event EventHandler<ScheduledEventArgs> Invoke;
         #endregion
 
         #region Properties
@@ -194,8 +227,12 @@ namespace Fracture.Common.Events
         }
         #endregion
 
-        public SyncScheduledEvent(ScheduledEventType type)
-            => Type = type;
+        public SyncScheduledEvent(ScheduledEventType type, object state = null)
+        {
+            this.state = state;
+            
+            Type = type;
+        }
 
         public void Resume()
         {
@@ -242,7 +279,7 @@ namespace Fracture.Common.Events
             
             Waiting = false;
 
-            Invoke?.Invoke(this, EventArgs.Empty);
+            Invoke?.Invoke(this, new ScheduledEventArgs(ElapsedTime, state));
         }
     }
 }

@@ -9,10 +9,20 @@ using Fracture.Engine.Events;
 
 namespace Fracture.Engine.Ecs
 {
-   /// <summary>
-   /// Event handler for handling component related events.
-   /// </summary>
-   public delegate void ComponentEventHandler(int id);
+   public readonly struct ComponentEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+      #endregion
+
+      public ComponentEventArgs(int id)
+      {
+         Id = id;
+      }
+   }
    
    /// <summary>
    /// Interface for implementing component systems. Components in Minima
@@ -25,7 +35,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Event invoked when component was deleted.
       /// </summary>
-      IEvent<int, ComponentEventHandler> Deleted
+      IEvent<int, ComponentEventArgs> Deleted
       {
          get;
       }
@@ -69,7 +79,7 @@ namespace Fracture.Engine.Ecs
       
       private readonly List<int> aliveComponents;
       
-      private readonly IEventQueue<int, ComponentEventHandler> deletedEvents;
+      private readonly IEventQueue<int, ComponentEventArgs> deletedEvents;
       
       private readonly IEntitySystem entities;
       #endregion
@@ -77,16 +87,15 @@ namespace Fracture.Engine.Ecs
       #region Properties
       protected int Count => aliveComponents.Count;
       
-      public IEvent<int, ComponentEventHandler> Deleted
+      public IEvent<int, ComponentEventArgs> Deleted
          => deletedEvents;
       #endregion
 
-      protected ComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events)
-         : base(engine)
+      protected ComponentSystem(IEntitySystem entities, IEventQueueSystem events)
       {
          this.entities = entities ?? throw new ArgumentNullException(nameof(entities));
          
-         deletedEvents = events.CreateShared<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
+         deletedEvents = events.CreateShared<int, ComponentEventArgs>();
          
          // Create basic component data.
          var idc = 0;
@@ -127,8 +136,6 @@ namespace Fracture.Engine.Ecs
          // Delete the component when entity is deleted.
          entities.Deleted.Subscribe(entityId, delegate
          {
-            deletedEvents.Delete(id);
-            
             if (!Alive(id))
                return;
             
@@ -167,6 +174,9 @@ namespace Fracture.Engine.Ecs
          if (!componentToEntityMap.Remove(id))
             return false;
          
+         // Publish deleted event.
+         deletedEvents.Publish(id, new ComponentEventArgs(id));
+
          aliveComponents.Remove(id);
          componentToEntityMap.Remove(id);
          
@@ -208,8 +218,8 @@ namespace Fracture.Engine.Ecs
       private readonly Dictionary<int, int> entityToComponentMap;
       #endregion
       
-      protected UniqueComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events) 
-         : base(engine, entities, events) => entityToComponentMap = new Dictionary<int, int>();
+      protected UniqueComponentSystem(IEntitySystem entities, IEventQueueSystem events) 
+         : base(entities, events) => entityToComponentMap = new Dictionary<int, int>();
       
       protected override int InitializeComponent(int entityId)
       {
@@ -273,8 +283,8 @@ namespace Fracture.Engine.Ecs
       private readonly Dictionary<int, List<int>> entityToComponentsMap;
       #endregion
       
-      protected SharedComponentSystem(IGameEngine engine, IEntitySystem entities, IEventQueueSystem events) 
-         : base(engine, entities, events) => entityToComponentsMap = new Dictionary<int, List<int>>();
+      protected SharedComponentSystem(IEntitySystem entities, IEventQueueSystem events) 
+         : base(entities, events) => entityToComponentsMap = new Dictionary<int, List<int>>();
       
       protected override int InitializeComponent(int entityId)
       {

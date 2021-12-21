@@ -68,9 +68,9 @@ namespace Fracture.Net.Clients
                     
                     Array.Copy(receiveBuffer, offset, contents, 0, size);
                     
-                    var message = Serializer.Deserialize(contents, offset);
+                    var message = Serializer.Deserialize(contents, 0);
 
-                    Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Remote, message, contents, length, offset));
+                    Updates.Push(new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Remote, message, contents, size));
                     
                     offset += size;
                 }
@@ -178,7 +178,7 @@ namespace Fracture.Net.Clients
                              0, 
                              size, 
                              SocketFlags.None, 
-                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size, 0)); 
+                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
         }
 
         public override void Connect(IPEndPoint endPoint)

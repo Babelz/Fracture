@@ -16,7 +16,7 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public interface ICsScriptRepositoryFactory
     {
-        ICsScriptRepository<T> Create<T>(IGameEngine engine) where T : CsScript;
+        ICsScriptRepository<T> Create<T>(IGameHost host) where T : CsScript;
     }
     
     /// <summary>
@@ -28,22 +28,22 @@ namespace Fracture.Engine.Scripting
         {
         }
 
-        public ICsScriptRepository<T> Create<T>(IGameEngine engine) where T : CsScript
+        public ICsScriptRepository<T> Create<T>(IGameHost host) where T : CsScript
         {
             if (!CsScriptTypeLoader.TryGetScriptDefinitionAttribute(typeof(T), out var definition))
                 throw new MissingAttributeException(typeof(T), typeof(CsScriptDefinitionAttribute));
 
             if (definition.Unique)
-                return new UniqueCsScriptRepository<T>(engine);
+                return new UniqueCsScriptRepository<T>(host);
 
             if (definition.Reusable)
-                return new ReusableCsScriptRepository<T>(engine);
+                return new ReusableCsScriptRepository<T>(host);
             
-            return new DisposableCsScriptRepository<T>(engine);
+            return new DisposableCsScriptRepository<T>(host);
         }
     }
     
-    public delegate T ScriptActivator<out T>(IGameEngine engine, string name) where T : CsScript;
+    public delegate T ScriptActivator<out T>(IGameHost host, string name) where T : CsScript;
     
     /// <summary>
     /// Interface for implementing CS script repositories. Repositories
@@ -73,15 +73,15 @@ namespace Fracture.Engine.Scripting
 
         private readonly Dictionary<string, ScriptActivator<T>> activators;
 
-        private readonly IGameEngine engine;
+        private readonly IGameHost host;
         #endregion
 
-        public DisposableCsScriptRepository(IGameEngine engine)
+        public DisposableCsScriptRepository(IGameHost host)
         {
             if (!CsScriptTypeLoader.TryGetScriptDefinitionAttribute(typeof(T), out var definition))
                 throw new MissingAttributeException(typeof(T), typeof(CsScriptDefinitionAttribute));
 
-            this.engine = engine ?? throw new ArgumentNullException(nameof(engine));
+            this.host = host ?? throw new ArgumentNullException(nameof(host));
 
             activators = new Dictionary<string, ScriptActivator<T>>();
             scripts    = new List<T>();
@@ -93,7 +93,7 @@ namespace Fracture.Engine.Scripting
                 if (!CsScriptTypeLoader.TryGetScriptAttribute(type, out var script))
                     throw new MissingAttributeException(typeof(T), typeof(CsScriptAttribute));
 
-                var ctor      = type.GetConstructor(new[] { typeof(IGameEngine), typeof(string) });
+                var ctor      = type.GetConstructor(new[] { typeof(IGameHost), typeof(string) });
                 var activator = (ScriptActivator<T>)DynamicConstructorBinder.Bind(ctor, typeof(ScriptActivator<>).MakeGenericType(type));
                 
                 activators.Add(script.Name, activator);
@@ -129,7 +129,7 @@ namespace Fracture.Engine.Scripting
                 script = default;
             else
             {
-                script = activator(engine, name);
+                script = activator(host, name);
 
                 script.Unloaded += Script_Unloaded;
 
@@ -160,10 +160,10 @@ namespace Fracture.Engine.Scripting
         private readonly Dictionary<string, IPool<T>> pools;
         #endregion
 
-        public ReusableCsScriptRepository(IGameEngine engine)
+        public ReusableCsScriptRepository(IGameHost host)
         {
-            if (engine == null)
-                throw new ArgumentNullException(nameof(engine));
+            if (host == null)
+                throw new ArgumentNullException(nameof(host));
 
             if (!CsScriptTypeLoader.TryGetScriptDefinitionAttribute(typeof(T), out var definition))
                 throw new MissingAttributeException(typeof(T), typeof(CsScriptDefinitionAttribute));
@@ -178,14 +178,14 @@ namespace Fracture.Engine.Scripting
                 if (!CsScriptTypeLoader.TryGetScriptAttribute(type, out var script))
                     throw new MissingAttributeException(typeof(T), typeof(CsScriptAttribute));
 
-                var ctor      = type.GetConstructor(new[] { typeof(IGameEngine), typeof(string) });
+                var ctor      = type.GetConstructor(new[] { typeof(IGameHost), typeof(string) });
                 var activator = (ScriptActivator<T>)DynamicConstructorBinder.Bind(ctor, typeof(ScriptActivator<>).MakeGenericType(type));
                 
                 pools.Add(script.Name, 
                     new LinearPool<T>(
                         new LinearStorageObject<T>(
                             new LinearGrowthArray<T>(
-                                definition.Allocations)), () => activator(engine, script.Name), definition.Allocations));
+                                definition.Allocations)), () => activator(host, script.Name), definition.Allocations));
             }
         }
         
@@ -199,7 +199,7 @@ namespace Fracture.Engine.Scripting
             script.OnUnload();
 
             // Return script to pool for reuse.
-            pools[script.Name].Return(script);
+            // pools[script.Name].Return(script);
 
             scripts.Remove(script);
         }
@@ -251,10 +251,10 @@ namespace Fracture.Engine.Scripting
         private readonly List<T> loaded;
         #endregion
         
-        public UniqueCsScriptRepository(IGameEngine engine)
+        public UniqueCsScriptRepository(IGameHost host)
         {
-            if (engine == null)
-                throw new ArgumentNullException(nameof(engine));
+            if (host == null)
+                throw new ArgumentNullException(nameof(host));
 
             if (!CsScriptTypeLoader.TryGetScriptDefinitionAttribute(typeof(T), out var definition))
                 throw new MissingAttributeException(typeof(T), typeof(CsScriptDefinitionAttribute));
@@ -270,7 +270,7 @@ namespace Fracture.Engine.Scripting
                 if (!CsScriptTypeLoader.TryGetScriptAttribute(type, out var script))
                     throw new MissingAttributeException(typeof(T), typeof(CsScriptAttribute));
 
-                var instance = (T)Activator.CreateInstance(type, engine, script.Name);
+                var instance = (T)Activator.CreateInstance(type, host, script.Name);
 
                 scripts.Add(script.Name, instance);
 
@@ -285,10 +285,10 @@ namespace Fracture.Engine.Scripting
 
             script.Unloaded -= Script_Unloaded;
 
-            loads[script.Name] -= 1; 
+            throw new NotImplementedException(); //loads[script.Name] -= 1; 
 
-            if (loads[script.Name] == 0)
-                script.OnUnload();
+            // if (loads[script.Name] == 0)
+            //     script.OnUnload();
 
             loaded.Remove(script);
         }

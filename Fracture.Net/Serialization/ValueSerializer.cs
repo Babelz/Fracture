@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using Fracture.Common.Reflection;
 using NLog;
 
@@ -196,7 +197,7 @@ namespace Fracture.Net.Serialization
         {
             var types = new List<Type>();
             
-            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies().OrderBy(a => a.FullName))
+            Parallel.ForEach(AppDomain.CurrentDomain.GetAssemblies(), assembly =>
             {
                 try
                 {
@@ -207,7 +208,7 @@ namespace Fracture.Net.Serialization
                 {
                     Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
                 }
-            }
+            });
             
             ValueSerializerTypes = types;
         }

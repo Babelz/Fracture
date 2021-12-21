@@ -16,7 +16,7 @@ namespace Fracture.Engine.Input
         #endregion
     }
     
-    public sealed class KeyboardInputSystem : ActiveGameEngineSystem, IKeyboardInputSystem
+    public sealed class KeyboardInputSystem : GameEngineSystem, IKeyboardInputSystem
     {
         #region Fields
         private readonly KeyboardInputManager manager;
@@ -31,8 +31,7 @@ namespace Fracture.Engine.Input
         #endregion
 
         [BindingConstructor]
-        public KeyboardInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority)
-            : base(engine, priority)
+        public KeyboardInputSystem(IInputDeviceSystem input)
         {
             // Get mouse device.
             Device = input.First(d => d is IKeyboardDevice) as IKeyboardDevice;
@@ -41,8 +40,8 @@ namespace Fracture.Engine.Input
             manager = new KeyboardInputManager(Device);
         }
 
-        public override void Update()
-            => manager.Update(Engine.Time);
+        public override void Update(IGameEngineTime time)
+            => manager.Update(time);
         
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params Keys[] combination)
             => manager.Bind(name, callback, state, combination);

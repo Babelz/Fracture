@@ -189,7 +189,7 @@ namespace Fracture.Engine.Physics.Dynamics
       /// Applies linear forces if there are any active. Returns boolean declaring
       /// if any forces were applies.
       /// </summary>
-      public bool ApplyLinearForces(IPhysicsSimulationTime time)
+      public bool ApplyLinearForces(TimeSpan delta)
       {
          if (LinearVelocity == Vector2.Zero || ForcedPosition == Vector2.Zero)
             return false;
@@ -197,7 +197,7 @@ namespace Fracture.Engine.Physics.Dynamics
          if (ForcedPosition != Vector2.Zero)
             Position = ForcedPosition;
          
-         Position += LinearVelocity * (float)time.Elapsed.TotalMilliseconds;
+         Position += LinearVelocity * (float)delta.TotalSeconds;
          
          return true;
       }
@@ -206,7 +206,7 @@ namespace Fracture.Engine.Physics.Dynamics
       /// Applies angular forces if there are any active. Returns boolean declaring
       /// if any forces were applied.
       /// </summary>
-      public bool ApplyAngularForces(IPhysicsSimulationTime time)
+      public bool ApplyAngularForces(TimeSpan delta)
       {
          if (AngularVelocity == 0.0f || ForcedRotation == 0.0f)
             return false;
@@ -214,7 +214,7 @@ namespace Fracture.Engine.Physics.Dynamics
          if (ForcedRotation != 0.0f)
             Rotation = ForcedRotation;
          
-         Rotation += AngularVelocity * (float)time.Elapsed.TotalSeconds;
+         Rotation += AngularVelocity * (float)delta.TotalSeconds;
          
          return true;
       }

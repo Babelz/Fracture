@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
+using Fracture.Engine.Core.Systems;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Fracture.Engine.Ui.Controls;
@@ -22,8 +23,8 @@ namespace Fracture.Engine.Ui
         private readonly IUiSystem uis;
         #endregion
         
-        public UiPipelinePhase(IGameEngine engine, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index) 
-            : base(engine, pipelines, index, new GraphicsFragmentSettings(
+        public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index) 
+            : base(host, pipelines, index, new GraphicsFragmentSettings(
                    SpriteSortMode.Deferred,
                    BlendState.AlphaBlend,
                    new SamplerState
@@ -69,15 +70,16 @@ namespace Fracture.Engine.Ui
         void Delete(Ui ui);
     }
     
-    public sealed class UiSystem : ActiveGameEngineSystem, IUiSystem
+    public sealed class UiSystem : GameEngineSystem, IUiSystem
     {
         #region Fields
         private readonly List<Ui> uis;
 
-        private readonly GraphicsDevice graphics;
-        private readonly ContentManager content;
+        private readonly IGraphicsDeviceSystem graphics;        
         
         private readonly IInputDeviceSystem devices;
+
+        private readonly IContentSystem content;
         #endregion
 
         #region Properties
@@ -85,13 +87,11 @@ namespace Fracture.Engine.Ui
         #endregion
 
         [BindingConstructor]
-        public UiSystem(IGameEngine engine, IInputDeviceSystem devices, int priority)
-            : base(engine, priority)
+        public UiSystem(IInputDeviceSystem devices, IGraphicsDeviceSystem graphics, IContentSystem content)
         {
-            this.devices = devices;
-            
-            graphics = Engine.Services.First<GraphicsDevice>();
-            content  = Engine.Services.First<ContentManager>();
+            this.graphics = graphics ?? throw new ArgumentNullException(nameof(graphics));
+            this.devices  = devices ?? throw new ArgumentNullException(nameof(devices));
+            this.content  = content ?? throw new ArgumentNullException(nameof(content));
             
             uis = new List<Ui>();
         }
@@ -107,8 +107,8 @@ namespace Fracture.Engine.Ui
 
         public Ui Create(IStaticContainerControl root, IUiStyle style, IView view, string name)
         {
-            root.Style          = style ?? throw new ArgumentNullException(nameof(style));
-            root.GraphicsDevice = graphics;
+            root.Style    = style ?? throw new ArgumentNullException(nameof(style));
+            root.Graphics = graphics;
 
             var ui = new Ui(name, 
                             view, 
@@ -143,10 +143,10 @@ namespace Fracture.Engine.Ui
                 Delete(uis[0]);
         }
         
-        public override void Update()
+        public override void Update(IGameEngineTime time)
         {
             for (var i = 0; i < uis.Count; i++)
-                uis[i].Update(Engine.Time);
+                uis[i].Update(time);
         }
 
         IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator()

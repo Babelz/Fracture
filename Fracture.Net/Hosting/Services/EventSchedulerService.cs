@@ -12,15 +12,15 @@ namespace Fracture.Net.Hosting.Services
         Break
     }
 
-    public delegate void ScheduledCallbackDelegate();
+    public delegate void ScheduledCallbackDelegate(ScheduledEventArgs args);
     
-    public delegate PulseEventResult ScheduledPulseCallbackDelegate();
+    public delegate PulseEventResult ScheduledPulseCallbackDelegate(ScheduledEventArgs args);
 
     public interface IEventSchedulerService : IApplicationService
     {
-        void Signal(ScheduledCallbackDelegate callback, TimeSpan delay);
+        void Signal(ScheduledCallbackDelegate callback, TimeSpan delay, object state = null);
         
-        void Pulse(ScheduledPulseCallbackDelegate callback, TimeSpan interval);
+        void Pulse(ScheduledPulseCallbackDelegate callback, TimeSpan interval, object state = null);
     }
     
     public sealed class EventSchedulerService : ActiveApplicationService, IEventSchedulerService
@@ -40,18 +40,18 @@ namespace Fracture.Net.Hosting.Services
             scheduler = new EventScheduler();
         }
         
-        public void Signal(ScheduledCallbackDelegate callback, TimeSpan delay)
+        public void Signal(ScheduledCallbackDelegate callback, TimeSpan delay, object state = null)
         {
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
             
-            var pulse = new SyncScheduledEvent(ScheduledEventType.Signal);
+            var pulse = new SyncScheduledEvent(ScheduledEventType.Signal, state);
             
-            pulse.Invoke += delegate
+            pulse.Invoke += (s, args) => 
             {
                 try
                 {
-                    callback();
+                    callback(args);
                 }
                 catch (Exception e)
                 {
@@ -64,18 +64,18 @@ namespace Fracture.Net.Hosting.Services
             scheduler.Add(pulse);
         }
 
-        public void Pulse(ScheduledPulseCallbackDelegate callback, TimeSpan interval)
+        public void Pulse(ScheduledPulseCallbackDelegate callback, TimeSpan interval, object state = null)
         {
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
             
-            var pulse = new SyncScheduledEvent(ScheduledEventType.Pulse);
+            var pulse = new SyncScheduledEvent(ScheduledEventType.Pulse, state);
             
-            pulse.Invoke += delegate
+            pulse.Invoke += (s, args) =>
             {
                 try
                 {
-                    var result = callback();
+                    var result = callback(args);
                     
                     switch (result)
                     {

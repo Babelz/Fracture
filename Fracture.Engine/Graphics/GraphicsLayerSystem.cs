@@ -497,8 +497,7 @@ namespace Fracture.Engine.Graphics
       #endregion
       
       [BindingConstructor]
-      public GraphicsLayerSystem(IGameEngine engine)
-         : base(engine)
+      public GraphicsLayerSystem()
       {
          layers = new List<GraphicsElementLayer>();
       }
@@ -562,13 +561,13 @@ namespace Fracture.Engine.Graphics
       private readonly HashSet<GraphicsElement> results;
       #endregion
 
-      public GraphicsLayerPipelinePhase(IGameEngine engine, 
+      public GraphicsLayerPipelinePhase(IGameHost host, 
                                         IGraphicsPipelineSystem pipelines,
                                         IGraphicsLayerSystem layers, 
                                         IViewSystem views, 
                                         IEnumerable<IGraphicsComponentSystem> systems, 
                                         int index)
-         : base(engine, pipelines, index, new GraphicsFragmentSettings(
+         : base(host, pipelines, index, new GraphicsFragmentSettings(
                 SpriteSortMode.Deferred,
                 BlendState.AlphaBlend,
                 SamplerState.PointClamp,

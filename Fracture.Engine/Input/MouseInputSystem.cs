@@ -15,7 +15,7 @@ namespace Fracture.Engine.Input
         #endregion
     }
     
-    public sealed class MouseInputSystem : ActiveGameEngineSystem, IMouseInputSystem
+    public sealed class MouseInputSystem : GameEngineSystem, IMouseInputSystem
     {
         #region Fields
         private readonly MouseInputManager manager;
@@ -30,8 +30,7 @@ namespace Fracture.Engine.Input
         #endregion
 
         [BindingConstructor]
-        public MouseInputSystem(IGameEngine engine, IInputDeviceSystem input, int priority) 
-            : base(engine, priority)
+        public MouseInputSystem(IInputDeviceSystem input) 
         {
             // Get mouse device.
             Device = input.First(d => d is IMouseDevice) as IMouseDevice;
@@ -40,8 +39,8 @@ namespace Fracture.Engine.Input
             manager = new MouseInputManager(Device);
         }
 
-        public override void Update()
-            => manager.Update(Engine.Time);
+        public override void Update(IGameEngineTime time)
+            => manager.Update(time);
         
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton[] combination)
             => manager.Bind(name, callback, state, combination);

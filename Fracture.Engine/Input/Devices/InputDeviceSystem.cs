@@ -39,26 +39,20 @@ namespace Fracture.Engine.Input.Devices
         void Unregister(IInputDevice device);
     }
     
-    public sealed class InputDeviceSystem : ActiveGameEngineSystem, IInputDeviceSystem
+    public sealed class InputDeviceSystem : GameEngineSystem, IInputDeviceSystem
     {
         #region Fields
         private readonly HashSet<IInputDevice> devices;
         #endregion
 
         [BindingConstructor]
-        public InputDeviceSystem(IGameEngine engine, int priority, IEnumerable<IInputDevice> devices)
-            : base(engine, priority)
-        {
-            this.devices = new HashSet<IInputDevice>();
-
-            foreach (var device in devices)
-                Register(device);
-        }
+        public InputDeviceSystem()
+            => devices = new HashSet<IInputDevice>();
         
-        public override void Update()
+        public override void Update(IGameEngineTime time)
         {
             foreach (var device in devices)
-                device.Poll(Engine.Time);
+                device.Poll(time);
         }
 
         public void Register(IInputDevice device)

@@ -82,7 +82,7 @@ namespace Fracture.Engine.Ecs
    /// Interface for implementing graphics component systems. Graphics components
    /// systems are responsible of managing and drawing the components.
    /// </summary>
-   public interface IGraphicsComponentSystem : IComponentSystem, IActiveGameEngineSystem
+   public interface IGraphicsComponentSystem : IComponentSystem
    {
       #region Properties
       /// <summary>
@@ -162,20 +162,17 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      protected GraphicsComponentSystem(IGameEngine engine,
-                                        IEntitySystem entities,
+      protected GraphicsComponentSystem(IEntitySystem entities,
                                         IEventQueueSystem events,
                                         IGraphicsLayerSystem layers, 
                                         ITransformComponentSystem transforms, 
-                                        int priority, 
                                         int graphicsComponentTypeId)
-         : base(engine, entities, events)
+         : base(entities, events)
       {
          
          Layers     = layers ?? throw new ArgumentNullException(nameof(layers));
          Transforms = transforms ?? throw new ArgumentNullException(nameof(layers));
          
-         Priority                = priority;
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
          Components = new LinearGrowthArray<T>(ComponentsCapacity);
@@ -205,6 +202,8 @@ namespace Fracture.Engine.Ecs
          
          if (deleted)
             Components.Insert(id, default);
+         
+         dirty.Remove(id);
 
          return deleted;
       }
@@ -385,13 +384,15 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
          
-         void OnTransformRotationChanged(int componentId, float rotation)
-            => TransformRotation(componentId, rotation);
+         var transform = Transforms.FirstFor(OwnerOf(id));
          
-         Transforms.RotationChanged.Subscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformRotationChanged);
+         void OnTransformRotationChanged(in TransformRotationEventArgs args)
+            => TransformRotation(id, args.Rotation);
+         
+         Transforms.RotationChanged.Subscribe(transform, OnTransformRotationChanged);
          
          Deleted.Subscribe(id, delegate {
-            Transforms.RotationChanged.Unsubscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformRotationChanged);
+            Transforms.RotationChanged.Unsubscribe(transform, OnTransformRotationChanged);
          });
          
          TransformRotation(id, Transforms.GetRotation(Transforms.FirstFor(OwnerOf(id))));
@@ -401,13 +402,15 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
          
-         void OnTransformPositionChanged(int componentId, Vector2 position)
-            => TransformPosition(componentId, position);
+         var transform = Transforms.FirstFor(OwnerOf(id));
          
-         Transforms.PositionChanged.Subscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformPositionChanged);
+         void OnTransformPositionChanged(in TransformPositionEventArgs args)
+            => TransformPosition(id, args.Position);
+         
+         Transforms.PositionChanged.Subscribe(transform, OnTransformPositionChanged);
          
          Deleted.Subscribe(id, delegate {
-            Transforms.PositionChanged.Unsubscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformPositionChanged);
+            Transforms.PositionChanged.Unsubscribe(transform, OnTransformPositionChanged);
          });
          
          TransformPosition(id, Transforms.GetPosition(Transforms.FirstFor(OwnerOf(id))));
@@ -417,13 +420,15 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
          
-         void OnTransformScaleChanged(int componentId, Vector2 scale)
-            => TransformScale(componentId, scale);
-            
-         Transforms.ScaleChanged.Subscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformScaleChanged);
+         var transform = Transforms.FirstFor(OwnerOf(id));
+         
+         void OnTransformScaleChanged(in TransformScaleEventArgs args)
+            => TransformScale(id, args.Scale);
+         
+         Transforms.ScaleChanged.Subscribe(transform, OnTransformScaleChanged);
          
          Deleted.Subscribe(id, delegate {
-            Transforms.ScaleChanged.Unsubscribe(Transforms.FirstFor(OwnerOf(id)), OnTransformScaleChanged);
+            Transforms.ScaleChanged.Unsubscribe(transform, OnTransformScaleChanged);
          });
          
          TransformScale(id, Transforms.GetScale(Transforms.FirstFor(OwnerOf(id))));
@@ -572,13 +577,11 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       [BindingConstructor]
-      public SpriteComponentSystem(IGameEngine engine, 
-                                   IEntitySystem entities, 
+      public SpriteComponentSystem(IEntitySystem entities, 
                                    IEventQueueSystem events, 
                                    IGraphicsLayerSystem layers, 
-                                   ITransformComponentSystem transforms, 
-                                   int priority) 
-         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.Sprite)
+                                   ITransformComponentSystem transforms) 
+         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.Sprite)
       {
       }
 
@@ -764,13 +767,11 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       [BindingConstructor]
-      public QuadComponentSystem(IGameEngine engine, 
-                                 IEntitySystem entities, 
+      public QuadComponentSystem(IEntitySystem entities, 
                                  IEventQueueSystem events, 
                                  IGraphicsLayerSystem layers, 
-                                 ITransformComponentSystem transforms, 
-                                 int priority) 
-         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.Quad)
+                                 ITransformComponentSystem transforms) 
+         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.Quad)
       {
       }
       
@@ -844,7 +845,7 @@ namespace Fracture.Engine.Ecs
       /// Event invoked when animation in <see cref="SpriteAnimationMode.Play"/> has
       /// finished playing.
       /// </summary>
-      IEvent<int, ComponentEventHandler> Finished
+      IEvent<int, ComponentEventArgs> Finished
       {
          get;
       }
@@ -982,24 +983,22 @@ namespace Fracture.Engine.Ecs
       
       private readonly Dictionary<int, SpriteAnimationPlaylist> playlists;
       
-      private IEventQueue<int, ComponentEventHandler> finishedEvents;
+      private readonly IEventQueue<int, ComponentEventArgs> finishedEvents;
       #endregion
 
       #region Properties
-      public IEvent<int, ComponentEventHandler> Finished
+      public IEvent<int, ComponentEventArgs> Finished
          => finishedEvents;
       #endregion
 
       [BindingConstructor]
-      public SpriteAnimationComponentSystem(IGameEngine engine, 
-                                            IEntitySystem entities, 
+      public SpriteAnimationComponentSystem(IEntitySystem entities, 
                                             IEventQueueSystem events, 
                                             IGraphicsLayerSystem layers, 
-                                            ITransformComponentSystem transforms, 
-                                            int priority) 
-         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.SpriteAnimation)
+                                            ITransformComponentSystem transforms) 
+         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
-         finishedEvents = events.CreateUnique<int, ComponentEventHandler>(EventQueueUsageHint.Lazy);
+         finishedEvents = events.CreateUnique<int, ComponentEventArgs>();
 
          var idc = 1;
          
@@ -1106,7 +1105,7 @@ namespace Fracture.Engine.Ecs
          Components.AtIndex(id).Effects = effects;
       }
 
-      public override void Update()
+      public override void Update(IGameEngineTime time)
       {
          base.Update();
 
@@ -1117,7 +1116,7 @@ namespace Fracture.Engine.Ecs
             if (!component.Playing)
                continue;
 
-            component.Elapsed += Engine.Time.Elapsed;
+            component.Elapsed += time.Elapsed;
 
             var animation = playlists[component.PlaylistId].Animations[component.AnimationName];
             
@@ -1135,7 +1134,7 @@ namespace Fracture.Engine.Ecs
                
             component.FrameId = 0;
 
-            finishedEvents.Publish(i, e => e(i));
+            finishedEvents.Publish(i, new ComponentEventArgs(i));
                   
             if (component.Mode != SpriteAnimationMode.Play)
                continue;
@@ -1268,13 +1267,11 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       [BindingConstructor]
-      public SpriteTextComponentSystem(IGameEngine engine, 
-                                       IEntitySystem entities, 
+      public SpriteTextComponentSystem(IEntitySystem entities, 
                                        IEventQueueSystem events, 
                                        IGraphicsLayerSystem layers, 
-                                       ITransformComponentSystem transforms, 
-                                       int priority) 
-         : base(engine, entities, events, layers, transforms, priority, Ecs.GraphicsComponentTypeId.SpriteAnimation)
+                                       ITransformComponentSystem transforms) 
+         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
       }
 
