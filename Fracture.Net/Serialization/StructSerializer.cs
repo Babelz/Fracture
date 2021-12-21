@@ -10,17 +10,10 @@ namespace Fracture.Net.Serialization
     /// </summary>
     public sealed class RunTypeNotMappedException : Exception
     {
-        #region Properties
-        public ushort SerializationTypeId
-        {
-            get;
-        }
-        #endregion
-
         public RunTypeNotMappedException(ushort serializationTypeId)
             : base($"no run type is mapped for serialization type {serializationTypeId}")
         {
-            SerializationTypeId = serializationTypeId;
+            Data["SerializationTypeId"] = serializationTypeId;
         }
     }
     
@@ -29,17 +22,10 @@ namespace Fracture.Net.Serialization
     /// </summary>
     public sealed class SerializationTypeNotMappedException : Exception
     {
-        #region Properties
-        public Type SerializationType
-        {
-            get;
-        }
-        #endregion
-
         public SerializationTypeNotMappedException(Type serializationType)
             : base($"no serialization type is mapped for run type {serializationType?.Name ?? "null"}")
         {
-            SerializationType = serializationType;
+            Data["SerializationType"] = serializationType;
         }
     }
     

@@ -19,10 +19,6 @@ namespace Fracture.Engine
     /// </summary>
     public abstract class GameHost : IGameHost, IDisposable
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         private delegate void InitializeCallback();
         private delegate void UpdateCallback(IGameEngineTime time);
         
@@ -81,6 +77,10 @@ namespace Fracture.Engine
         }
         #endregion
         
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+
         #region Events
         public event EventHandler Exiting;
         #endregion
