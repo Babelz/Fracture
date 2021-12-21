@@ -52,7 +52,7 @@ namespace Fracture.Common.Events
          
         public void Tick(TimeSpan elapsed)
         {
-            foreach (var scheduledEvent in scheduledEvents.Where(e => e.Waiting))
+            foreach (var scheduledEvent in scheduledEvents.Where(e => e.Waiting).ToList())
             {
                 scheduledEvent.Tick(elapsed);
 

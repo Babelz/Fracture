@@ -30,10 +30,10 @@ namespace Fracture.Engine.Input
         #endregion
 
         [BindingConstructor]
-        public MouseInputSystem(IInputDeviceSystem input) 
+        public MouseInputSystem(IInputDeviceSystem devices) 
         {
             // Get mouse device.
-            Device = input.First(d => d is IMouseDevice) as IMouseDevice;
+            Device = devices.First(d => d is IMouseDevice) as IMouseDevice;
 
             // Initialize manager.
             manager = new MouseInputManager(Device);

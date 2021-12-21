@@ -78,6 +78,7 @@
         <Compile Include="Graphics\GraphicsPipelineSystem.cs" />
         <Compile Include="Graphics\GraphicsUtils.cs" />
         <Compile Include="Graphics\ViewSystem.cs" />
+        <Compile Include="Graphics\Window.cs" />
         <Compile Include="IGameHost.cs" />
         <Compile Include="Input\Devices\InputDeviceSystem.cs" />
         <Compile Include="Input\Devices\KeyboardDevice.cs" />

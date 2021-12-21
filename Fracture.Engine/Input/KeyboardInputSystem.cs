@@ -26,15 +26,14 @@ namespace Fracture.Engine.Input
         public IKeyboardDevice Device
         {
             get;
-            private set;
         }
         #endregion
 
         [BindingConstructor]
-        public KeyboardInputSystem(IInputDeviceSystem input)
+        public KeyboardInputSystem(IInputDeviceSystem devices)
         {
-            // Get mouse device.
-            Device = input.First(d => d is IKeyboardDevice) as IKeyboardDevice;
+            // Get keyboard device.
+            Device = devices.First(d => d is IKeyboardDevice) as IKeyboardDevice;
 
             // Initialize manager.
             manager = new KeyboardInputManager(Device);

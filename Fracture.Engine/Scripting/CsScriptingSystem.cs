@@ -60,7 +60,6 @@ namespace Fracture.Engine.Scripting
         // }
         // #endregion
 
-        [BindingConstructor]
         public CsScriptingSystem(IObjectActivator activator)
         {    
             // throw new NotImplementedException(); //Scripts = Engine.Services.First<ICsScriptRepositoryFactory>().Create<T>();

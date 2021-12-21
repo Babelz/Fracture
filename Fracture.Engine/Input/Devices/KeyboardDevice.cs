@@ -5,6 +5,8 @@ using System.Text;
 using Fracture.Common.Collections;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Components;
+using Fracture.Engine.Core.Systems;
+using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
@@ -81,7 +83,7 @@ namespace Fracture.Engine.Input.Devices
         /// Creates new instance of <see cref="KeyboardDevice"/> with given states count, keyboard always attempts
         /// to ensure that there are at least 2 states being recorded.
         /// </summary>
-        public KeyboardDevice(GameWindow window, int statesCount = 0)
+        public KeyboardDevice(IWindow window, int statesCount = 0)
         {
             // Attempt to ensure that at least 2 states get recorded.
             statesCount += 2;

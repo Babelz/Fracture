@@ -214,7 +214,7 @@ namespace Fracture.Engine.Physics
         /// <param name="treeNodeMaxDepth">max splits one node can have</param>
         /// </summary>
         [BindingConstructor]
-        public PhysicsWorldSystem(int treeNodeBodyLimit, int treeNodeMaxDepth)
+        public PhysicsWorldSystem(int treeNodeBodyLimit = 16, int treeNodeMaxDepth = 8)
         {
             this.treeNodeBodyLimit = treeNodeBodyLimit;
             this.treeNodeMaxDepth  = treeNodeMaxDepth;

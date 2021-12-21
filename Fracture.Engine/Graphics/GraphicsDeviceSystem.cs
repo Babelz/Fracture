@@ -13,6 +13,11 @@ namespace Fracture.Engine.Graphics
     public interface IGraphicsDeviceSystem : IGameEngineSystem
     {
         #region Properties
+        public IWindow Window
+        {
+            get;
+        }
+        
         int BackBufferWidth
         {
             get;
@@ -76,6 +81,11 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         #region Properties
+        public IWindow Window
+        {
+            get;
+        }
+        
         public int BackBufferWidth
         {
             get => manager.PreferredBackBufferWidth;
@@ -143,9 +153,13 @@ namespace Fracture.Engine.Graphics
         }
         #endregion
         
-        public GraphicsDeviceSystem(GraphicsDeviceManager manager)
-            => this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
-
+        public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
+        {
+            this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
+            
+            Window = window != null ? new Window(window) : throw new ArgumentNullException(nameof(window));
+        }
+            
         public void SetRenderTarget(RenderTarget2D renderTarget)
             => manager.GraphicsDevice.SetRenderTarget(renderTarget);
 

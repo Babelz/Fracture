@@ -10,6 +10,7 @@ using Fracture.Engine.Scripting;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using NLog;
 
 namespace Fracture.Engine
 {
@@ -18,6 +19,10 @@ namespace Fracture.Engine
     /// </summary>
     public abstract class GameHost : IGameHost, IDisposable
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         private delegate void InitializeCallback();
         private delegate void UpdateCallback(IGameEngineTime time);
         
@@ -29,9 +34,7 @@ namespace Fracture.Engine
             
             private readonly UpdateCallback update;
 
-            private readonly InitializeCallback beforeInitialize;
             private readonly InitializeCallback initialize;
-            private readonly InitializeCallback afterInitialize;
             #endregion
 
             #region Properties
@@ -42,14 +45,10 @@ namespace Fracture.Engine
             #endregion
             
             public Game(UpdateCallback update,
-                        InitializeCallback beforeInitialize,
-                        InitializeCallback initialize,
-                        InitializeCallback afterInitialize)
+                        InitializeCallback initialize)
             {
-                this.update           = update ?? throw new ArgumentNullException(nameof(update));
-                this.beforeInitialize = beforeInitialize ?? throw new ArgumentNullException(nameof(beforeInitialize));
-                this.initialize       = initialize ?? throw new ArgumentNullException(nameof(initialize));
-                this.afterInitialize  = afterInitialize ?? throw new ArgumentNullException(nameof(afterInitialize));
+                this.update     = update ?? throw new ArgumentNullException(nameof(update));
+                this.initialize = initialize ?? throw new ArgumentNullException(nameof(initialize));
 
                 time = new GameEngineTime();
                 
@@ -76,12 +75,8 @@ namespace Fracture.Engine
                 base.Initialize();
                 
                 Content.RootDirectory = "Content";
-                
-                beforeInitialize();
-                
+
                 initialize();
-                
-                afterInitialize();
             }
         }
         #endregion
@@ -93,7 +88,8 @@ namespace Fracture.Engine
         #region Fields
         private readonly Game game;
         
-        private readonly Kernel systems;
+        private readonly GameEngineSystemHost systems;
+        private readonly Kernel kernel;
         #endregion
 
         #region Properties
@@ -107,10 +103,13 @@ namespace Fracture.Engine
         {
             Args = args;
             
-            systems = new Kernel(DependencyBindingOptions.Interfaces);
-            game    = new Game(Update, BeforeInitialize, Initialize, AfterInitialize);
+            kernel  = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.Class);
+            systems = new GameEngineSystemHost(kernel);
+            game    = new Game(Update, Initialize);
             
             game.Exiting += Game_OnExiting;
+            
+            kernel.Bind(this);
         }
 
         #region Event handlers
@@ -118,61 +117,45 @@ namespace Fracture.Engine
         {            
             Exiting?.Invoke(this, EventArgs.Empty);
 
-            foreach (var system in systems.All<IGameEngineSystem>())
+            foreach (var system in systems.GetInOrder())
                 system.Deinitialize();
         }
         #endregion
         
         private void Update(IGameEngineTime time)
         {
-            foreach (var system in systems.All<IGameEngineSystem>())
+            foreach (var system in systems.GetInOrder())
                 system.Update(time);
-        }
-
-        private void BeforeInitialize()
-        {
-            // Bind core systems that every game should have.
-            systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager));
-            systems.Bind(new ContentSystem(game.Content));
-            systems.Bind(new CsScriptingSystem(systems));
-            systems.Bind(new InputDeviceSystem());
-
-            // Allow game to bind game specific bindings.
-            BindSystems(systems);
         }
         
         private void Initialize()
         {
-            // Initialize all systems bound to the kernel.
-            foreach (var system in systems.All<IGameEngineSystem>())
-                system.Initialize();
-        }
-
-        private void AfterInitialize()
-        {
-            // Setup input devices.
-            systems.First<IInputDeviceSystem>().Register(new MouseDevice(4));
-            systems.First<IInputDeviceSystem>().Register(new KeyboardDevice(game.Window, 4));
+            // Bind core systems that every game should have.
+            Log.Info($"binding core systems...");
             
-            // Allow game to do game specific initialization.
-            InitializeSystems(systems);
+            systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager, game.Window));
+            systems.Bind(new ContentSystem(game.Content));
+            systems.Bind(new CsScriptingSystem(kernel));
+            
+            // Allow game to bind game specific bindings.
+            Log.Info($"binding game specific systems...");
+            
+            Initialize(systems);
+            
+            // Initialize all systems bound to the kernel.
+            foreach (var system in systems.GetInOrder())
+            {
+                Log.Info($"initializing system {system.GetType().Name}...");
+                
+                system.Initialize();
+            }
         }
         
-        
-        /// <summary>
-        /// Override to bind game specific systems.
-        /// </summary>
-        protected virtual void BindSystems(IDependencyBinder systems)
+        protected virtual void Initialize(IGameEngineSystemHost systems)
         {
+            
         }
 
-        /// <summary>
-        /// Override to run game specific initialization.
-        /// </summary>
-        protected virtual void InitializeSystems(IDependencyLocator systems)
-        {
-        }
-        
         public void Run()
             => game.Run();
         

@@ -36,6 +36,7 @@ namespace Fracture.Engine.Input.Devices
     public interface IInputDeviceSystem : IGameEngineSystem, IEnumerable<IInputDevice>
     {
         void Register(IInputDevice device);
+        
         void Unregister(IInputDevice device);
     }
     
@@ -45,9 +46,8 @@ namespace Fracture.Engine.Input.Devices
         private readonly HashSet<IInputDevice> devices;
         #endregion
 
-        [BindingConstructor]
-        public InputDeviceSystem()
-            => devices = new HashSet<IInputDevice>();
+        public InputDeviceSystem(params IInputDevice[] devices)
+            => this.devices = new HashSet<IInputDevice>(devices);
         
         public override void Update(IGameEngineTime time)
         {
