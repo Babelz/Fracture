@@ -122,6 +122,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             
             DynamicMethodBuilder.Emit(OpCodes.Ldarg_2); 
             DynamicMethodBuilder.Emit(OpCodes.Callvirt, typeof(ObjectActivationDelegate).GetMethod("Invoke"));
+            DynamicMethodBuilder.Emit(SerializationType.IsClass ? OpCodes.Castclass : OpCodes.Unbox, SerializationType);
             
             EmitStoreValueToLocal();
         }
