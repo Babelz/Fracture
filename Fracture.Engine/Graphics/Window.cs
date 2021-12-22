@@ -33,6 +33,15 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         public Window(GameWindow window)
-            => this.window = window ?? throw new ArgumentNullException(nameof(window));
+        {
+            this.window = window ?? throw new ArgumentNullException(nameof(window));
+            
+            window.TextInput += WindowOnTextInput;
+        }
+
+        #region Event handlers
+        private void WindowOnTextInput(object sender, TextInputEventArgs e)
+            => TextInput?.Invoke(this, e);
+        #endregion
     }
 }

@@ -282,7 +282,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warn("unhandled error occurred notifying about joining peer");
+                    Log.Warn(e, "unhandled error occurred notifying about joining peer");
                 }
             }
         }
@@ -308,7 +308,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warn("unhandled error occurred notifying about reseting peer");
+                    Log.Warn(e, "unhandled error occurred notifying about reseting peer");
                 }
                 
                 leavedPeers.Add(resetEvent.Peer.Id);
