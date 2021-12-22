@@ -197,7 +197,7 @@ namespace Fracture.Net.Serialization
         {
             var types = new List<Type>();
             
-            Parallel.ForEach(AppDomain.CurrentDomain.GetAssemblies(), assembly =>
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
@@ -208,7 +208,7 @@ namespace Fracture.Net.Serialization
                 {
                     Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
                 }
-            });
+            }
             
             ValueSerializerTypes = types;
         }
