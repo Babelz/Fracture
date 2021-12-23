@@ -35,23 +35,23 @@ namespace Fracture.Engine.Tests.Graphics
          public ClampTestData()
          {
             // This aabb should be clamped from top.
-            Add(new Aabb(new Vector2(10.0f, -10.0f), new Vector2(10.0f)),
-                new Aabb(new Vector2(10.0f, 5.0f), new Vector2(10.0f)),
+            Add(new Aabb(new Vector2(10.0f, -10.0f), new Vector2(5.0f)),
+                new Aabb(new Vector2(10.0f, 5.0f), new Vector2(5.0f)),
                 true);
             
             // This aabb should be clamped from left.
-            Add(new Aabb(new Vector2(-10.0f, 10.0f), new Vector2(10.0f)),
-                new Aabb(new Vector2(5.0f, 10.0f), new Vector2(10.0f)),
+            Add(new Aabb(new Vector2(-10.0f, 10.0f), new Vector2(5.0f)),
+                new Aabb(new Vector2(5.0f, 10.0f), new Vector2(5.0f)),
                 true);
 
             // This aabb should be clamped from both sides.
-            Add(new Aabb(new Vector2(-10.0f), new Vector2(10.0f)),
-                new Aabb(new Vector2(5.0f), new Vector2(10.0f)),
+            Add(new Aabb(new Vector2(-10.0f), new Vector2(5.0f)),
+                new Aabb(new Vector2(5.0f), new Vector2(5.0f)),
                 true);
 
             // This aabb should not be clamped from any sides.
-            Add(new Aabb(new Vector2(10.0f), new Vector2(10.0f)),
-                new Aabb(new Vector2(10.0f), new Vector2(10.0f)),
+            Add(new Aabb(new Vector2(10.0f), new Vector2(5.0f)),
+                new Aabb(new Vector2(10.0f), new Vector2(5.0f)),
                 false);
          }
       }
@@ -76,7 +76,7 @@ namespace Fracture.Engine.Tests.Graphics
          var columnsBeforeGrowth = layer.Columns;
          
          // Act.
-         var aabb = new Aabb(new Vector2(250.0f), new Vector2(2.0f));
+         var aabb = new Aabb(new Vector2(250.0f), new Vector2(1.0f));
          
          layer.Add(0, TestElementTypeId, ref aabb, out _);
          
@@ -92,8 +92,8 @@ namespace Fracture.Engine.Tests.Graphics
          const int Id1 = 0;
          const int Id2 = 1;
 
-         var aabb1 = new Aabb(new Vector2(40.0f), new Vector2(5.0f));
-         var aabb2 = new Aabb(new Vector2(25.0f), new Vector2(5.0f));
+         var aabb1 = new Aabb(new Vector2(40.0f), new Vector2(2.5f));
+         var aabb2 = new Aabb(new Vector2(25.0f), new Vector2(2.5f));
          
          layer.Add(0, TestElementTypeId, ref aabb1, out _);
          layer.Add(1, TestElementTypeId, ref aabb2, out _);
@@ -103,9 +103,9 @@ namespace Fracture.Engine.Tests.Graphics
          var resultsContainingBoth = new HashSet<GraphicsElement>();
          
          // Act.
-         layer.QueryArea(new Aabb(new Vector2(5.0f), new Vector2(5.0f)), resultsContainingNone);
-         layer.QueryArea(new Aabb(new Vector2(20.0f), new Vector2(20.0f)), resultsContainingId2);
-         layer.QueryArea(new Aabb(new Vector2(40.0f), new Vector2(80.0f)), resultsContainingBoth);
+         layer.QueryArea(new Aabb(new Vector2(5.0f), new Vector2(2.5f)), resultsContainingNone);
+         layer.QueryArea(new Aabb(new Vector2(20.0f), new Vector2(10.0f)), resultsContainingId2);
+         layer.QueryArea(new Aabb(new Vector2(40.0f), new Vector2(40.0f)), resultsContainingBoth);
 
          // Assert.
          Assert.Empty(resultsContainingNone);

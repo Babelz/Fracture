@@ -12,6 +12,10 @@ namespace Fracture.Engine.Core.Primitives
    /// </summary>
    public readonly struct Aabb
    {
+      #region Constant fields
+      private const int PointsLength = 4;
+      #endregion
+      
       #region Properties
       /// <summary>
       /// Gets the position of the bounding box.
@@ -74,8 +78,6 @@ namespace Fracture.Engine.Core.Primitives
       {
          unsafe
          {
-            const int PointsLength = 4;
-            
             var points = stackalloc Vector2[PointsLength];
             
             Rotate(halfBounds, 
@@ -160,7 +162,7 @@ namespace Fracture.Engine.Core.Primitives
 
       public override bool Equals(object obj)
          => obj is Aabb other && this == other;
-
+      
       public override int GetHashCode()
          => HashUtils.Create()
                      .Append(Position)
@@ -226,7 +228,7 @@ namespace Fracture.Engine.Core.Primitives
       public static bool operator ==(in Aabb lhs, in Aabb rhs)
          => lhs.Bounds == rhs.Bounds &&
             lhs.Position == rhs.Position &&
-            Math.Abs(lhs.Rotation - rhs.Rotation) < 0.01f;
+            Math.Abs(lhs.Rotation - rhs.Rotation) <= 0.01f;
 
       public static bool operator !=(in Aabb lhs, in Aabb rhs)
          => !(lhs == rhs);

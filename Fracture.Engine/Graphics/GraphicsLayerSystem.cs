@@ -277,13 +277,13 @@ namespace Fracture.Engine.Graphics
          aabb = new Aabb(aabb, new Vector2(px < 0.0f ? aabb.HalfBounds.X : aabb.Position.X, py < 0.0f ? aabb.HalfBounds.Y : aabb.Position.Y));
       }
       
-      private void AreaRange(out GraphicsElementLocation range)
+      private void AreaRange(in Aabb aabb, out GraphicsElementLocation range)
       {
-         var beginColumn = (int)(Columns * CellBounds * CellScale);
-         var endColumn   = (int)(Columns * CellBounds * CellScale);
+         var beginColumn = (int)(aabb.Left / (Columns * CellBounds * CellScale));
+         var endColumn   = (int)(aabb.Right / (Columns * CellBounds * CellScale));
 
-         var beginRow = (int)(Rows * CellBounds * CellScale);
-         var endRow   = (int)(Rows * CellBounds * CellScale);
+         var beginRow = (int)(aabb.Top / (Rows * CellBounds * CellScale));
+         var endRow   = (int)(aabb.Bottom / (Rows * CellBounds * CellScale));
          
          beginColumn = MathHelper.Clamp(beginColumn, 0, grid[0].Length - 1);
          endColumn = MathHelper.Clamp(endColumn, 0, grid[0].Length - 1);
@@ -349,7 +349,7 @@ namespace Fracture.Engine.Graphics
             elements.Grow();
          
          // Compute location for the element.
-         AreaRange(out var location);
+         AreaRange(aabb, out var location);
 
          // Store actual data of the element.
          locations.Insert(id, location);
@@ -402,7 +402,7 @@ namespace Fracture.Engine.Graphics
       {
          ref var location = ref locations.AtIndex(id);
          
-         AreaRange(out var updateLocation);
+         AreaRange(aabb, out var updateLocation);
          
          ClampAabb(ref aabb, out clamped);
          
@@ -448,7 +448,7 @@ namespace Fracture.Engine.Graphics
       /// </summary>
       public void QueryArea(in Aabb aabb, ISet<GraphicsElement> results)
       {
-         AreaRange(out var range);
+         AreaRange(aabb, out var range);
          
          if (range.Unique())
          {

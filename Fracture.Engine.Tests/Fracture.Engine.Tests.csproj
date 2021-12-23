@@ -37,8 +37,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="MonoGame.Framework, Version=3.7.1.189, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\packages\MonoGame.Framework.Portable.3.7.1.189\lib\portable-net45+win8+wpa81\MonoGame.Framework.dll</HintPath>
+        <Reference Include="MonoGame.Framework, Version=3.8.0.1641, Culture=neutral, PublicKeyToken=null">
+          <HintPath>..\packages\MonoGame.Framework.DesktopGL.3.8.0.1641\lib\net452\MonoGame.Framework.dll</HintPath>
+          <Private>True</Private>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
@@ -86,8 +87,10 @@
       <Error Condition="!Exists('..\packages\xunit.core.2.4.1\build\xunit.core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.core.2.4.1\build\xunit.core.targets'))" />
       <Error Condition="!Exists('..\packages\xunit.runner.console.2.4.2-pre.12\build\xunit.runner.console.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.console.2.4.2-pre.12\build\xunit.runner.console.props'))" />
       <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.4.3\build\net452\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.4.3\build\net452\xunit.runner.visualstudio.props'))" />
+      <Error Condition="!Exists('..\packages\MonoGame.Framework.DesktopGL.3.8.0.1641\build\MonoGame.Framework.DesktopGL.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\MonoGame.Framework.DesktopGL.3.8.0.1641\build\MonoGame.Framework.DesktopGL.targets'))" />
     </Target>
     <Import Project="..\packages\xunit.core.2.4.1\build\xunit.core.targets" Condition="Exists('..\packages\xunit.core.2.4.1\build\xunit.core.targets')" />
+    <Import Project="..\packages\MonoGame.Framework.DesktopGL.3.8.0.1641\build\MonoGame.Framework.DesktopGL.targets" Condition="Exists('..\packages\MonoGame.Framework.DesktopGL.3.8.0.1641\build\MonoGame.Framework.DesktopGL.targets')" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
