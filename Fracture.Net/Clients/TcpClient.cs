@@ -22,9 +22,10 @@ namespace Fracture.Net.Clients
 
         #region Fields
         private readonly byte[] receiveBuffer;
+        private readonly Socket socket;
         
         private DateTime lastReceiveTime;
-        
+
         private IAsyncResult receiveResult;
         #endregion
 
@@ -35,8 +36,10 @@ namespace Fracture.Net.Clients
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
-            : base(new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp), serializer, gracePeriod)
+            : base(serializer, gracePeriod)
         {
+            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+
             receiveBuffer   = new byte[ReceiveBufferSize];
             lastReceiveTime = DateTime.UtcNow; 
         }
@@ -46,7 +49,7 @@ namespace Fracture.Net.Clients
         {
             try
             {
-                var length = Socket.EndReceive(ar);
+                var length = socket.EndReceive(ar);
                 
                 if (length == 0)
                     return;
@@ -94,7 +97,7 @@ namespace Fracture.Net.Clients
         {
             try
             {
-                Socket.EndSend(ar);
+                socket.EndSend(ar);
                 
                 Updates.Push((ClientUpdate)ar.AsyncState);
             }
@@ -114,7 +117,7 @@ namespace Fracture.Net.Clients
         {
             try
             {
-                Socket.EndConnect(ar);
+                socket.EndConnect(ar);
                             
                 UpdateState(ClientState.Connected);
                 
@@ -138,7 +141,7 @@ namespace Fracture.Net.Clients
         {
             try
             {
-                Socket.EndDisconnect(ar);
+                socket.EndDisconnect(ar);
             }
             catch (SocketException e)
             {
@@ -160,9 +163,23 @@ namespace Fracture.Net.Clients
             if (State == ClientState.Disconnecting) 
                 return;
             
-            UpdateState(ClientState.Disconnecting);
+            try
+            {
+                UpdateState(ClientState.Disconnecting);
+                
+                socket.BeginDisconnect(true, DisconnectCallback, update);
+            }
+            catch (SocketException e)
+            {
+                // In case async call fails due to exception fallback to setting the client status immediately to 
+                // disconnected.
+                Log.Error(e, "unexpected error occurred while when attempting to start disconnecting, " +
+                             "reverting to set state immediately to disconnected");
+                
+                UpdateState(ClientState.Disconnected);
             
-            Socket.BeginDisconnect(true, DisconnectCallback, update);
+                Updates.Push(update);
+            }
         }
 
         public override void Send(IMessage message)
@@ -173,12 +190,23 @@ namespace Fracture.Net.Clients
             var buffer = BufferPool.Take(size);
             
             Serializer.Serialize(message, buffer, 0);
-            
-            Socket.BeginSend(buffer, 
-                             0, 
-                             size, 
-                             SocketFlags.None, 
-                             SendCallback, new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
+
+            try
+            {
+                socket.BeginSend(buffer,
+                                 0, 
+                                 size, 
+                                 SocketFlags.None, 
+                                 SendCallback, 
+                                 new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
+            }
+            catch (SocketException e)
+            {
+                // In case async call fails due to exception begin disconnecting the socket immediately. 
+                Log.Error(e, "unexpected error occurred while attempting to start sending data");
+                
+                Disconnect();
+            }
         }
 
         public override void Connect(IPEndPoint endPoint)
@@ -187,7 +215,17 @@ namespace Fracture.Net.Clients
             
             UpdateState(ClientState.Connecting);
             
-            Socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
+            try
+            {
+                socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
+            }
+            catch (SocketException e)
+            {
+                // In case async call fails due to exception begin disconnecting the socket immediately. 
+                Log.Error(e, "unexpected error occurred while attempting to start connecting");
+                
+                Disconnect();
+            }
         }
 
         public override void Disconnect()
@@ -199,14 +237,26 @@ namespace Fracture.Net.Clients
 
         public override IEnumerable<ClientUpdate> Poll()
         {
-            if (IsConnected)
-            {
-                if (HasTimedOut)
-                    InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.TimedOut));
-                else if (!IsReceiving)
-                    receiveResult = Socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
-            }
+            if (!IsConnected) 
+                return Array.Empty<ClientUpdate>();
             
+            if (HasTimedOut)
+                InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.TimedOut));
+            else if (!IsReceiving)
+            {
+                try
+                {
+                    receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
+                }
+                catch (SocketException e)
+                {
+                    // In case async call fails due to exception begin disconnecting the socket immediately. 
+                    Log.Error(e, "unexpected error occurred while attempting to start receiving data with");
+                
+                    Disconnect();
+                }
+            }
+
             return base.Poll();
         }
     }

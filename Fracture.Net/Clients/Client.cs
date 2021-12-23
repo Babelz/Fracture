@@ -70,15 +70,7 @@ namespace Fracture.Net.Clients
         {
             get;
         }
-        
-        /// <summary>
-        /// Gets the socket that this client manages.
-        /// </summary>
-        protected Socket Socket
-        {
-            get;
-        }
-        
+
         /// <summary>
         /// Gets the max grace period for which the client is allowed to be idle.
         /// </summary>
@@ -93,11 +85,10 @@ namespace Fracture.Net.Clients
         public bool IsConnected => State == ClientState.Connected;
         #endregion
         
-        protected Client(Socket socket, IMessageSerializer serializer, TimeSpan gracePeriod)
+        protected Client(IMessageSerializer serializer, TimeSpan gracePeriod)
         {
             GracePeriod = gracePeriod;
             Serializer  = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            Socket      = socket ?? throw new ArgumentNullException(nameof(socket));
             
             Updates = new LockedDoubleBuffer<ClientUpdate>();
         }
@@ -174,6 +165,7 @@ namespace Fracture.Net.Clients
             => Updates.Read();
 
         public virtual void Dispose()
-            => Socket?.Dispose();
+        {
+        }
     }
 }
