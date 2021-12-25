@@ -9,104 +9,61 @@ using Fracture.Engine.Core;
 namespace Fracture.Engine.Scripting
 {
     /// <summary>
-    /// Interface for creating systems that provide CS script management for CS scripts
-    /// of type <see cref="T"/>. 
+    /// Interface for creating systems that provide CS script management for CS scripts.
     /// </summary>
     public interface ICsScriptingSystem : IGameEngineSystem
     {
-        // /// <summary>
-        // /// Returns boolean whether script with given name is loaded.
-        // /// </summary>
-        // bool IsLoaded(string name);
-        //
-        // /// <summary>
-        // /// Returns first script with given name.
-        // /// </summary>
-        // T GetScript<T>(string name);
-        //
-        // /// <summary>
-        // /// Attempts to get script. Returns boolean
-        // /// declaring whether a script was found.
-        // /// </summary>
-        // bool TryGetScript(string name, out T script);
-        //
-        // /// <summary>
-        // /// Returns all scripts with given name.
-        // /// </summary>
-        // IEnumerable<T> GetScripts(string name);
-        //
-        // bool TryLoad(string name, out T script);
-        //
-        // /// <summary>
-        // /// Attempts to load script with given name, throws
-        // /// exception in case no script can be loaded.
-        // /// </summary>
-        // T Load(string name);
+        int Load<T>(params IBindingValue[] bindings) where T : CsScript;
+
+        void Unload<T>(int id) where T : CsScript;
     }
     
-    /// <summary>
-    /// Default implementation of <see cref="ICsScriptingSystem{T}"/>.
-    /// </summary>
     public class CsScriptingSystem : GameEngineSystem, ICsScriptingSystem
     {
-        // #region Fields
-        // private readonly Dictionary<string, List<T>> mappings;
-        // #endregion
-        //
-        // #region Properties
-        // protected ICsScriptRepository<T> Scripts
-        // {
-        //     get;
-        // }
-        // #endregion
+        #region Static fields
+        private static int idc;
+        #endregion
+        
+        #region Fields
+        private readonly Dictionary<int, CsScript> ids;
+        
+        private readonly IObjectActivator activator;
+        
+        private readonly List<CsScript> newScripts;
 
+        private readonly List<ActiveCsScript> activeScripts;
+        private readonly List<CommandCsScript> commandScripts;
+        #endregion
+        
         public CsScriptingSystem(IObjectActivator activator)
-        {    
-            // throw new NotImplementedException(); //Scripts = Engine.Services.First<ICsScriptRepositoryFactory>().Create<T>();
-            //
-            // mappings = new Dictionary<string, List<T>>();
+        {
+            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            
+            ids        = new Dictionary<int, CsScript>();
+            newScripts = new List<CsScript>();
+
+            activeScripts  = new List<ActiveCsScript>();
+            commandScripts = new List<CommandCsScript>();
         }
 
-        // private IEnumerable<T> GetScriptList(string name, bool create = false)
-        // {
-        //     if (mappings.TryGetValue(name, out var list))
-        //         return list;
-        //
-        //     if (!create)
-        //         throw new InvalidOperationException($"no scripts {name} loaded");
-        //
-        //     list = new List<T>();
-        //
-        //     mappings.Add(name, list);
-        //
-        //     return list;
-        // }
-        //
-        // public T GetScript(string name)
-        //     => throw new NotImplementedException(); //GetScriptList(name).First(c => c.Name == name);
-        //
-        // public IEnumerable<T> GetScripts(string name)
-        //     => throw new NotImplementedException(); //GetScriptList(name).Where(c => c.Name == name);
-        //
-        // public bool IsLoaded(string name)
-        //     => throw new NotImplementedException(); //mappings.TryGetValue(name, out var list) && list.Any(c => c.Name == name);
-        //
-        // public T Load(string name)
-        //     => Scripts.Load(name);
-        //
-        // public bool TryGetScript(string name, out T script)
-        // {
-        //     script = default;
-        //
-        //     if (!IsLoaded(name))
-        //         return false;
-        //
-        //     script = GetScript(name);
-        //
-        //     return true;
-        // }
-        //
-        // public bool TryLoad(string name, out T script)
-        //     => Scripts.TryLoad(name, out script);
+        public int Load<T>(params IBindingValue[] bindings) where T : CsScript
+        {
+            var id = idc++;
+            var script = activator.Activate<T>(bindings);
+            
+            newScripts.Add(script);
+
+            ids.Add(id, script);
+            
+            return id;
+        }
+        
+        public void Unload<T>(int id) where T : CsScript
+        {
+        }
+
+        public override void Update(IGameEngineTime time)
+        {
+        }
     }
 }

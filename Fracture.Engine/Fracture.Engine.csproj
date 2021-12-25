@@ -98,10 +98,7 @@
         <Compile Include="Physics\Spatial\QuadTreeNodeLink.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Scripting\CsScript.cs" />
-        <Compile Include="Scripting\CsScriptAttribute.cs" />
         <Compile Include="Scripting\CsScriptingSystem.cs" />
-        <Compile Include="Scripting\CsScriptRepository.cs" />
-        <Compile Include="Scripting\CsScriptTypeLoader.cs" />
         <Compile Include="Ui\Components\ControlFocusManager.cs" />
         <Compile Include="Ui\Components\ControlInputManager.cs" />
         <Compile Include="Ui\Components\ControlManager.cs" />
