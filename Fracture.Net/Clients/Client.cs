@@ -78,11 +78,6 @@ namespace Fracture.Net.Clients
         {
             get;
         }
-
-        /// <summary>
-        /// Gets boolean declaring whether the client is still connected.
-        /// </summary>
-        public bool IsConnected => State == ClientState.Connected;
         #endregion
         
         protected Client(IMessageSerializer serializer, TimeSpan gracePeriod)
@@ -136,30 +131,12 @@ namespace Fracture.Net.Clients
             
             State = next;
         }
-        
-        public virtual void Send(IMessage message)
-        {
-            if (State != ClientState.Connected)
-                throw new InvalidOperationException($"calls to {nameof(Send)} are invalid when client state is not {nameof(ClientState.Connected)}");
-            
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-        }
-        
-        public virtual void Disconnect()
-        {
-            if (State != ClientState.Connected)
-                throw new InvalidOperationException($"calls to {nameof(Disconnect)} are invalid when client state is not {nameof(ClientState.Connected)}");
-        }
 
-        public virtual void Connect(IPEndPoint endPoint)
-        {
-            if (State != ClientState.Disconnected)
-                throw new InvalidOperationException($"calls to {nameof(Connect)} are invalid when client state is not {nameof(ClientState.Disconnected)}");
-            
-            if (endPoint == null)
-                throw new ArgumentNullException(nameof(endPoint));
-        }
+        public abstract void Send(IMessage message);
+
+        public abstract void Disconnect();
+
+        public abstract void Connect(IPEndPoint endPoint);
 
         public virtual IEnumerable<ClientUpdate> Poll()
             => Updates.Read();

@@ -33,6 +33,8 @@ namespace Fracture.Net.Clients
         private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) >= GracePeriod;
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
+
+        private bool IsConnected => socket.Connected;
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
@@ -80,16 +82,9 @@ namespace Fracture.Net.Clients
                 
                 lastReceiveTime = DateTime.UtcNow;
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
-                Log.Error(e, "socket error occurred while receiving message");
-                
-                if (IsConnected)
-                    Disconnect();
-            }
-            catch (ObjectDisposedException)
-            {
-                Log.Warn("socket already disposed");
+                Log.Error(se, "socket error occurred while receiving message");
             }
         }
         
@@ -101,15 +96,9 @@ namespace Fracture.Net.Clients
                 
                 Updates.Push((ClientUpdate)ar.AsyncState);
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
-                Log.Error(e, "socket error occurred while sending message");
-                
-                Disconnect();
-            }
-            catch (ObjectDisposedException)
-            {
-                Log.Warn("socket already disposed");
+                Log.Error(se, "socket error occurred while sending message");
             }
         }
         
@@ -126,14 +115,6 @@ namespace Fracture.Net.Clients
             catch (SocketException se)
             {
                 Log.Error(se, "socket error occurred connecting");
-                
-                InternalDisconnect(new ClientUpdate.ConnectFailed(se, se.SocketErrorCode));
-            }
-            catch (ObjectDisposedException ode)
-            {
-                Log.Warn("socket already disposed");
-                
-                InternalDisconnect(new ClientUpdate.ConnectFailed(ode));
             }
         }
         
@@ -143,13 +124,9 @@ namespace Fracture.Net.Clients
             {
                 socket.EndDisconnect(ar);
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
-                Log.Error(e, "socket error occurred while disconnecting");
-            }
-            catch (ObjectDisposedException)
-            {
-                Log.Warn("socket already disposed");
+                Log.Error(se, "socket error occurred while disconnecting");
             }
             
             UpdateState(ClientState.Disconnected);
@@ -160,13 +137,13 @@ namespace Fracture.Net.Clients
 
         private void InternalDisconnect(ClientUpdate update)
         {
-            if (State == ClientState.Disconnecting) 
+            if (State != ClientState.Connected) 
                 return;
             
+            UpdateState(ClientState.Disconnecting);
+
             try
             {
-                UpdateState(ClientState.Disconnecting);
-                
                 socket.BeginDisconnect(true, DisconnectCallback, update);
             }
             catch (SocketException e)
@@ -177,14 +154,43 @@ namespace Fracture.Net.Clients
                              "reverting to set state immediately to disconnected");
                 
                 UpdateState(ClientState.Disconnected);
-            
+                
                 Updates.Push(update);
+            }
+        }
+
+        private void UpdateConnectedState()
+        {
+            if (State != ClientState.Connected)
+                return;
+            
+            if (!IsConnected)
+                InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.RemoteReset));
+            else if (HasTimedOut)
+                InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.TimedOut));
+            else if (!IsReceiving)
+            {
+                try
+                {
+                    receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
+                }
+                catch (SocketException e)
+                {
+                    // In case async call fails due to exception begin disconnecting the socket immediately. 
+                    Log.Error(e, "unexpected error occurred while attempting to start receiving data with");
+                
+                    InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.RemoteReset));
+                }
             }
         }
 
         public override void Send(IMessage message)
         {
-            base.Send(message);
+            if (State != ClientState.Connected)
+                return;
+            
+            if (!IsConnected)
+                return;
             
             var size   = Serializer.GetSizeFromMessage(message);
             var buffer = BufferPool.Take(size);
@@ -200,18 +206,22 @@ namespace Fracture.Net.Clients
                                  SendCallback, 
                                  new ClientUpdate.Packet(ClientUpdate.PacketOrigin.Local, message, buffer, size)); 
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
                 // In case async call fails due to exception begin disconnecting the socket immediately. 
-                Log.Error(e, "unexpected error occurred while attempting to start sending data");
+                Log.Error(se, "unexpected error occurred while attempting to start sending data");
                 
-                Disconnect();
+                InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.RemoteReset));
             }
         }
 
         public override void Connect(IPEndPoint endPoint)
         {
-            base.Connect(endPoint);
+            if (State != ClientState.Disconnected)
+                return;
+
+            if (IsConnected)
+                return;
             
             UpdateState(ClientState.Connecting);
             
@@ -219,45 +229,31 @@ namespace Fracture.Net.Clients
             {
                 socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
             }
-            catch (SocketException e)
+            catch (SocketException se)
             {
                 // In case async call fails due to exception begin disconnecting the socket immediately. 
-                Log.Error(e, "unexpected error occurred while attempting to start connecting");
+                Log.Error(se, "unexpected error occurred while attempting to start connecting");
                 
-                Disconnect();
+                InternalDisconnect(new ClientUpdate.ConnectFailed(se, se.SocketErrorCode));
             }
         }
 
         public override void Disconnect()
         {
-            base.Disconnect();
-            
+            if (State != ClientState.Connected || State != ClientState.Connecting)
+                return;
+
             InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.LocalReset));
         }
 
         public override IEnumerable<ClientUpdate> Poll()
         {
-            if (!IsConnected) 
-                return Array.Empty<ClientUpdate>();
-            
-            if (HasTimedOut)
-                InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.TimedOut));
-            else if (!IsReceiving)
-            {
-                try
-                {
-                    receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
-                }
-                catch (SocketException e)
-                {
-                    // In case async call fails due to exception begin disconnecting the socket immediately. 
-                    Log.Error(e, "unexpected error occurred while attempting to start receiving data with");
-                
-                    Disconnect();
-                }
-            }
+            UpdateConnectedState();
 
             return base.Poll();
         }
+
+        public override void Dispose()
+            => socket.Dispose();
     }
 }

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 using NLog;
+using NLog.Fluent;
 
 namespace Fracture.Net.Hosting.Servers
 {
@@ -71,9 +72,6 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
-        public bool Connected 
-            => state == PeerState.Connected;
         #endregion
 
         public TcpPeer(Socket socket, TimeSpan gracePeriod)
@@ -161,10 +159,19 @@ namespace Fracture.Net.Hosting.Servers
             // Omit calls if peer is not in connected state.
             if (state != PeerState.Connected)
                 return;
-            
-            disconnectResult = socket.BeginDisconnect(false, DisconnectCallback, null);
-            state            = PeerState.Disconnecting;
 
+            try
+            {
+                disconnectResult = socket.BeginDisconnect(false, DisconnectCallback, null);
+                state            = PeerState.Disconnecting;
+            }
+            catch (Exception e)
+            {
+                HandleSocketException(e);
+                
+                state = PeerState.Disconnected;
+            }
+            
             this.reason = reason;
         }
         
@@ -196,7 +203,18 @@ namespace Fracture.Net.Hosting.Servers
             else if (HasTimedOut)
                 InternalDisconnect(ResetReason.TimedOut);
             else if (!IsReceiving)
-                receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
+            {
+                try
+                {
+                    receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
+                }
+                catch (Exception e) 
+                {
+                    HandleSocketException(e);
+                
+                    InternalDisconnect(ResetReason.RemoteReset);
+                }
+            }
         }
         
         private void UpdateDisconnectingState()
@@ -222,13 +240,22 @@ namespace Fracture.Net.Hosting.Servers
             
             if (!IsConnected)
                 return;
-            
-            socket.BeginSend(data, 
-                             offset, 
-                             length, 
-                             SocketFlags.None, 
-                             SendCallback, 
-                             new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
+
+            try
+            {
+                socket.BeginSend(data, 
+                                 offset, 
+                                 length, 
+                                 SocketFlags.None, 
+                                 SendCallback, 
+                                 new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
+            }
+            catch (Exception e) 
+            {
+                HandleSocketException(e);
+                
+                InternalDisconnect(ResetReason.RemoteReset);
+            }
         }
 
         public void Poll()

@@ -100,14 +100,6 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
-        /// <summary>
-        /// Returns boolean declaring whether the peer is still connected.
-        /// </summary>
-        bool Connected
-        {
-            get;
-        }
         #endregion
         
         /// <summary>
