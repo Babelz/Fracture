@@ -5,6 +5,7 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
+using NLog;
 
 namespace Fracture.Engine.Scripting
 {
@@ -13,57 +14,140 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public interface ICsScriptingSystem : IGameEngineSystem
     {
-        int Load<T>(params IBindingValue[] bindings) where T : CsScript;
+        T Load<T>(params IBindingValue[] bindings) where T : CsScript;
+    }
 
-        void Unload<T>(int id) where T : CsScript;
+    public interface ICsScriptActor
+    {
+        bool Accept(CsScript script);
+
+        void Update(IGameEngineTime time);
     }
     
-    public class CsScriptingSystem : GameEngineSystem, ICsScriptingSystem
+    public class CsScriptActor<T> : ICsScriptActor where T : CsScript
     {
-        #region Static fields
-        private static int idc;
-        #endregion
-        
         #region Fields
-        private readonly Dictionary<int, CsScript> ids;
-        
-        private readonly IObjectActivator activator;
-        
-        private readonly List<CsScript> newScripts;
+        private readonly List<T> accepted;
+        private readonly List<T> unloaded;
+        private readonly List<T> active;
+        #endregion
 
-        private readonly List<ActiveCsScript> activeScripts;
-        private readonly List<CommandCsScript> commandScripts;
+        #region Properties
+        protected IEnumerable<T> Active => active;
+        #endregion
+
+        public CsScriptActor()
+        {
+            accepted = new List<T>();
+            unloaded = new List<T>();
+            active   = new List<T>();
+        }
+
+        #region Event handlers
+        private void Script_Unloading(object sender, EventArgs e)
+            => unloaded.Add((T)sender);
+        
+        private void Script_Loading(object sender, EventArgs e)
+            => active.Add((T) sender);
         #endregion
         
-        public CsScriptingSystem(IObjectActivator activator)
+        public bool Accept(CsScript script)
         {
-            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            if (!(script is T actual)) 
+                return true;
             
-            ids        = new Dictionary<int, CsScript>();
-            newScripts = new List<CsScript>();
+            accepted.Add(actual);
 
-            activeScripts  = new List<ActiveCsScript>();
-            commandScripts = new List<CommandCsScript>();
+            return true;
         }
 
-        public int Load<T>(params IBindingValue[] bindings) where T : CsScript
+        public virtual void Update(IGameEngineTime time)
         {
-            var id = idc++;
-            var script = activator.Activate<T>(bindings);
+            foreach (var script in accepted)
+            {
+                script.Unloading += Script_Unloading;
+                script.Loading   += Script_Loading;
+         
+                script.Load();
+            }
             
-            newScripts.Add(script);
+            accepted.Clear();
 
-            ids.Add(id, script);
+            foreach (var script in unloaded)
+                active.Remove(script);
             
-            return id;
+            unloaded.Clear();
         }
-        
-        public void Unload<T>(int id) where T : CsScript
+    }
+    
+    public sealed class ActiveCsScriptActor : CsScriptActor<ActiveCsScript>
+    {
+        public ActiveCsScriptActor()
         {
         }
 
         public override void Update(IGameEngineTime time)
         {
+            base.Update(time);
+            
+            foreach (var script in Active)
+                script.Update(time);
+        }
+    }
+    
+    public sealed class CommandCsScriptActor : CsScriptActor<CommandCsScript>
+    {
+        public CommandCsScriptActor()
+        {
+        }
+        
+        public override void Update(IGameEngineTime time)
+        {
+            base.Update(time);
+
+            foreach (var script in Active)
+            {
+                script.Execute(time);
+                
+                script.Unload();
+            }
+        }
+    }
+
+    public class CsScriptingSystem : GameEngineSystem, ICsScriptingSystem
+    {
+        #region Fields
+        private readonly List<ICsScriptActor> actors;
+        
+        private readonly IObjectActivator activator;
+        #endregion
+        
+        public CsScriptingSystem(IObjectActivator activator)
+        {
+            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+
+            actors = new List<ICsScriptActor>()
+            {
+                new ActiveCsScriptActor(),
+                new CommandCsScriptActor(),
+                new CsScriptActor<CsScript>()
+            };
+        }
+        
+        public T Load<T>(params IBindingValue[] bindings) where T : CsScript
+        {
+            var script = activator.Activate<T>(bindings);
+
+            if (actors.Any(c => c.Accept(script)))
+                throw new InvalidOperationException($"no actor accepts scripts of type {typeof(T).FullName}");
+
+            return script;
+        }
+
+        public override void Update(IGameEngineTime time)
+        {
+            foreach (var actor in actors)
+                actor.Update(time);
         }
     }
 }

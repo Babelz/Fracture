@@ -80,20 +80,23 @@ namespace Fracture.Engine.Ecs
       private readonly List<int> aliveComponents;
       
       private readonly IEventQueue<int, ComponentEventArgs> deletedEvents;
-      
-      private readonly IEntitySystem entities;
       #endregion
 
       #region Properties
       protected int Count => aliveComponents.Count;
-      
+
+      protected IEntitySystem Entities
+      {
+         get;
+      }
+
       public IEvent<int, ComponentEventArgs> Deleted
          => deletedEvents;
       #endregion
 
       protected ComponentSystem(IEntitySystem entities, IEventQueueSystem events)
       {
-         this.entities = entities ?? throw new ArgumentNullException(nameof(entities));
+         Entities = entities ?? throw new ArgumentNullException(nameof(entities));
          
          deletedEvents = events.CreateShared<int, ComponentEventArgs>();
          
@@ -135,7 +138,7 @@ namespace Fracture.Engine.Ecs
             deletedEvents.Create(id);
          
          // Delete the component when entity is deleted.
-         entities.Deleted.Subscribe(entityId, delegate
+         Entities.Deleted.Subscribe(entityId, delegate
          {
             if (!Alive(id))
                return;

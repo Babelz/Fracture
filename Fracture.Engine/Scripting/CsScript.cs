@@ -9,6 +9,18 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public abstract class CsScript
     {
+        #region Events
+        /// <summary>
+        /// Event invoked when the script is being unloaded.
+        /// </summary>
+        public event EventHandler Unloading;
+        
+        /// <summary>
+        /// Event invoked when the script is being loaded.
+        /// </summary>
+        public event EventHandler Loading;
+        #endregion  
+
         /// <summary>
         /// Creates new instance of script. Use <see cref="BindingConstructorAttribute"/> for parametrized script
         /// activation.
@@ -19,22 +31,20 @@ namespace Fracture.Engine.Scripting
 
         /// <summary>
         /// Method called when the script is getting loaded. This happens right after the script has been loaded and
-        /// happens only once during the scripts life time. 
-        /// 
-        /// When overriding, no need to call base method.
+        /// happens only once during the scripts life time.
         /// </summary>
         public virtual void Load()
         {
+            Loading?.Invoke(this, EventArgs.Empty);
         }
 
         /// <summary>
         /// Method called when the script is getting unloaded. This happens right before the script is getting disposed
         /// and happens only once during the scripts life time.
-        /// 
-        /// When overriding, no need to call base method.
         /// </summary>
         public virtual void Unload()
         {
+            Unloading?.Invoke(this, EventArgs.Empty);
         }
     }
 
