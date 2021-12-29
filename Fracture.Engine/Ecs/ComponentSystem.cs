@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
 using Fracture.Common.Events;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core;
 using Fracture.Engine.Events;
 
@@ -280,24 +282,37 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public abstract class SharedComponentSystem : ComponentSystem
    {
+      #region Static fields
+      private static readonly CollectionPool<List<int>, int> EntityComponentListPool;
+      #endregion
+      
       #region Fields
       /// <summary>
       /// Lookup that maps entity id to component id list.
       /// </summary>
       private readonly Dictionary<int, List<int>> entityToComponentsMap;
       #endregion
+
+      static SharedComponentSystem()
+      {
+         EntityComponentListPool = new CollectionPool<List<int>, int>(
+            new Pool<List<int>>(new LinearStorageObject<List<int>>(new LinearGrowthArray<List<int>>()))
+         );
+      }
       
       protected SharedComponentSystem(IEntitySystem entities, IEventQueueSystem events) 
-         : base(entities, events) => entityToComponentsMap = new Dictionary<int, List<int>>();
+         : base(entities, events)
+      {
+         entityToComponentsMap = new Dictionary<int, List<int>>();
+      }
       
       protected override int InitializeComponent(int entityId)
       {
          var id = base.InitializeComponent(entityId);
          
-         // TODO: i think we can pool these lists?
          if (!entityToComponentsMap.TryGetValue(entityId, out var components))
          {
-            components = new List<int>();
+            components = EntityComponentListPool.Take();
             
             entityToComponentsMap.Add(entityId, components);
          }
@@ -323,8 +338,12 @@ namespace Fracture.Engine.Ecs
          components.Remove(id);
             
          // Remove map if empty.
-         if (components.Count == 0) 
-            entityToComponentsMap.Remove(entityId);
+         if (components.Count != 0) 
+            return true;
+         
+         EntityComponentListPool.Return(components);
+            
+         entityToComponentsMap.Remove(entityId);
 
          return true;
       }

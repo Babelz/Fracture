@@ -179,11 +179,6 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       #region Properties
-      public int Priority
-      {
-         get;
-      }
-
       public IEvent<int, BodyContactEventArgs> BeginContact
          => beginContactEvents;
 

@@ -22,7 +22,7 @@ namespace Fracture.Engine.Scripting
         #endregion  
 
         /// <summary>
-        /// Creates new instance of script. Use <see cref="BindingConstructorAttribute"/> for parametrized script
+        /// Creates new instance of script. Use <see cref="BindingConstructorAttribute"/> to parametrize script activation.
         /// activation.
         /// </summary>
         protected CsScript()

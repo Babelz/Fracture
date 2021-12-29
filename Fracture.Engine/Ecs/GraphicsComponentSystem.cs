@@ -155,11 +155,6 @@ namespace Fracture.Engine.Ecs
       {
          get;
       }
-      
-      public int Priority
-      {
-         get;
-      }
       #endregion
       
       protected GraphicsComponentSystem(IEntitySystem entities,

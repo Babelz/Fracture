@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
+using Fracture.Common.Di.Binding;
 
 namespace Fracture.Engine.Core.Systems
 {
@@ -10,6 +12,9 @@ namespace Fracture.Engine.Core.Systems
     /// </summary>
     public abstract class Scene
     {
+        /// <summary>
+        /// Creates new instance of scene. Use <see cref="BindingConstructorAttribute"/> to parametrize scene activation.
+        /// </summary>
         protected Scene()
         {
         }
@@ -91,18 +96,18 @@ namespace Fracture.Engine.Core.Systems
         /// <summary>
         /// Adds new scene to the system for later use.
         /// </summary>
-        void Push(Scene scene, SceneChangedCallback callback = null);
+        void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene;
 
         /// <summary>
         /// Pop current active scene from the scene stack
         /// and initializes the next scene from the stack.
         /// </summary>
-        Scene Pop(SceneChangedCallback callback = null);
+        void Pop(SceneChangedCallback callback = null);
 
         /// <summary>
         /// Pop scenes until predicate returns true.
         /// </summary>
-        Scene PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null);
+        void PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null);
     }
 
     /// <summary>
@@ -111,6 +116,8 @@ namespace Fracture.Engine.Core.Systems
     public sealed class SceneSystem : GameEngineSystem, ISceneSystem
     {
         #region Fields
+        private readonly IObjectActivator activator;
+        
         private readonly Stack<Scene> scenes;
         #endregion
         
@@ -128,13 +135,17 @@ namespace Fracture.Engine.Core.Systems
         }
         #endregion
         
-        [BindingConstructor]
-        public SceneSystem()
-            => scenes = new Stack<Scene>();
-        
-        public void Push(Scene scene, SceneChangedCallback callback = null)
+        public SceneSystem(IObjectActivator activator)
         {
-            var last = scenes.Count == 0 ? null : scenes.Peek();
+            this.activator = activator ?? throw new ArgumentException(nameof(activator));
+        
+            scenes = new Stack<Scene>();
+        }
+            
+        public void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene
+        {
+            var last  = scenes.Count == 0 ? null : scenes.Peek();
+            var scene = activator.Activate<T>(bindings); 
             
             last?.Deinitialize(scene);
 
@@ -150,7 +161,7 @@ namespace Fracture.Engine.Core.Systems
             Current = scene;
         }
 
-        public Scene Pop(SceneChangedCallback callback = null)
+        public void Pop(SceneChangedCallback callback = null)
         {
             if (scenes.Count == 0)
                 throw new InvalidOperationException("no scenes in the stack");
@@ -168,11 +179,9 @@ namespace Fracture.Engine.Core.Systems
             callback?.Invoke(last, next);
 
             Current = next;
-
-            return last;
         }
         
-        public Scene PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null)
+        public void PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null)
         {
             var last = scenes.Pop();
             
@@ -197,8 +206,8 @@ namespace Fracture.Engine.Core.Systems
                     callback?.Invoke(last, next);
 
                     Current = next;
-
-                    return Current;
+                    
+                    return;
                 }
             }
 
