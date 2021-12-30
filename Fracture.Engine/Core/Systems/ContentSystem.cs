@@ -5,7 +5,8 @@ using Shattered.Content.Ui;
 namespace Fracture.Engine.Core.Systems
 {
     /// <summary>
-    /// Interface for implementing content systems that provide interface for content related operations. This works a wrapper for content manager.
+    /// Interface for implementing content systems that provide interface for content related operations. This works a wrapper for content manager. This is a
+    /// core system of the engine.
     /// </summary>
     public interface IContentSystem : IGameEngineSystem
     {

@@ -63,6 +63,7 @@
         <Compile Include="Core\Primitives\Rectf.cs" />
         <Compile Include="Core\Primitives\Transform.cs" />
         <Compile Include="Core\Systems\ContentSystem.cs" />
+        <Compile Include="Core\Systems\GameObjectActivatorSystem.cs" />
         <Compile Include="Core\Systems\SceneSystem.cs" />
         <Compile Include="Ecs\BehaviorSystem.cs" />
         <Compile Include="Ecs\ComponentSystem.cs" />
@@ -70,6 +71,7 @@
         <Compile Include="Ecs\Exceptions.cs" />
         <Compile Include="Ecs\GraphicsComponentSystem.cs" />
         <Compile Include="Ecs\PhysicsBodyComponentSystem.cs" />
+        <Compile Include="Ecs\EntityPrefabSystem.cs" />
         <Compile Include="Ecs\TransformComponentSystem.cs" />
         <Compile Include="Events\EventQueueSystem.cs" />
         <Compile Include="Events\EventSchedulerSystem.cs" />
@@ -88,6 +90,8 @@
         <Compile Include="Input\InputManager.cs" />
         <Compile Include="Input\KeyboardInputSystem.cs" />
         <Compile Include="Input\MouseInputSystem.cs" />
+        <Compile Include="Net\NetMessageHandler.cs" />
+        <Compile Include="Net\NetSystem.cs" />
         <Compile Include="Physics\Contacts\BroadContactSolver.cs" />
         <Compile Include="Physics\Contacts\NarrowContactSolver.cs" />
         <Compile Include="Physics\Dynamics\Body.cs" />
@@ -137,6 +141,10 @@
       <ProjectReference Include="..\Fracture.Content\Fracture.Content.csproj">
         <Project>{9d7f1622-c3ba-4647-ae93-80be0e8a2def}</Project>
         <Name>Fracture.Content</Name>
+      </ProjectReference>
+      <ProjectReference Include="..\Fracture.Net\Fracture.Net.csproj">
+        <Project>{8c8efbea-e0ad-4507-99ec-c79a0d8b556c}</Project>
+        <Name>Fracture.Net</Name>
       </ProjectReference>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

@@ -4,6 +4,7 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
+using Fracture.Engine.Ecs;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Fracture.Engine.Scripting;
@@ -130,13 +131,14 @@ namespace Fracture.Engine
         
         private void Initialize()
         {
-            // Bind core systems that every game should have.
+            // Bind core systems that every game should have. Core systems can be distinguished from other systems based the fact that they do not have binding
+            // constructors and they are always initialized with the engine.
             Log.Info($"binding core systems...");
             
             systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager, game.Window));
             systems.Bind(new ContentSystem(game.Content));
-            systems.Bind(new CsScriptingSystem(kernel));
-            
+            systems.Bind(new GameObjectActivatorSystem(kernel));
+
             // Allow game to bind game specific bindings.
             Log.Info($"binding game specific systems...");
             

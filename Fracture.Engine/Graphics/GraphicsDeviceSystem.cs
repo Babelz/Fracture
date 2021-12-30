@@ -8,7 +8,7 @@ namespace Fracture.Engine.Graphics
 {
     /// <summary>
     /// Interface for implementing graphics device systems that provide device free interface for working with graphics devices. Works as wrapper for the
-    /// actual graphics device.
+    /// actual graphics device. This is s core system of the engine.
     /// </summary>
     public interface IGraphicsDeviceSystem : IGameEngineSystem
     {

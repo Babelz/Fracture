@@ -5,6 +5,7 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
+using Fracture.Engine.Core.Systems;
 using NLog;
 
 namespace Fracture.Engine.Scripting
@@ -119,10 +120,11 @@ namespace Fracture.Engine.Scripting
         #region Fields
         private readonly List<ICsScriptActor> actors;
         
-        private readonly IObjectActivator activator;
+        private readonly IGameObjectActivatorSystem activator;
         #endregion
         
-        public CsScriptingSystem(IObjectActivator activator)
+        [BindingConstructor]
+        public CsScriptingSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
 
