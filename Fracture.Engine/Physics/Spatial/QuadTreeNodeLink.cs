@@ -21,7 +21,7 @@ namespace Fracture.Engine.Physics.Spatial
         #endregion
 
         #region Fields
-        private readonly CollectionPool<List<int>, int> listPool;
+        private readonly CollectionPool<List<int>> listPool;
         private readonly DelegatePool<QuadTreeNodeLink> linkPool;
         private readonly ArrayPool<List<int>> arrayPool;
 
@@ -74,7 +74,7 @@ namespace Fracture.Engine.Physics.Spatial
                     new LinearGrowthArray<QuadTreeNodeLink>()),
                 Clone);
 
-            listPool = new CollectionPool<List<int>, int>(
+            listPool = new CollectionPool<List<int>>(
                 new DelegatePool<List<int>>(
                     new LinearStorageObject<List<int>>(
                         new LinearGrowthArray<List<int>>()), () => new List<int>()));
@@ -84,7 +84,7 @@ namespace Fracture.Engine.Physics.Spatial
         }
 
         private QuadTreeNodeLink(DelegatePool<QuadTreeNodeLink> linkPool, 
-                                 CollectionPool<List<int>, int> listPool,
+                                 CollectionPool<List<int>> listPool,
                                  ArrayPool<List<int>> arrayPool)
         {
             this.linkPool  = linkPool;

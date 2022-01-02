@@ -283,7 +283,7 @@ namespace Fracture.Engine.Ecs
    public abstract class SharedComponentSystem : ComponentSystem
    {
       #region Static fields
-      private static readonly CollectionPool<List<int>, int> EntityComponentListPool;
+      private static readonly CollectionPool<List<int>> EntityComponentListPool;
       #endregion
       
       #region Fields
@@ -295,7 +295,7 @@ namespace Fracture.Engine.Ecs
 
       static SharedComponentSystem()
       {
-         EntityComponentListPool = new CollectionPool<List<int>, int>(
+         EntityComponentListPool = new CollectionPool<List<int>>(
             new Pool<List<int>>(new LinearStorageObject<List<int>>(new LinearGrowthArray<List<int>>()))
          );
       }

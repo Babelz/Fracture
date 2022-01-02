@@ -90,7 +90,8 @@
         <Compile Include="Input\InputManager.cs" />
         <Compile Include="Input\KeyboardInputSystem.cs" />
         <Compile Include="Input\MouseInputSystem.cs" />
-        <Compile Include="Net\NetMessageHandler.cs" />
+        <Compile Include="Net\NetPacketHandler.cs" />
+        <Compile Include="Net\NetPacketMatch.cs" />
         <Compile Include="Net\NetSystem.cs" />
         <Compile Include="Physics\Contacts\BroadContactSolver.cs" />
         <Compile Include="Physics\Contacts\NarrowContactSolver.cs" />

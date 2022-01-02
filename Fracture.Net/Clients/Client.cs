@@ -78,6 +78,11 @@ namespace Fracture.Net.Clients
         {
             get;
         }
+        
+        public abstract bool IsConnected
+        {
+            get;
+        }
         #endregion
         
         protected Client(IMessageSerializer serializer, TimeSpan gracePeriod)

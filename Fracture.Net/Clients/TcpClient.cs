@@ -34,7 +34,7 @@ namespace Fracture.Net.Clients
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
 
-        private bool IsConnected => socket.Connected;
+        public override bool IsConnected => socket.Connected;
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 

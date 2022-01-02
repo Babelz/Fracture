@@ -6,14 +6,14 @@ using Fracture.Net.Messages;
 
 namespace Fracture.Engine.Net
 {
-    public delegate void NetMessageHandlerDelegate(IMessage message);
+    public delegate void NetPacketHandlerDelegate(ClientUpdate.Packet packet);
         
-    public interface INetMessageHandler
+    public interface INetPacketHandler
     {
-        void Use(MessageMatchDelegate match, NetMessageHandlerDelegate handler);
+        void Use(MessageMatchDelegate match, NetPacketHandlerDelegate handler);
     }
     
-    public class NetMessageHandler : INetMessageHandler
+    public class NetPacketHandler : INetPacketHandler
     {
         #region Private net message handler context
         private sealed class NetMessageHandlerContext
@@ -24,13 +24,13 @@ namespace Fracture.Engine.Net
                 get;
             }
 
-            public NetMessageHandlerDelegate Handler
+            public NetPacketHandlerDelegate Handler
             {
                 get;
             }
             #endregion
 
-            public NetMessageHandlerContext(MessageMatchDelegate match, NetMessageHandlerDelegate handler)
+            public NetMessageHandlerContext(MessageMatchDelegate match, NetPacketHandlerDelegate handler)
             {
                 Match   = match ?? throw new ArgumentNullException(nameof(match));
                 Handler = handler ?? throw new ArgumentNullException(nameof(handler));
@@ -42,20 +42,20 @@ namespace Fracture.Engine.Net
         private readonly List<NetMessageHandlerContext> contexts;
         #endregion
 
-        public NetMessageHandler()
+        public NetPacketHandler()
             => contexts = new List<NetMessageHandlerContext>();
         
-        public void Use(MessageMatchDelegate match, NetMessageHandlerDelegate handler)
+        public void Use(MessageMatchDelegate match, NetPacketHandlerDelegate handler)
             => contexts.Add(new NetMessageHandlerContext(match, handler));
         
-        public bool Handle(IMessage message)
+        public bool Handle(ClientUpdate.Packet packet)
         {
-            var context = contexts.FirstOrDefault(c => c.Match(message));
+            var context = contexts.FirstOrDefault(c => c.Match(packet));
             
             if (context == default)
                 return false;
             
-            context.Handler(message);
+            context.Handler(packet);
             
             return true;
         }
