@@ -389,7 +389,7 @@ namespace Fracture.Net.Hosting
             {
                 var incomingEvent = incomingEvents.Dequeue();
                 
-                // Skip handling for all requests where the peer has leaved.
+                // Skip handling for all requests where the peer has leaved or is about to leave.
                 if (leavedPeers.Contains(incomingEvent.Peer.Id) || leavingPeers.Contains(incomingEvent.Peer.Id))
                 {
                     BufferPool.Return(incomingEvent.Contents);
@@ -417,8 +417,6 @@ namespace Fracture.Net.Hosting
                             
                             BadRequest?.Invoke(this, incomingEvent);
                             
-                            BufferPool.Return(incomingEvent.Contents);
-                            
                             ReleaseRequest(request);
 
                             break;
@@ -432,8 +430,6 @@ namespace Fracture.Net.Hosting
                                      $" receive buffer");
                             
                             BadRequest?.Invoke(this, incomingEvent);
-                            
-                            BufferPool.Return(incomingEvent.Contents);
                             
                             ReleaseRequest(request);
 
@@ -724,25 +720,31 @@ namespace Fracture.Net.Hosting
             while (acceptedNotifications.Count != 0)
             {
                 var notification = acceptedNotifications.Dequeue();
-                
+                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p);
+                                                                              
                 try
                 {
+                    // Handle each notification based on the command associated with them. Filter out any peers that the handler
+                    // migt have mark for reset.
                     switch (notification.Command)
                     {
                         case NotificationCommand.Send:
-                            Send(notification.Message, notification.Peers.First());
+                            var peer = peers.First();
+                            
+                            if (!leavingPeers.Contains(peer))
+                                Send(notification.Message, peer);
                             break;
                         case NotificationCommand.BroadcastNarrow:
-                            Broadcast(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
+                            Broadcast(notification.Message, peers);
                             break;
                         case NotificationCommand.BroadcastWide:
-                            Broadcast(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
+                            Broadcast(notification.Message, peers);
                             break;
                         case NotificationCommand.Reset:
-                            Reset(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
+                            Reset(notification.Message, peers);
                             break;
                         case NotificationCommand.Shutdown:
-                            Reset(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
+                            Reset(notification.Message, peers);
                             break;
                         default:
                             Log.Error("notification command was unset or unsupported", notification);
@@ -751,7 +753,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    foreach (var peer in (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)))
+                    foreach (var peer in peers)
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
                     
                     Log.Warn(e, "unhandled error occurred in notification middleware");
