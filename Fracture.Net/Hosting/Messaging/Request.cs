@@ -40,6 +40,14 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
+        
+        /// <summary>
+        /// Gets the timestamp when this request was received by the server.
+        /// </summary>
+        TimeSpan Timestamp
+        {
+            get;
+        }
         #endregion
     }
     

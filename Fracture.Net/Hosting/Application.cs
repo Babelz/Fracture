@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common;
 using Fracture.Common.Di.Attributes;
+using Fracture.Common.Events;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -162,8 +163,10 @@ namespace Fracture.Net.Hosting
         public event EventHandler Starting;
         public event EventHandler ShuttingDown;
         
-        public event EventHandler<PeerJoinEventArgs> Join;
-        public event EventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerJoinEventArgs> Join;
+        public event StructEventHandler<PeerResetEventArgs> Reset;
+        
+        public event StructEventHandler<PeerMessageEventArgs> BadRequest;
         
         public event EventHandler Tick;
         #endregion
@@ -453,10 +456,16 @@ namespace Fracture.Net.Hosting
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
                         
                         ReleaseRequest(request);
-                    
+
+                        BadRequest?.Invoke(this, incomingEvent);
+                        
                         Log.Warn(e, "unhandled error occurred while processing request from peer");
+                        
+                        break;
                     }
                 }
+                
+                BufferPool.Return(incomingEvent.Contents);
             }
         }
         

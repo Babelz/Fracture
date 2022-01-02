@@ -66,6 +66,11 @@ namespace Fracture.Net.Hosting
         /// Event invoked when peer has reset.
         /// </summary>
         event StructEventHandler<PeerResetEventArgs> Reset; 
+        
+        /// <summary>
+        /// Event invoked when peer makes bad request that can't be deserialized properly by the server.
+        /// </summary>
+        event StructEventHandler<PeerMessageEventArgs> BadRequest;
         #endregion
         
         #region Properties
@@ -179,6 +184,7 @@ namespace Fracture.Net.Hosting
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
         public event StructEventHandler<PeerResetEventArgs> Reset;
+        public event StructEventHandler<PeerMessageEventArgs> BadRequest; 
         #endregion
         
         #region Properties
@@ -226,8 +232,9 @@ namespace Fracture.Net.Hosting
                 }
             };
             
-            application.Join  += (s, e) => Join?.Invoke(this, e);
-            application.Reset += (s, e) => Reset?.Invoke(this, e);
+            application.Join       += (object sender, in PeerJoinEventArgs e)    => Join?.Invoke(this, e);
+            application.Reset      += (object sender, in PeerResetEventArgs e)   => Reset?.Invoke(this, e);
+            application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
         }
         
         public void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript
