@@ -415,6 +415,8 @@ namespace Fracture.Net.Hosting
                             
                             Log.Warn($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
                             
+                            BadRequest?.Invoke(this, incomingEvent);
+                            
                             BufferPool.Return(incomingEvent.Contents);
                             
                             ReleaseRequest(request);
@@ -428,6 +430,8 @@ namespace Fracture.Net.Hosting
                             
                             Log.Warn($"invalid sized message received from peer {incomingEvent.Peer.Id}, reading further would go outside the bounds of the" +
                                      $" receive buffer");
+                            
+                            BadRequest?.Invoke(this, incomingEvent);
                             
                             BufferPool.Return(incomingEvent.Contents);
                             
