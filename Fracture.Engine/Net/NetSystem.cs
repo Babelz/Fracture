@@ -216,7 +216,7 @@ namespace Fracture.Engine.Net
         public void Disconnect()
             => client.Disconnect();
         
-        public void Use(MessageMatchDelegate match, NetPacketHandlerDelegate handler)
+        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             => packetHandler.Use(match, handler);
 
         public void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new()

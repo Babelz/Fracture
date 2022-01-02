@@ -10,7 +10,7 @@ namespace Fracture.Engine.Net
         
     public interface INetPacketHandler
     {
-        void Use(MessageMatchDelegate match, NetPacketHandlerDelegate handler);
+        void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
     }
     
     public class NetPacketHandler : INetPacketHandler
@@ -19,7 +19,7 @@ namespace Fracture.Engine.Net
         private sealed class NetMessageHandlerContext
         {
             #region Properties
-            public MessageMatchDelegate Match
+            public NetPacketMatchDelegate Match
             {
                 get;
             }
@@ -30,7 +30,7 @@ namespace Fracture.Engine.Net
             }
             #endregion
 
-            public NetMessageHandlerContext(MessageMatchDelegate match, NetPacketHandlerDelegate handler)
+            public NetMessageHandlerContext(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             {
                 Match   = match ?? throw new ArgumentNullException(nameof(match));
                 Handler = handler ?? throw new ArgumentNullException(nameof(handler));
@@ -45,7 +45,7 @@ namespace Fracture.Engine.Net
         public NetPacketHandler()
             => contexts = new List<NetMessageHandlerContext>();
         
-        public void Use(MessageMatchDelegate match, NetPacketHandlerDelegate handler)
+        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             => contexts.Add(new NetMessageHandlerContext(match, handler));
         
         public bool Handle(ClientUpdate.Packet packet)

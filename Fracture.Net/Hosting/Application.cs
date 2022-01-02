@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common;
@@ -60,6 +61,48 @@ namespace Fracture.Net.Hosting
             Middleware = middleware;
         }
     }
+    
+    /// <summary>
+    /// Flags for defining peer pipeline fidelity. Use these flags to enable immediate peer resets from application layer when unhandled error occurrs.
+    /// </summary>
+    [Flags]
+    public enum PeerPipelineFidelity : byte
+    {
+        /// <summary>
+        /// Least strict peer pipeline fidelity. All exceptions are omitted and peers will not be reset.
+        /// </summary>
+        Loose = 0,
+        
+        /// <summary>
+        /// Peer will be reset if unhandled error occurs while peer is joining.
+        /// </summary>
+        Join = (1 << 0),
+
+        /// <summary>
+        /// Peer will be reset if unhandled error occurs while deserializing peer request.
+        /// </summary>
+        Receive = (1 << 1),
+        
+        /// <summary>
+        /// Peer will be reset if unhandled error occurs while handling peer request.
+        /// </summary>
+        Request = (1 << 2),
+        
+        /// <summary>
+        /// Peer will be reset if unhandled error occurs while handling peer notification.
+        /// </summary>
+        Notification = (1 << 3),
+        
+        /// <summary>
+        /// Peer will be reset if unhandled error occurs while handling peer response.
+        /// </summary>
+        Response = (1 << 4),
+        
+        /// <summary>
+        /// Most strict mode. Any unhandled errors will cause the peer to reset immediately.
+        /// </summary>
+        Strict = Join | Receive | Request | Notification | Response
+    }
 
     /// <summary>
     /// Class that provides functionality for creating net applications. Application provides request and response pipeline support for handling peer requests
@@ -84,6 +127,8 @@ namespace Fracture.Net.Hosting
         private readonly IServer server;
         
         private readonly IApplicationTimer timer;
+        
+        private readonly PeerPipelineFidelity fidelity;
         
         private readonly Queue<PeerMessageEventArgs> incomingEvents;
         private readonly Queue<PeerResetEventArgs> resetsEvents;
@@ -152,7 +197,8 @@ namespace Fracture.Net.Hosting
                            IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware,
                            IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware,
                            IMessageSerializer serializer,
-                           IApplicationTimer timer)
+                           IApplicationTimer timer,
+                           PeerPipelineFidelity fidelity)
         {
             this.server     = server ?? throw new ArgumentNullException(nameof(server));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -163,6 +209,8 @@ namespace Fracture.Net.Hosting
             this.requestMiddleware      = requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware));
             this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             this.responseMiddleware     = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
+            
+            this.fidelity = fidelity;
             
             Requests      = new ApplicationRequestContext(requestRouter, requestMiddleware);
             Notifications = new ApplicationNotificationContext(notificationCenter, notificationMiddleware);
@@ -219,6 +267,17 @@ namespace Fracture.Net.Hosting
             ReleaseResponse(requestResponse.Response);
         }
         
+        private void HandlePeerFidelityViolation(PeerPipelineFidelity flag, int peerId)
+        {
+            if ((fidelity & flag) != flag) 
+                return;
+            
+            Log.Warn($"marking peer {peerId} to be reset as it broke required fidelity level of " +
+                     $"{Enum.GetName(typeof(PeerPipelineFidelity), flag)}");
+                
+            leavingPeers.Add(peerId);
+        }
+
         #region Event handlers
         private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
             => BufferPool.Return(e.Contents);
@@ -283,6 +342,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warn(e, "unhandled error occurred notifying about joining peer");
+                    
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Join, joinEvent.Peer.Id);
                 }
             }
         }
@@ -326,7 +387,7 @@ namespace Fracture.Net.Hosting
                 var incomingEvent = incomingEvents.Dequeue();
                 
                 // Skip handling for all requests where the peer has leaved.
-                if (leavedPeers.Contains(incomingEvent.Peer.Id))
+                if (leavedPeers.Contains(incomingEvent.Peer.Id) || leavingPeers.Contains(incomingEvent.Peer.Id))
                 {
                     BufferPool.Return(incomingEvent.Contents);
                     
@@ -345,9 +406,25 @@ namespace Fracture.Net.Hosting
                         // Make sure next message in packet is non-zero sized.
                         var size = serializer.GetSizeFromBuffer(incomingEvent.Contents, offset);
                         
-                        if (size <= 0)
+                        if (size == 0)
                         {
+                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                            
                             Log.Warn($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
+                            
+                            BufferPool.Return(incomingEvent.Contents);
+                            
+                            ReleaseRequest(request);
+
+                            break;
+                        }
+                        
+                        if (size >= incomingEvent.Length - offset)
+                        {
+                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                            
+                            Log.Warn($"invalid sized message received from peer {incomingEvent.Peer.Id}, reading further would go outside the bounds of the" +
+                                     $" receive buffer");
                             
                             BufferPool.Return(incomingEvent.Contents);
                             
@@ -373,6 +450,8 @@ namespace Fracture.Net.Hosting
                     }
                     catch (Exception e)
                     {
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                        
                         ReleaseRequest(request);
                     
                         Log.Warn(e, "unhandled error occurred while processing request from peer");
@@ -400,6 +479,8 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Peer.Id);
+                    
                     ReleaseRequest(request);
                     
                     Log.Warn(e, "unhandled error occurred in request middleware");
@@ -470,6 +551,8 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Peer.Id);
+                    
                     ReleaseRequest(request);
                     ReleaseResponse(response);
                     
@@ -512,6 +595,8 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
+                    
                     ReleaseRequestResponse(requestResponse);
                     
                     Log.Warn(e, "unhandled error occurred in request response middleware");
@@ -540,6 +625,9 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    foreach (var peer in peers)
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
+
                     ReleaseNotification(notification);
                     
                     Log.Warn(e, "unhandled error occurred in notification middleware");
@@ -568,6 +656,8 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
+                    
                     Log.Warn(e, "unhandled error occurred in notification middleware");
                 }
                 
@@ -580,17 +670,12 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void HandleAcceptedNotifications()
         {
-            void Send(INotification notification)
+            void Send(IMessage message, int peer)
             {
-                var peer = notification.Peers.First();
-                
-                if (leavingPeers.Contains(peer))
-                    return;
-                
-                var size     = serializer.GetSizeFromMessage(notification.Message);
+                var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
 
-                serializer.Serialize(notification.Message, contents, 0);
+                serializer.Serialize(message, contents, 0);
                     
                 server.Send(peer, contents, 0, size);
             }
@@ -614,45 +699,37 @@ namespace Fracture.Net.Hosting
                 BufferPool.Return(contents);
             }
             
-            void BroadcastNarrow(INotification notification)
-                => Broadcast(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
-                
-            void BroadcastWide(INotification notification)
-                => Broadcast(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
-                
-            void Reset(INotification notification)
+            void Reset(IMessage message, IEnumerable<int> peers)
             {
-                if (notification.Message != null)
-                {
-                    if (notification.Peers.Length > 1)
-                        BroadcastNarrow(notification);
-                    else
-                        Send(notification);
-                }
+                if (message != null)
+                    Broadcast(message, peers);
                     
-                foreach (var peer in notification.Peers)
+                foreach (var peer in peers)
                     leavingPeers.Add(peer);
             }
             
             while (acceptedNotifications.Count != 0)
             {
                 var notification = acceptedNotifications.Dequeue();
-
+                
                 try
                 {
                     switch (notification.Command)
                     {
                         case NotificationCommand.Send:
-                            Send(notification);
+                            Send(notification.Message, notification.Peers.First());
                             break;
                         case NotificationCommand.BroadcastNarrow:
-                            BroadcastNarrow(notification);
+                            Broadcast(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
                             break;
                         case NotificationCommand.BroadcastWide:
-                            BroadcastWide(notification);
+                            Broadcast(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
                             break;
                         case NotificationCommand.Reset:
-                            Reset(notification);
+                            Reset(notification.Message, notification.Peers.Where(p => !leavingPeers.Contains(p)));
+                            break;
+                        case NotificationCommand.Shutdown:
+                            Reset(notification.Message, server.Peers.Where(p => !leavingPeers.Contains(p)));
                             break;
                         default:
                             Log.Error("notification command was unset or unsupported", notification);
@@ -661,6 +738,9 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
+                    foreach (var peer in (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)))
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
+                    
                     Log.Warn(e, "unhandled error occurred in notification middleware");
                 }
                 

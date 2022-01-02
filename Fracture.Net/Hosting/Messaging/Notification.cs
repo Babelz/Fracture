@@ -38,7 +38,12 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Notification message is considered as last message and the peer will be disconnected after the message has been send.
         /// </summary>
-        Reset
+        Reset,
+        
+        /// <summary>
+        /// Notification message is considered as last message to all peers in the application, there will be no further messages after this one.
+        /// </summary>
+        Shutdown
     }
     
     /// <summary>
@@ -191,7 +196,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             AssertUnset();
 
-            Command = NotificationCommand.Reset;
+            Command = NotificationCommand.Shutdown;
             Peers   = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }

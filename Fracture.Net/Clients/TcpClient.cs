@@ -69,6 +69,13 @@ namespace Fracture.Net.Clients
                         break;
                     }
                     
+                    if (size >= length - offset)
+                    {
+                        Log.Warn($"invalid size in packet, reading further would go outside the bounds of the receive buffer");
+                            
+                        break;
+                    }
+                    
                     var contents = BufferPool.Take(size);
                     
                     Array.Copy(receiveBuffer, offset, contents, 0, size);
