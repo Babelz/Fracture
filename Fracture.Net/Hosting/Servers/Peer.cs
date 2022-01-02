@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using Fracture.Common.Events;
 using Fracture.Common.Util;
 using Newtonsoft.Json;
@@ -31,7 +32,13 @@ namespace Fracture.Net.Hosting.Servers
         }
 
         public override string ToString()
-            => JsonConvert.SerializeObject(this);
+        {
+            var sb = new StringBuilder();
+            
+            sb.Append($"{{ \"{nameof(Id)}\": {Id}, \"{nameof(EndPoint)}\": \"{EndPoint.Address}:{EndPoint.Port}\" }}");
+            
+            return sb.ToString();
+        }
 
         public override int GetHashCode()
             => HashUtils.Create()
