@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Security.Policy;
 using Fracture.Common.Collections;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Common.Events
 {
@@ -22,6 +25,11 @@ namespace Fracture.Common.Events
       /// Unsubscribe handler from topic with given key.
       /// </summary>
       void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback);
+      
+      /// <summary>
+      /// Returns boolean declaring whether topic with given key exists.
+      /// </summary>
+      bool Exists(TKey key);
    }
    
    /// <summary>
@@ -42,14 +50,14 @@ namespace Fracture.Common.Events
    public interface IEventQueue<in TKey, TArgs> : IEventDispatcher, IEvent<TKey, TArgs>
    {
       /// <summary>
-      /// Returns boolean declaring whether topic with given key exists.
-      /// </summary>
-      bool Exists(TKey key);
-
-      /// <summary>
       /// Creates new topic and associates given key with it. This allows subscriptions to be made to the topic.
       /// </summary>
       void Create(TKey key);
+      
+      /// <summary>
+      /// Deletes topic with given key and causes all events for this topic be invoked immediately and clears all enqueued events. 
+      /// </summary>
+      void Delete(TKey key);
       
       /// <summary>
       /// Publishes event to the queue.
@@ -63,6 +71,18 @@ namespace Fracture.Common.Events
    /// </summary>
    public class SharedEventQueue<TKey, TArgs> : IEventQueue<TKey, TArgs>
    {
+      #region Static fields
+      private static readonly CollectionPool<List<EventCallbackDelegate<TArgs>>> CallbackListPool = new CollectionPool<List<EventCallbackDelegate<TArgs>>>(
+         new Pool<List<EventCallbackDelegate<TArgs>>>(new LinearStorageObject<List<EventCallbackDelegate<TArgs>>>(
+                                                         new LinearGrowthArray<List<EventCallbackDelegate<TArgs>>>()))
+         );
+      
+      private static readonly CollectionPool<List<TArgs>> EventListPool = new CollectionPool<List<TArgs>>(
+         new Pool<List<TArgs>>(new LinearStorageObject<List<TArgs>>(
+                                  new LinearGrowthArray<List<TArgs>>()))
+         );
+      #endregion
+      
       #region Fields
       private readonly Dictionary<TKey, List<TArgs>> published;
       private readonly Dictionary<TKey, List<EventCallbackDelegate<TArgs>>> callbacks;
@@ -76,56 +96,83 @@ namespace Fracture.Common.Events
          published = new Dictionary<TKey, List<TArgs>>();
          callbacks = new Dictionary<TKey, List<EventCallbackDelegate<TArgs>>>();
          
-         dirty   = new HashSet<TKey>();
+         dirty = new HashSet<TKey>();
       }
       
+      protected void AssertTopicExists(TKey key)
+      {
+         if (!callbacks.ContainsKey(key))
+            throw new InvalidOperationException($"topic with key {key} does not exist");
+      }
+      
+      protected void AssertTopicDoesNotExist(TKey key)
+      {
+         if (callbacks.ContainsKey(key))
+            throw new InvalidOperationException($"topic with key {key} already exists");
+      }
+
       public bool Exists(TKey key)
          => callbacks.ContainsKey(key);
-      
+
       public void Create(TKey key)
       {
-         if (Exists(key)) 
-            throw new InvalidOperationException($"topic with key {key} already exists");
+         AssertTopicDoesNotExist(key);
          
-         callbacks.Add(key, new List<EventCallbackDelegate<TArgs>>());
-         published.Add(key, new List<TArgs>());
+         callbacks.Add(key, CallbackListPool.Take());
+         published.Add(key, EventListPool.Take());
       }
 
       public void Subscribe(TKey key, EventCallbackDelegate<TArgs> callback)
       {
-         if (!callbacks.ContainsKey(key))
-            throw new InvalidOperationException($"topic with key {key} does not exist");
+         AssertTopicExists(key);
 
          callbacks[key].Add(callback);
       }
          
       public void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback)
       {
-         if (!callbacks.ContainsKey(key))
-            throw new InvalidOperationException($"topic with key {key} does not exist");
-         
+         AssertTopicExists(key);
+
          callbacks[key].Remove(callback);
       }
       
       public virtual void Publish(TKey key, in TArgs args)
       {
-         if (!Exists(key))
-            return;
+         AssertTopicExists(key);
 
          published[key].Add(args);
          
          dirty.Add(key);
       }
+      
+      public void Delete(TKey key)
+      {
+         AssertTopicExists(key);
+
+         foreach (var args in published[key])
+            foreach (var callback in callbacks[key])
+               callback(args);
+         
+         EventListPool.Return(published[key]);
+         CallbackListPool.Return(callbacks[key]);
+         
+         published.Remove(key);
+         callbacks.Remove(key);
+      }
 
       public virtual void Dispatch()
       {
-         foreach (var key in dirty)
+         foreach (var key in dirty.Where(key => published.ContainsKey(key)))
          {
             foreach (var args in published[key])
+            {
                foreach (var callback in callbacks[key])
                   callback(args);
+            }
+               
+            published[key].Clear();
          }
-         
+
          dirty.Clear();
       }
    }
@@ -147,9 +194,8 @@ namespace Fracture.Common.Events
       
       public override void Publish(TKey key, in TArgs args)
       {
-         if (!Exists(key))
-            return;
-         
+         AssertTopicExists(key);
+
          if (!lookup.Add(key))
             return;
             

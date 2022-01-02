@@ -14,14 +14,14 @@ namespace Fracture.Common.Di.Binding
         None = 0,
 
         /// <summary>
-        /// Actual class of the dependency should be bound.
+        /// Actual base type of the dependency should be bound.
         /// </summary>
-        Class = (1 << 1),
+        BaseType = (1 << 1),
 
         /// <summary>
-        /// All subclasses of the dependency should be bound.
+        /// All sub types of the dependency should be bound.
         /// </summary>
-        Classes = (1 << 2),
+        SubTypes = (1 << 2),
 
         /// <summary>
         /// All interfaces of the class and all its sub classes should be bound.
@@ -31,7 +31,7 @@ namespace Fracture.Common.Di.Binding
         /// <summary>
         /// All abstract classes and subclasses should be bound.
         /// </summary>
-        AbstractClasses = (1 << 4),
+        Abstracts = (1 << 4),
 
         /// <summary>
         /// Causes options to work in strict manner. For example when using class option, all interfaces, abstract classes

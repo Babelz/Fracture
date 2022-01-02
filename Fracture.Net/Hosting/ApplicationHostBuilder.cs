@@ -26,8 +26,8 @@ namespace Fracture.Net.Hosting
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             
-            scripts  = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
-            services = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
+            scripts  = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Interfaces);
+            services = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Interfaces);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -71,6 +71,7 @@ namespace Fracture.Engine.Ecs
         private readonly Dictionary<Type, object> registry;
         #endregion
         
+        [BindingConstructor]
         public EntityPrefabSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));

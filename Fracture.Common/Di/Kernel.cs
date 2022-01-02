@@ -114,8 +114,8 @@ namespace Fracture.Common.Di
         private readonly List<Dependency> dependencies;
         #endregion
         
-        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.Classes | DependencyBindingOptions.Interfaces, 
-                      DependencyBindingOptions proxyOptions = DependencyBindingOptions.Classes | DependencyBindingOptions.Interfaces)
+        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces, 
+                      DependencyBindingOptions proxyOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces)
         {
             this.bindingOptions = bindingOptions;
             this.proxyOptions   = proxyOptions;
@@ -202,7 +202,7 @@ namespace Fracture.Common.Di
 
         public object Activate(Type type, params IBindingValue[] values)
         {
-            var binder = ConstructBinder(type, null, null, DependencyBindingOptions.Class, values);
+            var binder = ConstructBinder(type, null, null, DependencyBindingOptions.BaseType, values);
             
             binder.Bind();
             

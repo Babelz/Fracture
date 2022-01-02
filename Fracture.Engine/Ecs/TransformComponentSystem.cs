@@ -181,14 +181,9 @@ namespace Fracture.Engine.Ecs
          transforms.Insert(id, transform);
          
          // Create events.
-         if (!positionEvents.Exists(id)) 
-            positionEvents.Create(id);
-            
-         if (!scaleEvents.Exists(id)) 
-            scaleEvents.Create(id);
-            
-         if (!rotationEvents.Exists(id)) 
-            rotationEvents.Create(id);
+         positionEvents.Create(id);
+         scaleEvents.Create(id);
+         rotationEvents.Create(id);
          
          return id;
       }
@@ -200,6 +195,11 @@ namespace Fracture.Engine.Ecs
       {
          if (!base.Delete(id))
             return false;
+         
+         // Delete events.
+         positionEvents.Delete(id);
+         scaleEvents.Delete(id);
+         rotationEvents.Delete(id);
          
          // Reset state data.
          transforms.Insert(id, Transform.Default);

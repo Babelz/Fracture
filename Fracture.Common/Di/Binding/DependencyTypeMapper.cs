@@ -49,7 +49,12 @@ namespace Fracture.Common.Di.Binding
         {
             var types = new List<Type>();
 
-            if ((options & DependencyBindingOptions.Classes) == DependencyBindingOptions.Classes && type.IsClass)
+            if ((options & DependencyBindingOptions.BaseType) == DependencyBindingOptions.BaseType)
+            {
+                types.Add(type);
+            }
+            
+            if ((options & DependencyBindingOptions.SubTypes) == DependencyBindingOptions.SubTypes)
             {
                 var it = type;
 
@@ -60,11 +65,8 @@ namespace Fracture.Common.Di.Binding
                     it = it.BaseType;
                 }
             }
-            else if ((options & DependencyBindingOptions.Class) == DependencyBindingOptions.Class && type.IsClass)
-            {
-                types.Add(type);
-            }
-            else if ((options & DependencyBindingOptions.AbstractClasses) == DependencyBindingOptions.AbstractClasses)
+
+            if ((options & DependencyBindingOptions.Abstracts) == DependencyBindingOptions.Abstracts)
             {
                 var it = type;
 
@@ -77,7 +79,7 @@ namespace Fracture.Common.Di.Binding
                 }
             }
 
-            if ((options & DependencyBindingOptions.Interfaces) == DependencyBindingOptions.Interfaces)
+            if ((options & DependencyBindingOptions.Interfaces) != DependencyBindingOptions.Interfaces)
             {
                 if (type.IsInterface) 
                     types.Add(type);    

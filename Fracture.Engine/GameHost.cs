@@ -104,7 +104,7 @@ namespace Fracture.Engine
         {
             Args = args;
             
-            kernel  = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.Class);
+            kernel  = new Kernel(DependencyBindingOptions.Interfaces | DependencyBindingOptions.BaseType);
             systems = new GameEngineSystemHost(kernel);
             game    = new Game(Update, Initialize);
             

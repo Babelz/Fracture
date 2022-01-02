@@ -419,7 +419,7 @@ namespace Fracture.Net.Hosting
                             break;
                         }
                         
-                        if (size >= incomingEvent.Length - offset)
+                        if (size > incomingEvent.Length - offset)
                         {
                             HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
                             

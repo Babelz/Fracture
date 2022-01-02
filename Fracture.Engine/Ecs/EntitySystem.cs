@@ -272,20 +272,11 @@ namespace Fracture.Engine.Ecs
             remoteEntityIdMap.Add(remoteId.Value, id);
          
          // Create events.
-         if (!deletedEvents.Exists(id))
-            deletedEvents.Create(id);
-            
-         if (!unpairedFromChildEvents.Exists(id))
-            unpairedFromChildEvents.Create(id);
-            
-         if (!unpairedFromParentEvents.Exists(id))
-            unpairedFromParentEvents.Create(id);
-            
-         if (!madeParentOfEvents.Exists(id))
-            madeParentOfEvents.Create(id);
-            
-         if (!madeChildOfEvents.Exists(id))
-            madeChildOfEvents.Create(id);
+         deletedEvents.Create(id);
+         unpairedFromChildEvents.Create(id);
+         unpairedFromParentEvents.Create(id);
+         madeParentOfEvents.Create(id);
+         madeChildOfEvents.Create(id);
          
          aliveEntityIds.Add(id);
          
@@ -320,7 +311,14 @@ namespace Fracture.Engine.Ecs
          // Remove from remote and annotation lookups.
          if (entity.RemoteId.HasValue)
             remoteEntityIdMap.Remove(entity.RemoteId.Value);
-
+         
+         // Delete all events.
+         deletedEvents.Delete(id);
+         unpairedFromChildEvents.Delete(id);
+         unpairedFromParentEvents.Delete(id);
+         madeParentOfEvents.Delete(id);
+         madeChildOfEvents.Delete(id);
+         
          // Clear rest of the state and return id to pool.
          freeEntityIds.Return(id);
        

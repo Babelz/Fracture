@@ -159,6 +159,9 @@ namespace Fracture.Engine.Ecs
                 if (entityBehaviourLists[entityId].Count == 0)
                     entityBehaviourLists.Remove(entityId);
                 
+                if (!entities.Deleted.Exists(entityId))
+                    return;
+
                 entities.Deleted.Unsubscribe(entityId, EntityDeleted);
             }    
             

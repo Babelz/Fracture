@@ -136,8 +136,7 @@ namespace Fracture.Engine.Ecs
          componentToEntityMap.Add(id, entityId);
          
          // Create events.
-         if (!deletedEvents.Exists(id))
-            deletedEvents.Create(id);
+         deletedEvents.Create(id);
          
          // Delete the component when entity is deleted.
          Entities.Deleted.Subscribe(entityId, delegate
@@ -183,6 +182,9 @@ namespace Fracture.Engine.Ecs
          // Publish deleted event.
          deletedEvents.Publish(id, new ComponentEventArgs(id));
 
+         // Delete events.
+         deletedEvents.Delete(id);
+         
          aliveComponents.Remove(id);
          componentToEntityMap.Remove(id);
          

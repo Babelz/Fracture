@@ -326,17 +326,18 @@ namespace Fracture.Engine.Ecs
          });
          
          // Create events.
-         if (!beginContactEvents.Exists(id))
-            beginContactEvents.Create(id);
-            
-         if (!endContactEvents.Exists(id))
-            endContactEvents.Create(id);
+         beginContactEvents.Create(id);
+         endContactEvents.Create(id);
 
          return id;
       }
 
       public override bool Delete(int id)
       {
+         // Delete events.
+         beginContactEvents.Delete(id);
+         endContactEvents.Delete(id);
+         
          // Delete world data.           
          world.Delete(bodies.AtIndex(id).BodyId);
          

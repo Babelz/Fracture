@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di;
+using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -23,7 +24,7 @@ namespace Fracture.Net.Hosting
         
         private ApplicationBuilder(IServer server)
         {
-            binder = new Kernel();
+            binder = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Interfaces);
          
             LogBinding(server);
             
@@ -121,6 +122,18 @@ namespace Fracture.Net.Hosting
             
             return this;
         }
+        
+        /// <summary>
+        /// Set application peer pipeline fidelity level. If left un set this value defaults to <see cref="PeerPipelineFidelity.Loose"/>.
+        /// </summary>
+        public ApplicationBuilder Fidelity(PeerPipelineFidelity fidelity)
+        {
+            LogBinding(fidelity, "as peer pipeline configuration variable");
+            
+            binder.Bind(fidelity);
+            
+            return this;
+        }
 
         /// <summary>
         /// Builds the application using dependencies and configurations provided. To start running the application call the <see cref="Application.Start"/>
@@ -151,6 +164,9 @@ namespace Fracture.Net.Hosting
             
             if (!binder.Exists<IApplicationTimer>()) 
                 binder.Bind<ApplicationTimer>();
+            
+            if (!binder.Exists<PeerPipelineFidelity>()) 
+                binder.Bind(PeerPipelineFidelity.Loose);
             
             // Initialize application.
             return binder.Activate<Application>();

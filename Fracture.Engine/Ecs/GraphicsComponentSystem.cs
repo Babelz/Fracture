@@ -387,6 +387,9 @@ namespace Fracture.Engine.Ecs
          Transforms.RotationChanged.Subscribe(transform, OnTransformRotationChanged);
          
          Deleted.Subscribe(id, delegate {
+            if (!Transforms.ScaleChanged.Exists(transform))
+               return;
+
             Transforms.RotationChanged.Unsubscribe(transform, OnTransformRotationChanged);
          });
          
@@ -405,6 +408,9 @@ namespace Fracture.Engine.Ecs
          Transforms.PositionChanged.Subscribe(transform, OnTransformPositionChanged);
          
          Deleted.Subscribe(id, delegate {
+            if (!Transforms.ScaleChanged.Exists(transform))
+               return;
+
             Transforms.PositionChanged.Unsubscribe(transform, OnTransformPositionChanged);
          });
          
@@ -423,6 +429,9 @@ namespace Fracture.Engine.Ecs
          Transforms.ScaleChanged.Subscribe(transform, OnTransformScaleChanged);
          
          Deleted.Subscribe(id, delegate {
+            if (!Transforms.ScaleChanged.Exists(transform))
+               return;
+            
             Transforms.ScaleChanged.Unsubscribe(transform, OnTransformScaleChanged);
          });
          

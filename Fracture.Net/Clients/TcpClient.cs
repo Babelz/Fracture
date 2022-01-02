@@ -62,14 +62,14 @@ namespace Fracture.Net.Clients
                 {
                     var size = Serializer.GetSizeFromBuffer(receiveBuffer, offset);
                     
-                    if (size <= 0)
+                    if (size == 0)
                     {
                         Log.Warn("packet contains zero sized message from server");
                         
                         break;
                     }
                     
-                    if (size >= length - offset)
+                    if (size > length - offset)
                     {
                         Log.Warn($"invalid size in packet, reading further would go outside the bounds of the receive buffer");
                             

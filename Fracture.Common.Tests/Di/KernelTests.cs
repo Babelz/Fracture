@@ -100,7 +100,7 @@ namespace Fracture.Common.Tests.Di
         [Fact]
         public void Bind_Instance_Non_Strict_test()
         {
-            var kernel = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Interfaces);
+            var kernel = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Interfaces);
 
             kernel.Bind(new FooBar());
 
@@ -112,7 +112,7 @@ namespace Fracture.Common.Tests.Di
         [Fact]
         public void Bind_Instance_With_Options_And_Strict()
         {
-            var kernel = new Kernel(DependencyBindingOptions.Class | DependencyBindingOptions.Strict);
+            var kernel = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Strict);
 
             kernel.Bind(new FooBar());
 
@@ -172,7 +172,7 @@ namespace Fracture.Common.Tests.Di
         [Fact]
         public void Bind_With_Type_Proxy_Using_Options_And_Non_Strict_Test()
         {
-            var kernel = new Kernel(proxyOptions: DependencyBindingOptions.Class);
+            var kernel = new Kernel(proxyOptions: DependencyBindingOptions.BaseType);
 
             kernel.Proxy(typeof(FooBarSuper), typeof(FooBar));
 
@@ -184,7 +184,7 @@ namespace Fracture.Common.Tests.Di
         [Fact]
         public void Bind_With_Type_Proxy_Using_Options_And_Strict_Test()
         {
-            var kernel = new Kernel(proxyOptions: DependencyBindingOptions.Class | DependencyBindingOptions.Strict);
+            var kernel = new Kernel(proxyOptions: DependencyBindingOptions.BaseType | DependencyBindingOptions.Strict);
 
             kernel.Proxy(typeof(FooBarSuper), typeof(FooBar));
 
