@@ -1,3 +1,4 @@
+using System;
 using Fracture.Net.Clients;
 using Fracture.Net.Messages;
 
@@ -9,7 +10,7 @@ namespace Fracture.Engine.Net
     {
         public static NetPacketMatchDelegate Any => delegate { return true; };
         
-        public static NetPacketHandlerDelegate Message(MessageMatchDelegate match) 
+        public static NetPacketMatchDelegate Message(MessageMatchDelegate match) 
             => (p) => match(p.Message);
     }
 }

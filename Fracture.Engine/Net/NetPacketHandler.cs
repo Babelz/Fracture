@@ -7,18 +7,30 @@ using Fracture.Net.Messages;
 namespace Fracture.Engine.Net
 {
     public delegate void NetPacketHandlerDelegate(ClientUpdate.Packet packet);
-        
+
     public interface INetPacketHandler
     {
         void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
     }
     
-    public class NetPacketHandler : INetPacketHandler
+    public interface IManagedNetPacketHandler
+    { 
+        void Use(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
+        
+        bool Clear(object consumer);
+    }
+    
+    public class ManagedNetPacketHandler : IManagedNetPacketHandler
     {
         #region Private net message handler context
         private sealed class NetMessageHandlerContext
         {
             #region Properties
+            public object Consumer
+            {
+                get;
+            }
+            
             public NetPacketMatchDelegate Match
             {
                 get;
@@ -30,10 +42,11 @@ namespace Fracture.Engine.Net
             }
             #endregion
 
-            public NetMessageHandlerContext(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            public NetMessageHandlerContext(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             {
-                Match   = match ?? throw new ArgumentNullException(nameof(match));
-                Handler = handler ?? throw new ArgumentNullException(nameof(handler));
+                Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
+                Match    = match ?? throw new ArgumentNullException(nameof(match));
+                Handler  = handler ?? throw new ArgumentNullException(nameof(handler));
             }
         }
         #endregion
@@ -42,12 +55,15 @@ namespace Fracture.Engine.Net
         private readonly List<NetMessageHandlerContext> contexts;
         #endregion
 
-        public NetPacketHandler()
+        public ManagedNetPacketHandler()
             => contexts = new List<NetMessageHandlerContext>();
         
-        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => contexts.Add(new NetMessageHandlerContext(match, handler));
+        public void Use(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => contexts.Add(new NetMessageHandlerContext(consumer, match, handler));
         
+        public bool Clear(object consumer)
+            => contexts.RemoveAll(c => c.Consumer == consumer) != 0;
+            
         public bool Handle(ClientUpdate.Packet packet)
         {
             var context = contexts.FirstOrDefault(c => c.Match(packet));

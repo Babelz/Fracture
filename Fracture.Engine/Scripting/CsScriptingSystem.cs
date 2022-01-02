@@ -140,7 +140,7 @@ namespace Fracture.Engine.Scripting
         {
             var script = activator.Activate<T>(bindings);
 
-            if (actors.Any(c => c.Accept(script)))
+            if (!actors.Any(c => c.Accept(script)))
                 throw new InvalidOperationException($"no actor accepts scripts of type {typeof(T).FullName}");
 
             return script;

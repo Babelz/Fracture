@@ -37,50 +37,89 @@ namespace Fracture.Engine.Net
     public delegate void NetMessageQueryResponseCallback(IQueryMessage response);
     public delegate void NetMessageQueryTimeoutCallback(IQueryMessage request);
     
-    public interface INetPacketSystem : INetSystem, INetPacketHandler
+    public interface INetSystemPacketRouter : INetPacketHandler
+    {
+        #region Properties
+        object Consumer
+        {
+            get;
+        }
+        #endregion
+    }
+    
+    public sealed class NetSystemPacketRouter : INetSystemPacketRouter
+    {
+        #region Fields
+        private readonly IManagedNetPacketHandler managedHandler;
+        #endregion
+
+        #region Properties
+        public object Consumer
+        {
+            get;
+        }
+        #endregion
+        
+        public NetSystemPacketRouter(object consumer, IManagedNetPacketHandler managedHandler)
+        {    
+            this.managedHandler = managedHandler ?? throw new ArgumentNullException(nameof(managedHandler));
+
+            Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
+        }
+        
+        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => managedHandler.Use(Consumer, match, handler);
+    }
+    
+    public interface INetPacketSystem : INetSystem
     {
         void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new();
         
         void Send<T>(PoolElementDecoratorDelegate<T> decorator, 
                      NetMessageQueryResponseCallback responseCallback, 
                      NetMessageQueryTimeoutCallback timeoutCallback) where T : class, IQueryMessage, new();
-    }
-
-    public class QueryMessageContext
-    {
-        #region Properties
-        public IQueryMessage Request
-        {
-            get;
-        }
-
-        public NetMessageQueryResponseCallback ResponseCallback
-        {
-            get;
-        }
-
-        public NetMessageQueryTimeoutCallback TimeoutCallback
-        {
-            get;
-        }
         
-        public TimeSpan Timestamp
-        {
-            get;
-        }
-        #endregion
-
-        public QueryMessageContext(IQueryMessage request, NetMessageQueryResponseCallback responseCallback, NetMessageQueryTimeoutCallback timeoutCallback)
-        {
-            Request          = request;
-            ResponseCallback = responseCallback;
-            TimeoutCallback  = timeoutCallback;
-            Timestamp        = DateTime.UtcNow.TimeOfDay;
-        }
+        INetSystemPacketRouter Create(object consumer);
+        void Delete(INetSystemPacketRouter router);
     }
     
     public sealed class NetSystem : GameEngineSystem, INetPacketSystem
     {
+        #region Private query message context class
+        public class QueryMessageContext
+        {
+            #region Properties
+            public IQueryMessage Request
+            {
+                get;
+            }
+
+            public NetMessageQueryResponseCallback ResponseCallback
+            {
+                get;
+            }
+
+            public NetMessageQueryTimeoutCallback TimeoutCallback
+            {
+                get;
+            }
+        
+            public TimeSpan Timestamp
+            {
+                get;
+            }
+            #endregion
+
+            public QueryMessageContext(IQueryMessage request, NetMessageQueryResponseCallback responseCallback, NetMessageQueryTimeoutCallback timeoutCallback)
+            {
+                Request          = request;
+                ResponseCallback = responseCallback;
+                TimeoutCallback  = timeoutCallback;
+                Timestamp        = DateTime.UtcNow.TimeOfDay;
+            }
+        }
+        #endregion
+
         #region Static fields
         public static readonly TimeSpan DefaultQueryGracePeriod = TimeSpan.FromSeconds(15);
         #endregion
@@ -93,7 +132,7 @@ namespace Fracture.Engine.Net
         private NetSystemConnectFailedCallback connectFailedCallback;
         private NetSystemDisconnectedCallback disconnectedCallback;
         
-        private readonly NetPacketHandler packetHandler;
+        private readonly ManagedNetPacketHandler managedPacketHandler;
         
         private readonly List<QueryMessageContext> queries;
         #endregion
@@ -108,8 +147,8 @@ namespace Fracture.Engine.Net
             this.client           = client ?? throw new ArgumentException(nameof(client));
             this.queryGracePeriod = queryGracePeriod;
             
-            packetHandler = new NetPacketHandler();
-            queries       = new List<QueryMessageContext>(256);
+            managedPacketHandler = new ManagedNetPacketHandler();
+            queries              = new List<QueryMessageContext>(256);
         }
 
         public NetSystem(Client client)   
@@ -208,7 +247,7 @@ namespace Fracture.Engine.Net
                 }
             }
             
-            packetHandler.Handle(packet);
+            managedPacketHandler.Handle(packet);
             
             ReleasePacket(packet);
         }
@@ -216,8 +255,14 @@ namespace Fracture.Engine.Net
         public void Disconnect()
             => client.Disconnect();
         
-        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => packetHandler.Use(match, handler);
+        public INetSystemPacketRouter Create(object consumer)
+            => new NetSystemPacketRouter(consumer, managedPacketHandler);
+        
+        public void Delete(INetSystemPacketRouter router)
+        {
+            if (!managedPacketHandler.Clear(router.Consumer))
+                throw new InvalidOperationException($"attempt to delete router that does not belong to {nameof(NetSystem)} was made");
+        }
 
         public void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new()
             => client.Send(Message.Create(decorator));

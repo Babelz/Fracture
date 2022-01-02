@@ -62,7 +62,7 @@ namespace Fracture.Engine.Ecs
         }
         
         /// <summary>
-        /// Attaches the behaviour to given entity.
+        /// Attaches the behaviour to given entity. When overriding call the base method.
         /// </summary>
         public virtual void Attach(int entityId)
         {
@@ -74,7 +74,7 @@ namespace Fracture.Engine.Ecs
         }
         
         /// <summary>
-        /// Detaches the behaviour from the current entity.
+        /// Detaches the behaviour from the current entity. When overriding call the base method.
         /// </summary>
         public virtual void Detach()
         {
@@ -86,6 +86,10 @@ namespace Fracture.Engine.Ecs
             Detaching?.Invoke(this, EventArgs.Empty);
             
             EntityId = 0;
+        }
+
+        public override void Update(IGameEngineTime time)
+        {
         }
     }
 

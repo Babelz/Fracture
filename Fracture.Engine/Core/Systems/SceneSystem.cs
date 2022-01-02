@@ -116,7 +116,7 @@ namespace Fracture.Engine.Core.Systems
     public sealed class SceneSystem : GameEngineSystem, ISceneSystem
     {
         #region Fields
-        private readonly IObjectActivator activator;
+        private readonly IGameObjectActivatorSystem activator;
         
         private readonly Stack<Scene> scenes;
         #endregion
@@ -135,7 +135,8 @@ namespace Fracture.Engine.Core.Systems
         }
         #endregion
         
-        public SceneSystem(IObjectActivator activator)
+        [BindingConstructor]
+        public SceneSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator ?? throw new ArgumentException(nameof(activator));
         
