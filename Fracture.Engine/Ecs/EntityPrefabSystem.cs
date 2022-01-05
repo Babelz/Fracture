@@ -12,32 +12,11 @@ using NLog;
 namespace Fracture.Engine.Ecs
 {
     /// <summary>
-    /// Static utility class containing entity prefab types and utility functions.
+    /// Interface for implementing entity prefabs.
     /// </summary>
-    public static class EntityPrefab
+    public interface IEntityPrefab
     {
-        /// <summary>
-        /// Attribute that denotes class to be a prefab container. To create a container create new class, have public constructor that is annotated with
-        /// <see cref="BindingConstructorAttribute"/> and use it to capture any dependencies required for entity activation.
-        /// </summary>
-        [AttributeUsage(AttributeTargets.Class)]
-        public sealed class ContainerAttribute : Attribute
-        {
-            public ContainerAttribute()
-            {
-            }
-        }
-        
-        /// <summary>
-        /// Attribute that denotes class method to be a prefab activator. One container can have multiple activators.
-        /// </summary>
-        [AttributeUsage(AttributeTargets.Method)]
-        public sealed class ActivatorAttribute : Attribute
-        {
-            public ActivatorAttribute()
-            {
-            }
-        }
+        // Nothing to implement, marker interface.
     }
 
     /// <summary>
@@ -48,12 +27,12 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Attempts to register prefab container to the system. Throws if the container is invalid.
         /// </summary>
-        void Register<T>();
+        void Register<T>() where T : IEntityPrefab;
         
         /// <summary>
         /// Attempts to get prefab container of specific type. Throws if no prefab is found.
         /// </summary>
-        T Get<T>();
+        T Get<T>() where T : IEntityPrefab;
     }
     
     /// <summary>
@@ -78,23 +57,7 @@ namespace Fracture.Engine.Ecs
             
             registry = new Dictionary<Type, object>();
         }
-            
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsPrefabContainer(MemberInfo info)
-            => info.GetCustomAttribute<EntityPrefab.ContainerAttribute>() != null;
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsValidatePrefabContainer(Type type)
-        {
-            if (type.GetMethods().Any(m => m.GetCustomAttribute<EntityPrefab.ActivatorAttribute>() != null))
-                return true;     
-            
-            Log.Warn($"type {type.FullName} is annotated with {nameof(EntityPrefab.ContainerAttribute)} but it does not have any methods annotated with " +
-                     $"{nameof(EntityPrefab.ActivatorAttribute)} attribute");
-            
-            return false;
-        }
-        
+
         public override void Initialize()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -102,15 +65,7 @@ namespace Fracture.Engine.Ecs
                 try
                 {
                     foreach (var type in assembly.GetTypes())
-                    {
-                        if (!IsPrefabContainer(type))
-                            continue;
-                        
-                        if (!IsValidatePrefabContainer(type))
-                            continue;
-                        
                         registry.Add(type, activator.Activate(type));
-                    }
                 }
                 catch (Exception e)
                 {
@@ -119,18 +74,10 @@ namespace Fracture.Engine.Ecs
             }
         }
 
-        public void Register<T>()
-        {
-            if (!IsPrefabContainer(typeof(T)))
-                throw new ArgumentException($"type {typeof(T).FullName} is not a prefab container");
-            
-            if (!IsValidatePrefabContainer(typeof(T)))
-                throw new ArgumentNullException($"container {typeof(T).FullName} does not have any activator methods");
-            
-            registry.Add(typeof(T), activator.Activate(typeof(T)));
-        }
-
-        public T Get<T>()
+        public void Register<T>() where T : IEntityPrefab
+            => registry.Add(typeof(T), activator.Activate(typeof(T)));
+        
+        public T Get<T>() where T : IEntityPrefab
             => (T)registry[typeof(T)];
     }
 }

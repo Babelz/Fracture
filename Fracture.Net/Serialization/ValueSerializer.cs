@@ -184,33 +184,24 @@ namespace Fracture.Net.Serialization
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        
+        private static readonly List<Type> ValueSerializerTypes = new List<Type>();
         #endregion
 
-        #region Static properties
-        public static IEnumerable<Type> ValueSerializerTypes
-        {
-            get;
-        }
-        #endregion
-        
         static ValueSerializerRegistry()
-        {
-            var types = new List<Type>();
-            
+        {   
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
             {
                 try
                 {
-                    types.AddRange(assembly.GetTypes().Where(t => (t.GetCustomAttribute<ValueSerializerAttribute>() != null || 
-                                                                   t.GetCustomAttribute<GenericValueSerializerAttribute>() != null)));
+                    ValueSerializerTypes.AddRange(assembly.GetTypes().Where(t => (t.GetCustomAttribute<ValueSerializerAttribute>() != null || 
+                                                                                  t.GetCustomAttribute<GenericValueSerializerAttribute>() != null)));
                 }   
                 catch (ReflectionTypeLoadException e)
                 {
                     Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
                 }
             }
-            
-            ValueSerializerTypes = types;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -17,23 +17,11 @@ namespace Fracture.Engine.Ecs
 {
     public abstract class Behavior : ActiveCsScript
     {
-        #region Static fields
-        private static int Idc = 0;
-        #endregion
-        
-        #region Event
+        #region Events
         public event EventHandler Detaching;
         #endregion
         
         #region Properties
-        /// <summary>
-        /// Gets unique id of the behavior.
-        /// </summary>
-        public int Id
-        {
-            get;
-        }
-
         /// <summary>
         /// Gets the id of the entity that this behaviour is attached to.
         /// </summary>
@@ -58,7 +46,6 @@ namespace Fracture.Engine.Ecs
         /// </summary>
         protected Behavior()
         {
-            Id = Idc++;
         }
         
         /// <summary>

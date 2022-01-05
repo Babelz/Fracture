@@ -79,8 +79,8 @@ namespace Fracture.Engine.Net
                      NetMessageQueryResponseCallback responseCallback, 
                      NetMessageQueryTimeoutCallback timeoutCallback) where T : class, IQueryMessage, new();
         
-        INetSystemPacketRouter Create(object consumer);
-        void Delete(INetSystemPacketRouter router);
+        INetSystemPacketRouter CreateRouter(object consumer);
+        void DeleteRouter(INetSystemPacketRouter router);
     }
     
     public sealed class NetSystem : GameEngineSystem, INetPacketSystem
@@ -255,10 +255,10 @@ namespace Fracture.Engine.Net
         public void Disconnect()
             => client.Disconnect();
         
-        public INetSystemPacketRouter Create(object consumer)
+        public INetSystemPacketRouter CreateRouter(object consumer)
             => new NetSystemPacketRouter(consumer, managedPacketHandler);
         
-        public void Delete(INetSystemPacketRouter router)
+        public void DeleteRouter(INetSystemPacketRouter router)
         {
             if (!managedPacketHandler.Clear(router.Consumer))
                 throw new InvalidOperationException($"attempt to delete router that does not belong to {nameof(NetSystem)} was made");

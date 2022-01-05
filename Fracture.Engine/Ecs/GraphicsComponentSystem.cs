@@ -440,7 +440,7 @@ namespace Fracture.Engine.Ecs
       
       public abstract void DrawElement(int id, IGraphicsFragment fragment);
       
-      public virtual void Update()
+      public override void Update(IGameEngineTime time)
       {
          // Update all dirty elements.
          var layersLookup = Layers.ToDictionary(l => l.Name, l => l);
@@ -1111,7 +1111,7 @@ namespace Fracture.Engine.Ecs
 
       public override void Update(IGameEngineTime time)
       {
-         base.Update();
+         base.Update(time);
 
          for (var i = 0; i < Count; i++)
          {
@@ -1275,7 +1275,7 @@ namespace Fracture.Engine.Ecs
                                        IEventQueueSystem events, 
                                        IGraphicsLayerSystem layers, 
                                        ITransformComponentSystem transforms) 
-         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
+         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteText)
       {
       }
 

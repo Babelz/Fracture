@@ -60,16 +60,9 @@ namespace Fracture.Net.Tests.Hosting
 
             ApplicationTestUtils.LimitFrames(application, 2);
             
-            application.Join += (s, e) =>
-            {
-                handledPeers.Enqueue(e.Peer);
-            };
-            
-            application.Reset += (s, e) =>
-            {
-                handledPeers.Enqueue(e.Peer);
-            };
-            
+            application.Join  += (object s, in PeerJoinEventArgs e) =>  { handledPeers.Enqueue(e.Peer); };
+            application.Reset += (object s, in PeerResetEventArgs e) => { handledPeers.Enqueue(e.Peer); };
+                                                                        
             application.Start();
             
             Assert.Equal(handledPeers.Dequeue(), first);
@@ -111,7 +104,7 @@ namespace Fracture.Net.Tests.Hosting
             
             application.Requests.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
 
-            application.Reset += (sender, args) => resetPeers.Add(args.Peer);
+            application.Reset += (object sender, in PeerResetEventArgs args) => { resetPeers.Add(args.Peer); };
             
             application.Start();
             
@@ -134,7 +127,7 @@ namespace Fracture.Net.Tests.Hosting
             ApplicationTestUtils.LimitFrames(application, 3);
             ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue(n => n.Reset(first.Id)));
             
-            application.Reset += (sender, args) => resetPeers.Add(args.Peer);
+            application.Reset += (object sender, in PeerResetEventArgs args) => { resetPeers.Add(args.Peer); };
             
             application.Start();
             

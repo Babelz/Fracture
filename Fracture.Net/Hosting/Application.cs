@@ -720,12 +720,12 @@ namespace Fracture.Net.Hosting
             while (acceptedNotifications.Count != 0)
             {
                 var notification = acceptedNotifications.Dequeue();
-                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p);
+                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p));
                                                                               
                 try
                 {
                     // Handle each notification based on the command associated with them. Filter out any peers that the handler
-                    // migt have mark for reset.
+                    // might have mark for reset.
                     switch (notification.Command)
                     {
                         case NotificationCommand.Send:
