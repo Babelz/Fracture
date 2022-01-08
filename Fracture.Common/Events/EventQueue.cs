@@ -149,15 +149,18 @@ namespace Fracture.Common.Events
       {
          AssertTopicExists(key);
 
-         foreach (var args in published[key])
-            foreach (var callback in callbacks[key])
-               callback(args);
-         
-         EventListPool.Return(published[key]);
-         CallbackListPool.Return(callbacks[key]);
+         var args     = published[key];
+         var handlers = callbacks[key];
          
          published.Remove(key);
          callbacks.Remove(key);
+
+         foreach (var arg in args)
+            foreach (var callback in handlers)
+               callback(arg);
+         
+         EventListPool.Return(args);
+         CallbackListPool.Return(handlers);
       }
 
       public virtual void Dispatch()

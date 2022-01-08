@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Fracture.Common.Collections;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
+using Fracture.Common.Memory.Pools;
+using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
 using NLog;
@@ -11,17 +14,27 @@ using NLog;
 namespace Fracture.Engine.Scripting
 {
     /// <summary>
-    /// Interface for creating systems that provide CS script management for CS scripts.
+    /// Interface for implementing systems that provide CS script management for CS scripts.
     /// </summary>
     public interface ICsScriptingSystem : IGameEngineSystem
     {
         T Load<T>(params IBindingValue[] bindings) where T : CsScript;
     }
 
+    /// <summary>
+    /// Interface for implementing actors that react to CS scripts they support.
+    /// </summary>
     public interface ICsScriptActor
     {
+        /// <summary>
+        /// Introduce given script to the actor and if the actor supports this type of script it will act upon it. Returns boolean declaring whether the
+        /// actor was able to act on the script or not.
+        /// </summary>
         bool Accept(CsScript script);
 
+        /// <summary>
+        /// Allows the actor to update its internal state.
+        /// </summary>
         void Update(IGameEngineTime time);
     }
     
@@ -55,7 +68,7 @@ namespace Fracture.Engine.Scripting
         public bool Accept(CsScript script)
         {
             if (!(script is T actual)) 
-                return true;
+                return false;
             
             accepted.Add(actual);
 

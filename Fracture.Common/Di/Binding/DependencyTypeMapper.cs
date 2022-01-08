@@ -47,7 +47,7 @@ namespace Fracture.Common.Di.Binding
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Type[] Map(Type type, DependencyBindingOptions options)
         {
-            var types = new List<Type>();
+            var types = new HashSet<Type>();
 
             if ((options & DependencyBindingOptions.BaseType) == DependencyBindingOptions.BaseType)
             {
@@ -79,12 +79,12 @@ namespace Fracture.Common.Di.Binding
                 }
             }
 
-            if ((options & DependencyBindingOptions.Interfaces) != DependencyBindingOptions.Interfaces)
+            if ((options & DependencyBindingOptions.Interfaces) == DependencyBindingOptions.Interfaces)
             {
                 if (type.IsInterface) 
                     types.Add(type);    
                 
-                types.AddRange(type.GetInterfaces());
+                Array.ForEach(type.GetInterfaces(), t => types.Add(t));
             }
             
             return types.ToArray();

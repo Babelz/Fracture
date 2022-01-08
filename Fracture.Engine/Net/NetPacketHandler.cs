@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.ServiceModel.Configuration;
 using Fracture.Net.Clients;
 using Fracture.Net.Messages;
 
@@ -10,23 +11,18 @@ namespace Fracture.Engine.Net
 
     public interface INetPacketHandler
     {
-        void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
-    }
-    
-    public interface IManagedNetPacketHandler
-    { 
-        void Use(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
+        void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
         
-        bool Clear(object consumer);
+        void Revoke(string name);
     }
     
-    public class ManagedNetPacketHandler : IManagedNetPacketHandler
+    public class NetPacketHandler : INetPacketHandler
     {
         #region Private net message handler context
         private sealed class NetMessageHandlerContext
         {
             #region Properties
-            public object Consumer
+            public string Name
             {
                 get;
             }
@@ -42,11 +38,11 @@ namespace Fracture.Engine.Net
             }
             #endregion
 
-            public NetMessageHandlerContext(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            public NetMessageHandlerContext(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             {
-                Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
-                Match    = match ?? throw new ArgumentNullException(nameof(match));
-                Handler  = handler ?? throw new ArgumentNullException(nameof(handler));
+                Name    = name ?? throw new ArgumentNullException(nameof(name));
+                Match   = match ?? throw new ArgumentNullException(nameof(match));
+                Handler = handler ?? throw new ArgumentNullException(nameof(handler));
             }
         }
         #endregion
@@ -55,15 +51,18 @@ namespace Fracture.Engine.Net
         private readonly List<NetMessageHandlerContext> contexts;
         #endregion
 
-        public ManagedNetPacketHandler()
+        public NetPacketHandler()
             => contexts = new List<NetMessageHandlerContext>();
         
-        public void Use(object consumer, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => contexts.Add(new NetMessageHandlerContext(consumer, match, handler));
+        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => contexts.Add(new NetMessageHandlerContext(name, match, handler));
         
-        public bool Clear(object consumer)
-            => contexts.RemoveAll(c => c.Consumer == consumer) != 0;
-            
+        public void Revoke(string name)
+        {
+            if (!contexts.Remove(contexts.FirstOrDefault(c => c.Name == name)))
+                throw new InvalidOperationException($"no handle with name {name} exists"); 
+        }
+        
         public bool Handle(ClientUpdate.Packet packet)
         {
             var context = contexts.FirstOrDefault(c => c.Match(packet));

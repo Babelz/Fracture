@@ -166,7 +166,7 @@ namespace Fracture.Net.Hosting
                 binder.Bind<ApplicationTimer>();
             
             if (!binder.Exists<PeerPipelineFidelity>()) 
-                binder.Bind(PeerPipelineFidelity.Loose);
+                binder.Bind(PeerPipelineFidelity.Receive);
             
             // Initialize application.
             return binder.Activate<Application>();

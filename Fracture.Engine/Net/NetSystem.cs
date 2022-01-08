@@ -37,50 +37,13 @@ namespace Fracture.Engine.Net
     public delegate void NetMessageQueryResponseCallback(IQueryMessage response);
     public delegate void NetMessageQueryTimeoutCallback(IQueryMessage request);
     
-    public interface INetSystemPacketRouter : INetPacketHandler
-    {
-        #region Properties
-        object Consumer
-        {
-            get;
-        }
-        #endregion
-    }
-    
-    public sealed class NetSystemPacketRouter : INetSystemPacketRouter
-    {
-        #region Fields
-        private readonly IManagedNetPacketHandler managedHandler;
-        #endregion
-
-        #region Properties
-        public object Consumer
-        {
-            get;
-        }
-        #endregion
-        
-        public NetSystemPacketRouter(object consumer, IManagedNetPacketHandler managedHandler)
-        {    
-            this.managedHandler = managedHandler ?? throw new ArgumentNullException(nameof(managedHandler));
-
-            Consumer = consumer ?? throw new ArgumentNullException(nameof(consumer));
-        }
-        
-        public void Use(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => managedHandler.Use(Consumer, match, handler);
-    }
-    
-    public interface INetPacketSystem : INetSystem
+    public interface INetPacketSystem : INetSystem, INetPacketHandler
     {
         void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new();
         
         void Send<T>(PoolElementDecoratorDelegate<T> decorator, 
                      NetMessageQueryResponseCallback responseCallback, 
                      NetMessageQueryTimeoutCallback timeoutCallback) where T : class, IQueryMessage, new();
-        
-        INetSystemPacketRouter CreateRouter(object consumer);
-        void DeleteRouter(INetSystemPacketRouter router);
     }
     
     public sealed class NetSystem : GameEngineSystem, INetPacketSystem
@@ -132,7 +95,7 @@ namespace Fracture.Engine.Net
         private NetSystemConnectFailedCallback connectFailedCallback;
         private NetSystemDisconnectedCallback disconnectedCallback;
         
-        private readonly ManagedNetPacketHandler managedPacketHandler;
+        private readonly NetPacketHandler packetHandler;
         
         private readonly List<QueryMessageContext> queries;
         #endregion
@@ -147,8 +110,8 @@ namespace Fracture.Engine.Net
             this.client           = client ?? throw new ArgumentException(nameof(client));
             this.queryGracePeriod = queryGracePeriod;
             
-            managedPacketHandler = new ManagedNetPacketHandler();
-            queries              = new List<QueryMessageContext>(256);
+            packetHandler = new NetPacketHandler();
+            queries       = new List<QueryMessageContext>(256);
         }
 
         public NetSystem(Client client)   
@@ -247,7 +210,7 @@ namespace Fracture.Engine.Net
                 }
             }
             
-            managedPacketHandler.Handle(packet);
+            packetHandler.Handle(packet);
             
             ReleasePacket(packet);
         }
@@ -255,14 +218,11 @@ namespace Fracture.Engine.Net
         public void Disconnect()
             => client.Disconnect();
         
-        public INetSystemPacketRouter CreateRouter(object consumer)
-            => new NetSystemPacketRouter(consumer, managedPacketHandler);
-        
-        public void DeleteRouter(INetSystemPacketRouter router)
-        {
-            if (!managedPacketHandler.Clear(router.Consumer))
-                throw new InvalidOperationException($"attempt to delete router that does not belong to {nameof(NetSystem)} was made");
-        }
+        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler) 
+            => packetHandler.Use(name, match, handler);
+
+        public void Revoke(string name)
+            => packetHandler.Revoke(name);
 
         public void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new()
             => client.Send(Message.Create(decorator));

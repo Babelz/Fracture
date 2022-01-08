@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
+using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
 using NLog;
@@ -47,7 +48,7 @@ namespace Fracture.Engine.Ecs
         #region Fields
         private readonly IGameObjectActivatorSystem activator;
         
-        private readonly Dictionary<Type, object> registry;
+        private readonly Kernel registry;
         #endregion
         
         [BindingConstructor]
@@ -55,7 +56,7 @@ namespace Fracture.Engine.Ecs
         {
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
             
-            registry = new Dictionary<Type, object>();
+            registry = new Kernel(DependencyBindingOptions.Interfaces);
         }
 
         public override void Initialize()
@@ -64,8 +65,8 @@ namespace Fracture.Engine.Ecs
             {
                 try
                 {
-                    foreach (var type in assembly.GetTypes())
-                        registry.Add(type, activator.Activate(type));
+                    foreach (var type in assembly.GetTypes().Where(t => typeof(IEntityPrefab).IsAssignableFrom(t) && !t.IsAbstract))
+                        registry.Bind(activator.Activate(type));
                 }
                 catch (Exception e)
                 {
@@ -75,9 +76,9 @@ namespace Fracture.Engine.Ecs
         }
 
         public void Register<T>() where T : IEntityPrefab
-            => registry.Add(typeof(T), activator.Activate(typeof(T)));
+            => registry.Bind(activator.Activate<T>());
         
         public T Get<T>() where T : IEntityPrefab
-            => (T)registry[typeof(T)];
+            => registry.First<T>();
     }
 }

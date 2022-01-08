@@ -115,7 +115,7 @@ namespace Fracture.Engine.Ecs
     public sealed class BehaviorSystem : GameEngineSystem, IBehaviorSystem
     {
         #region Static fields
-        private readonly CollectionPool<List<Behavior>> ListPool = new CollectionPool<List<Behavior>>(
+        private static readonly CollectionPool<List<Behavior>> ListPool = new CollectionPool<List<Behavior>>(
             new Pool<List<Behavior>>(
                 new LinearStorageObject<List<Behavior>>(
                     new LinearGrowthArray<List<Behavior>>()))
@@ -144,7 +144,7 @@ namespace Fracture.Engine.Ecs
             
             void EntityDeleted(in EntityEventArgs args)
             {
-                if (!behaviour.Attached)
+                if (behaviour.Attached)
                     behaviour.Detach();
                 
                 if (entityBehaviourLists[entityId].Count == 0)
