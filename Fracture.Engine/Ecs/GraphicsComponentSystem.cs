@@ -387,10 +387,8 @@ namespace Fracture.Engine.Ecs
          Transforms.RotationChanged.Subscribe(transform, OnTransformRotationChanged);
          
          Deleted.Subscribe(id, delegate {
-            if (!Transforms.ScaleChanged.Exists(transform))
-               return;
-
-            Transforms.RotationChanged.Unsubscribe(transform, OnTransformRotationChanged);
+            if (Transforms.RotationChanged.Exists(transform))
+               Transforms.RotationChanged.Unsubscribe(transform, OnTransformRotationChanged);
          });
          
          TransformRotation(id, Transforms.GetRotation(Transforms.FirstFor(OwnerOf(id))));
@@ -408,10 +406,8 @@ namespace Fracture.Engine.Ecs
          Transforms.PositionChanged.Subscribe(transform, OnTransformPositionChanged);
          
          Deleted.Subscribe(id, delegate {
-            if (!Transforms.ScaleChanged.Exists(transform))
-               return;
-
-            Transforms.PositionChanged.Unsubscribe(transform, OnTransformPositionChanged);
+            if (Transforms.PositionChanged.Exists(transform))
+               Transforms.PositionChanged.Unsubscribe(transform, OnTransformPositionChanged);
          });
          
          TransformPosition(id, Transforms.GetPosition(Transforms.FirstFor(OwnerOf(id))));
@@ -429,10 +425,8 @@ namespace Fracture.Engine.Ecs
          Transforms.ScaleChanged.Subscribe(transform, OnTransformScaleChanged);
          
          Deleted.Subscribe(id, delegate {
-            if (!Transforms.ScaleChanged.Exists(transform))
-               return;
-            
-            Transforms.ScaleChanged.Unsubscribe(transform, OnTransformScaleChanged);
+            if (Transforms.ScaleChanged.Exists(transform))
+               Transforms.ScaleChanged.Unsubscribe(transform, OnTransformScaleChanged);
          });
          
          TransformScale(id, Transforms.GetScale(Transforms.FirstFor(OwnerOf(id))));
