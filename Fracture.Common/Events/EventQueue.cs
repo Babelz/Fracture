@@ -159,6 +159,8 @@ namespace Fracture.Common.Events
          
          EventListPool.Return(args);
          CallbackListPool.Return(handlers);
+         
+         dirty.Remove(key);
       }
 
       public virtual void Dispatch()

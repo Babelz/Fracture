@@ -57,7 +57,7 @@ namespace Fracture.Engine.Scripting
             => unloaded.Add((T)sender);
         
         private void Script_Loading(object sender, EventArgs e)
-            => active.Add((T) sender);
+            => active.Add((T)sender);
         #endregion
         
         public bool Accept(CsScript script)
@@ -67,18 +67,16 @@ namespace Fracture.Engine.Scripting
             
             accepted.Add(actual);
 
+            script.Unloading += Script_Unloading;
+            script.Loading   += Script_Loading;
+
             return true;
         }
 
         public virtual void Update(IGameEngineTime time)
         {
             foreach (var script in accepted)
-            {
-                script.Unloading += Script_Unloading;
-                script.Loading   += Script_Loading;
-         
                 script.Load();
-            }
             
             accepted.Clear();
 

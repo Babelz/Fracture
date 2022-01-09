@@ -148,6 +148,8 @@ namespace Fracture.Engine.Ecs
                 
                 if (entities.Deleted.Exists(entityId))
                     entities.Deleted.Unsubscribe(entityId, EntityDeleted);
+                
+                behaviour.Unload();
             }    
             
             entities.Deleted.Subscribe(entityId, EntityDeleted);
