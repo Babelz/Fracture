@@ -1,6 +1,5 @@
 using System;
 using Microsoft.Xna.Framework.Content;
-using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Core.Systems
 {

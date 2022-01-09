@@ -1,15 +1,10 @@
 using System;
-using System.Linq;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
-using Fracture.Engine.Ecs;
 using Fracture.Engine.Graphics;
-using Fracture.Engine.Input.Devices;
-using Fracture.Engine.Scripting;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using NLog;
 

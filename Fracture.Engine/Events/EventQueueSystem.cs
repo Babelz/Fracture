@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Sockets;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;

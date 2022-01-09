@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using Fracture.Common.Events;
 using Fracture.Common.Util;
-using Newtonsoft.Json;
 
 namespace Fracture.Net.Hosting.Servers
 {

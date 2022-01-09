@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 

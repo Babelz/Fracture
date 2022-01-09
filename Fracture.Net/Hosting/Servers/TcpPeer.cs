@@ -5,8 +5,6 @@ using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
-using NLog;
-using NLog.Fluent;
 
 namespace Fracture.Net.Hosting.Servers
 {

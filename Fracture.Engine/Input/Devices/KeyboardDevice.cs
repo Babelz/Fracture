@@ -5,7 +5,6 @@ using System.Text;
 using Fracture.Common.Collections;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Components;
-using Fracture.Engine.Core.Systems;
 using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;

@@ -4,7 +4,6 @@ using System.Linq;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
-using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Events;
 using Fracture.Engine.Physics;

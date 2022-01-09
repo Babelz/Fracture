@@ -1,15 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Fracture.Common.Collections;
-using Fracture.Common.Di;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
-using NLog;
 
 namespace Fracture.Engine.Scripting
 {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Input.Devices

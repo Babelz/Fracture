@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ServiceModel.Configuration;
 using Fracture.Net.Clients;
-using Fracture.Net.Messages;
 
 namespace Fracture.Engine.Net
 {

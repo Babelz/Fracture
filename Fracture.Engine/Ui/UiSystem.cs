@@ -8,7 +8,6 @@ using Fracture.Engine.Core.Systems;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Fracture.Engine.Ui.Controls;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Shattered.Content.Ui;
 

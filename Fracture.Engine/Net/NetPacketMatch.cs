@@ -1,4 +1,3 @@
-using System;
 using Fracture.Net.Clients;
 using Fracture.Net.Messages;
 

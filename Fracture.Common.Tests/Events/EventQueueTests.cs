@@ -1,4 +1,3 @@
-using System;
 using Fracture.Common.Events;
 using Xunit;
 

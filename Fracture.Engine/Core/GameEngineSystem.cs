@@ -1,5 +1,4 @@
-﻿using System;
-using Fracture.Common.Di.Attributes;
+﻿using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Engine.Core
 {
