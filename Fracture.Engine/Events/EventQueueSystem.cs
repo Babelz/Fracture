@@ -1,73 +1,55 @@
 using System.Collections.Generic;
+using System.Linq;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Events
 {
-   /// <summary>
-   /// Interface for implementing event queue systems.
-   /// </summary>
-   public interface IEventQueueSystem : IObjectManagementSystem
+   public interface IEventQueueSystem : IGameEngineSystem
    {
-      /// <summary>
-      /// Creates new shared event queue and returns it to the caller.
-      /// </summary>
-      IEventQueue<TKey, TArgs> CreateShared<TKey, TArgs>();
+      ISharedEventPublisher<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity = 64);
 
-      /// <summary>
-      /// Creates new unique event queue and returns it to the caller.
-      /// </summary>
-      IEventQueue<TKey, TArgs> CreateUnique<TKey, TArgs>();
-
-      /// <summary>
-      /// Deletes given event queue.
-      /// </summary>
-      bool Delete<TKey, TEvent>(IEventQueue<TKey, TEvent> queue);
+      IUniqueEventPublisher<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity = 16);
+      
+      IEventHandler<TTopic, TArgs> GetHandler<TTopic, TArgs>();
    }
-   
-   /// <summary>
-   /// Game engine system that manages <see cref="SharedEventQueue{TKey,TSubscriber}"/> handles invoking events added
-   /// to event queues in managed manner.
-   /// </summary>
+
    public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
    {
       #region Fields
-      private readonly List<IEventDispatcher> queues;
+      private readonly List<IEventQueue> queues;
       #endregion
 
       [BindingConstructor]
       public EventQueueSystem()
-         => queues = new List<IEventDispatcher>();
-
-      public IEventQueue<TKey, TArgs> CreateShared<TKey, TArgs>()
-      {
-         var queue = new SharedEventQueue<TKey, TArgs>();
-         
-         queues.Add(queue);
-         
-         return queue;
-      }
+         => queues = new List<IEventQueue>();
       
-      public IEventQueue<TKey, TArgs> CreateUnique<TKey, TArgs>()
+      public ISharedEventPublisher<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity)
       {
-         var queue = new UniqueEventQueue<TKey, TArgs>();
+         var backlog = new SharedEventBacklog<TTopic, TArgs>(capacity);
          
-         queues.Add(queue);
+         queues.Add(backlog);
          
-         return queue;
+         return backlog;
       }
 
-      public bool Delete<TKey, TArgs>(IEventQueue<TKey, TArgs> queue)
-         => queues.Remove(queue);
-      
-      public void Clear()
-         => queues.Clear();
+      public IUniqueEventPublisher<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity)
+      {
+         var backlog = new UniqueEventBacklog<TTopic, TArgs>(capacity);
+         
+         queues.Add(backlog);
+         
+         return backlog;
+      }
+
+      public IEventHandler<TTopic, TArgs> GetHandler<TTopic, TArgs>()
+         => (IEventHandler<TTopic, TArgs>)queues.First(q => q is IEventHandler<TTopic, TArgs>);
       
       public override void Update(IGameEngineTime time)
       {
          foreach (var queue in queues)
-            queue.Dispatch();
+            queue.Clear();
       }
    }
 }

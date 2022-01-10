@@ -1,215 +1,212 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
+using System.Threading.Tasks;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Common.Events
 {
-   public delegate void EventCallbackDelegate<T>(in T args);
-
-   /// <summary>
-   /// Interface for implementing events. This interface provides subscription related operations regarding events. 
-   /// </summary>
-   public interface IEvent<in TKey, TArgs>
+   public readonly struct Letter<TTopic, TArgs>
    {
-      /// <summary>
-      /// Subscribe handler to topic with given key.
-      /// </summary>
-      void Subscribe(TKey key, EventCallbackDelegate<TArgs> callback);
+      #region Properties
+      public TTopic Topic
+      {
+         get;
+      }
 
-      /// <summary>
-      /// Unsubscribe handler from topic with given key.
-      /// </summary>
-      void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback);
-      
-      /// <summary>
-      /// Returns boolean declaring whether topic with given key exists.
-      /// </summary>
-      bool Exists(TKey key);
+      public TArgs Args
+      {
+         get;
+      }
+      #endregion
+
+      public Letter(in TTopic topic, in TArgs args)
+      {
+         Topic = topic;
+         Args  = args;
+      }
    }
    
-   /// <summary>
-   /// Interface for implementing event dispatcher. Dispatchers dispatch all events queued to any event source at once.
-   /// </summary>
-   public interface IEventDispatcher
+   public enum LetterHandlingResult : byte
+   {
+      Consume = 0,
+      Retain
+   }
+   
+   public delegate LetterHandlingResult EventHandlerDelegate<TTopic, TArgs>(in Letter<TTopic, TArgs> letter);
+   
+   public interface IEventHandler<TTopic, TArgs>
+   {
+      void Handle(EventHandlerDelegate<TTopic, TArgs> handler);
+   }
+   
+   public interface IEventBacklog<TTopic>
    {
       /// <summary>
-      /// Dispatch all events in this event source.
+      /// Creates new topic allowing subscriptions to be made to the topic.
       /// </summary>
-      void Dispatch();
+      void Create(in TTopic topic);
+      
+      /// <summary>
+      /// Marks topic for deletion and deletes it after next tick. 
+      /// </summary>
+      void Delete(in TTopic topic);
+   }
+   
+   public interface IEventQueue
+   {
+      /// <summary>
+      /// Clears the queue and removes all unconsumed letters from it. 
+      /// </summary>
+      void Clear();
+   }
+   
+   public interface ISharedEventPublisher<TTopic, TArgs> : IEventBacklog<TTopic>
+   {
+      /// <summary>
+      /// Publishes given letter to given topic.
+      /// </summary>
+      void Publish(in TTopic topic, in TArgs args);
+   }
+   
+   public delegate TArgs UniqueEventLetterAggregatorDelegate<TTopic, TArgs>(in Letter<TTopic, TArgs> current, in TArgs next);
+   
+   public interface IUniqueEventPublisher<TTopic, TArgs> : IEventBacklog<TTopic>
+   {
+      void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TTopic, TArgs> aggregator = null);
    }
 
-   /// <summary>
-   /// Interface for implementing event queues. Event queues allow creation of topics and subscribers can listen for
-   /// events published to those topics. Event queues provide managed, predicable and delayed way of invoking events.
-   /// </summary>
-   public interface IEventQueue<in TKey, TArgs> : IEventDispatcher, IEvent<TKey, TArgs>
+   public abstract class EventBacklog<TTopic, TArgs> : IEventBacklog<TTopic>, IEventHandler<TTopic, TArgs>, IEventQueue
    {
-      /// <summary>
-      /// Creates new topic and associates given key with it. This allows subscriptions to be made to the topic.
-      /// </summary>
-      void Create(TKey key);
-      
-      /// <summary>
-      /// Deletes topic with given key and causes all events for this topic be invoked immediately and clears all enqueued events. 
-      /// </summary>
-      void Delete(TKey key);
-      
-      /// <summary>
-      /// Publishes event to the queue.
-      /// </summary>
-      void Publish(TKey key, in TArgs args);
-   }
-
-   /// <summary>
-   /// Event queue that supports generic event dispatch for multiple event sources and allows single topic to contain
-   /// multiple events at any time.
-   /// </summary>
-   public class SharedEventQueue<TKey, TArgs> : IEventQueue<TKey, TArgs>
-   {
-      #region Static fields
-      private static readonly CollectionPool<List<EventCallbackDelegate<TArgs>>> CallbackListPool = new CollectionPool<List<EventCallbackDelegate<TArgs>>>(
-         new Pool<List<EventCallbackDelegate<TArgs>>>(new LinearStorageObject<List<EventCallbackDelegate<TArgs>>>(
-                                                         new LinearGrowthArray<List<EventCallbackDelegate<TArgs>>>()))
-         );
-      
-      private static readonly CollectionPool<List<TArgs>> EventListPool = new CollectionPool<List<TArgs>>(
-         new Pool<List<TArgs>>(new LinearStorageObject<List<TArgs>>(
-                                  new LinearGrowthArray<List<TArgs>>()))
-         );
-      #endregion
-      
       #region Fields
-      private readonly Dictionary<TKey, List<TArgs>> published;
-      private readonly Dictionary<TKey, List<EventCallbackDelegate<TArgs>>> callbacks;
+      private readonly HashSet<TTopic> deletedTopics;
+      private readonly HashSet<TTopic> activeTopics;
       
-      // Set of topic keys that have published events.
-      private readonly HashSet<TKey> dirty;
+      private readonly HashSet<int> consumedLetters;
+      
+      private readonly LinearGrowthArray<Letter<TTopic, TArgs>> letters;
+      
+      private int publishedLettersCount;
       #endregion
 
-      public SharedEventQueue()
+      protected EventBacklog(int capacity)
       {
-         published = new Dictionary<TKey, List<TArgs>>();
-         callbacks = new Dictionary<TKey, List<EventCallbackDelegate<TArgs>>>();
+         activeTopics    = new HashSet<TTopic>();
+         deletedTopics   = new HashSet<TTopic>();
+         letters         = new LinearGrowthArray<Letter<TTopic, TArgs>>(capacity);
+         consumedLetters = new HashSet<int>();
+      }
+
+      protected bool TopicExists(in TTopic topic)
+         => activeTopics.Contains(topic);
+      
+      protected int EnqueueLetter(in TTopic topic, in TArgs args)
+      {
+         if (publishedLettersCount >= letters.Length)
+            letters.Grow();
          
-         dirty = new HashSet<TKey>();
+         letters.Insert(publishedLettersCount, new Letter<TTopic, TArgs>(topic, args));
+         
+         return publishedLettersCount++;
       }
       
-      protected void AssertTopicExists(TKey key)
-      {
-         if (!callbacks.ContainsKey(key))
-            throw new InvalidOperationException($"topic with key {key} does not exist");
-      }
+      protected void InsertLetter(int index, in TTopic topic, in TArgs args)
+         => letters.Insert(index, new Letter<TTopic, TArgs>(topic, args));
       
-      protected void AssertTopicDoesNotExist(TKey key)
-      {
-         if (callbacks.ContainsKey(key))
-            throw new InvalidOperationException($"topic with key {key} already exists");
-      }
-
-      public bool Exists(TKey key)
-         => callbacks.ContainsKey(key);
-
-      public void Create(TKey key)
-      {
-         AssertTopicDoesNotExist(key);
-         
-         callbacks.Add(key, CallbackListPool.Take());
-         published.Add(key, EventListPool.Take());
-      }
-
-      public void Subscribe(TKey key, EventCallbackDelegate<TArgs> callback)
-      {
-         AssertTopicExists(key);
-
-         callbacks[key].Add(callback);
-      }
-         
-      public void Unsubscribe(TKey key, EventCallbackDelegate<TArgs> callback)
-      {
-         AssertTopicExists(key);
-
-         callbacks[key].Remove(callback);
-      }
+      protected ref Letter<TTopic, TArgs> LetterAtIndex(int index)
+         => ref letters.AtIndex(index);
       
-      public virtual void Publish(TKey key, in TArgs args)
+      public void Handle(EventHandlerDelegate<TTopic, TArgs> handler)
       {
-         AssertTopicExists(key);
-
-         published[key].Add(args);
+         if (handler == null)
+            throw new ArgumentNullException(nameof(handler));
          
-         dirty.Add(key);
-      }
-      
-      public void Delete(TKey key)
-      {
-         AssertTopicExists(key);
-
-         var args     = published[key];
-         var handlers = callbacks[key];
-         
-         published.Remove(key);
-         callbacks.Remove(key);
-
-         foreach (var arg in args)
-            foreach (var callback in handlers)
-               callback(arg);
-         
-         EventListPool.Return(args);
-         CallbackListPool.Return(handlers);
-         
-         dirty.Remove(key);
-      }
-
-      public virtual void Dispatch()
-      {
-         foreach (var key in dirty.Where(key => published.ContainsKey(key)))
+         for (var i = 0; i < publishedLettersCount; i++)
          {
-            foreach (var args in published[key])
-            {
-               foreach (var callback in callbacks[key])
-                  callback(args);
-            }
-               
-            published[key].Clear();
+            if (consumedLetters.Contains(i)) 
+               continue;
+            
+            ref var letter = ref letters.AtIndex(i);
+            
+            if (handler(letter) != LetterHandlingResult.Retain)
+               consumedLetters.Add(i);
          }
+      }
 
-         dirty.Clear();
+      public void Create(in TTopic topic)
+      {
+         if (!activeTopics.Add(topic))
+            throw new InvalidOperationException($"topic {topic} already exists");
+      }
+
+      public void Delete(in TTopic topic)
+      {
+         if (!TopicExists(topic))
+            throw new InvalidOperationException($"topic {topic} does not exist");
+         
+         if (!deletedTopics.Add(topic))
+            throw new InvalidOperationException($"topic {topic} already marked for deletion");
+      }
+
+      public virtual void Clear()
+      {
+         // Remove all topics that were marked for deletion.
+         foreach (var topic in deletedTopics)
+            activeTopics.Remove(topic);
+         
+         deletedTopics.Clear();
+         
+         // Clear letter state.
+         consumedLetters.Clear();
+         
+         publishedLettersCount = 0;
       }
    }
-
-   /// <summary>
-   /// Event queue that supports generic event dispatch for multiple event sources
-   /// and allows single topic to contain one event at time.
-   /// </summary>
-   public sealed class UniqueEventQueue<TKey, TArgs> : SharedEventQueue<TKey, TArgs> 
+   
+   public sealed class SharedEventBacklog<TTopic, TArgs> : EventBacklog<TTopic, TArgs>, ISharedEventPublisher<TTopic, TArgs>
+   {
+      public SharedEventBacklog(int capacity)
+         : base(capacity)
+      {
+      }
+      
+      public void Publish(in TTopic topic, in TArgs args)
+      {
+         if (!TopicExists(topic))
+            throw new InvalidOperationException($"topic {topic} does not exist");
+         
+         EnqueueLetter(topic, args);
+      }
+   }
+   
+   public sealed class UniqueEventBacklog<TTopic, TArgs> : EventBacklog<TTopic, TArgs>, IUniqueEventPublisher<TTopic, TArgs>
    {
       #region Fields
-      private readonly HashSet<TKey> lookup;
+      private readonly Dictionary<TTopic, int> topicLetterIndices;
       #endregion
       
-      public UniqueEventQueue()
-      {
-         lookup = new HashSet<TKey>();
-      }
+      public UniqueEventBacklog(int capacity)
+         : base(capacity) => topicLetterIndices = new Dictionary<TTopic, int>();
       
-      public override void Publish(TKey key, in TArgs args)
+      public void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TTopic, TArgs> aggregator = null)
       {
-         AssertTopicExists(key);
-
-         if (!lookup.Add(key))
-            return;
-            
-         base.Publish(key, args);
+         if (!TopicExists(topic))
+            throw new InvalidOperationException($"topic {topic} does not exist");
+         
+         if (topicLetterIndices.TryGetValue(topic, out var index))
+            InsertLetter(index, topic, (aggregator != null ? aggregator(LetterAtIndex(index), args) : args));
+         else
+            topicLetterIndices[topic] = EnqueueLetter(topic, args);
       }
 
-      public override void Dispatch()
+      public override void Clear()
       {
-         base.Dispatch();
+         base.Clear();
          
-         lookup.Clear();
+         topicLetterIndices.Clear();
       }
    }
 }

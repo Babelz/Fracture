@@ -51,48 +51,6 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public interface IEntitySystem : IGameEngineSystem, IEnumerable<int>
    {
-      #region Properties
-      /// <summary>
-      /// Event invoked when entity has been deleted.
-      /// </summary>
-      IEvent<int, EntityEventArgs> Deleted
-      {
-         get;
-      }
-      
-      /// <summary>
-      /// Event invoked when entity has been unpaired from one of its parents.
-      /// </summary>
-      IEvent<int, EntityPairEventArgs> UnpairedFromChild
-      {
-         get;
-      }
-      
-      /// <summary>
-      /// Event invoked entity has been unpaired from its parent.
-      /// </summary>
-      IEvent<int, EntityPairEventArgs> UnpairedFromParent
-      {
-         get;
-      }
-      
-      /// <summary>
-      /// Event invoked when entity is made parent of other entity.
-      /// </summary>
-      IEvent<int, EntityPairEventArgs> MadeParentOf
-      {
-         get;
-      }
-      
-      /// <summary>
-      /// Event invoked when entity is made child of other entity.
-      /// </summary>
-      IEvent<int, EntityPairEventArgs> MadeChildOf
-      {
-         get;
-      }
-      #endregion
-      
       /// <summary>
       /// Creates new entity with optional parameters.
       /// </summary>
@@ -199,42 +157,23 @@ namespace Fracture.Engine.Ecs
       private readonly LinearGrowthArray<Entity> entities;
 
       // Entity events. 
-      private readonly IEventQueue<int, EntityEventArgs> deletedEvents;
-      private readonly IEventQueue<int, EntityPairEventArgs> unpairedFromChildEvents;
-      private readonly IEventQueue<int, EntityPairEventArgs> unpairedFromParentEvents;
-      private readonly IEventQueue<int, EntityPairEventArgs> madeParentOfEvents;
-      private readonly IEventQueue<int, EntityPairEventArgs> madeChildOfEvents;
+      private readonly IUniqueEventPublisher<int, EntityEventArgs> deletedEvents;
+      private readonly ISharedEventPublisher<int, EntityPairEventArgs> unpairedFromChildEvents;
+      private readonly ISharedEventPublisher<int, EntityPairEventArgs> unpairedFromParentEvents;
+      private readonly ISharedEventPublisher<int, EntityPairEventArgs> madeParentOfEvents;
+      private readonly ISharedEventPublisher<int, EntityPairEventArgs> madeChildOfEvents;
       #endregion
-
-      #region Properties
-      public IEvent<int, EntityEventArgs> Deleted
-         => deletedEvents;
       
-      public IEvent<int, EntityPairEventArgs> UnpairedFromChild
-         => unpairedFromChildEvents;
-      
-      public IEvent<int, EntityPairEventArgs> UnpairedFromParent
-         => unpairedFromParentEvents;
-      
-      public IEvent<int, EntityPairEventArgs> MadeParentOf
-         => madeParentOfEvents;
-      
-      public IEvent<int, EntityPairEventArgs> MadeChildOf
-         => madeChildOfEvents;
-      #endregion
-
       [BindingConstructor]
       public EntitySystem(IEventQueueSystem events)
       {
          systemId = IdCounter++;
          
-         deletedEvents = events.CreateShared<int, EntityEventArgs>();
-         
+         deletedEvents            = events.CreateUnique<int, EntityEventArgs>();
          unpairedFromChildEvents  = events.CreateShared<int, EntityPairEventArgs>();
          unpairedFromParentEvents = events.CreateShared<int, EntityPairEventArgs>();
-         
-         madeParentOfEvents = events.CreateShared<int, EntityPairEventArgs>();
-         madeChildOfEvents  = events.CreateShared<int, EntityPairEventArgs>();
+         madeParentOfEvents       = events.CreateShared<int, EntityPairEventArgs>();
+         madeChildOfEvents        = events.CreateShared<int, EntityPairEventArgs>();
 
          // Create entity data. 
          var idc = 0;

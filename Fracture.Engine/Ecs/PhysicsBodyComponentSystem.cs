@@ -42,18 +42,6 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public interface IPhysicsBodyComponentSystem : IComponentSystem
    {
-      #region Properties
-      IEvent<int, BodyContactEventArgs> BeginContact
-      {
-         get;
-      }
-      
-      IEvent<int, BodyContactEventArgs> EndContact
-      {
-         get;
-      } 
-      #endregion
-      
       /// <summary>
       /// Creates new body component and inserts to the physics simulation. 
       /// </summary>
@@ -168,21 +156,13 @@ namespace Fracture.Engine.Ecs
       #region Fields
       private readonly LinearGrowthArray<PhysicsBodyComponent> bodies;
       
-      private readonly IEventQueue<int, BodyContactEventArgs> beginContactEvents;
-      private readonly IEventQueue<int, BodyContactEventArgs> endContactEvents;
+      private readonly ISharedEventPublisher<int, BodyContactEventArgs> beginContactEvents;
+      private readonly ISharedEventPublisher<int, BodyContactEventArgs> endContactEvents;
       
       private readonly ITransformComponentSystem transforms;
       private readonly IPhysicsWorldSystem world;
       
       private readonly List<int> dirty;
-      #endregion
-      
-      #region Properties
-      public IEvent<int, BodyContactEventArgs> BeginContact
-         => beginContactEvents;
-
-      public IEvent<int, BodyContactEventArgs> EndContact
-         => endContactEvents;
       #endregion
 
       [BindingConstructor]
@@ -200,8 +180,8 @@ namespace Fracture.Engine.Ecs
          world.Moved        += WorldOnRelocated;
          
          // Create events.
-         beginContactEvents = events.CreateUnique<int, BodyContactEventArgs>();
-         endContactEvents   = events.CreateUnique<int, BodyContactEventArgs>();
+         beginContactEvents = events.CreateShared<int, BodyContactEventArgs>();
+         endContactEvents   = events.CreateShared<int, BodyContactEventArgs>();
          
          bodies = new LinearGrowthArray<PhysicsBodyComponent>();
          dirty  = new List<int>();

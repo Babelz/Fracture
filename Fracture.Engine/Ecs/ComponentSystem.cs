@@ -33,16 +33,6 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public interface IComponentSystem : IObjectManagementSystem, IEnumerable<int>
    {
-      #region Properties
-      /// <summary>
-      /// Event invoked when component was deleted.
-      /// </summary>
-      IEvent<int, ComponentEventArgs> Deleted
-      {
-         get;
-      }
-      #endregion
-      
       /// <summary>
       /// Returns boolean declaring whether a component
       /// with given id is alive.
@@ -81,26 +71,19 @@ namespace Fracture.Engine.Ecs
       
       private readonly List<int> aliveComponents;
       
-      private readonly IEventQueue<int, ComponentEventArgs> deletedEvents;
+      private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
+      
+      private readonly IUniqueEventPublisher<int, ComponentEventArgs> componentDeletedEvents;
       #endregion
 
       #region Properties
       protected int Count => aliveComponents.Count;
-
-      protected IEntitySystem Entities
-      {
-         get;
-      }
-
-      public IEvent<int, ComponentEventArgs> Deleted
-         => deletedEvents;
       #endregion
 
-      protected ComponentSystem(IEntitySystem entities, IEventQueueSystem events)
+      protected ComponentSystem(IEventQueueSystem events)
       {
-         Entities = entities ?? throw new ArgumentNullException(nameof(entities));
-         
-         deletedEvents = events.CreateShared<int, ComponentEventArgs>();
+         componentDeletedEvents = events.CreateUnique<int, ComponentEventArgs>();
+         entityDeletedEvents    = events.GetHandler<int, EntityEventArgs>();
          
          // Create basic component data.
          var idc = 0;
@@ -136,17 +119,8 @@ namespace Fracture.Engine.Ecs
          componentToEntityMap.Add(id, entityId);
          
          // Create events.
-         deletedEvents.Create(id);
-         
-         // Delete the component when entity is deleted.
-         Entities.Deleted.Subscribe(entityId, delegate
-         {
-            if (!Alive(id))
-               return;
-            
-            Delete(id);
-         });
-         
+         componentDeletedEvents.Create(id);
+
          return id;
       }
       
@@ -180,10 +154,10 @@ namespace Fracture.Engine.Ecs
             return false;
          
          // Publish deleted event.
-         deletedEvents.Publish(id, new ComponentEventArgs(id));
+         componentDeletedEvents.Publish(id, new ComponentEventArgs(id));
 
          // Delete events.
-         deletedEvents.Delete(id);
+         componentDeletedEvents.Delete(id);
          
          aliveComponents.Remove(id);
          componentToEntityMap.Remove(id);
@@ -200,7 +174,18 @@ namespace Fracture.Engine.Ecs
       public abstract int FirstFor(int entityId);
       public abstract int AtIndex(int entityId, int index);
       public abstract IEnumerable<int> IndicesOf(int entityId);
-      
+
+      public override void Update(IGameEngineTime time)
+      {
+         entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) => 
+         {
+            foreach (var index in IndicesOf(letter.Args.Id))
+               Delete(AtIndex(index));
+            
+            return LetterHandlingResult.Retain;
+         });
+      }
+
       public virtual void Clear()
       {
          while (aliveComponents.Count != 0)
@@ -226,8 +211,8 @@ namespace Fracture.Engine.Ecs
       private readonly Dictionary<int, int> entityToComponentMap;
       #endregion
       
-      protected UniqueComponentSystem(IEntitySystem entities, IEventQueueSystem events) 
-         : base(entities, events) => entityToComponentMap = new Dictionary<int, int>();
+      protected UniqueComponentSystem(IEventQueueSystem events) 
+         : base(events) => entityToComponentMap = new Dictionary<int, int>();
       
       protected override int InitializeComponent(int entityId)
       {
@@ -302,8 +287,8 @@ namespace Fracture.Engine.Ecs
          );
       }
       
-      protected SharedComponentSystem(IEntitySystem entities, IEventQueueSystem events) 
-         : base(entities, events)
+      protected SharedComponentSystem(IEventQueueSystem events) 
+         : base(events)
       {
          entityToComponentsMap = new Dictionary<int, List<int>>();
       }

@@ -14,17 +14,17 @@ namespace Fracture.Common.Tests.Events
       
       [Fact]
       public void UniqueEventQueue_Ctor_Test()
-         => Assert.Null(Record.Exception(() => new UniqueEventQueue<object, int>()));
+         => Assert.Null(Record.Exception(() => new UniqueEventBacklog<object, int>()));
       
       [Fact]
       public void SharedEventQueue_Ctor_Test()
-         => Assert.Null(Record.Exception(() => new SharedEventQueue<object, int>()));
+         => Assert.Null(Record.Exception(() => new SharedEventBacklog<object, int>()));
 
       [Fact]
       public void Unique_Queue_Allows_One_Event_Per_Topic_Test()
       {
          // Arrange.
-         var queue     = new UniqueEventQueue<object, int>();
+         var queue     = new UniqueEventBacklog<object, int>();
          var testValue = 0;
          
          // Act.
@@ -49,7 +49,7 @@ namespace Fracture.Common.Tests.Events
       public void Shared_QueueAllows_Multiple_Events_Per_Topic_Test()
       {
          // Arrange.
-         var queue     = new SharedEventQueue<object, int>();
+         var queue     = new SharedEventBacklog<object, int>();
          var testValue = 0;
          
          // Act.

@@ -69,37 +69,12 @@ namespace Fracture.Engine.Ecs
          Rotation = rotation;
       }
    }
-    
    
    /// <summary>
    /// Interface for implementing transform component systems.
    /// </summary>
    public interface ITransformComponentSystem : IComponentSystem
    {
-      #region Properties
-      /// <summary>
-      /// Event invoked when transform position changes.
-      /// </summary>
-      IEvent<int, TransformPositionEventArgs> PositionChanged
-      {
-         get;
-      }
-      /// <summary>
-      /// Event invoked when transform scale changes.
-      /// </summary>
-      IEvent<int, TransformScaleEventArgs> ScaleChanged
-      {
-         get;
-      }
-      /// <summary>
-      /// Event invoked when transform rotation changes.
-      /// </summary>
-      IEvent<int, TransformRotationEventArgs> RotationChanged
-      {
-         get;
-      }
-      #endregion
-      
       /// <summary>
       /// Creates new transform component with initial transform value.
       /// </summary>
@@ -134,22 +109,11 @@ namespace Fracture.Engine.Ecs
       private readonly LinearGrowthArray<Transform> transforms;
       
       // Transform component events.
-      private readonly IEventQueue<int, TransformPositionEventArgs> positionEvents;
-      private readonly IEventQueue<int, TransformScaleEventArgs> scaleEvents;
-      private readonly IEventQueue<int, TransformRotationEventArgs> rotationEvents;
+      private readonly IUniqueEventPublisher<int, TransformPositionEventArgs> positionEvents;
+      private readonly IUniqueEventPublisher<int, TransformScaleEventArgs> scaleEvents;
+      private readonly IUniqueEventPublisher<int, TransformRotationEventArgs> rotationEvents;
       #endregion
-      
-      #region Properties
-      public IEvent<int, TransformPositionEventArgs> PositionChanged
-         => positionEvents;
-      
-      public IEvent<int, TransformScaleEventArgs> ScaleChanged
-         => scaleEvents;
-      
-      public IEvent<int, TransformRotationEventArgs> RotationChanged
-         => rotationEvents;
-      #endregion
-      
+
       [BindingConstructor]
       public TransformComponentComponentSystem(IEntitySystem entities, IEventQueueSystem events)
          : base(entities, events)
@@ -159,7 +123,7 @@ namespace Fracture.Engine.Ecs
          rotationEvents = events.CreateUnique<int, TransformRotationEventArgs>();
          
          // Allocate data.
-         transforms = new LinearGrowthArray<Transform>(1024);
+         transforms = new LinearGrowthArray<Transform>(128);
       }
 
       protected override int InitializeComponent(int entityId)

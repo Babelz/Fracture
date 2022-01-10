@@ -4,9 +4,11 @@ using System.Linq;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
+using Fracture.Common.Events;
 using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core;
+using Fracture.Engine.Events;
 using Fracture.Engine.Scripting;
 
 namespace Fracture.Engine.Ecs
@@ -119,40 +121,26 @@ namespace Fracture.Engine.Ecs
         #endregion
         
         #region Fields
-        private readonly IEntitySystem entities;
         private readonly ICsScriptingSystem scripts;
+        
+        private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
 
         private readonly Dictionary<int, List<Behavior>> entityBehaviourLists;
         #endregion
         
         [BindingConstructor]
-        public BehaviorSystem(IEntitySystem entities, ICsScriptingSystem scripts)
+        public BehaviorSystem(ICsScriptingSystem scripts, IEventQueueSystem events)
         {
-            this.entities = entities ?? throw new ArgumentNullException(nameof(entities));
-            this.scripts  = scripts ?? throw new ArgumentNullException(nameof(scripts));
+            this.scripts = scripts ?? throw new ArgumentNullException(nameof(scripts));
 
+            entityDeletedEvents = events.GetHandler<int, EntityEventArgs>(); 
+            
             entityBehaviourLists = new Dictionary<int, List<Behavior>>();
         }
         
         public void Attach<T>(int entityId, params IBindingValue[] bindings) where T : Behavior
         {
             var behaviour = scripts.Load<T>(bindings);
-            
-            void EntityDeleted(in EntityEventArgs args)
-            {
-                if (behaviour.Attached)
-                    behaviour.Detach();
-                
-                if (entityBehaviourLists[entityId].Count == 0)
-                    entityBehaviourLists.Remove(entityId);
-                
-                if (entities.Deleted.Exists(entityId))
-                    entities.Deleted.Unsubscribe(entityId, EntityDeleted);
-                
-                behaviour.Unload();
-            }    
-            
-            entities.Deleted.Subscribe(entityId, EntityDeleted);
             
             if (!entityBehaviourLists.TryGetValue(entityId, out var behaviors))
             {
@@ -186,5 +174,22 @@ namespace Fracture.Engine.Ecs
         
         public IEnumerable<Behavior> BehaviorsOf(int entityId)
             => entityBehaviourLists[entityId];
+
+        public override void Update(IGameEngineTime time)
+        {
+            entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
+            {
+                if (!entityBehaviourLists.TryGetValue(letter.Args.Id, out var behaviors))
+                    return LetterHandlingResult.Retain;
+                
+                foreach (var behavior in behaviors.Where(behavior => behavior.Attached))
+                    behavior.Detach();
+                
+                entityBehaviourLists.Remove(letter.Args.Id);
+                ListPool.Return(behaviors);
+                
+                return LetterHandlingResult.Retain;
+            });
+        }
     }
 }

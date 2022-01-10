@@ -25,7 +25,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Gets or sets the color of the component.
       /// </summary>
-      public Color Color
+      Color Color
       {
          get;
          set;
@@ -34,7 +34,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Gets or sets the transform of the component.
       /// </summary>
-      public Transform Transform
+      Transform Transform
       {
          get;
          set;
@@ -42,7 +42,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Gets or sets the AABB of the component.
       /// </summary>
-      public Aabb Aabb
+      Aabb Aabb
       {
          get;
          set;
@@ -53,7 +53,7 @@ namespace Fracture.Engine.Ecs
       /// is precomputed and should not be tempered with
       /// by other than <see cref="GraphicsComponentSystem{T}"/>.
       /// </summary>
-      public Vector2 Origin
+      Vector2 Origin
       {
          get;
          set;
@@ -61,7 +61,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Gets or sets untransformed bounds of the element.
       /// </summary>
-      public Vector2 Bounds
+      Vector2 Bounds
       {
          get;
          set;
@@ -838,17 +838,6 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public interface ISpriteAnimationComponentSystem : IGraphicsComponentSystem
    {
-      #region Properties
-      /// <summary>
-      /// Event invoked when animation in <see cref="SpriteAnimationMode.Play"/> has
-      /// finished playing.
-      /// </summary>
-      IEvent<int, ComponentEventArgs> Finished
-      {
-         get;
-      }
-      #endregion
-      
       int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color);
       
       int AddPlaylist(SpriteAnimationPlaylist playlist);
@@ -981,12 +970,7 @@ namespace Fracture.Engine.Ecs
       
       private readonly Dictionary<int, SpriteAnimationPlaylist> playlists;
       
-      private readonly IEventQueue<int, ComponentEventArgs> finishedEvents;
-      #endregion
-
-      #region Properties
-      public IEvent<int, ComponentEventArgs> Finished
-         => finishedEvents;
+      private readonly IUniqueEventPublisher<int, ComponentEventArgs> finishedEvents;
       #endregion
 
       [BindingConstructor]
