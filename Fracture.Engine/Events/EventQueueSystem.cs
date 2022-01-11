@@ -8,11 +8,13 @@ namespace Fracture.Engine.Events
 {
    public interface IEventQueueSystem : IGameEngineSystem
    {
-      ISharedEventPublisher<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity = 64);
+      ISharedEvent<TTopic, TArgs> CreateSharedEvent<TTopic, TArgs>(int capacity = 64, 
+                                                                   EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics);
 
-      IUniqueEventPublisher<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity = 16);
+      IUniqueEvent<TTopic, TArgs> CreateUniqueEvent<TTopic, TArgs>(int capacity = 16, 
+                                                                   EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics);
       
-      IEventHandler<TTopic, TArgs> GetHandler<TTopic, TArgs>();
+      IEventHandler<TTopic, TArgs> GetEventHandler<TTopic, TArgs>();
    }
 
    public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
@@ -25,26 +27,26 @@ namespace Fracture.Engine.Events
       public EventQueueSystem()
          => queues = new List<IEventQueue>();
       
-      public ISharedEventPublisher<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity)
+      public ISharedEvent<TTopic, TArgs> CreateSharedEvent<TTopic, TArgs>(int capacity, EventRetentionPolicy retentionPolicy)
       {
-         var backlog = new SharedEventBacklog<TTopic, TArgs>(capacity);
+         var backlog = new SharedEvent<TTopic, TArgs>(capacity, retentionPolicy);
          
          queues.Add(backlog);
          
          return backlog;
       }
 
-      public IUniqueEventPublisher<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity)
+      public IUniqueEvent<TTopic, TArgs> CreateUniqueEvent<TTopic, TArgs>(int capacity, EventRetentionPolicy retentionPolicy)
       {
-         var backlog = new UniqueEventBacklog<TTopic, TArgs>(capacity);
+         var backlog = new UniqueEvent<TTopic, TArgs>(capacity, retentionPolicy);
          
          queues.Add(backlog);
          
          return backlog;
       }
 
-      public IEventHandler<TTopic, TArgs> GetHandler<TTopic, TArgs>()
-         => (IEventHandler<TTopic, TArgs>)queues.First(q => q is IEventHandler<TTopic, TArgs>);
+      public IEventHandler<TTopic, TArgs> GetEventHandler<TTopic, TArgs>()
+         => (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>) ?? EventBacklog<TTopic, TArgs>.Empty;
       
       public override void Update(IGameEngineTime time)
       {

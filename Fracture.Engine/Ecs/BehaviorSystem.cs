@@ -133,7 +133,7 @@ namespace Fracture.Engine.Ecs
         {
             this.scripts = scripts ?? throw new ArgumentNullException(nameof(scripts));
 
-            entityDeletedEvents = events.GetHandler<int, EntityEventArgs>(); 
+            entityDeletedEvents = events.GetEventHandler<int, EntityEventArgs>(); 
             
             entityBehaviourLists = new Dictionary<int, List<Behavior>>();
         }

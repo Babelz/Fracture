@@ -87,8 +87,20 @@ namespace Fracture.Engine.Core.Primitives
          : this(position, Vector2.One, 0.0f)
       {
       }
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform ComponentPosition(in Vector2 position)
+         => new Transform(position, Vector2.Zero);
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform ComponentScale(in Vector2 scale)
+         => new Transform(Vector2.Zero, scale);
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform ComponentRotation(float rotation)
+         => new Transform(Vector2.Zero, Vector2.Zero, rotation);
 
-      #region Transform members
+      #region Translate methods
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static Transform TranslatePosition(in Transform transform, in Vector2 translation)
          => new Transform(transform.Position + translation, transform.Scale, transform.Rotation);
@@ -100,7 +112,17 @@ namespace Fracture.Engine.Core.Primitives
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static Transform TranslateRotation(in Transform transform, float translation)
          => new Transform(transform.Position, transform.Scale, transform.Rotation + translation);
-
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform TranslateLocal(in Transform global, in Transform local)
+         => new Transform(global.Position + local.Position, LocalScale(global, local), global.Rotation + local.Rotation);
+      #endregion
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Vector2 LocalScale(in Transform global, in Transform local)
+         => global.Scale * local.Scale;
+      
+      #region Transform methods
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static Transform TransformPosition(in Transform transform, in Vector2 transformation)
          => new Transform(transformation, transform.Scale, transform.Rotation);
@@ -114,6 +136,16 @@ namespace Fracture.Engine.Core.Primitives
          => new Transform(transform.Position, transform.Scale, transformation);
       #endregion
 
+      #region Operators
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform operator +(in Transform a, in Transform b)
+         => new Transform(a.Position + b.Position, a.Scale + b.Scale, a.Rotation + b.Rotation);
+      
+      [MethodImpl(MethodImplOptions.AggressiveInlining)]
+      public static Transform operator -(in Transform a, in Transform b)
+         => new Transform(a.Position - b.Position, a.Scale - b.Scale, a.Rotation - b.Rotation);
+      #endregion
+      
       #region Unit conversion members
       [MethodImpl(MethodImplOptions.AggressiveInlining)]
       public static void SetScreenUnitToWorldUnitRatio(float screenUnitsPerWorldUnit)

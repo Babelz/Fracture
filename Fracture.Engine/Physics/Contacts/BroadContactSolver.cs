@@ -51,6 +51,7 @@ namespace Fracture.Engine.Physics.Contacts
             => HashUtils.Create()
                         .Append(FirstBodyId)
                         .Append(SecondBodyId);
+        
         public static bool operator ==(in ContactPair lhs, in ContactPair rhs)
             => lhs.Equals(rhs);
 

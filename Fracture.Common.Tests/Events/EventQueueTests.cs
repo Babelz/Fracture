@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Fracture.Common.Events;
 using Xunit;
 
@@ -11,63 +13,103 @@ namespace Fracture.Common.Tests.Events
       #endregion
       
       public delegate void TestEventHandler(object key, int value);
-      
-      [Fact]
-      public void UniqueEventQueue_Ctor_Test()
-         => Assert.Null(Record.Exception(() => new UniqueEventBacklog<object, int>()));
-      
-      [Fact]
-      public void SharedEventQueue_Ctor_Test()
-         => Assert.Null(Record.Exception(() => new SharedEventBacklog<object, int>()));
 
       [Fact]
-      public void Unique_Queue_Allows_One_Event_Per_Topic_Test()
+      public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
+         => Assert.Null(Record.Exception(() => new UniqueEvent<object, int>(0)));
+      
+      [Fact]
+      public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
+         => Assert.Null(Record.Exception(() => new UniqueEvent<object, int>(-1)));
+      
+      [Fact]
+      public void SharedEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
+         => Assert.Null(Record.Exception(() => new SharedEvent<object, int>(0)));
+      
+      [Fact]
+      public void SharedEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
+         => Assert.Null(Record.Exception(() => new SharedEvent<object, int>(-1)));
+
+      [Fact]
+      public void Shared_QueueAllows_Multiple_Letters()
       {
          // Arrange.
-         var queue     = new UniqueEventBacklog<object, int>();
-         var testValue = 0;
+         var queue = new SharedEvent<object, int>(8);
          
          // Act.
          queue.Create(TestTopic);
          
-         queue.Subscribe(TestTopic, delegate { testValue++; });
+         // Publish 3 events, should get invoked 3 times.
+         var expectedValues = new HashSet<int>()
+         {
+            10, 100, 1000   
+         };
          
-         // Publish 3 events, should get invoked once.
-         queue.Publish(TestTopic, 1);
-         queue.Publish(TestTopic, 1);
-         queue.Publish(TestTopic, 1);
-
-         // Do double dispatch, queue should be empty after first one.
-         queue.Dispatch();
-         queue.Dispatch();
+         queue.Publish(TestTopic, 10);
+         queue.Publish(TestTopic, 100);
+         queue.Publish(TestTopic, 1000);
          
-         // Assert.
-         Assert.Equal(1, testValue);
+         queue.Handle((in Letter<object, int> letter) =>
+         {
+            Assert.Contains(letter.Args, expectedValues);
+            
+            return LetterHandlingResult.Retain;
+         });   
       }
       
       [Fact]
-      public void Shared_QueueAllows_Multiple_Events_Per_Topic_Test()
+      public void Consumed_Letters_Are_Not_Passed_To_Handlers_Again()
       {
          // Arrange.
-         var queue     = new SharedEventBacklog<object, int>();
-         var testValue = 0;
+         var queue = new SharedEvent<object, int>(8);
          
          // Act.
          queue.Create(TestTopic);
          
-         queue.Subscribe(TestTopic, delegate { testValue++; });
-
          // Publish 3 events, should get invoked 3 times.
-         queue.Publish(TestTopic, 0);
-         queue.Publish(TestTopic, 0);
-         queue.Publish(TestTopic, 0);
+         var expectedValues = new HashSet<int>()
+         {
+            10, 1000   
+         };
          
-         // Do double dispatch, queue should be empty after first one.
-         queue.Dispatch();
-         queue.Dispatch();
-
-         // Assert.
-         Assert.Equal(3, testValue);
+         queue.Publish(TestTopic, 10);
+         queue.Publish(TestTopic, 100);
+         queue.Publish(TestTopic, 1000);
+         
+         queue.Handle((in Letter<object, int> letter) => letter.Args == 100 ? LetterHandlingResult.Consume : LetterHandlingResult.Retain);
+         
+         // Handle again, event should now contain letters with 10 and 1000 values.
+         queue.Handle((in Letter<object, int> letter) =>
+         {
+            Assert.Contains(letter.Args, expectedValues);
+            
+            return LetterHandlingResult.Consume;
+         });
+         
+         // Handle again, should be empty now.
+         queue.Handle((in Letter<object, int> letter) => throw new InvalidOperationException("event should have no letters"));
+      }
+      
+      [Fact]
+      public void Unique_Event_Replaces_Existing_Letters()
+      {
+         // Arrange.
+         var queue = new UniqueEvent<object, int>(8);
+         
+         // Act.
+         queue.Create(TestTopic);
+         
+         // Publish 3 events, should get invoked once.
+         queue.Publish(TestTopic, 10);
+         queue.Publish(TestTopic, 100);
+         queue.Publish(TestTopic, 1000);
+         
+         queue.Handle((in Letter<object, int> letter) =>
+         {
+            Assert.Equal(1000, letter.Args);
+            
+            return LetterHandlingResult.Retain;
+         });
       }
    }
 }

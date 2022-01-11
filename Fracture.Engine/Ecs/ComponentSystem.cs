@@ -34,20 +34,18 @@ namespace Fracture.Engine.Ecs
    public interface IComponentSystem : IObjectManagementSystem, IEnumerable<int>
    {
       /// <summary>
-      /// Returns boolean declaring whether a component
-      /// with given id is alive.
+      /// Returns boolean declaring whether a component with given id is alive.
       /// </summary>
       bool Alive(int id);
       
       /// <summary>
-      /// Returns count of components for given entity.
+      /// Returns boolean declaring whether any components are bound to this entity.
       /// </summary>
-      int BoundTo(int entityId);
+      bool BoundTo(int entityId);
       
       int FirstFor(int entityId);
-      int AtIndex(int entityId, int index);
       
-      IEnumerable<int> IndicesOf(int entityId);
+      IEnumerable<int> AllFor(int entityId);
       
       /// <summary>
       /// Attempts to delete component with given id, returns
@@ -71,9 +69,9 @@ namespace Fracture.Engine.Ecs
       
       private readonly List<int> aliveComponents;
       
-      private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
+      private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvent;
       
-      private readonly IUniqueEventPublisher<int, ComponentEventArgs> componentDeletedEvents;
+      private readonly IUniqueEvent<int, ComponentEventArgs> componentDeletedEvent;
       #endregion
 
       #region Properties
@@ -82,8 +80,8 @@ namespace Fracture.Engine.Ecs
 
       protected ComponentSystem(IEventQueueSystem events)
       {
-         componentDeletedEvents = events.CreateUnique<int, ComponentEventArgs>();
-         entityDeletedEvents    = events.GetHandler<int, EntityEventArgs>();
+         componentDeletedEvent = events.CreateUniqueEvent<int, ComponentEventArgs>();
+         entityDeletedEvent    = events.GetEventHandler<int, EntityEventArgs>();
          
          // Create basic component data.
          var idc = 0;
@@ -103,10 +101,7 @@ namespace Fracture.Engine.Ecs
       
       protected int OwnerOf(int id) 
          => componentToEntityMap[id];
-      
-      protected int AtIndex(int index)
-         => aliveComponents[index];
-       
+
       protected virtual int InitializeComponent(int entityId)
       {
          var id = freeComponents.Take();
@@ -119,33 +114,9 @@ namespace Fracture.Engine.Ecs
          componentToEntityMap.Add(id, entityId);
          
          // Create events.
-         componentDeletedEvents.Create(id);
+         componentDeletedEvent.Create(id);
 
          return id;
-      }
-      
-      public void AssertHasSingle(int entityId)
-      {
-#if DEBUG || ECS_RUNTIME_CHECKS
-         if (BoundTo(entityId) != 1)
-            throw new InvalidOperationException($"expecting one component to be present for entity {entityId}");
-#endif
-      }
-      
-      public void AssertHasMultiple(int entityId)
-      {
-#if DEBUG || ECS_RUNTIME_CHECKS
-         if (BoundTo(entityId) < 2)
-            throw new InvalidOperationException($"expecting more than one component to be present for entity {entityId}");
-#endif
-      }
-      
-      public void AssertHasNone(int entityId)
-      {
-#if DEBUG || ECS_RUNTIME_CHECKS
-         if (BoundTo(entityId) != 0)
-            throw new InvalidOperationException($"expecting no component to be present for entity {entityId}");
-#endif
       }
       
       public virtual bool Delete(int id)
@@ -154,10 +125,10 @@ namespace Fracture.Engine.Ecs
             return false;
          
          // Publish deleted event.
-         componentDeletedEvents.Publish(id, new ComponentEventArgs(id));
+         componentDeletedEvent.Publish(id, new ComponentEventArgs(id));
 
          // Delete events.
-         componentDeletedEvents.Delete(id);
+         componentDeletedEvent.Delete(id);
          
          aliveComponents.Remove(id);
          componentToEntityMap.Remove(id);
@@ -170,17 +141,16 @@ namespace Fracture.Engine.Ecs
       public bool Alive(int id)
          => componentToEntityMap.ContainsKey(id);
 
-      public abstract int BoundTo(int entityId);
+      public abstract bool BoundTo(int entityId);
       public abstract int FirstFor(int entityId);
-      public abstract int AtIndex(int entityId, int index);
-      public abstract IEnumerable<int> IndicesOf(int entityId);
+      public abstract IEnumerable<int> AllFor(int entityId);
 
       public override void Update(IGameEngineTime time)
       {
-         entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) => 
+         entityDeletedEvent.Handle((in Letter<int, EntityEventArgs> letter) => 
          {
-            foreach (var index in IndicesOf(letter.Args.Id))
-               Delete(AtIndex(index));
+            foreach (var id in AllFor(letter.Args.Id))
+               Delete(id);
             
             return LetterHandlingResult.Retain;
          });
@@ -216,7 +186,7 @@ namespace Fracture.Engine.Ecs
       
       protected override int InitializeComponent(int entityId)
       {
-         if (BoundTo(entityId) != 0)
+         if (BoundTo(entityId))
             throw new InvalidOperationException($"entity {entityId} already has unique component");
          
          var id = base.InitializeComponent(entityId);
@@ -236,8 +206,8 @@ namespace Fracture.Engine.Ecs
          return success;
       }
 
-      public sealed override int BoundTo(int entityId)
-         => entityToComponentMap.ContainsKey(entityId) ? 1 : 0;
+      public sealed override bool BoundTo(int entityId)
+         => entityToComponentMap.ContainsKey(entityId);
       
       public sealed override int FirstFor(int entityId)
       {
@@ -247,19 +217,11 @@ namespace Fracture.Engine.Ecs
          throw new ComponentNotFoundException(entityId);
       }
 
-      public sealed override int AtIndex(int entityId, int index)
-      {
-         if (index != 0) 
-            throw new IndexOutOfRangeException(nameof(index));
-         
-         return FirstFor(entityId);
-      }
-
-      public override IEnumerable<int> IndicesOf(int entityId)
+      public override IEnumerable<int> AllFor(int entityId)
       {
          // Return first index if entity has component associated with it.
-         if (BoundTo(entityId) != 0)
-            yield return 0;
+         if (BoundTo(entityId))
+            yield return FirstFor(entityId);
       }
    }
    
@@ -335,21 +297,23 @@ namespace Fracture.Engine.Ecs
          return true;
       }
 
-      public override int BoundTo(int entityId)
-         => entityToComponentsMap.TryGetValue(entityId, out var components) ? components.Count : 0;
+      public override bool BoundTo(int entityId)
+         => entityToComponentsMap.Count != 0;
       
       public override int FirstFor(int entityId)
-         => AtIndex(entityId, 0);
-      
-      public override int AtIndex(int entityId, int index)
       {
-         if (BoundTo(entityId) == 0)
-            throw new ComponentNotFoundException(entityId);
-            
-         return entityToComponentsMap[entityId][index];
+         if (entityToComponentsMap.TryGetValue(entityId, out var components))
+            return components.First();
+         
+         throw new ComponentNotFoundException(entityId);
       }
       
-      public override IEnumerable<int> IndicesOf(int entityId)
-         => Enumerable.Range(0, BoundTo(entityId));
+      public override IEnumerable<int> AllFor(int entityId)
+      {
+         if (entityToComponentsMap.TryGetValue(entityId, out var components))
+            return components;
+
+         return Array.Empty<int>();
+      }
    }
 }

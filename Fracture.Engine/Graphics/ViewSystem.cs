@@ -44,7 +44,7 @@ namespace Fracture.Engine.Graphics
             get;
         }
         
-        Matrix ViewMatrix
+        Matrix Matrix
         {
             get;
         }
@@ -67,12 +67,12 @@ namespace Fracture.Engine.Graphics
         /// <summary>
         /// Returns screen space point in view space.
         /// </summary>
-        Vector2 TranslatePosition(in Point screenPosition);
+        Vector2 ScreenToWorld(in Point screenPosition);
         
         /// <summary>
         /// Returns screen space vector in view space.
         /// </summary>
-        Vector2 TranslatePosition(in Vector2 screenPosition);
+        Vector2 ScreenToWorld(in Vector2 screenPosition);
         
         /// <summary>
         /// Updates view matrix of the view. Should be called after
@@ -126,7 +126,7 @@ namespace Fracture.Engine.Graphics
             private set;
         }
 
-        public Matrix ViewMatrix
+        public Matrix Matrix
         {
             get;
             private set;
@@ -196,21 +196,21 @@ namespace Fracture.Engine.Graphics
         /// <summary>
         /// Translates given point on screen space to camera space.
         /// </summary>
-        public Vector2 TranslatePosition(in Vector2 point) 
-            => Vector2.Transform(point, Matrix.Invert(ViewMatrix));
+        public Vector2 ScreenToWorld(in Vector2 point) 
+            => Transform.ToWorldUnits(Vector2.Transform(point, Matrix.Invert(Matrix)));
         
         /// <summary>
         /// Translates given point on screen space to camera space.
         /// </summary>
-        public Vector2 TranslatePosition(in Point point)   
-            => TranslatePosition(new Vector2(point.X, point.Y));
+        public Vector2 ScreenToWorld(in Point point)   
+            => ScreenToWorld(new Vector2(point.X, point.Y));
 
         public void Update()
         {
             Bounds = new Vector2(Viewport.Width / Zoom, Viewport.Height / Zoom);
             
             BoundingBox = new Aabb(Position, Rotation, Bounds);
-            ViewMatrix  = CreateViewMatrix(BoundingBox.Position, new Vector2(Viewport.Width, Viewport.Height), Rotation, Zoom);
+            Matrix      = CreateViewMatrix(BoundingBox.Position, new Vector2(Viewport.Width, Viewport.Height), Rotation, Zoom);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

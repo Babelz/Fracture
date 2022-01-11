@@ -32,13 +32,23 @@ namespace Fracture.Engine.Ecs
       }
       
       /// <summary>
-      /// Gets or sets the transform of the component.
+      /// Gets or sets the local transform of the component.
       /// </summary>
-      Transform Transform
+      Transform LocalTransform
       {
          get;
          set;
       }
+      
+      /// <summary>
+      /// Gets or sets the global transform of the component.
+      /// </summary>
+      Transform GlobalTransform
+      {
+         get;
+         set;
+      }
+      
       /// <summary>
       /// Gets or sets the AABB of the component.
       /// </summary>
@@ -70,7 +80,16 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Gets or sets the layer of the component.
       /// </summary>
-      string Layer
+      string CurrentLayer
+      {
+         get;
+         set;
+      }
+      
+      /// <summary>
+      /// Gets or sets the next layer of the component.
+      /// </summary>
+      string NextLayer
       {
          get;
          set;
@@ -112,12 +131,7 @@ namespace Fracture.Engine.Ecs
       void TransformPosition(int id, in Vector2 transformation);
       void TransformScale(int id, in Vector2 transformation);
       void TransformRotation(int id, float transformation);
-    
-      void BindTransform(int id);
-      void BindTransformRotation(int id);
-      void BindTransformPosition(int id);
-      void BindTransformScale(int id); 
-      
+
       void DrawElement(int id, IGraphicsFragment fragment);
    }
    
@@ -132,6 +146,8 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       #region Fields
+      private readonly IEventHandler<int, TransformChangedEventArgs> transformChangedEvent;
+
       private readonly HashSet<int> dirty;
       #endregion
 
@@ -157,26 +173,23 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      protected GraphicsComponentSystem(IEntitySystem entities,
-                                        IEventQueueSystem events,
+      protected GraphicsComponentSystem(IEventQueueSystem events,
                                         IGraphicsLayerSystem layers, 
                                         ITransformComponentSystem transforms, 
                                         int graphicsComponentTypeId)
-         : base(entities, events)
+         : base(events)
       {
          
          Layers     = layers ?? throw new ArgumentNullException(nameof(layers));
          Transforms = transforms ?? throw new ArgumentNullException(nameof(layers));
+         
+         transformChangedEvent = events.GetEventHandler<int, TransformChangedEventArgs>();
          
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
          Components = new LinearGrowthArray<T>(ComponentsCapacity);
          dirty      = new HashSet<int>(ComponentsCapacity);
       }
-      
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      private static void UpdateOrigin(ref T component)
-         => component.Origin = component.Bounds * component.Transform.Scale * 0.5f;
       
       protected override int InitializeComponent(int entityId)
       {
@@ -191,7 +204,7 @@ namespace Fracture.Engine.Ecs
       public override bool Delete(int id)
       {
          var deleted = base.Delete(id);
-         var layer   = Components.AtIndex(id).Layer;
+         var layer   = Components.AtIndex(id).CurrentLayer;
          
          Layers.First(l => l.Name == layer).Remove(id);
          
@@ -213,8 +226,11 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
          
-         return Components.AtIndex(id).Transform;
+         ref var component = ref Components.AtIndex(id);
+            
+         return Transform.TranslateLocal(component.GlobalTransform, component.GlobalTransform);
       }
+      
       public Color GetColor(int id)
       {
          AssertAlive(id);
@@ -225,14 +241,14 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
          
-         return Components.AtIndex(id).Layer;
+         return Components.AtIndex(id).CurrentLayer;
       }
       
       public void SetTransform(int id, in Transform transform)
       {
          AssertAlive(id);
          
-         Components.AtIndex(id).Transform = transform;
+         Components.AtIndex(id).LocalTransform = transform;
          
          dirty.Add(id);
       }
@@ -243,10 +259,8 @@ namespace Fracture.Engine.Ecs
          ref var component = ref Components.AtIndex(id);
          
          component.Bounds = bounds; 
-         component.Aabb   = new Aabb(component.Transform.Position, component.Transform.Rotation, bounds);
-         
-         UpdateOrigin(ref component);
-         
+         component.Aabb   = new Aabb(component.LocalTransform.Position, component.LocalTransform.Rotation, bounds);
+
          dirty.Add(id);
       }
       public void SetColor(int id, in Color color)
@@ -257,33 +271,14 @@ namespace Fracture.Engine.Ecs
       }
       public void SetLayer(int id, string name)
       {
-         // Make sure component is alive and new layer exists.
          AssertAlive(id);
-         
-         if (Layers.All(l => l.Name != name))
+       
+         if (!Layers.Any(l => l.Name == name))
             throw new InvalidOperationException($"layer {name} does not exist");
+
+         Components.AtIndex(id).NextLayer = name;
          
-         ref var component = ref Components.AtIndex(id);
-         
-         var currentLayerName = component.Layer;
-         var aabb             = component.Aabb;
-         
-         // Remove from current layer if component has one.
-         if (Layers.Any(l => l.Name == currentLayerName))
-            Layers.First(l => l.Name == currentLayerName).Remove(id);
-         
-         // Insert to new layer.
-         Layers.First(l => l.Name == name).Add(id, GraphicsComponentTypeId, ref aabb, out var clamped);
-         
-         // Update AABB if clamped.
-         if (clamped)
-            component.Aabb = aabb;
-         
-         component.Layer = name;
-         
-         // We can assume the component is clean if we change its layer
-         // regardless of the past changes.
-         dirty.Remove(id);
+         dirty.Add(id);
       }
 
       public void TranslatePosition(int id, in Vector2 translation)
@@ -292,8 +287,7 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TranslatePosition(component.Transform, translation);
-         component.Aabb      = new Aabb(component.Aabb, component.Transform.Position);
+         component.LocalTransform = Transform.TranslatePosition(component.LocalTransform, translation);
          
          dirty.Add(id);
       }
@@ -304,9 +298,7 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TranslateScale(component.Transform, translation);
-         
-         UpdateOrigin(ref component);
+         component.LocalTransform = Transform.TranslateScale(component.LocalTransform, translation);
          
          dirty.Add(id);
       }
@@ -317,12 +309,7 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TranslateRotation(component.Transform, translation);
-         component.Aabb      = new Aabb(component.Transform.Position,
-                                        component.Transform.Rotation,
-                                        component.Bounds);
-         
-         UpdateOrigin(ref component);
+         component.LocalTransform = Transform.TranslateRotation(component.LocalTransform, translation);
          
          dirty.Add(id);
       }
@@ -333,8 +320,7 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TransformPosition(component.Transform, transformation);
-         component.Aabb      = new Aabb(component.Aabb, component.Transform.Position);
+         component.LocalTransform = Transform.TransformPosition(component.LocalTransform, transformation);
          
          dirty.Add(id);
       }
@@ -345,10 +331,8 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TransformScale(component.Transform, transformation);
-         
-         UpdateOrigin(ref component);
-         
+         component.LocalTransform = Transform.TransformScale(component.LocalTransform, transformation);
+
          dirty.Add(id);
       }
 
@@ -358,84 +342,31 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         component.Transform = Transform.TransformRotation(component.Transform, transformation);
-         component.Aabb      = new Aabb(component.Transform.Position,
-                                        component.Transform.Rotation,
-                                        component.Bounds);
-         
-         UpdateOrigin(ref component);
-         
+         component.LocalTransform = Transform.TransformRotation(component.LocalTransform, transformation);
+
          dirty.Add(id);
       }
-      
-      public void BindTransform(int id)
-      {
-         BindTransformPosition(id);
-         BindTransformRotation(id);
-         BindTransformScale(id);
-      }
-      
-      public void BindTransformRotation(int id)
-      {
-         AssertAlive(id);
-         
-         var transform = Transforms.FirstFor(OwnerOf(id));
-         
-         void OnTransformRotationChanged(in TransformRotationEventArgs args)
-            => TransformRotation(id, args.Rotation);
-         
-         Transforms.RotationChanged.Subscribe(transform, OnTransformRotationChanged);
-         
-         Deleted.Subscribe(id, delegate {
-            if (Transforms.RotationChanged.Exists(transform))
-               Transforms.RotationChanged.Unsubscribe(transform, OnTransformRotationChanged);
-         });
-         
-         TransformRotation(id, Transforms.GetRotation(Transforms.FirstFor(OwnerOf(id))));
-      }
 
-      public void BindTransformPosition(int id)
-      {
-         AssertAlive(id);
-         
-         var transform = Transforms.FirstFor(OwnerOf(id));
-         
-         void OnTransformPositionChanged(in TransformPositionEventArgs args)
-            => TransformPosition(id, args.Position);
-         
-         Transforms.PositionChanged.Subscribe(transform, OnTransformPositionChanged);
-         
-         Deleted.Subscribe(id, delegate {
-            if (Transforms.PositionChanged.Exists(transform))
-               Transforms.PositionChanged.Unsubscribe(transform, OnTransformPositionChanged);
-         });
-         
-         TransformPosition(id, Transforms.GetPosition(Transforms.FirstFor(OwnerOf(id))));
-      }
-
-      public void BindTransformScale(int id)
-      {
-         AssertAlive(id);
-         
-         var transform = Transforms.FirstFor(OwnerOf(id));
-         
-         void OnTransformScaleChanged(in TransformScaleEventArgs args)
-            => TransformScale(id, args.Scale);
-         
-         Transforms.ScaleChanged.Subscribe(transform, OnTransformScaleChanged);
-         
-         Deleted.Subscribe(id, delegate {
-            if (Transforms.ScaleChanged.Exists(transform))
-               Transforms.ScaleChanged.Unsubscribe(transform, OnTransformScaleChanged);
-         });
-         
-         TransformScale(id, Transforms.GetScale(Transforms.FirstFor(OwnerOf(id))));
-      }
-      
       public abstract void DrawElement(int id, IGraphicsFragment fragment);
       
       public override void Update(IGameEngineTime time)
       {
+         // Update transformations.
+         transformChangedEvent.Handle((in Letter<int, TransformChangedEventArgs> letter) =>
+         {
+            if (!BoundTo(letter.Args.EntityId))
+               return LetterHandlingResult.Retain;
+            
+            foreach (var id in AllFor(letter.Args.EntityId))
+            {
+               Components.AtIndex(id).GlobalTransform = letter.Args.Transform;
+               
+               dirty.Add(id);
+            }
+               
+            return LetterHandlingResult.Retain;
+         });
+         
          // Update all dirty elements.
          var layersLookup = Layers.ToDictionary(l => l.Name, l => l);
          
@@ -443,15 +374,46 @@ namespace Fracture.Engine.Ecs
          {
             // Get associated data.
             ref var component = ref Components.AtIndex(id);
+         
+            // Recompute AABB.
+            component.Aabb = new Aabb(component.GlobalTransform.Position + component.LocalTransform.Position,
+                                      component.GlobalTransform.Rotation + component.LocalTransform.Rotation,
+                                      component.Bounds);
             
-            var aabb = component.Aabb;
+            // Update origin.
+            component.Origin = Transform.LocalScale(component.GlobalTransform, component.LocalTransform) * component.Bounds * 0.5f;
             
-            // Update on layer.
-            layersLookup[component.Layer].Update(id, ref aabb, out var clamped);
+            if (component.CurrentLayer != component.NextLayer)
+            {
+               // Move to new layer.
+               var currentLayer = component.CurrentLayer;
+               var nextLayer    = component.NextLayer;
+               var aabb         = component.Aabb;
+               
+               // Remove from current layer if component has one.
+               Layers.FirstOrDefault(l => l.Name == currentLayer)?.Remove(id);
+         
+               // Insert to new layer.
+               Layers.First(l => l.Name == nextLayer).Add(id, GraphicsComponentTypeId, ref aabb, out var clamped);
+         
+               // Update AABB if clamped.
+               if (clamped)
+                  component.Aabb = aabb;
+         
+               component.CurrentLayer = component.NextLayer;
+            }
+            else
+            {
+               // Relocate inside existing layer.
+               var aabb = component.Aabb;
             
-            // Update in system if AABB was clamped.
-            if (clamped) 
-               component.Aabb = aabb;
+               // Update on layer.
+               layersLookup[component.CurrentLayer].Update(id, ref aabb, out var clamped);
+            
+               // Update in system if AABB was clamped.
+               if (clamped) 
+                  component.Aabb = aabb;  
+            }
          }
          
          dirty.Clear();
@@ -542,7 +504,13 @@ namespace Fracture.Engine.Ecs
          #endregion
 
          #region Graphics component member properties
-         public Transform Transform
+         public Transform LocalTransform
+         {
+            get;
+            set;
+         }
+      
+         public Transform GlobalTransform
          {
             get;
             set;
@@ -565,7 +533,12 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public string Layer
+         public string CurrentLayer
+         {
+            get;
+            set;
+         }
+         public string NextLayer
          {
             get;
             set;
@@ -575,11 +548,10 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       [BindingConstructor]
-      public SpriteComponentSystem(IEntitySystem entities, 
-                                   IEventQueueSystem events, 
+      public SpriteComponentSystem(IEventQueueSystem events, 
                                    IGraphicsLayerSystem layers, 
                                    ITransformComponentSystem transforms) 
-         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.Sprite)
+         : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.Sprite)
       {
       }
 
@@ -588,12 +560,14 @@ namespace Fracture.Engine.Ecs
          AssertAlive(id);
          
          ref var component = ref Components.AtIndex(id);
-         
+
+         var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
+
          if (component.Source != null)
          {
-            fragment.DrawSprite(Transform.ToScreenUnits(component.Transform.Position),
-                                component.Transform.Scale,
-                                component.Transform.Rotation,
+            fragment.DrawSprite(Transform.ToScreenUnits(transform.Position),
+                                transform.Scale,
+                                transform.Rotation,
                                 Transform.ToScreenUnits(component.Origin),
                                 Transform.ToScreenUnits(component.Bounds),
                                 component.Source.Value,
@@ -603,9 +577,9 @@ namespace Fracture.Engine.Ecs
          }
          else
          {
-            fragment.DrawSprite(Transform.ToScreenUnits(component.Transform.Position),
-                                component.Transform.Scale,
-                                component.Transform.Rotation,
+            fragment.DrawSprite(Transform.ToScreenUnits(transform.Position),
+                                transform.Scale,
+                                transform.Rotation,
                                 Transform.ToScreenUnits(component.Origin),
                                 Transform.ToScreenUnits(component.Bounds),
                                 component.Texture,
@@ -731,7 +705,13 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public Transform Transform
+         public Transform LocalTransform
+         {
+            get;
+            set;
+         }
+      
+         public Transform GlobalTransform
          {
             get;
             set;
@@ -755,7 +735,12 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public string Layer
+         public string CurrentLayer
+         {
+            get;
+            set;
+         }
+         public string NextLayer
          {
             get;
             set;
@@ -765,11 +750,10 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       [BindingConstructor]
-      public QuadComponentSystem(IEntitySystem entities, 
-                                 IEventQueueSystem events, 
+      public QuadComponentSystem(IEventQueueSystem events, 
                                  IGraphicsLayerSystem layers, 
                                  ITransformComponentSystem transforms) 
-         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.Quad)
+         : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.Quad)
       {
       }
       
@@ -807,9 +791,11 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
          
-         fragment.DrawQuad(Transform.ToScreenUnits(component.Transform.Position),
-                           component.Transform.Scale,
-                           component.Transform.Rotation,
+         var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
+
+         fragment.DrawQuad(Transform.ToScreenUnits(transform.Position),
+                           transform.Scale,
+                           transform.Rotation,
                            Transform.ToScreenUnits(component.Origin),
                            Transform.ToScreenUnits(component.Bounds),
                            component.Mode,
@@ -932,7 +918,13 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public Transform Transform
+         public Transform LocalTransform
+         {
+            get;
+            set;
+         }
+      
+         public Transform GlobalTransform
          {
             get;
             set;
@@ -956,7 +948,12 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public string Layer
+         public string CurrentLayer
+         {
+            get;
+            set;
+         }
+         public string NextLayer
          {
             get;
             set;
@@ -970,7 +967,7 @@ namespace Fracture.Engine.Ecs
       
       private readonly Dictionary<int, SpriteAnimationPlaylist> playlists;
       
-      private readonly IUniqueEventPublisher<int, ComponentEventArgs> finishedEvents;
+      private readonly IUniqueEvent<int, ComponentEventArgs> finishedEvents;
       #endregion
 
       [BindingConstructor]
@@ -978,9 +975,9 @@ namespace Fracture.Engine.Ecs
                                             IEventQueueSystem events, 
                                             IGraphicsLayerSystem layers, 
                                             ITransformComponentSystem transforms) 
-         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
+         : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
-         finishedEvents = events.CreateUnique<int, ComponentEventArgs>();
+         finishedEvents = events.CreateUniqueEvent<int, ComponentEventArgs>();
 
          var idc = 1;
          
@@ -1133,10 +1130,11 @@ namespace Fracture.Engine.Ecs
          
          var playlist  = playlists[component.PlaylistId];
          var animation = playlist.Animations[component.AnimationName];
+         var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
 
-         fragment.DrawSprite(Transform.ToScreenUnits(component.Transform.Position),
-                             component.Transform.Scale,
-                             component.Transform.Rotation,
+         fragment.DrawSprite(Transform.ToScreenUnits(transform.Position),
+                             transform.Scale,
+                             transform.Rotation,
                              Transform.ToScreenUnits(component.Origin),
                              Transform.ToScreenUnits(component.Bounds),
                              animation.Frames[component.FrameId],
@@ -1215,7 +1213,13 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public Transform Transform
+         public Transform LocalTransform
+         {
+            get;
+            set;
+         }
+      
+         public Transform GlobalTransform
          {
             get;
             set;
@@ -1239,7 +1243,12 @@ namespace Fracture.Engine.Ecs
             set;
          }
 
-         public string Layer
+         public string CurrentLayer
+         {
+            get;
+            set;
+         }
+         public string NextLayer
          {
             get;
             set;
@@ -1249,11 +1258,10 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       [BindingConstructor]
-      public SpriteTextComponentSystem(IEntitySystem entities, 
-                                       IEventQueueSystem events, 
+      public SpriteTextComponentSystem(IEventQueueSystem events, 
                                        IGraphicsLayerSystem layers, 
                                        ITransformComponentSystem transforms) 
-         : base(entities, events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteText)
+         : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteText)
       {
       }
 
@@ -1329,21 +1337,23 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(id);
 
+         var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
+         
          switch (component.Mode)
          {
             case TextDrawMode.Overflow:
-               fragment.DrawSpriteText(Transform.ToScreenUnits(component.Transform.Position),
-                                       component.Transform.Scale,
-                                       component.Transform.Rotation,
+               fragment.DrawSpriteText(Transform.ToScreenUnits(transform.Position),
+                                       transform.Scale,
+                                       transform.Rotation,
                                        Transform.ToScreenUnits(component.Origin),
                                        component.Text,
                                        component.Font,
                                        component.Color);
                break;
             case TextDrawMode.Fit:
-               fragment.DrawSpriteText(Transform.ToScreenUnits(component.Transform.Position),
-                                       component.Transform.Scale,
-                                       component.Transform.Rotation,
+               fragment.DrawSpriteText(Transform.ToScreenUnits(transform.Position),
+                                       transform.Scale,
+                                       transform.Rotation,
                                        Transform.ToScreenUnits(component.Origin),
                                        Transform.ToScreenUnits(component.Bounds),
                                        component.Text,

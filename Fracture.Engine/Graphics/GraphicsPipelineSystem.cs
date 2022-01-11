@@ -722,7 +722,7 @@ namespace Fracture.Engine.Graphics
                            settings.DepthStencilState,
                            settings.RasterizerState,
                            effect,
-                           view?.ViewMatrix);
+                           view?.Matrix);
          
          suppressed = false;
          drawing    = true;
