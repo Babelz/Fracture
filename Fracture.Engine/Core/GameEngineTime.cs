@@ -10,6 +10,14 @@ namespace Fracture.Engine.Core
     {
         #region Properties
         /// <summary>
+        /// Gets the start time of the engine in UTC.
+        /// </summary>
+        TimeSpan StartTime
+        {
+            get;
+        }
+        
+        /// <summary>
         /// Gets the elapsed time from last frame.
         /// </summary>
         TimeSpan Elapsed
@@ -42,6 +50,11 @@ namespace Fracture.Engine.Core
     public sealed class GameEngineTime : IGameEngineTime
     {
         #region Properties
+        public TimeSpan StartTime
+        {
+            get;
+        }
+        
         public TimeSpan Elapsed
         {
             get;
@@ -63,6 +76,7 @@ namespace Fracture.Engine.Core
 
         public GameEngineTime()
         {
+            StartTime = DateTime.UtcNow.TimeOfDay;
         }
     }
 }

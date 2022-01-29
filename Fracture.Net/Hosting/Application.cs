@@ -678,7 +678,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void HandleAcceptedNotifications()
         {
-            void Send(IMessage message, int peer)
+            void Send(in IMessage message, int peer)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
@@ -688,7 +688,7 @@ namespace Fracture.Net.Hosting
                 server.Send(peer, contents, 0, size);
             }
                 
-            void Broadcast(IMessage message, IEnumerable<int> peers)
+            void Broadcast(in IMessage message, IEnumerable<int> peers)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
@@ -707,7 +707,7 @@ namespace Fracture.Net.Hosting
                 BufferPool.Return(contents);
             }
             
-            void Reset(IMessage message, IEnumerable<int> peers)
+            void Reset(in IMessage message, IEnumerable<int> peers)
             {
                 if (message != null)
                     Broadcast(message, peers);

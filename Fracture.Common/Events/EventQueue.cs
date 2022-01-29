@@ -1,23 +1,26 @@
 using System;
 using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using Fracture.Common.Collections;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
 
 namespace Fracture.Common.Events
 {
+   /// <summary>
+   /// Structure representing generic letter that contains the topic it was published to and the arguments.
+   /// </summary>
    public readonly struct Letter<TTopic, TArgs>
    {
       #region Properties
+      /// <summary>
+      /// Gets the topic of this letter where it was published.
+      /// </summary>
       public TTopic Topic
       {
          get;
       }
 
+      /// <summary>
+      /// Gets the arguments of this letter, this is the data associated with it.
+      /// </summary>
       public TArgs Args
       {
          get;
@@ -31,14 +34,30 @@ namespace Fracture.Common.Events
       }
    }
    
+   /// <summary>
+   /// Enumeration defining letter handling results.
+   /// </summary>
    public enum LetterHandlingResult : byte
    {
+      /// <summary>
+      /// Letter should be consumed and will not be put pack to the backlog.
+      /// </summary>
       Consume = 0,
+
+      /// <summary>
+      /// Letter should be put back to the backlog.
+      /// </summary>
       Retain
    }
    
+   /// <summary>
+   /// Delegate used for handling enqueued letters from the backlog.
+   /// </summary>
    public delegate LetterHandlingResult EventHandlerDelegate<TTopic, TArgs>(in Letter<TTopic, TArgs> letter);
    
+   /// <summary>
+   /// Non-generic common interface for event queues.
+   /// </summary>
    public interface IEventQueue
    {
       /// <summary>
@@ -47,11 +66,9 @@ namespace Fracture.Common.Events
       void Clear();
    }
    
-   public interface IEventHandler<TTopic, TArgs> : IEventQueue
-   {
-      void Handle(EventHandlerDelegate<TTopic, TArgs> handler);
-   }
-   
+   /// <summary>
+   /// Interface for creating backlogs. Backlogs contain set of topics that where letters can be pushed to. 
+   /// </summary>
    public interface IEventBacklog<TTopic>
    {
       /// <summary>
@@ -64,13 +81,37 @@ namespace Fracture.Common.Events
       /// </summary>
       void Delete(in TTopic topic);
    }
-
-   public enum EventRetentionPolicy : byte
+   
+   /// <summary>
+   /// Generic interface for implementing event handlers.
+   /// </summary>
+   public interface IEventHandler<TTopic, TArgs>
    {
+      /// <summary>
+      /// Handles all letters enqueued in the event.
+      /// </summary>
+      void Handle(EventHandlerDelegate<TTopic, TArgs> handler);
+   }
+   
+   /// <summary>
+   /// Enumeration defining letter retention policies.
+   /// </summary>
+   public enum LetterRetentionPolicy : byte
+   {
+      /// <summary>
+      /// Letters from topics that are marked for deletion will not be handled. 
+      /// </summary>
       SilenceDeletedTopics = 0,
+      
+      /// <summary>
+      /// Letters from topics that are marked for deletion will be handled.
+      /// </summary>
       PublishDeletedTopics
    }
    
+   /// <summary>
+   /// Interface for implementing shared publishers. Topics of shared events can contain multiple letters.
+   /// </summary>
    public interface ISharedEvent<TTopic, TArgs> : IEventBacklog<TTopic>
    {
       /// <summary>
@@ -79,17 +120,23 @@ namespace Fracture.Common.Events
       void Publish(in TTopic topic, in TArgs args);
    }
    
-   public delegate TArgs UniqueEventLetterAggregatorDelegate<TTopic, TArgs>(in TArgs current, in TArgs next);
+   public delegate TArgs UniqueEventLetterAggregatorDelegate<TArgs>(in TArgs current, in TArgs next);
    
+   /// <summary>
+   /// Interface for implementing unique publishers. Topics of unique publishers can contain only one letter at time. 
+   /// </summary>
    public interface IUniqueEvent<TTopic, TArgs> : IEventBacklog<TTopic>
    {
-      void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TTopic, TArgs> aggregator = null);
+      /// <summary>
+      /// Publishes given letter to the topic. If the topic already has letter associated with it the aggregator will be invoked.
+      /// </summary>
+      void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TArgs> aggregator = null);
    }
 
-   public class EventBacklog<TTopic, TArgs> : IEventBacklog<TTopic>, IEventHandler<TTopic, TArgs>
+   public class Event<TTopic, TArgs> : IEventQueue, IEventBacklog<TTopic>, IEventHandler<TTopic, TArgs>
    {
       #region Static properties
-      public static EventBacklog<TTopic, TArgs> Empty
+      public static Event<TTopic, TArgs> Empty
       {
          get;
       }
@@ -107,18 +154,18 @@ namespace Fracture.Common.Events
       #endregion
 
       #region Properties
-      protected EventRetentionPolicy RetentionPolicy
+      protected LetterRetentionPolicy RetentionPolicy
       {
          get;
       }
       #endregion
       
-      static EventBacklog()
+      static Event()
       {
-         Empty = new EventBacklog<TTopic, TArgs>(1);
+         Empty = new Event<TTopic, TArgs>(1);
       }
       
-      protected EventBacklog(int capacity, EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics)
+      protected Event(int capacity, LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics)
       {
          RetentionPolicy = retentionPolicy;
          
@@ -162,7 +209,7 @@ namespace Fracture.Common.Events
             
             ref var letter = ref letters.AtIndex(i);
           
-            if (RetentionPolicy == EventRetentionPolicy.SilenceDeletedTopics && deletedTopics.Contains(letter.Topic))
+            if (RetentionPolicy == LetterRetentionPolicy.SilenceDeletedTopics && deletedTopics.Contains(letter.Topic))
                continue;
             
             if (handler(letter) != LetterHandlingResult.Retain)
@@ -200,9 +247,9 @@ namespace Fracture.Common.Events
       }
    }
    
-   public sealed class SharedEvent<TTopic, TArgs> : EventBacklog<TTopic, TArgs>, ISharedEvent<TTopic, TArgs>
+   public sealed class SharedEvent<TTopic, TArgs> : Event<TTopic, TArgs>, ISharedEvent<TTopic, TArgs>
    {
-      public SharedEvent(int capacity, EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics)
+      public SharedEvent(int capacity, LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics)
          : base(capacity, retentionPolicy)
       {
       }
@@ -212,28 +259,28 @@ namespace Fracture.Common.Events
          if (!TopicExists(topic))
             throw new InvalidOperationException($"topic {topic} does not exist");
        
-         if (!TopicActive(topic) && RetentionPolicy == EventRetentionPolicy.SilenceDeletedTopics)
+         if (!TopicActive(topic) && RetentionPolicy == LetterRetentionPolicy.SilenceDeletedTopics)
             return;
 
          EnqueueLetter(topic, args);
       }
    }
    
-   public sealed class UniqueEvent<TTopic, TArgs> : EventBacklog<TTopic, TArgs>, IUniqueEvent<TTopic, TArgs>
+   public sealed class UniqueEvent<TTopic, TArgs> : Event<TTopic, TArgs>, IUniqueEvent<TTopic, TArgs>
    {
       #region Fields
       private readonly Dictionary<TTopic, int> topicLetterIndices;
       #endregion
       
-      public UniqueEvent(int capacity, EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics)
+      public UniqueEvent(int capacity, LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics)
          : base(capacity, retentionPolicy) => topicLetterIndices = new Dictionary<TTopic, int>(capacity);
       
-      public void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TTopic, TArgs> aggregator = null)
+      public void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TArgs> aggregator = null)
       {
          if (!TopicExists(topic))
             throw new InvalidOperationException($"topic {topic} does not exist");
          
-         if (!TopicActive(topic) && RetentionPolicy == EventRetentionPolicy.SilenceDeletedTopics)
+         if (!TopicActive(topic) && RetentionPolicy == LetterRetentionPolicy.SilenceDeletedTopics)
             return;
 
          if (topicLetterIndices.TryGetValue(topic, out var index))

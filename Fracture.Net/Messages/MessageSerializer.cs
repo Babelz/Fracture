@@ -11,7 +11,7 @@ namespace Fracture.Net.Messages
         /// <summary>
         /// Serializes given message to buffer and returns it to the caller.
         /// </summary>
-        void Serialize(IMessage message, byte[] buffer, int offset);
+        void Serialize(in IMessage message, byte[] buffer, int offset);
         
         /// <summary>
         /// Deserializes message from given buffer at given offset.
@@ -26,7 +26,7 @@ namespace Fracture.Net.Messages
         /// <summary>
         /// Gets size of given message.
         /// </summary>
-        ushort GetSizeFromMessage(IMessage message);
+        ushort GetSizeFromMessage(in IMessage message);
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ namespace Fracture.Net.Messages
         {
         }
 
-        public void Serialize(IMessage message, byte[] buffer, int offset)
+        public void Serialize(in IMessage message, byte[] buffer, int offset)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
@@ -65,7 +65,7 @@ namespace Fracture.Net.Messages
             return StructSerializer.GetSizeFromBuffer(buffer, offset);
         }
 
-        public ushort GetSizeFromMessage(IMessage message)
+        public ushort GetSizeFromMessage(in IMessage message)
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));

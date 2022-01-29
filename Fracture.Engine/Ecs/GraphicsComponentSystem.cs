@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
@@ -148,6 +147,7 @@ namespace Fracture.Engine.Ecs
       #region Fields
       private readonly IEventHandler<int, TransformChangedEventArgs> transformChangedEvent;
 
+      private readonly HashSet<int> scrubbed;
       private readonly HashSet<int> dirty;
       #endregion
 
@@ -188,6 +188,7 @@ namespace Fracture.Engine.Ecs
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
          Components = new LinearGrowthArray<T>(ComponentsCapacity);
+         scrubbed   = new HashSet<int>(ComponentsCapacity);
          dirty      = new HashSet<int>(ComponentsCapacity);
       }
       
@@ -273,9 +274,6 @@ namespace Fracture.Engine.Ecs
       {
          AssertAlive(id);
        
-         if (!Layers.Any(l => l.Name == name))
-            throw new InvalidOperationException($"layer {name} does not exist");
-
          Components.AtIndex(id).NextLayer = name;
          
          dirty.Add(id);
@@ -351,6 +349,12 @@ namespace Fracture.Engine.Ecs
       
       public override void Update(IGameEngineTime time)
       {
+         // Add dirty components from last frame.
+         foreach (var id in scrubbed)
+            dirty.Add(id);
+         
+         scrubbed.Clear();
+         
          // Update transformations.
          transformChangedEvent.Handle((in Letter<int, TransformChangedEventArgs> letter) =>
          {
@@ -368,9 +372,7 @@ namespace Fracture.Engine.Ecs
          });
          
          // Update all dirty elements.
-         var layersLookup = Layers.ToDictionary(l => l.Name, l => l);
-         
-         foreach (var id in dirty)
+         foreach (var id in dirty.Where(IsAlive))
          {
             // Get associated data.
             ref var component = ref Components.AtIndex(id);
@@ -386,15 +388,21 @@ namespace Fracture.Engine.Ecs
             if (component.CurrentLayer != component.NextLayer)
             {
                // Move to new layer.
-               var currentLayer = component.CurrentLayer;
-               var nextLayer    = component.NextLayer;
-               var aabb         = component.Aabb;
+               var aabb = component.Aabb;
                
                // Remove from current layer if component has one.
-               Layers.FirstOrDefault(l => l.Name == currentLayer)?.Remove(id);
-         
-               // Insert to new layer.
-               Layers.First(l => l.Name == nextLayer).Add(id, GraphicsComponentTypeId, ref aabb, out var clamped);
+               if (Layers.TryGetLayer(component.CurrentLayer, out var currentLayer))
+                  currentLayer.Remove(id);
+               
+               // Add to next layer.
+               if (!Layers.TryGetLayer(component.NextLayer, out var nextLayer))
+               {
+                  scrubbed.Add(id);
+                  
+                  continue;
+               }
+               
+               nextLayer.Add(id, GraphicsComponentTypeId, ref aabb, out var clamped);
          
                // Update AABB if clamped.
                if (clamped)
@@ -408,8 +416,15 @@ namespace Fracture.Engine.Ecs
                var aabb = component.Aabb;
             
                // Update on layer.
-               layersLookup[component.CurrentLayer].Update(id, ref aabb, out var clamped);
-            
+               if (Layers.TryGetLayer(component.CurrentLayer, out var layer))
+               {
+                  scrubbed.Add(id);
+                  
+                  continue;
+               }
+               
+               layer.Update(id, ref aabb, out var clamped);
+
                // Update in system if AABB was clamped.
                if (clamped) 
                   component.Aabb = aabb;  
@@ -977,7 +992,7 @@ namespace Fracture.Engine.Ecs
                                             ITransformComponentSystem transforms) 
          : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
-         finishedEvents = events.CreateUniqueEvent<int, ComponentEventArgs>();
+         finishedEvents = events.CreateUnique<int, ComponentEventArgs>();
 
          var idc = 1;
          
@@ -1034,9 +1049,9 @@ namespace Fracture.Engine.Ecs
       {
          indices.Return(playlistId);
          
-         for (var i = 0; i < Count; i++)
+         foreach (var id in Alive)
          {
-            ref var component = ref Components.AtIndex(i);
+            ref var component = ref Components.AtIndex(id);
             
             if (component.PlaylistId == playlistId)
                component.PlaylistId = SpriteAnimationComponent.NoAnimation;
@@ -1088,9 +1103,9 @@ namespace Fracture.Engine.Ecs
       {
          base.Update(time);
 
-         for (var i = 0; i < Count; i++)
+         foreach (var id in Alive)
          {
-            ref var component = ref Components.AtIndex(i);
+            ref var component = ref Components.AtIndex(id);
             
             if (!component.Playing)
                continue;
@@ -1113,7 +1128,7 @@ namespace Fracture.Engine.Ecs
                
             component.FrameId = 0;
 
-            finishedEvents.Publish(i, new ComponentEventArgs(i));
+            finishedEvents.Publish(id, new ComponentEventArgs(id));
                   
             if (component.Mode != SpriteAnimationMode.Play)
                continue;

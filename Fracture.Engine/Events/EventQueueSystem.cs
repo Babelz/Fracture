@@ -6,17 +6,32 @@ using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Events
 {
+   /// <summary>
+   /// Interface for implementing event queue systems.
+   /// </summary>
    public interface IEventQueueSystem : IGameEngineSystem
    {
-      ISharedEvent<TTopic, TArgs> CreateSharedEvent<TTopic, TArgs>(int capacity = 64, 
-                                                                   EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics);
+      /// <summary>
+      /// Creates new shared event queue and returns the backlog to the caller.
+      /// </summary>
+      ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity = 64, 
+                                                                     LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
 
-      IUniqueEvent<TTopic, TArgs> CreateUniqueEvent<TTopic, TArgs>(int capacity = 16, 
-                                                                   EventRetentionPolicy retentionPolicy = EventRetentionPolicy.PublishDeletedTopics);
+      /// <summary>
+      /// Create new unique event queue and returns the backlog to the caller.
+      /// </summary>
+      IUniqueEvent<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity = 16, 
+                                                                     LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
       
+      /// <summary>
+      /// Gets the event handler for event queue that has specific letter signature.
+      /// </summary>
       IEventHandler<TTopic, TArgs> GetEventHandler<TTopic, TArgs>();
    }
 
+   /// <summary>
+   /// Default implementation of <see cref="IEventQueueSystem"/>.
+   /// </summary>
    public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
    {
       #region Fields
@@ -27,7 +42,7 @@ namespace Fracture.Engine.Events
       public EventQueueSystem()
          => queues = new List<IEventQueue>();
       
-      public ISharedEvent<TTopic, TArgs> CreateSharedEvent<TTopic, TArgs>(int capacity, EventRetentionPolicy retentionPolicy)
+      public ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
       {
          var backlog = new SharedEvent<TTopic, TArgs>(capacity, retentionPolicy);
          
@@ -36,7 +51,7 @@ namespace Fracture.Engine.Events
          return backlog;
       }
 
-      public IUniqueEvent<TTopic, TArgs> CreateUniqueEvent<TTopic, TArgs>(int capacity, EventRetentionPolicy retentionPolicy)
+      public IUniqueEvent<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
       {
          var backlog = new UniqueEvent<TTopic, TArgs>(capacity, retentionPolicy);
          
@@ -46,7 +61,7 @@ namespace Fracture.Engine.Events
       }
 
       public IEventHandler<TTopic, TArgs> GetEventHandler<TTopic, TArgs>()
-         => (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>) ?? EventBacklog<TTopic, TArgs>.Empty;
+         => (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>) ?? Event<TTopic, TArgs>.Empty;
       
       public override void Update(IGameEngineTime time)
       {

@@ -146,7 +146,7 @@ namespace Fracture.Net.Clients
             }
             #endregion
 
-            public Packet(PacketOrigin origin, IMessage message, byte[] contents, int length)
+            public Packet(PacketOrigin origin, in IMessage message, byte[] contents, int length)
             {
                 Origin   = origin;
                 Message  = message ?? throw new ArgumentNullException(nameof(message));

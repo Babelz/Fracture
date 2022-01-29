@@ -28,12 +28,18 @@ namespace Fracture.Engine.Physics
         {
             get;
         }
+        
+        public Vector2 Translation
+        {
+            get;
+        }
         #endregion
 
-        public BodyContactEventArgs(int firstBodyId, int secondBodyId)
+        public BodyContactEventArgs(int firstBodyId, int secondBodyId, Vector2 translation)
         {
             FirstBodyId  = firstBodyId;
             SecondBodyId = secondBodyId;
+            Translation  = translation;
         }
     }
 
@@ -539,8 +545,8 @@ namespace Fracture.Engine.Physics
                 var firstBodyContactList  = contactListLookup[pair.FirstBodyId];
                 var secondBodyContactList = contactListLookup[pair.SecondBodyId];
 
-                firstBodyContactList.Add(contact.SecondBodyId, frame);
-                secondBodyContactList.Add(contact.FirstBodyId, frame);
+                firstBodyContactList.Add(contact.SecondBodyId, frame, contact.Translation);
+                secondBodyContactList.Add(contact.FirstBodyId, frame, contact.Translation);
 
                 // Separate bodies.
                 if (firstBody.Type == BodyType.Dynamic)
@@ -554,11 +560,11 @@ namespace Fracture.Engine.Physics
             {
                 // Invoke all begin contact events.
                 foreach (var enteringBody in contactLists[i].EnteringBodyIds)
-                    BeginContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, enteringBody));
+                    BeginContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, enteringBody, contactLists[i].GetTranslation(enteringBody)));
                 
                 // Invoke all end contact events.
                 foreach (var leavingBody in contactLists[i].LeavingBodyIds)
-                    EndContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, leavingBody));
+                    EndContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, leavingBody, contactLists[i].GetTranslation(leavingBody)));
             }
             
             // Advance frame to keep contact lists in check.

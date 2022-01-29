@@ -179,13 +179,13 @@ namespace Fracture.Engine.Ecs
         {
             entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
             {
-                if (!entityBehaviourLists.TryGetValue(letter.Args.Id, out var behaviors))
+                if (!entityBehaviourLists.TryGetValue(letter.Args.EntityId, out var behaviors))
                     return LetterHandlingResult.Retain;
                 
                 foreach (var behavior in behaviors.Where(behavior => behavior.Attached))
                     behavior.Detach();
                 
-                entityBehaviourLists.Remove(letter.Args.Id);
+                entityBehaviourLists.Remove(letter.Args.EntityId);
                 ListPool.Return(behaviors);
                 
                 return LetterHandlingResult.Retain;

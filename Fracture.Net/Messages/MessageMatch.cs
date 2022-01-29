@@ -8,7 +8,7 @@ namespace Fracture.Net.Messages
     /// <summary>
     /// Delegate for creating message match delegates. Message matchers are used in routing the messages in type based routing setup.
     /// </summary>
-    public delegate bool MessageMatchDelegate(IMessage message);
+    public delegate bool MessageMatchDelegate(in IMessage message);
     
     /// <summary>
     /// Static utility class containing message type matching utilises. 
@@ -25,7 +25,7 @@ namespace Fracture.Net.Messages
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MessageMatchDelegate Exact<T>() where T : IMessage
-            => (message) => message is T;
+            => (in IMessage message) => message is T;
         
         /// <summary>
         /// Matcher that allows many message types.
@@ -38,7 +38,7 @@ namespace Fracture.Net.Messages
             
             var messageTypesHash = new HashSet<Type>(messageTypes);
             
-            return (message) => messageTypesHash.Contains(message.GetType());
+            return (in IMessage message) => messageTypesHash.Contains(message.GetType());
         }
 
         /// <summary>
@@ -49,7 +49,7 @@ namespace Fracture.Net.Messages
         {
             var exact = Exact<T>();
             
-            return (message) => !exact(message);
+            return (in IMessage message) => !exact(message);
         }
         
         /// <summary>
@@ -60,7 +60,7 @@ namespace Fracture.Net.Messages
         {
             var many = Many(messageTypes);
             
-            return (message) => many(message);
+            return (in IMessage message) => many(message);
         }
     }
 }

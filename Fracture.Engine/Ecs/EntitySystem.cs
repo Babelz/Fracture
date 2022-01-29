@@ -12,15 +12,15 @@ namespace Fracture.Engine.Ecs
    public readonly struct EntityEventArgs
    {
       #region Properties
-      public int Id
+      public int EntityId
       {
          get;
       }
       #endregion
 
-      public EntityEventArgs(int id)
+      public EntityEventArgs(int entityId)
       {
-         Id = id;
+         EntityId = entityId;
       }
    }
    
@@ -162,13 +162,13 @@ namespace Fracture.Engine.Ecs
       [BindingConstructor]
       public EntitySystem(IEventQueueSystem events)
       {
-         deletedEvent = events.CreateUniqueEvent<int, EntityEventArgs>();
+         deletedEvent = events.CreateUnique<int, EntityEventArgs>();
          
-         unpairedFromChildEvent  = events.CreateSharedEvent<int, EntityPairEventArgs>();
-         unpairedFromParentEvent = events.CreateSharedEvent<int, EntityPairEventArgs>();
+         unpairedFromChildEvent  = events.CreateShared<int, EntityPairEventArgs>();
+         unpairedFromParentEvent = events.CreateShared<int, EntityPairEventArgs>();
          
-         madeParentOfEvent = events.CreateSharedEvent<int, EntityPairEventArgs>();
-         madeChildOfEvent  = events.CreateSharedEvent<int, EntityPairEventArgs>();
+         madeParentOfEvent = events.CreateShared<int, EntityPairEventArgs>();
+         madeChildOfEvent  = events.CreateShared<int, EntityPairEventArgs>();
 
          // Create entity data. 
          var idc = 0;

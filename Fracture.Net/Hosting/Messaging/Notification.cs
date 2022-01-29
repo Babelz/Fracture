@@ -83,32 +83,32 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         /// <param name="peer">id of the peer this message is send to</param>
         /// <param name="message">message that will be send</param>
-        void Send(int peer, IMessage message);
+        void Send(int peer, in IMessage message);
         
         /// <summary>
         /// Enqueues reset notification for handling.
         /// </summary>
         /// <param name="peer">peer that will be reset</param>
         /// <param name="message">optional last message send to the peer before resetting</param>
-        void Reset(int peer, IMessage message = null);
+        void Reset(int peer, in IMessage message = null);
 
         /// <summary>
         /// Enqueues broadcast message for handling. 
         /// </summary>
         /// <param name="message">message that will be broadcast</param>
         /// <param name="peers">peers that the message will be broadcast to</param>
-        void BroadcastNarrow(IMessage message, params int[] peers);
+        void BroadcastNarrow(in IMessage message, params int[] peers);
         
         /// <summary>
         /// Enqueues broadcast message for handling. This message will be send to all connected peers.
         /// </summary>
         /// <param name="message">message that will be send to all active peers</param>
-        void BroadcastWide(IMessage message);
+        void BroadcastWide(in IMessage message);
         
         /// <summary>
         /// Enqueue broadcast message that will reset all connected peers.
         /// </summary>
-        void Shutdown(IMessage message = null);
+        void Shutdown(in IMessage message = null);
     }
     
     /// <summary>
@@ -153,7 +153,7 @@ namespace Fracture.Net.Hosting.Messaging
                 throw new InvalidOperationException("notification is not unset");
         }
         
-        public void Send(int peer, IMessage message)
+        public void Send(int peer, in IMessage message)
         {
             AssertUnset();
             
@@ -162,7 +162,7 @@ namespace Fracture.Net.Hosting.Messaging
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
-        public void Reset(int peer, IMessage message = null)
+        public void Reset(int peer, in IMessage message = null)
         {   
             AssertUnset();
 
@@ -171,7 +171,7 @@ namespace Fracture.Net.Hosting.Messaging
             Message = message;
         }
         
-        public void BroadcastNarrow(IMessage message, params int[] peers)
+        public void BroadcastNarrow(in IMessage message, params int[] peers)
         {
             AssertUnset();
 
@@ -183,7 +183,7 @@ namespace Fracture.Net.Hosting.Messaging
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
-        public void BroadcastWide(IMessage message)
+        public void BroadcastWide(in IMessage message)
         {
             AssertUnset();
 
@@ -192,7 +192,7 @@ namespace Fracture.Net.Hosting.Messaging
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
-        public void Shutdown(IMessage message = null)
+        public void Shutdown(in IMessage message = null)
         {
             AssertUnset();
 

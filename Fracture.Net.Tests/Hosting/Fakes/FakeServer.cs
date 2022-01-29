@@ -57,7 +57,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             return this;
         }
         
-        public FakeServerFrame Incoming(PeerConnection peer, IMessage message)
+        public FakeServerFrame Incoming(PeerConnection peer, in IMessage message)
         {
             var size = StructSerializer.GetSizeFromValue(message);
             var data = BufferPool.Take(size);

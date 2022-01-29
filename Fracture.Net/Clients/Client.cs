@@ -136,7 +136,7 @@ namespace Fracture.Net.Clients
             State = next;
         }
 
-        public abstract void Send(IMessage message);
+        public abstract void Send(in IMessage message);
 
         public abstract void Disconnect();
 

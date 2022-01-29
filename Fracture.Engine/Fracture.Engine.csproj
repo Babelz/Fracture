@@ -133,6 +133,7 @@
         <Compile Include="Ui\UiLayout.cs" />
         <Compile Include="Ui\UiSystem.cs" />
         <Compile Include="Ui\UiUtils.cs" />
+        <Compile Include="Util\VectorUtil.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />

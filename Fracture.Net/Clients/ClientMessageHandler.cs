@@ -4,18 +4,18 @@ namespace Fracture.Net.Clients
 {
     public interface IClientMessageRouter
     {
-        void Route(IMessage message);
+        void Route(in IMessage message);
         
         void Poll();
     }
     
-    public delegate void ClientMessageHandlerDelegate(IMessage message);
+    public delegate void ClientMessageHandlerDelegate(in IMessage message);
     
-    public delegate void ClientQueryResponseHandler(IQueryMessage request, IQueryMessage response);
+    public delegate void ClientQueryResponseHandler(in IQueryMessage request, in IQueryMessage response);
     
     public interface IClientMessageHandler
     {
-        void Request(IQueryMessage query, ClientQueryResponseHandler handler);
+        void Request(in IQueryMessage query, ClientQueryResponseHandler handler);
         
         void Handler(MessageMatchDelegate match, ClientMessageHandlerDelegate handler);
     }

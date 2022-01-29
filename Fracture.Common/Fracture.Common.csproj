@@ -99,6 +99,7 @@
         <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
         <Compile Include="Reflection\ReflectionUtil.cs" />
         <Compile Include="Util\HashUtil.cs" />
+        <Compile Include="Util\MathUtil.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />

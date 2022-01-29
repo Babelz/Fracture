@@ -1,12 +1,9 @@
-using System.Security.Cryptography;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
-using Fracture.Common.Util;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Events;
 using Microsoft.Xna.Framework;
-using Newtonsoft.Json;
 
 namespace Fracture.Engine.Ecs
 {
@@ -56,6 +53,10 @@ namespace Fracture.Engine.Ecs
       Vector2 GetPosition(int id);
       Vector2 GetScale(int id);
       float GetRotation(int id);
+      Transform GetTransform(int id);
+      
+      void ApplyTransformation(int id, in Transform transform);
+      void ApplyTranslation(int id, in Transform translation);
       
       void TranslatePosition(int id, in Vector2 translation);
       void TranslateScale(int id, in Vector2 translation);
@@ -106,7 +107,7 @@ namespace Fracture.Engine.Ecs
       public TransformComponentComponentSystem(IEventQueueSystem events)
          : base(events)
       {
-         changedEvent = events.CreateUniqueEvent<int, TransformChangedEventArgs>();
+         changedEvent = events.CreateUnique<int, TransformChangedEventArgs>();
          
          // Allocate data.
          components = new LinearGrowthArray<TransformComponent>(ComponentsCapacity);
@@ -179,6 +180,39 @@ namespace Fracture.Engine.Ecs
          AssertAlive(id);
          
          return components.AtIndex(id).Transform.Rotation;
+      }
+      
+      public Transform GetTransform(int id)
+      {
+         AssertAlive(id);
+         
+         return components.AtIndex(id).Transform;
+      }
+      
+      public void ApplyTransformation(int id, in Transform transform)
+      {
+         AssertAlive(id);
+         
+         ref var component = ref components.AtIndex(id);
+         
+         component.Transform = transform;
+         
+         changedEvent.Publish(id,
+                              new TransformChangedEventArgs(component.EntityId, Transform.Default, transform),
+                              AggregateTransformChanges);
+      }
+
+      public void ApplyTranslation(int id, in Transform translation)
+      {
+         AssertAlive(id);
+         
+         ref var component = ref components.AtIndex(id);
+         
+         component.Transform += translation;
+         
+         changedEvent.Publish(id,
+                              new TransformChangedEventArgs(component.EntityId, component.Transform, translation),
+                              AggregateTransformChanges);
       }
 
       public void TranslatePosition(int id, in Vector2 translation)

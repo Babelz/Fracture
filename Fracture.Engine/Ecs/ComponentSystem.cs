@@ -36,7 +36,7 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Returns boolean declaring whether a component with given id is alive.
       /// </summary>
-      bool Alive(int id);
+      bool IsAlive(int id);
       
       /// <summary>
       /// Returns boolean declaring whether any components are bound to this entity.
@@ -75,12 +75,16 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       #region Properties
-      protected int Count => aliveComponents.Count;
+      /// <summary>
+      /// Gets the ids of alive components.
+      /// </summary>
+      protected IEnumerable<int> Alive 
+         => aliveComponents;
       #endregion
-
+      
       protected ComponentSystem(IEventQueueSystem events)
       {
-         componentDeletedEvent = events.CreateUniqueEvent<int, ComponentEventArgs>();
+         componentDeletedEvent = events.CreateUnique<int, ComponentEventArgs>();
          entityDeletedEvent    = events.GetEventHandler<int, EntityEventArgs>();
          
          // Create basic component data.
@@ -94,10 +98,16 @@ namespace Fracture.Engine.Ecs
       protected void AssertAlive(int id)
       {
 #if DEBUG || ECS_RUNTIME_CHECKS
-         if (!Alive(id)) 
+         if (!IsAlive(id)) 
             throw new InvalidOperationException($"component {id} does not exist");
 #endif
       }
+      
+      /// <summary>
+      /// Gets the id of component at given index.
+      /// </summary>
+      protected int IdAtIndex(int index)
+         => aliveComponents[index];
       
       protected int OwnerOf(int id) 
          => componentToEntityMap[id];
@@ -138,7 +148,7 @@ namespace Fracture.Engine.Ecs
          return true;
       }
 
-      public bool Alive(int id)
+      public bool IsAlive(int id)
          => componentToEntityMap.ContainsKey(id);
 
       public abstract bool BoundTo(int entityId);
@@ -149,7 +159,7 @@ namespace Fracture.Engine.Ecs
       {
          entityDeletedEvent.Handle((in Letter<int, EntityEventArgs> letter) => 
          {
-            foreach (var id in AllFor(letter.Args.Id))
+            foreach (var id in AllFor(letter.Args.EntityId))
                Delete(id);
             
             return LetterHandlingResult.Retain;
@@ -273,7 +283,7 @@ namespace Fracture.Engine.Ecs
 
       public override bool Delete(int id)
       {
-         if (!Alive(id)) 
+         if (!IsAlive(id)) 
             return false;
          
          var entityId = OwnerOf(id);

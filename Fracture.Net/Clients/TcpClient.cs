@@ -191,7 +191,7 @@ namespace Fracture.Net.Clients
             }
         }
 
-        public override void Send(IMessage message)
+        public override void Send(in IMessage message)
         {
             if (State != ClientState.Connected)
                 return;

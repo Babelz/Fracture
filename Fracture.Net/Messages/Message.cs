@@ -76,7 +76,7 @@ namespace Fracture.Net.Messages
             => JsonConvert.SerializeObject(this);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Clock<T>(IClockMessage from, Func<T> result) where T : IClockMessage
+        public static T Clock<T>(in IClockMessage from, Func<T> result) where T : IClockMessage
         {
             var message = result();
             
@@ -86,7 +86,7 @@ namespace Fracture.Net.Messages
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T Query<T>(IQueryMessage from, Func<T> result) where T : IQueryMessage
+        public static T Query<T>(in IQueryMessage from, Func<T> result) where T : IQueryMessage
         {
             var message = result();
             
@@ -95,6 +95,9 @@ namespace Fracture.Net.Messages
             return message;
         }
 
+        /// <summary>
+        /// Returns message of preferred type to the caller from pool. Remember to return this message back to the pool using <see cref="Release"/> method.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Create<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
         {
@@ -119,18 +122,38 @@ namespace Fracture.Net.Messages
             
             return message;
         }
-        
+
+        /// <summary>
+        /// Returns boolean declaring whether the given messages type is pooled message type.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Release(IMessage message) 
-            => Pools[message.GetType()].Return(message);
+        public static bool IsPooled(in IMessage message)
+            => Pools.ContainsKey(message.GetType());
+        
+        /// <summary>
+        /// Attempts to return given message back to the pool. Has no effect if the message type is not a pooled message type.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Release(in IMessage message)
+        {
+            if (IsPooled(message))
+                Pools[message.GetType()].Return(message);
+        }
     }
     
+    /// <summary>
+    /// Utility class for defining messaging schemas. Works only as wrapper around serialization library. For any more fine tuned schema mapping use the
+    /// serialization type mappers.
+    /// </summary>
     public static class Schema
     {
+        /// <summary>
+        /// Defines message inside the schema and maps it for usage.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : class, IMessage, new()
+        public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : IMessage
         {
-            var mapper = ObjectSerializationMapper.ForType<T>().IndirectActivation(() => Message.Create<T>());
+            var mapper = ObjectSerializationMapper.ForType<T>();
             
             map(mapper);
             
@@ -139,6 +162,9 @@ namespace Fracture.Net.Messages
             StructSerializer.Map(mapping);
         }
         
+        /// <summary>
+        /// Defines structure that can be found inside the messages and maps it for usage.
+        /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ForStruct<T>(ObjectSchemaMapDelegate map) 
         {

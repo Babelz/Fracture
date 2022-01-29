@@ -128,28 +128,28 @@ namespace Fracture.Net.Hosting.Messaging
         /// Decorates the response object to contain successful response.
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
-        void Ok(IMessage message = null);
+        void Ok(in IMessage message = null);
         
         /// <summary>
         /// Decorates the response object to contain server error response.
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
         /// <param name="exception">optional exception associated with the response</param>
-        void ServerError(IMessage message = null, Exception exception = null);
+        void ServerError(in IMessage message = null, Exception exception = null);
         
         /// <summary>
         /// Decorates the response object to contain bad request error response.
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
         /// <param name="exception">optional exception associated with the response</param>
-        void BadRequest(IMessage message = null, Exception exception = null);
+        void BadRequest(in IMessage message = null, Exception exception = null);
 
         /// <summary>
         /// Decorates the response object to contain peer reset response. 
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
         /// <param name="exception">optional exception associated with the response</param>
-        void Reset(IMessage message = null, Exception exception = null);
+        void Reset(in IMessage message = null, Exception exception = null);
         
         /// <summary>
         /// Decorates the response object to contain no route response.
@@ -203,7 +203,7 @@ namespace Fracture.Net.Hosting.Messaging
                 throw new InvalidOperationException("response is not empty");
         }
         
-        public void Ok(IMessage message = null)
+        public void Ok(in IMessage message = null)
         {
             AssertEmpty();
                
@@ -211,7 +211,7 @@ namespace Fracture.Net.Hosting.Messaging
             StatusCode = ResponseStatus.Code.Ok;
         }
 
-        public void ServerError(IMessage message = null, Exception exception = null)
+        public void ServerError(in IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 
@@ -220,7 +220,7 @@ namespace Fracture.Net.Hosting.Messaging
             StatusCode = ResponseStatus.Code.ServerError;
         }
 
-        public void BadRequest(IMessage message = null, Exception exception = null)
+        public void BadRequest(in IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 
@@ -229,7 +229,7 @@ namespace Fracture.Net.Hosting.Messaging
             StatusCode = ResponseStatus.Code.BadRequest;
         }
         
-        public void Reset(IMessage message = null, Exception exception = null)
+        public void Reset(in IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
 

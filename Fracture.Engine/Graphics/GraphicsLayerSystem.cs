@@ -485,6 +485,11 @@ namespace Fracture.Engine.Graphics
       /// Deletes layer with given name.
       /// </summary>
       void Delete(GraphicsElementLayer layer);
+      
+      /// <summary>
+      /// Attempts to get layer with given name. Returns boolean declaring whether the layer was found.
+      /// </summary>
+      bool TryGetLayer(string name, out GraphicsElementLayer layer);
    }
   
    /// <summary>
@@ -533,13 +538,20 @@ namespace Fracture.Engine.Graphics
          if (!layers.Remove(layer))
             throw new InvalidOperationException($"could not delete layer {layer.Name}");
       }
-      
+
+      public bool TryGetLayer(string name, out GraphicsElementLayer layer)
+      {
+         layer = layers.FirstOrDefault(l => l.Name == name);
+         
+         return layer != null;
+      }
+
       public void Clear()
       {
          while (layers.Count != 0)
             Delete(layers[0]);
       }
-      
+
       public IEnumerator<GraphicsElementLayer> GetEnumerator()
          => layers.GetEnumerator();
 

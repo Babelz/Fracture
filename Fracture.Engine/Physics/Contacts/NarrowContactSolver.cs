@@ -322,9 +322,11 @@ namespace Fracture.Engine.Physics.Contacts
        #endregion
 
        #region Fields
+       private readonly Dictionary<int, Vector2> translations;
+       
        private HashSet<int> oldBodyIds;
        private HashSet<int> newBodyIds;
-
+       
        private ulong lastFrame;
        #endregion
 
@@ -358,15 +360,22 @@ namespace Fracture.Engine.Physics.Contacts
 
        public ContactList(int bodyId)
        {
-           BodyId     = bodyId;
-           oldBodyIds = new HashSet<int>(Capacity);
-           newBodyIds = new HashSet<int>(Capacity);
+           BodyId       = bodyId;
+           oldBodyIds   = new HashSet<int>(Capacity);
+           newBodyIds   = new HashSet<int>(Capacity);
+           translations = new Dictionary<int, Vector2>();
        }
        
        /// <summary>
+       /// Gets translation for this collision pair.
+       /// </summary>
+       public Vector2 GetTranslation(int id)
+         => translations.TryGetValue(id, out var translation) ? translation : Vector2.Zero;
+
+       /// <summary>
        /// Adds new body to contact list.
        /// </summary>
-       public void Add(int id, ulong frame)
+       public void Add(int id, ulong frame, Vector2 translation)
        {
            if (lastFrame < frame)
            {
@@ -376,11 +385,16 @@ namespace Fracture.Engine.Physics.Contacts
                oldBodyIds = newBodyIds;
                newBodyIds = temp;
 
+               foreach (var oldBodyId in oldBodyIds)
+                  translations.Remove(oldBodyId);
+               
                newBodyIds.Clear();
 
                lastFrame = frame;
            }
-
+           
+           translations.Add(id, translation);
+           
            newBodyIds.Add(id);
        }
    }

@@ -38,11 +38,11 @@ namespace Fracture.Engine.Net
     
     public interface INetPacketSystem : INetSystem, INetPacketHandler
     {
-        void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new();
+        void Send<T>(in T message) where T : IMessage;
         
-        void Send<T>(PoolElementDecoratorDelegate<T> decorator, 
+        void Send<T>(in T message, 
                      NetMessageQueryResponseCallback responseCallback, 
-                     NetMessageQueryTimeoutCallback timeoutCallback) where T : class, IQueryMessage, new();
+                     NetMessageQueryTimeoutCallback timeoutCallback) where T : IQueryMessage;
     }
     
     public sealed class NetSystem : GameEngineSystem, INetPacketSystem
@@ -223,20 +223,19 @@ namespace Fracture.Engine.Net
         public void Revoke(string name)
             => packetHandler.Revoke(name);
 
-        public void Send<T>(PoolElementDecoratorDelegate<T> decorator) where T : class, IMessage, new()
-            => client.Send(Message.Create(decorator));
+        public void Send<T>(in T message) where T : IMessage
+            => client.Send(message);
 
-        public void Send<T>(PoolElementDecoratorDelegate<T> decorator,
+        public void Send<T>(in T message,
                             NetMessageQueryResponseCallback responseCallback,
-                            NetMessageQueryTimeoutCallback timeoutCallback) where T : class, IQueryMessage, new()
+                            NetMessageQueryTimeoutCallback timeoutCallback) where T : IQueryMessage
         {
-            var request = Message.Create(decorator);
-            var context = new QueryMessageContext(request,
+            var context = new QueryMessageContext(message,
                                                   responseCallback,
                                                   timeoutCallback);
             queries.Add(context);
             
-            client.Send(request);
+            client.Send(message);
         }
         
         public override void Update(IGameEngineTime time)

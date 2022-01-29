@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
-using Fracture.Common.Events;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Events;
@@ -51,8 +50,8 @@ namespace Fracture.Engine.Ecs
       Aabb GetBoundingBox(int id);
       BodyType GetType(int id);
       Shape GetShape(int id);
-      IEnumerable<int> GetCurrentContacts(int id);
-      IEnumerable<int> GetLastContacts(int id);
+      IEnumerable<BodyComponentContact> GetCurrentContacts(int id);
+      IEnumerable<BodyComponentContact> GetLeavingContacts(int id);
       object GetUserData(int id);
       
       bool IsPrimary(int id);
@@ -85,18 +84,35 @@ namespace Fracture.Engine.Ecs
       IEnumerable<int> AabbQueryNarrow(in Aabb aabb);
    }
 
-   public sealed class PhysicsBodyComponentSystem : SharedComponentSystem, IPhysicsBodyComponentSystem
+   public readonly struct BodyComponentContact
    {
-      #region Body dirty flags
-      [Flags]
-      private enum BodyDirtyFlags : byte
+      #region Properties
+      public int FirstComponentId
       {
-         None     = 0,
-         Position = (1 << 0),
-         Rotation = (1 << 1),
+         get;
+      }
+
+      public int SecondComponentId
+      {
+         get;
+      }
+
+      public Vector2 Translation
+      {
+         get;
       }
       #endregion
-      
+
+      public BodyComponentContact(int firstComponentId, int secondComponentId, Vector2 translation)
+      {
+         FirstComponentId  = firstComponentId;
+         SecondComponentId = secondComponentId;
+         Translation       = translation;
+      }
+   }
+   
+   public sealed class PhysicsBodyComponentSystem : SharedComponentSystem, IPhysicsBodyComponentSystem
+   {
       #region Physics body component structure
       private struct PhysicsBodyComponent
       {
@@ -124,26 +140,38 @@ namespace Fracture.Engine.Ecs
             get;
             set;
          }
-         
-         public BodyDirtyFlags DirtyFlags
+
+         /// <summary>
+         /// Gets set of current contacts.
+         /// </summary>
+         public List<BodyComponentContact> CurrentContacts
          {
             get;
             set;
          }
          
-         public HashSet<int> CurrentContacts
+         /// <summary>
+         /// Gets the last contacts.
+         /// </summary>
+         public List<BodyComponentContact> LastContacts
          {
             get;
             set;
          }
          
-         public HashSet<int> LeavingContacts
+         /// <summary>
+         /// Get set of leaving contacts.
+         /// </summary>
+         public List<BodyComponentContact> LeavingContacts
          {
             get;
             set;
          }
          
-         public HashSet<int> LastContacts
+         /// <summary>
+         /// Gets the entering contacts.
+         /// </summary>
+         public List<BodyComponentContact> EnteringContacts
          {
             get;
             set;
@@ -170,19 +198,19 @@ namespace Fracture.Engine.Ecs
          this.world      = world ?? throw new ArgumentNullException(nameof(world));
          this.transforms = transforms ?? throw new ArgumentNullException(nameof(transforms));
          
-         world.BeginContact += WorldOnBeginContact;
-         world.EndContact   += WorldOnEndContact;
-         world.Moved        += WorldOnRelocated;
+         world.BeginContact += World_BeginContact;
+         world.EndContact   += World_EndContact;
+         world.Moved        += World_Relocated;
 
          components = new LinearGrowthArray<PhysicsBodyComponent>();
-         dirty  = new List<int>();
+         dirty      = new List<int>();
       }
 
       #region Event handlers
-      private void WorldOnRelocated(object sender, BodyEventArgs e)
-         => UpdateBodyDirtyState((int)world.Bodies.WithId(e.BodyId).UserData, BodyDirtyFlags.Position);
+      private void World_Relocated(object sender, BodyEventArgs e)
+         => UpdateBodyDirtyState((int)world.Bodies.WithId(e.BodyId).UserData);
       
-      private void WorldOnEndContact(object sender, BodyContactEventArgs e)
+      private void World_EndContact(object sender, BodyContactEventArgs e)
       {
          var firstComponentId  = (int)world.Bodies.WithId(e.FirstBodyId).UserData;
          var secondComponentId = (int)world.Bodies.WithId(e.SecondBodyId).UserData;
@@ -190,17 +218,14 @@ namespace Fracture.Engine.Ecs
          ref var firstComponent  = ref components.AtIndex(firstComponentId);
          ref var secondComponent = ref components.AtIndex(secondComponentId);
          
-         firstComponent.CurrentContacts.Remove(secondComponentId);
-         firstComponent.LeavingContacts.Add(secondComponentId);
-         
-         secondComponent.CurrentContacts.Remove(firstComponentId);
-         secondComponent.LeavingContacts.Add(firstComponentId);
+         firstComponent.LeavingContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, e.Translation));
+         secondComponent.LeavingContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, e.Translation));
          
          dirty.Add(firstComponentId);
          dirty.Add(secondComponentId);
       }
 
-      private void WorldOnBeginContact(object sender, BodyContactEventArgs e)
+      private void World_BeginContact(object sender, BodyContactEventArgs e)
       {
          var firstComponentId  = (int)world.Bodies.WithId(e.FirstBodyId).UserData;
          var secondComponentId = (int)world.Bodies.WithId(e.SecondBodyId).UserData;
@@ -208,9 +233,9 @@ namespace Fracture.Engine.Ecs
          ref var firstComponent  = ref components.AtIndex(firstComponentId);
          ref var secondComponent = ref components.AtIndex(secondComponentId);
          
-         firstComponent.CurrentContacts.Add(secondComponentId);
-         secondComponent.CurrentContacts.Add(firstComponentId);
-         
+         firstComponent.EnteringContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, e.Translation));
+         secondComponent.EnteringContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, e.Translation));
+
          dirty.Add(firstComponentId);
          dirty.Add(secondComponentId);
       }
@@ -235,7 +260,7 @@ namespace Fracture.Engine.Ecs
          return results;
       }
       
-      private void UpdateBodyDirtyState(int id, BodyDirtyFlags flags)
+      private void UpdateBodyDirtyState(int id)
       {
          ref var component = ref components.AtIndex(id);
          
@@ -244,21 +269,7 @@ namespace Fracture.Engine.Ecs
             return;
          
          // Flag for next update to sync transform data from body to transform component.
-         if (component.DirtyFlags == BodyDirtyFlags.None)
-            dirty.Add(id);
-         
-         // Mark parts of the transform to be updated based on the current dirty state
-         // and received flag.
-         if ((flags & BodyDirtyFlags.Position) == BodyDirtyFlags.Position &&
-             (component.DirtyFlags & BodyDirtyFlags.Position) != BodyDirtyFlags.Position)
-         {
-            component.DirtyFlags |= BodyDirtyFlags.Position;
-         }
-         else if ((flags & BodyDirtyFlags.Rotation) == BodyDirtyFlags.Rotation &&
-                  (component.DirtyFlags & BodyDirtyFlags.Rotation) != BodyDirtyFlags.Rotation)
-         {
-            component.DirtyFlags |= BodyDirtyFlags.Rotation;
-         }
+         dirty.Add(id);
       }
          
       protected override int InitializeComponent(int entityId)
@@ -299,10 +310,11 @@ namespace Fracture.Engine.Ecs
          component.BodyId            = bodyId;
          component.Primary           = primary;
          component.UserData          = userData;
-         component.LeavingContacts ??= new HashSet<int>();
-         component.LastContacts    ??= new HashSet<int>();
-         component.CurrentContacts ??= new HashSet<int>();
-         
+         component.CurrentContacts  ??= new List<BodyComponentContact>();
+         component.LastContacts     ??= new List<BodyComponentContact>();
+         component.EnteringContacts ??= new List<BodyComponentContact>();
+         component.LeavingContacts  ??= new List<BodyComponentContact>();
+
          return id;
       }
 
@@ -310,8 +322,9 @@ namespace Fracture.Engine.Ecs
       {
          ref var component = ref components.AtIndex(id);
          
-         component.LastContacts.Clear();
          component.CurrentContacts.Clear();
+         component.LastContacts.Clear();
+         component.EnteringContacts.Clear();
          component.LeavingContacts.Clear();
          
          // Delete world data.           
@@ -385,18 +398,18 @@ namespace Fracture.Engine.Ecs
          return world.Bodies.WithId(components.AtIndex(id).BodyId).Shape;
       }
 
-      public IEnumerable<int> GetCurrentContacts(int id)
+      public IEnumerable<BodyComponentContact> GetCurrentContacts(int id)
       {
          AssertAlive(id);
 
          return components.AtIndex(id).CurrentContacts;
       }
 
-      public IEnumerable<int> GetLastContacts(int id)
+      public IEnumerable<BodyComponentContact> GetLeavingContacts(int id)
       {
          AssertAlive(id);
 
-         return components.AtIndex(id).LastContacts;
+         return components.AtIndex(id).LeavingContacts;
       }
 
       public object GetUserData(int id)
@@ -419,7 +432,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedPosition = position;
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Position);
+         UpdateBodyDirtyState(id);
       }
 
       public void SetRotation(int id, float rotation)
@@ -428,7 +441,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedRotation = rotation;
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Rotation);
+         UpdateBodyDirtyState(id);
       }
 
       public void SetLinearVelocity(int id, Vector2 velocity)
@@ -437,7 +450,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).SetLinearVelocity(velocity);
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Position);
+         UpdateBodyDirtyState(id);
       }
 
       public void SetAngularVelocity(int id, float velocity)
@@ -446,7 +459,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).SetAngularVelocity(velocity);
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Rotation);
+         UpdateBodyDirtyState(id);
       }
 
       public void ApplyLinearImpulse(int id, float magnitude, Vector2 direction)
@@ -455,7 +468,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).ApplyLinearImpulse(magnitude, direction);
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Position);
+         UpdateBodyDirtyState(id);
       }
 
       public void ApplyAngularImpulse(int id, float magnitude)
@@ -464,7 +477,7 @@ namespace Fracture.Engine.Ecs
          
          world.Bodies.WithId(components.AtIndex(id).BodyId).ApplyAngularImpulse(magnitude);
          
-         UpdateBodyDirtyState(id, BodyDirtyFlags.Rotation);
+         UpdateBodyDirtyState(id);
       }
 
       public void SetUserData(int id, object userData)
@@ -533,28 +546,36 @@ namespace Fracture.Engine.Ecs
             ref var component = ref components.AtIndex(id);
             ref var body      = ref world.Bodies.WithId(components.AtIndex(id).BodyId);
          
-            // Update contact states.
+            // Update contact states:
+            // leaving, entering ->
+            //    * clear last
+            //    * remove leaving from current
+            //    * add leaving to last
+            //    * add entering to current
+            //       * clear leaving
+            //       * clear entering
             component.LastContacts.Clear();
             
             foreach (var leaving in component.LeavingContacts)
             {
-               component.LastContacts.Add(leaving);
                component.CurrentContacts.Remove(leaving);
+               component.LastContacts.Add(leaving);
             }
             
+            foreach (var entering in component.EnteringContacts)
+               component.CurrentContacts.Add(entering);
+            
             component.LeavingContacts.Clear();
+            component.EnteringContacts.Clear();
             
             // Update transform.    
             if (!transforms.BoundTo(component.EntityId)) 
                continue;
             
-            if ((component.DirtyFlags & BodyDirtyFlags.Position) == BodyDirtyFlags.Position)
-               transforms.TransformPosition(transforms.FirstFor(component.EntityId), body.Position);
+            var transformId      = transforms.FirstFor(component.EntityId);
+            var currentTransform = transforms.GetTransform(transforms.FirstFor(component.EntityId));
             
-            if ((component.DirtyFlags & BodyDirtyFlags.Rotation) == BodyDirtyFlags.Rotation)
-               transforms.TransformRotation(transforms.FirstFor(component.EntityId), body.Rotation);     
-            
-            component.DirtyFlags = BodyDirtyFlags.None;
+            transforms.ApplyTransformation(transformId, new Transform(body.Position, currentTransform.Scale, body.Rotation));
          }
          
          dirty.Clear();
