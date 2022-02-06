@@ -18,6 +18,9 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public delegate bool MiddlewareMatchDelegate<T>(in T context) where T : IMiddlewareRequestContext;
     
+    /// <summary>
+    /// Static utility class containing generic middleware context matching matching utilities. 
+    /// </summary>
     public static class MiddlewareMatch<T> where T : IMiddlewareRequestContext
     {
         /// <summary>

@@ -71,13 +71,36 @@ namespace Fracture.Net.Hosting.Messaging
             => Request = request ?? throw new ArgumentNullException(nameof(request));
     }
     
+    /// <summary>
+    /// Static utility class containing request middleware context matching utilities. 
+    /// </summary>
     public static class RequestMiddlewareMatch
     {
         /// <summary>
         /// Matcher that accepts any message type and kind.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any() => delegate { return true; };
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Request(Predicate<IRequest> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            
+            return (in RequestMiddlewareContext context) => predicate(context.Request);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Peer(Predicate<PeerConnection> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            
+            return (in RequestMiddlewareContext context) => predicate(context.Request.Peer);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Message(MessageMatchDelegate match)
         {
             if (match == null)

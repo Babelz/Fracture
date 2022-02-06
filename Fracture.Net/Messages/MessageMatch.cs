@@ -11,7 +11,7 @@ namespace Fracture.Net.Messages
     public delegate bool MessageMatchDelegate(in IMessage message);
     
     /// <summary>
-    /// Static utility class containing message type matching utilises. 
+    /// Static utility class containing message type matching utilities. 
     /// </summary>
     public static class MessageMatch
     {

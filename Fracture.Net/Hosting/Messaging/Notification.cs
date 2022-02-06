@@ -250,4 +250,43 @@ namespace Fracture.Net.Hosting.Messaging
             Notification = notification ?? throw new ArgumentNullException(nameof(notification));
         }
     }
+    
+    /// <summary>
+    /// Static utility class containing notification middleware context matching utilities. 
+    /// </summary>
+    public static class NotificationMiddlewareMatch
+    {
+        /// <summary>
+        /// Matcher that accepts any message type and kind.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Any() => delegate { return true; };
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Notification(Predicate<INotification> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            
+            return (in NotificationMiddlewareContext context) => predicate(context.Notification);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Peers(Predicate<int[]> predicate)
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            
+            return (in NotificationMiddlewareContext context) => predicate(context.Peers);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Message(MessageMatchDelegate match)
+        {
+            if (match == null)
+                throw new ArgumentNullException(nameof(match));
+            
+            return (in NotificationMiddlewareContext context) => match(context.Notification.Message);
+        }
+    }
 }
