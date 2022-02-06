@@ -667,7 +667,7 @@ namespace Fracture.Net.Hosting
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
                     
-                    Log.Warn(e, "unhandled error occurred in notification middleware");
+                    Log.Warn(e, "unhandled error occurred while handling accepted responses");
                 }
                 
                 ReleaseRequestResponse(requestResponse);
@@ -689,7 +689,7 @@ namespace Fracture.Net.Hosting
                 server.Send(peer, contents, 0, size);
             }
                 
-            void Broadcast(in IMessage message, IEnumerable<int> peers)
+            void Broadcast(in IMessage message, int[] peers)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
@@ -708,7 +708,7 @@ namespace Fracture.Net.Hosting
                 BufferPool.Return(contents);
             }
             
-            void Reset(in IMessage message, IEnumerable<int> peers)
+            void Reset(in IMessage message, int[] peers)
             {
                 if (message != null)
                     Broadcast(message, peers);
@@ -720,7 +720,7 @@ namespace Fracture.Net.Hosting
             while (acceptedNotifications.Count != 0)
             {
                 var notification = acceptedNotifications.Dequeue();
-                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p));
+                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)).ToArray();
                                                                               
                 try
                 {
@@ -756,7 +756,7 @@ namespace Fracture.Net.Hosting
                     foreach (var peer in peers)
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
                     
-                    Log.Warn(e, "unhandled error occurred in notification middleware");
+                    Log.Warn(e, "unhandled error occurred while handling accepted notifications");
                 }
                 
                 ReleaseNotification(notification);

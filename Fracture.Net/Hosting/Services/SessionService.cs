@@ -146,7 +146,7 @@ namespace Fracture.Net.Hosting.Services
                 throw new ArgumentNullException(nameof(aggregator));
             
             if (!sessions.TryGetValue(peer, out var currentSession))
-                throw new InvalidOperationException($"unable to patch session for peer {peer}, no past session does exist");
+                throw new InvalidOperationException($"unable to patch session for peer {peer}, no past session exists");
             
             var newSession = aggregator(currentSession);
             
@@ -156,13 +156,8 @@ namespace Fracture.Net.Hosting.Services
         }
 
         public void Clear(int peer)
-        {
-            if (!sessions.ContainsKey(peer))
-                return;
-            
-            sessions.Remove(peer);
-        }
-            
+            => sessions.Remove(peer);
+        
         public bool TryGet(int peer, out T session)
             => sessions.TryGetValue(peer, out session);
         
@@ -199,7 +194,7 @@ namespace Fracture.Net.Hosting.Services
         }
 
         #region Event handlers
-        private void Application_OnReset(object sender, in PeerResetEventArgs e)
+        private void Application_OnReset(object sender, in PeerResetEventArgs e) 
         {
             if (!sessions.Active(e.Peer.Id))
                 return;

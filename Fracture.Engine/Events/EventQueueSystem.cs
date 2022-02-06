@@ -15,13 +15,13 @@ namespace Fracture.Engine.Events
       /// Creates new shared event queue and returns the backlog to the caller.
       /// </summary>
       ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity = 64, 
-                                                                     LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
+                                                              LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
 
       /// <summary>
       /// Create new unique event queue and returns the backlog to the caller.
       /// </summary>
       IUniqueEvent<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity = 16, 
-                                                                     LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
+                                                              LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
       
       /// <summary>
       /// Gets the event handler for event queue that has specific letter signature.

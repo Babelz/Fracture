@@ -159,6 +159,8 @@ namespace Fracture.Engine.Ecs
       {
          entityDeletedEvent.Handle((in Letter<int, EntityEventArgs> letter) => 
          {
+            Console.WriteLine($"DELETING COMPONENTS IN SYS {this.GetType().FullName} FOR E {letter.Args.EntityId}");
+               
             foreach (var id in AllFor(letter.Args.EntityId))
                Delete(id);
             

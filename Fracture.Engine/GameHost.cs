@@ -157,13 +157,27 @@ namespace Fracture.Engine
                 
                 system.Initialize();
             }
+            
+            Start(systems);
         }
         
+        /// <summary>
+        /// Override in inheriting game to initialize all your game systems and perform any configuration require before starting the game. You should not
+        /// touch systems at this point as they are not yet initialized.
+        /// </summary>
         protected virtual void Initialize(IGameEngineSystemHost systems)
         {
             
         }
-
+        
+        /// <summary>
+        /// Override in inheriting game to start the game. Run any post initialization configurations and start running the game logic.
+        /// </summary>
+        protected virtual void Start(IGameEngineSystemHost systems)
+        {
+            
+        }
+        
         public void Run()
             => game.Run();
         
