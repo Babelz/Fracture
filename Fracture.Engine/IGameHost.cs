@@ -66,9 +66,21 @@ namespace Fracture.Engine
         /// <summary>
         /// Gets the startup arguments passed to the game
         /// </summary>
-        public string[] Args
+        string[] Args
         {
             get;
+        }
+
+        bool IsFixedTimeStep
+        {
+            get;
+            set;
+        }
+        
+        TimeSpan TargetElapsedTime
+        {
+            get;
+            set;
         }
         #endregion
         

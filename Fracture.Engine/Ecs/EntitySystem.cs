@@ -79,7 +79,7 @@ namespace Fracture.Engine.Ecs
       int ParentOf(int id);
       
       bool LocalExists(int remoteId);
-      int GetLocalId(int remoteId);
+      int LocalIdOf(int remoteId);
       
       IEnumerable<int> ChildrenOf(int parentId);
       
@@ -351,7 +351,7 @@ namespace Fracture.Engine.Ecs
       public bool LocalExists(int remoteId)
          => remoteEntityIdMap.ContainsKey(remoteId);
       
-      public int GetLocalId(int remoteId)
+      public int LocalIdOf(int remoteId)
          => remoteEntityIdMap[remoteId];
 
       public IEnumerable<int> ChildrenOf(int parentId)

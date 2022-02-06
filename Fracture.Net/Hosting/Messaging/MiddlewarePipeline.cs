@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -21,9 +23,10 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Matcher that accepts any message type and kind.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<T> Any() => delegate { return true; };
     }
-    
+
     /// <summary>
     /// Enumeration containing all possible middleware responses.
     /// </summary>

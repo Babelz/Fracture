@@ -319,11 +319,6 @@ namespace Fracture.Engine.Ecs
       }
       
       public override IEnumerable<int> AllFor(int entityId)
-      {
-         if (entityToComponentsMap.TryGetValue(entityId, out var components))
-            return components;
-
-         return Array.Empty<int>();
-      }
+         => entityToComponentsMap.TryGetValue(entityId, out var components) ? components.ToArray() : Array.Empty<int>();
    }
 }

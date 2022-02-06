@@ -36,8 +36,7 @@ namespace Fracture.Engine
             }
             #endregion
             
-            public Game(UpdateCallback update,
-                        InitializeCallback initialize)
+            public Game(UpdateCallback update, InitializeCallback initialize)
             {
                 this.update     = update ?? throw new ArgumentNullException(nameof(update));
                 this.initialize = initialize ?? throw new ArgumentNullException(nameof(initialize));
@@ -93,6 +92,18 @@ namespace Fracture.Engine
         {
             get;
         }
+        
+        public bool IsFixedTimeStep
+        {
+            get => game.IsFixedTimeStep;
+            set => game.IsFixedTimeStep = value;
+        }
+        
+        public TimeSpan TargetElapsedTime
+        {
+            get => game.TargetElapsedTime;
+            set => game.TargetElapsedTime = value;
+        }
         #endregion
 
         protected GameHost(string[] args)
@@ -104,7 +115,7 @@ namespace Fracture.Engine
             game    = new Game(Update, Initialize);
             
             game.Exiting += Game_OnExiting;
-            
+
             kernel.Bind(this);
         }
 

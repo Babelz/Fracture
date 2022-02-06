@@ -104,13 +104,18 @@ namespace Fracture.Net.Hosting.Services
         }
 
         public TimeSpan GetAverage(int id)
-            => TimeSpan.FromMilliseconds(samples[id].Average(t => t.TotalMilliseconds));
-
+        {
+            if (!samples.TryGetValue(id, out var peerSamples))
+                return TimeSpan.Zero;
+            
+            return peerSamples.Count == 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(peerSamples.Average(t => t.TotalMilliseconds));
+        }
+        
         public TimeSpan GetMax(int id)
-            => samples[id].Max();
+            => !samples.ContainsKey(id) ? TimeSpan.Zero : samples[id].Max();
 
         public TimeSpan GetMin(int id)
-            => samples[id].Min();
+            => !samples.ContainsKey(id) ? TimeSpan.Zero : samples[id].Min();
 
         public void Reset(int id)
             => samples.Remove(id);

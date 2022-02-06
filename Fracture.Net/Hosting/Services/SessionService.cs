@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
 using Fracture.Net.Hosting.Messaging;
@@ -22,7 +24,7 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Clears session object from given peer.
         /// </summary>
-        void Clear(int id);
+        void Clear(int peer);
     }
     
     /// <summary>
@@ -69,24 +71,34 @@ namespace Fracture.Net.Hosting.Services
     }
     
     /// <summary>
+    /// Delegate for aggregating session objects.
+    /// </summary>
+    public delegate T SessionAggregatorDelegate<T>(in T current) where T : SessionBase;  
+    
+    /// <summary>
     /// Interface for implementing services that provide peer session management for application.
     /// </summary>
-    public interface ISessionService<T> : ISessionService where T : SessionBase
+    public interface ISessionService<T> : ISessionService, IEnumerable<T> where T : SessionBase
     {
         /// <summary>
         /// Creates or updates session of specific peer.
         /// </summary>
         void Update(int peer, T session);
-
+        
+        /// <summary>
+        /// Updates session of specific peer using aggregator delegate.
+        /// </summary>
+        T Patch(int peer, SessionAggregatorDelegate<T> aggregator);
+        
         /// <summary>
         /// Attempts to get the session for given session id and returns boolean declaring whether a active session could be retrieved for the peer.
         /// </summary>
-        bool TryGet(int id, out T session);
+        bool TryGet(int peer, out T session);
         
         /// <summary>
         /// Gets session for peer with given id.
         /// </summary>
-        T Get(int id);
+        T Get(int peer);
     }
     
     public static class SessionServiceMiddleware<T> where T : SessionBase
@@ -106,10 +118,6 @@ namespace Fracture.Net.Hosting.Services
     /// </summary>
     public class SessionService<T> : ApplicationService, ISessionService<T> where T : SessionBase
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly Dictionary<int, T> sessions;
         #endregion
@@ -132,19 +140,40 @@ namespace Fracture.Net.Hosting.Services
                 sessions[peer] = session;
         }
         
-        public void Clear(int id)
+        public T Patch(int peer, SessionAggregatorDelegate<T> aggregator)
         {
-            if (!sessions.TryGetValue(id, out var session))
+            if (aggregator == null)
+                throw new ArgumentNullException(nameof(aggregator));
+            
+            if (!sessions.TryGetValue(peer, out var currentSession))
+                throw new InvalidOperationException($"unable to patch session for peer {peer}, no past session does exist");
+            
+            var newSession = aggregator(currentSession);
+            
+            sessions[peer] = newSession;
+            
+            return newSession;
+        }
+
+        public void Clear(int peer)
+        {
+            if (!sessions.ContainsKey(peer))
                 return;
             
-            sessions.Remove(id);
+            sessions.Remove(peer);
         }
             
-        public bool TryGet(int id, out T session)
-            => sessions.TryGetValue(id, out session);
+        public bool TryGet(int peer, out T session)
+            => sessions.TryGetValue(peer, out session);
         
-        public T Get(int id)
-            => sessions[id];
+        public T Get(int peer)
+            => sessions[peer];
+
+        public IEnumerator<T> GetEnumerator()
+            => sessions.Values.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
     
     /// <summary>

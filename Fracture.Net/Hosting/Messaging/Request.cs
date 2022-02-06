@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.Composition;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory;
@@ -68,6 +69,22 @@ namespace Fracture.Net.Hosting.Messaging
 
         public RequestMiddlewareContext(IRequest request)
             => Request = request ?? throw new ArgumentNullException(nameof(request));
+    }
+    
+    public static class RequestMiddlewareMatch
+    {
+        /// <summary>
+        /// Matcher that accepts any message type and kind.
+        /// </summary>
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any() => delegate { return true; };
+        
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Message(MessageMatchDelegate match)
+        {
+            if (match == null)
+                throw new ArgumentNullException(nameof(match));
+            
+            return (in RequestMiddlewareContext context) => match(context.Request.Message);
+        }
     }
 
     /// <summary>

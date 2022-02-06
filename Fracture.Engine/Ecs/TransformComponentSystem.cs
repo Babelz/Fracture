@@ -156,7 +156,7 @@ namespace Fracture.Engine.Ecs
             return false;
          
          // Delete events.
-         changedEvent.Create(id);
+         changedEvent.Delete(id);
          
          return true;
       }

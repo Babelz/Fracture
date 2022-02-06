@@ -205,12 +205,15 @@ namespace Fracture.Engine.Ecs
       public override bool Delete(int id)
       {
          var deleted = base.Delete(id);
-         var layer   = Components.AtIndex(id).CurrentLayer;
-         
-         Layers.First(l => l.Name == layer).Remove(id);
-         
+
          if (deleted)
+         {
+            var layer = Components.AtIndex(id).CurrentLayer;
+            
+            Layers.FirstOrDefault(l => l.Name == layer)?.Remove(id);
+            
             Components.Insert(id, default);
+         }
          
          dirty.Remove(id);
 
@@ -349,6 +352,8 @@ namespace Fracture.Engine.Ecs
       
       public override void Update(IGameEngineTime time)
       {
+         base.Update(time);
+         
          // Add dirty components from last frame.
          foreach (var id in scrubbed)
             dirty.Add(id);

@@ -18,6 +18,7 @@ namespace Fracture.Net.Messages
         /// <summary>
         /// Matcher that accepts any message type and kind.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MessageMatchDelegate Any() => delegate { return true; };
         
         /// <summary>
