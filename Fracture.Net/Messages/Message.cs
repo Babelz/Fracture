@@ -145,7 +145,7 @@ namespace Fracture.Net.Messages
     /// Utility class for defining messaging schemas. Works only as wrapper around serialization library. For any more fine tuned schema mapping use the
     /// serialization type mappers.
     /// </summary>
-    public static class Schema
+    public static class MessageSchema
     {
         /// <summary>
         /// Defines message inside the schema and maps it for usage.

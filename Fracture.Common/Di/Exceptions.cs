@@ -41,4 +41,13 @@ namespace Fracture.Common.Di
         {
         }
     }
+    
+    [Serializable]
+    public sealed class DependencyBinderVerificationException : Exception
+    {
+        public DependencyBinderVerificationException(string message)
+            : base(message)
+        {
+        }
+    }
 }

@@ -9,7 +9,7 @@ namespace Fracture.Net.Messages
     public interface IMessageSerializer
     {
         /// <summary>
-        /// Serializes given message to buffer and returns it to the caller.
+        /// Serializes given message to buffer.
         /// </summary>
         void Serialize(in IMessage message, byte[] buffer, int offset);
         

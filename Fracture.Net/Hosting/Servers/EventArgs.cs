@@ -59,15 +59,25 @@ namespace Fracture.Net.Hosting.Servers
             get;
         }
         
+        /// <summary>
+        /// Gets the raw serialized contents of this message.
+        /// </summary>
         public byte[] Contents
         {
             get;
         }
+        
+        /// <summary>
+        /// Gets the length of bytes received from the client. This is the safe amount of bytes you can read from the <see cref="Contents"/>.
+        /// </summary>
         public int Length
         {
             get;
         }
         
+        /// <summary>
+        /// Gets the timestamp when this message was received by the application.
+        /// </summary>
         public TimeSpan Timestamp
         {
             get;

@@ -49,6 +49,14 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
+
+        /// <summary>
+        /// Gets the length of the request inside the <see cref="Contents"/> in bytes. This is the safe amount of bytes you can read from the buffer.
+        /// </summary>
+        int Length
+        {
+            get;
+        }
         #endregion
     }
     
@@ -146,6 +154,12 @@ namespace Fracture.Net.Hosting.Messaging
             get;
             set;
         }
+        
+        public int Length
+        {
+            get;
+            set;
+        }
         #endregion
 
         public Request()
@@ -158,6 +172,7 @@ namespace Fracture.Net.Hosting.Messaging
             Contents  = default;
             Message   = default;
             Timestamp = default;
+            Length    = default;
         }
 
         public override string ToString()

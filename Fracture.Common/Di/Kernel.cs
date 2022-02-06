@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Fracture.Common.Di.Binding;
 
 namespace Fracture.Common.Di
@@ -79,6 +80,11 @@ namespace Fracture.Common.Di
         void Proxy<T>(Type proxy, params IBindingValue[] values);
         void Proxy(object instance, Type proxy, params IBindingValue[] values);
         void Proxy<T>(object instance, params IBindingValue[] values);
+        
+        /// <summary>
+        /// Runs verification for the bindings and raises exception if some of the dependencies can't be activated.
+        /// </summary>
+        void Verify();
     }
     
     /// <summary>
@@ -344,6 +350,33 @@ namespace Fracture.Common.Di
 
         public void Proxy<T>(object instance, params IBindingValue[] values)
             => Proxy(instance, typeof(T));
+
+        public void Verify()
+        {
+            var sb = new StringBuilder();
+            
+            foreach (var binder in binders)
+            {
+                try
+                {
+                    binder.Bind();
+                }
+                catch (Exception e)
+                {
+                    sb.Append($"failed to bind type: {binder.Type.FullName}");
+                
+                    if (binder.Proxy != null)
+                        sb.Append($", proxy: {binder.Proxy.FullName}");
+                
+                    sb.Append("\n");
+                    
+                    sb.Append($"exception occurred during activation: {e}\n");
+                }
+            }
+            
+            if (sb.Length != 0)
+                throw new DependencyBinderVerificationException($"failed to activate following dependencies:\n{sb}");
+        }
 
         public bool Exists(Type type, Func<object, bool> predicate)
         {

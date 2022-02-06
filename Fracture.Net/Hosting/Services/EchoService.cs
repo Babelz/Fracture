@@ -154,7 +154,7 @@ namespace Fracture.Net.Hosting.Services
             switch (message.Phase)
             {
                 case EchoPhase.Ping:
-                    Log.Info($"received echo request from peer {request.Peer.Id}");
+                    Log.Trace($"received echo request from peer {request.Peer.Id}");
                     
                     response.Ok(Message.Create<EchoMessage>(m =>
                     {
@@ -165,9 +165,9 @@ namespace Fracture.Net.Hosting.Services
                 case EchoPhase.Pong:
                     if (latency.RecordPong(request.Peer.Id, message.RequestId))
                     {
-                        Log.Info($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
-                                 $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
-                                 $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
+                        Log.Trace($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
+                                  $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
+                                  $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
                         
                         response.Ok();
                     }
@@ -189,14 +189,14 @@ namespace Fracture.Net.Hosting.Services
             {
                 if (!Application.Peers.Contains(id))
                 {
-                    Log.Info($"clearing peer {id} latency metrics");
+                    Log.Trace($"clearing peer {id} latency metrics");
                     
                     latency.Reset(id);
                     
                     return PulseEventResult.Break;
                 }
                 
-                Log.Info($"testing peer {id} latency...");
+                Log.Trace($"testing peer {id} latency...");
 
                 Application.Notifications.Queue.Enqueue(n => n.Send(id, Message.Create<EchoMessage>(m =>
                 {

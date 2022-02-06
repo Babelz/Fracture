@@ -88,7 +88,7 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Updates session of specific peer using aggregator delegate.
         /// </summary>
-        T Patch(int peer, SessionAggregatorDelegate<T> aggregator);
+        T Update(int peer, SessionAggregatorDelegate<T> aggregator);
         
         /// <summary>
         /// Attempts to get the session for given session id and returns boolean declaring whether a active session could be retrieved for the peer.
@@ -140,7 +140,7 @@ namespace Fracture.Net.Hosting.Services
                 sessions[peer] = session;
         }
         
-        public T Patch(int peer, SessionAggregatorDelegate<T> aggregator)
+        public T Update(int peer, SessionAggregatorDelegate<T> aggregator)
         {
             if (aggregator == null)
                 throw new ArgumentNullException(nameof(aggregator));

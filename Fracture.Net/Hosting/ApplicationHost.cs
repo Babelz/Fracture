@@ -145,6 +145,11 @@ namespace Fracture.Net.Hosting
             
             application.ShuttingDown += delegate { ShuttingDown?.Invoke(this, EventArgs.Empty); };
             application.Starting     += delegate { Starting?.Invoke(this, EventArgs.Empty); };
+            
+            foreach (var service in services.All<IApplicationService>())
+                Log.Info($"loaded service {service.GetType().FullName} at startup..."); 
+            
+            services.Verify();
         }
         
         public void Tick()
@@ -219,10 +224,14 @@ namespace Fracture.Net.Hosting
             // Unload all scripts when the application exists.
             application.ShuttingDown += delegate
             {
+                Log.Info("application shutdown signaled, unloading all scripts...");
+                
                 foreach (var script in scripts.All<IApplicationScript>().ToList())
                 {
                     try
                     {
+                        Log.Info($"unloading script ${script.GetType().FullName}...");
+                        
                         script.Unload();
                     }
                     catch (Exception ex)
@@ -235,6 +244,11 @@ namespace Fracture.Net.Hosting
             application.Join       += (object sender, in PeerJoinEventArgs e)    => Join?.Invoke(this, e);
             application.Reset      += (object sender, in PeerResetEventArgs e)   => Reset?.Invoke(this, e);
             application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
+            
+            foreach (var script in scripts.All<IApplicationScript>())
+                Log.Info($"loaded script {script.GetType().FullName} at startup..."); 
+            
+            scripts.Verify();
         }
         
         public void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript

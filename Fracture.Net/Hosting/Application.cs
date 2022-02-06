@@ -269,15 +269,15 @@ namespace Fracture.Net.Hosting
             ReleaseResponse(requestResponse.Response);
         }
         
-        private void HandlePeerFidelityViolation(PeerPipelineFidelity flag, int peerId)
+        private void HandlePeerFidelityViolation(PeerPipelineFidelity flag, int peer)
         {
             if ((fidelity & flag) != flag) 
                 return;
             
-            Log.Warn($"marking peer {peerId} to be reset as it broke required fidelity level of " +
+            Log.Warn($"marking peer {peer} to be reset as it broke required fidelity level of " +
                      $"{Enum.GetName(typeof(PeerPipelineFidelity), flag)}");
                 
-            leavingPeers.Add(peerId);
+            leavingPeers.Add(peer);
         }
 
         #region Event handlers
@@ -445,6 +445,7 @@ namespace Fracture.Net.Hosting
                         request.Contents  = contents;
                         request.Peer      = incomingEvent.Peer;
                         request.Timestamp = incomingEvent.Timestamp;
+                        request.Length    = size;
                         
                         incomingRequests.Enqueue(request);
 
