@@ -105,7 +105,7 @@ and for each 8-fields the overhead grows by one byte.
 Few example cases:
 * Object with 8 nullable members - overhead is 3-bytes
 * Object with 14 nullable members - overhead is 4-bytes
-* Object with 64 nullable members - overhead is 64 / 8 + 2 = 10-bytes
+* Object with 64 nullable members - overhead is 64 % 8 + 64 / 8 + 2 = 10-bytes
 * Object with zero nullable members - overhead is 0-bytes
 
 These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary format. 
@@ -212,7 +212,7 @@ StructSerializer.Serialize(new Transform()
 
 Buffer contents after serializing.
 ```
-size in bytes: 52
+Transform size in bytes: 52
 
 offset | value
 --------------
