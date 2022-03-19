@@ -274,7 +274,114 @@ offset | value
 ```
 
 ### Structure with nullable members
+Serializing the value to a buffer.
+```csharp
+public sealed class QueryObject
+{
+    public int Foo;
+    public bool Bar;
+}
 
+public sealed class Query
+{
+    public int? Id;
+    public bool? Force;
+    public QueryObject Object;
+    
+    public int? I;
+    public int? J;
+    public int? K;
+}
+
+StructSerializer.Map(ObjectSerializationMapper.ForType<QueryObject>()
+                                              .PublicFields()
+                                              .Map());
+
+StructSerializer.Map(ObjectSerializationMapper.ForType<Query>()
+                                              .PublicFields()
+                                              .Map());
+
+var buffer = new byte[128];
+
+StructSerializer.Serialize(new Query()
+{
+    Id     = 32,
+    Object = new QueryObject() { Foo = 128, Bar = true },
+    K      = 200
+}, buffer, 0);
+```
+
+Buffer contents after serializing.
+```
+Query size in bytes: 20
+
+offset | value
+--------------
+00     | 14 <- dynamic content length, 20, 2-bytes
+01     | 00
+
+02     | 01 <- serialization type id, 2-bytes
+03     | 00
+
+04     | 03 <- object null mask begin
+05     | 00 <- dynamic content length, 3, 2-bytes
+
+06     | 5C <- null mask bit field, 10111000
+
+07     | 00
+08     | 01
+09     | 00
+0A     | 00
+0B     | 09
+0C     | 00
+0D     | 00
+0E     | 00
+
+0F     | 80 <- Query.Object.Foo
+10     | 00
+11     | 00
+12     | 00
+
+13     | 01 <- Query.Object.Bar
+
+offset | value
+--------------
+00     | 18 <- dynamic content length, 20, 2-bytes
+01     | 00
+
+02     | 01 <- serialization type id, 2-bytes
+03     | 00
+
+04     | 03 <- object null mask begin
+05     | 00 <- dynamic content length, 3, 2-bytes
+
+06     | 58 <- null mask bit field, 01011000, toggled bits denote that the field is null
+               0    1      0     1  1  0 | 0  0 <- last two bits are omitted 
+               id  force object  i  j  k |    
+               
+07     | 20 <- Id
+08     | 00
+09     | 00
+0A     | 00
+
+0B     | 09  <- dynamic content length, 9, 2-bytes
+0C     | 00  <- Query.Object begin
+
+0D     | 00 <- serialization type id, 2-bytes
+0E     | 00
+
+0F     | 80 <- Query.Object.Foo
+10     | 00
+11     | 00
+12     | 00
+
+13     | 01 <- Query.Object.Bar
+
+14     | C8 <- Query.K
+15     | 00
+16     | 00
+17     | 00
+```
 ### Structure with array 
 
 ### Structure with sparse collection
