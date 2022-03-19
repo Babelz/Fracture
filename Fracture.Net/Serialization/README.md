@@ -108,9 +108,7 @@ Few example cases:
 * Object with 64 nullable members - overhead is 64 / 8 + 2 = 10-bytes
 * Object with zero nullable members - overhead is 0-bytes
 
-These rules about nulls apply both to fields and properties.
-
-See example objects and how they are represented in binary format. 
+These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary format. 
 
 ## Example objects and how they are represented in binary format
 
@@ -369,3 +367,173 @@ offset | value
 17     | 00
 ```
 ### Structure with array and sparse array
+Serializing the value to a buffer.
+```csharp
+public sealed class Vec2
+{
+    public float X;
+    public float Y;
+}
+
+public sealed class Content
+{
+    public int[] Values;
+    public Vec2?[] Points;
+}
+
+StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
+                                                          .PublicFields()
+                                                          .Map());
+            
+StructSerializer.Map(ObjectSerializationMapper.ForType<Content>()
+                                              .PublicFields()
+                                              .Map());
+
+var buffer = new byte[128];
+
+StructSerializer.Serialize(new Content()
+{
+    Values = new[]
+    {
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        7
+    },
+    Points = new[]
+    {
+        null,
+        new Vec2() { X = float.MaxValue, Y = float.MinValue },
+        null,
+        null,
+        new Vec2() { X = float.MaxValue * 0.5f, Y = float.MinValue * 0.5f },
+        null,
+        new Vec2() { X = float.MaxValue * 0.25f, Y = float.MinValue * 0.25f }
+    }
+}, buffer, 0);
+```
+
+Buffer contents after serializing.
+```
+Content size in bytes: 84
+
+offset | value
+--------------
+00     | 58 <- dynamic content length, 84, 2-bytes
+01     | 00 
+            
+02     | 01 <- serialization type id, 2-bytes
+03     | 00 
+            
+04     | 03 <- object null mask begin
+05     | 00 <- dynamic content length, 3, 2-bytes
+
+06     | 00 <- null mask bit field, 00000000 
+
+07     | 21 <- Content.Values begin
+08     | 00 <- array content length, 33, 2-bytes
+
+09     | 07 <- array collection length, 7, 2-bytes
+0A     | 00
+
+0B     | 00 <- array type data, determines is array is sparse 
+
+0C     | 00 <- Content.Values[0]
+0D     | 00
+0E     | 00
+0F     | 00
+
+10     | 01 <- Content.Values[1]
+11     | 00
+12     | 00
+13     | 00
+
+14     | 02 <- Content.Values[2]
+15     | 00
+16     | 00
+17     | 00
+
+18     | 03 <- Content.Values[3]
+19     | 00
+1A     | 00
+1B     | 00
+
+1C     | 04 <- Content.Values[4]
+1D     | 00
+1E     | 00
+1F     | 00
+
+20     | 05 <- Content.Values[5]
+21     | 00
+22     | 00
+23     | 00
+
+24     | 07 <- Content.Values[6]
+25     | 00
+26     | 00
+27     | 00
+
+28     | 2C <- Content.Points begin
+29     | 00 <- array content length, 44, 2-bytes
+
+2A     | 07 <- array collection length, 7, 2-bytes
+2B     | 00 <- array type data, determines is array is sparse 
+
+2C     | 01 <- array type data, determines is array is sparse 
+
+2D     | 03 <- object null mask begin
+2E     | 00 <- dynamic content length, 3, 2-bytes
+           
+2F     | B4 <- null mask bit field, 10110100
+
+30     | 0C <- Content.Points[1] begin
+31     | 00 <- dynamic content length, 12, 2-bytes
+          
+32     | 00 <- serialization type id, 2-bytes
+33     | 00
+
+34     | FF <- Content.Points[1].X
+35     | FF
+36     | 7F
+37     | 7F
+
+38     | FF <- Content.Points[1].Y
+39     | FF
+3A     | 7F
+3B     | FF
+
+3C     | 0C <- Content.Points[4] begin
+3D     | 00 <- dynamic content length, 12, 2-bytes
+                     
+3E     | 00 <- serialization type id, 2-bytes
+3F     | 00
+           
+40     | FF <- Content.Points[4].X
+41     | FF
+42     | FF
+43     | 7E
+           
+44     | FF <- Content.Points[4].Y
+45     | FF
+46     | FF
+47     | FE
+
+48     | 0C <- Content.Points[6] begin
+49     | 00 <- dynamic content length, 12, 2-bytes
+                      
+4A     | 00 <- serialization type id, 2-bytes
+4B     | 00
+                      
+4C     | FF <- Content.Points[6].X
+4D     | FF
+4E     | 7F
+4F     | 7E
+                      
+50     | FF <- Content.Points[6].Y
+51     | FF
+52     | 7F
+53     | FE
+```
