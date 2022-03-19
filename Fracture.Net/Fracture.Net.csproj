@@ -285,8 +285,8 @@
         <Compile Include="Hosting\Servers\EventArgs.cs" />
         <Compile Include="Hosting\Servers\Peer.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
-        <Compile Include="Hosting\Servers\TcpPeer.cs" />
-        <Compile Include="Hosting\Servers\TcpListener.cs" />
+        <Compile Include="Hosting\Servers\Tcp\TcpListener.cs" />
+        <Compile Include="Hosting\Servers\Tcp\TcpPeer.cs" />
         <Compile Include="Hosting\Services\AuthenticationService.cs" />
         <Compile Include="Hosting\Services\EventService.cs" />
         <Compile Include="Hosting\Services\EchoService.cs" />

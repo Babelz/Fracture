@@ -5,7 +5,7 @@ using System.Threading;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 
-namespace Fracture.Net.Hosting.Servers
+namespace Fracture.Net.Hosting.Servers.Tcp
 {
     /// <summary>
     /// Listener implementation that listens for incoming TPC connections.

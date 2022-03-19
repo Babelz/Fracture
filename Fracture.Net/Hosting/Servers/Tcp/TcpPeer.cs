@@ -6,7 +6,7 @@ using System.Runtime.CompilerServices;
 using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Events;
 
-namespace Fracture.Net.Hosting.Servers
+namespace Fracture.Net.Hosting.Servers.Tcp
 {
     /// <summary>
     /// Peer implementation that uses the TCP protocol for communication.
