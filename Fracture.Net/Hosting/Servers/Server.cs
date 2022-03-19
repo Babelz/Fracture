@@ -117,7 +117,7 @@ namespace Fracture.Net.Hosting.Servers
         void Poll();
     }
     
-    public sealed class Server : IServer
+    public class Server : IServer
     {
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
