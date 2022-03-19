@@ -343,7 +343,7 @@ offset | value
                0    1      0     1  1  0 | 0  0 <- last two bits are omitted 
                id  force object  i  j  k |    
                
-07     | 20 <- Id
+07     | 20 <- Query.Id
 08     | 00
 09     | 00
 0A     | 00
