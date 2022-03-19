@@ -378,7 +378,7 @@ public sealed class Vec2
 public sealed class Content
 {
     public int[] Values;
-    public Vec2?[] Points;
+    public Vec2[] Points;
 }
 
 StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
