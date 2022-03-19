@@ -9,7 +9,7 @@ supported but UDP is planned when my personal needs require this.
 TODO
 
 ## Service and scripting application model
-```
+```csharp
 private static void Main(string[] args)
 {
     var server = new TcpServer(TimeSpan.FromSeconds(30), 8000);
