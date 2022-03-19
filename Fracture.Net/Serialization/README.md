@@ -313,36 +313,7 @@ StructSerializer.Serialize(new Query()
 
 Buffer contents after serializing.
 ```
-Query size in bytes: 20
-
-offset | value
---------------
-00     | 14 <- dynamic content length, 20, 2-bytes
-01     | 00
-
-02     | 01 <- serialization type id, 2-bytes
-03     | 00
-
-04     | 03 <- object null mask begin
-05     | 00 <- dynamic content length, 3, 2-bytes
-
-06     | 5C <- null mask bit field, 10111000
-
-07     | 00
-08     | 01
-09     | 00
-0A     | 00
-0B     | 09
-0C     | 00
-0D     | 00
-0E     | 00
-
-0F     | 80 <- Query.Object.Foo
-10     | 00
-11     | 00
-12     | 00
-
-13     | 01 <- Query.Object.Bar
+Query size in bytes: 24
 
 offset | value
 --------------
