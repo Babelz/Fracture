@@ -43,6 +43,7 @@ Fracture serializer provides serialization for the following types:
 - [x] Nullable values and null references in possible cases
 - [x] Sparse collections with possible null references or nullable values
 - [x] Deserialization to pre-allocated objects
+- [x] Indirect/deferred activation of deserialized objects
 - [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
 ## How to setup serialization 
