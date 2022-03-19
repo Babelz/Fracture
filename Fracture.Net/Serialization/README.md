@@ -46,12 +46,13 @@ Fracture serializer provides serialization for the following types:
 - [x] Indirect/deferred activation of deserialized objects
 - [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
-## How to setup serialization 
+## How to setup serialization
 See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring the serialization 
 without this see tests of StructSerializer and ObjectSerializationMapper for more examples.
 
 ```csharp
-// Map type Vec2 as serializable structure.
+// Map type Vec2 as serializable structure. Any attempts to serialize or deserialize Vec2 type before this
+// will cause runtime exception. 
 StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()  // Provide the type we are mapping.
                                               .PublicFields()   // All public fields should be mapped.
                                               // Parametrized activation should be used with constructor that matches the signature Vec2(x, y).
@@ -79,14 +80,34 @@ var buffer = new byte[32];
 StructSerializer.Serialize(new Vec2(200.0f, 100.0f), buffer, 0); 
 ```
 
-## Serialization schemas
-TODO
-
 ## Protocol headers
-TODO
+Depending on the object that is serialized the serializer can add additional metadata about the object to the serialization stream. 
+
+### Serialization type id, 2-bytes
+Contains the runtime type identifier for structures and classes. 
+
+### Content length, 2-bytes
+Denotes the dynamic content length in bytes for objects that can vary in size.
+
+### Collection length, 2-bytes
+Header that contains the collection length in elements, this header should be present for all collection types. For example when serializing an array with
+length of 32 this header would get the value of 32.
+
+### Type data, 1-byte
+Optional serializer specific "user data" used to store type specific information in context of serialization. For example in case of collections this header
+is used as flags field to determine if the collection is sparse or not. 
 
 ## Example objects and how they are represented in binary format
-TODO
+
+### Simple structure
+
+### Structure inside structure
+
+### Structure with nullable members
+
+### Structure with array 
+
+### Structure with sparse collection
 
 ## Nulls and nullable types
 TODO

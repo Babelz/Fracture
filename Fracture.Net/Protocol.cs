@@ -109,8 +109,6 @@ namespace Fracture.Net
         /// <summary>
         /// Header denoting content size inside the message in bytes. This header appears on all object values after their type id or with fields that can
         /// vary in size. This is used for storing for example collection package size in streams and string lengths.
-        ///
-        /// Object this header belongs to it also contains any other header header sizes including it self.
         /// </summary>
         public static readonly Header<ushort> ContentLength = Header.Ushort();
         
