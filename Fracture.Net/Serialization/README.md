@@ -136,12 +136,12 @@ offset | value
 02     | 00 <- serialization type id, 2-bytes 
 03     | 00
 
-04     | FF <- fields Vec2.X
+04     | FF <- Vec2.X
 05     | FF
 06     | 7F 
 07     | FF
 
-08     | FF <- field Vec2.Y 
+08     | FF <- Vec2.Y 
 09     | FF
 0A     | 7F
 0B     | 7F
@@ -215,17 +215,17 @@ offset | value
 06     | 00 <- serialization type id, 2-bytes
 07     | 00
 
-08     | FF <- X, Y and Z values, each 4-bytes
+08     | FF <- Vec3.X
 09     | FF
 0A     | 7F
 0B     | FF
 
-0C     | FF 
+0C     | FF <- Vec3.Y
 0D     | FF
 0E     | 7F
 0F     | 7F
 
-10     | FF
+10     | FF <- Vec3.Z
 11     | FF
 12     | FF
 13     | 7E
