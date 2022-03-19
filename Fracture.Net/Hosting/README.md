@@ -12,12 +12,17 @@ TODO
 ```csharp
 private static void Main(string[] args)
 {
+    // Create the server for application that handles the IO.
     var server = new TcpServer(TimeSpan.FromSeconds(30), 8000);
 
+    // Create the application and initialize the protocol by providing
+    // the message serializer.
     var application = ApplicationBuilder.FromServer(server)
                                         .Serializer(new ClientMessageSerializer())
                                         .Build();
-
+    
+    // Create the host and register any services and initial scripts
+    // for the application.
     var host = ApplicationHostBuilder.FromApplication(application)
                                      .Service<EventSchedulerService>()
                                      .Service<SessionService<Session>>()
@@ -31,7 +36,8 @@ private static void Main(string[] args)
                                      .Script<PlayerPositionAuthorizationScript>()
                                      .Script<ClearSessionScript>()
                                      .Build();
-
+       
+    // Start running your application inside the host.
     host.Start();
 }
 ```
