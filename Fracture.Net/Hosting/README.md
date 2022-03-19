@@ -9,4 +9,29 @@ supported but UDP is planned when my personal needs require this.
 TODO
 
 ## Service and scripting application model
-TODO
+```
+private static void Main(string[] args)
+{
+    var server = new TcpServer(TimeSpan.FromSeconds(30), 8000);
+
+    var application = ApplicationBuilder.FromServer(server)
+                                        .Serializer(new ClientMessageSerializer())
+                                        .Build();
+
+    var host = ApplicationHostBuilder.FromApplication(application)
+                                     .Service<EventSchedulerService>()
+                                     .Service<SessionService<Session>>()
+                                     .Service<LatencyService>()
+                                     .Service<GameRoomService>()
+                                     .Script<PeerActivityLoggerScript>()
+                                     .Script<EchoControlScript>()
+                                     .Script<SessionAuthenticateScript<Session>>()
+                                     .Script<PlayerSessionControlScript>()
+                                     .Script<PlayerInputControlScript>()
+                                     .Script<PlayerPositionAuthorizationScript>()
+                                     .Script<ClearSessionScript>()
+                                     .Build();
+
+    host.Start();
+}
+```
