@@ -100,8 +100,54 @@ is used as flags field to determine if the collection is sparse or not.
 ## Example objects and how they are represented in binary format
 
 ### Simple structure
+Serializing the value to a buffer.
+```csharp
+// Example structure we are using.
+public sealed class Vec2
+{
+    public float X;
+    public float Y;
+}
 
-### Structure inside structure
+// Perform the mapping.
+StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
+                                              .PublicFields()
+                                              .Map());
+
+// Serialize to buffer.
+var buffer = new byte[128];
+
+StructSerializer.Serialize(new Vec2()
+{
+    X = float.MinValue,
+    Y = float.MaxValue
+}, buffer, 0);
+```
+
+Buffer contents after serializing.
+```
+Vec2 size in bytes: 12
+
+offset | value
+--------------
+00     | 0C <- dynamic content length, 12, 2-bytes
+01     | 00 
+
+02     | 00 <- serialization type id, 2-bytes 
+03     | 00
+
+04     | FF <- fields Vec2.X
+05     | FF
+06     | 7F 
+07     | FF
+
+08     | FF <- field Vec2.Y 
+09     | FF
+0A     | 7F
+0B     | 7F
+```
+
+### Nested structures
 
 ### Structure with nullable members
 
