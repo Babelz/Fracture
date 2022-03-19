@@ -97,6 +97,21 @@ length of 32 this header would get the value of 32.
 Optional serializer specific "user data" used to store type specific information in context of serialization. For example in case of collections this header
 is used as flags field to determine if the collection is sparse or not. 
 
+## Overhead of nulls
+Null values are not serialized to streams but instead all objects that have nullable members will be serialized with special bit field that contains
+the field indices and a flag that can be used to determine if the field value is null. Minimum space overhead from having nulls in your objects is 3-bytes
+and for each 8-fields the overhead grows by one byte. 
+
+Few example cases:
+* Object with 8 nullable members - overhead is 3-bytes
+* Object with 14 nullable members - overhead is 4-bytes
+* Object with 64 nullable members - overhead is 64 / 8 + 2 = 10-bytes
+* Object with zero nullable members - overhead is 0-bytes
+
+These rules about nulls apply both to fields and properties.
+
+See example objects and how they are represented in binary format. 
+
 ## Example objects and how they are represented in binary format
 
 ### Simple structure
@@ -353,9 +368,4 @@ offset | value
 16     | 00
 17     | 00
 ```
-### Structure with array 
-
-### Structure with sparse collection
-
-## Nulls and nullable types
-TODO
+### Structure with array and sparse array
