@@ -348,8 +348,8 @@ offset | value
 09     | 00
 0A     | 00
 
-0B     | 09  <- dynamic content length, 9, 2-bytes
-0C     | 00  <- Query.Object begin
+0B     | 09 <- dynamic content length, 9, 2-bytes
+0C     | 00 <- Query.Object begin
 
 0D     | 00 <- serialization type id, 2-bytes
 0E     | 00
