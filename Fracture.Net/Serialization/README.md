@@ -47,7 +47,37 @@ Fracture serializer provides serialization for the following types:
 - [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
 ## How to setup serialization 
-TODO
+See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring the serialization 
+without this see tests of StructSerializer and ObjectSerializationMapper for more examples.
+
+```csharp
+// Map type Vec2 as serializable structure.
+StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()  // Provide the type we are mapping.
+                                              .PublicFields()   // All public fields should be mapped.
+                                              // Parametrized activation should be used with constructor that matches the signature Vec2(x, y).
+                                              .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
+                                              // Build the mapping and register it with structure serializer.
+                                              .Map());
+...
+...
+...
+
+// To deserialize Vec2 from buffer...
+var vec2 = StructSerializer.Deserialize<Vec2>(buffer, 0); 
+
+// ... Or
+
+var vec2 = (Vec2)StructSerializer.Deserialize(buffer, 0);
+
+...
+...
+...
+
+// ... To serialize Vec2 to buffer
+var buffer = new byte[32];
+
+StructSerializer.Serialize(new Vec2(200.0f, 100.0f), buffer, 0); 
+```
 
 ## Serialization schemas
 TODO
