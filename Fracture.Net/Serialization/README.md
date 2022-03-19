@@ -148,6 +148,130 @@ offset | value
 ```
 
 ### Nested structures
+Serializing the value to a buffer.
+```csharp
+public sealed class Vec3
+{
+    public float X;
+    public float Y;
+    public float Z;
+}
+
+public sealed class Transform
+{
+    public Vec3 Position;
+    public Vec3 Scale;
+    public Vec3 Rotation;
+}
+
+StructSerializer.Map(ObjectSerializationMapper.ForType<Vec3>()
+                                              .PublicFields()
+                                              .Map());
+
+StructSerializer.Map(ObjectSerializationMapper.ForType<Transform>()
+                                              .PublicFields()
+                                              .Map());
+
+var buffer = new byte[128];
+
+StructSerializer.Serialize(new Transform()
+{
+    Position = new Vec3()
+    {
+        X = float.MinValue,
+        Y = float.MaxValue,
+        Z = float.MaxValue / 2.0f
+    },
+    Rotation = new Vec3() 
+    {
+        X = float.MinValue,
+        Y = float.MaxValue,
+        Z = float.MaxValue / 2.0f
+    },
+    Scale =  new Vec3()
+    {
+        X = float.MinValue,
+        Y = float.MaxValue,
+        Z = float.MaxValue / 2.0f
+    },
+}, buffer, 0);
+```
+
+Buffer contents after serializing.
+```
+size in bytes: 52
+
+offset | value
+--------------
+00     | 34 <- dynamic content length, 52, 2-bytes
+01     | 00
+
+02     | 01 <- serialization type id, 2-bytes
+03     | 00
+            
+04     | 10 <- Transform.Position begin 
+05     | 00 <- dynamic content length, 16, 2-bytes
+
+06     | 00 <- serialization type id, 2-bytes
+07     | 00
+
+08     | FF <- X, Y and Z values, each 4-bytes
+09     | FF
+0A     | 7F
+0B     | FF
+
+0C     | FF 
+0D     | FF
+0E     | 7F
+0F     | 7F
+
+10     | FF
+11     | FF
+12     | FF
+13     | 7E
+
+14     | 10 <- Transform.Scale begin 
+15     | 00 <- dynamic content length, 16, 2-bytes
+
+16     | 00
+17     | 00
+
+18     | FF
+19     | FF
+1A     | 7F
+1B     | FF
+
+1C     | FF
+1D     | FF
+1E     | 7F
+1F     | 7F
+
+20     | FF
+21     | FF
+22     | FF
+23     | 7E
+
+24     | 10 <- Transform.Rotation begin
+25     | 00 <- dynamic content length, 16, 2-bytes
+
+26     | 00
+27     | 00
+
+28     | FF
+29     | FF
+2A     | 7F
+2B     | FF
+
+2C     | FF
+2D     | FF
+2E     | 7F
+2F     | 7F
+
+30     | FF
+31     | FF
+32     | FF
+33     | 7E
+```
 
 ### Structure with nullable members
 
