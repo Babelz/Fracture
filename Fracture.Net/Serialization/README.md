@@ -382,8 +382,8 @@ public sealed class Content
 }
 
 StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
-                                                          .PublicFields()
-                                                          .Map());
+                                              .PublicFields()
+                                              .Map());
             
 StructSerializer.Map(ObjectSerializationMapper.ForType<Content>()
                                               .PublicFields()
