@@ -98,12 +98,12 @@ namespace Fracture.Net.Clients
         /// <summary>
         /// Defines following state machine for client:
         /// 
-        /// from state        | next legal states
+        /// from state    | next legal states
         /// ------------------------------------------------
-        /// disconnected      | connecting
-        /// connecting        | disconnecting, connected
-        /// disconnecting     | disconnected
-        /// connected         | disconnecting
+        /// disconnected  | connecting
+        /// connecting    | disconnecting, connected
+        /// disconnecting | disconnected
+        /// connected     | disconnecting
         ///
         /// Raises exception if the state machine rules are violated.
         /// </summary>

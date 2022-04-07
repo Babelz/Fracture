@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Fracture.Common.Memory;
 
-namespace Fracture.Net
+namespace Fracture.Net.Serialization
 {
     /// <summary>
     /// Generic delegate for wrapping write calls to buffer.

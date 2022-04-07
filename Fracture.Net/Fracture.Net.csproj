@@ -285,9 +285,7 @@
         <Compile Include="Hosting\Servers\EventArgs.cs" />
         <Compile Include="Hosting\Servers\Peer.cs" />
         <Compile Include="Hosting\Servers\Server.cs" />
-        <Compile Include="Hosting\Servers\Tcp\TcpListener.cs" />
-        <Compile Include="Hosting\Servers\Tcp\TcpPeer.cs" />
-        <Compile Include="Hosting\Servers\Tcp\TcpServer.cs" />
+        <Compile Include="Hosting\Servers\TcpServer.cs" />
         <Compile Include="Hosting\Services\AuthenticationService.cs" />
         <Compile Include="Hosting\Services\EventService.cs" />
         <Compile Include="Hosting\Services\EchoService.cs" />
@@ -298,7 +296,6 @@
         <Compile Include="Messages\MessageSerializer.cs" />
         <Compile Include="Messages\EchoMessage.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="Protocol.cs" />
         <Compile Include="ResetReason.cs" />
         <Compile Include="Serialization\ArraySerializer.cs" />
         <Compile Include="Serialization\ByteSerializer.cs" />
@@ -317,6 +314,7 @@
         <Compile Include="Serialization\LongSerializer.cs" />
         <Compile Include="Serialization\BitFieldSerializer.cs" />
         <Compile Include="Serialization\NullableSerializer.cs" />
+        <Compile Include="Serialization\Protocol.cs" />
         <Compile Include="Serialization\ShortSerializer.cs" />
         <Compile Include="Serialization\StringSerializer.cs" />
         <Compile Include="Serialization\StructSerializer.cs" />

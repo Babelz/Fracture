@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Fracture.Net.Messages;
 
 namespace Fracture.Net.Hosting.Messaging
 {

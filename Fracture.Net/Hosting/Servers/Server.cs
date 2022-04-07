@@ -117,7 +117,7 @@ namespace Fracture.Net.Hosting.Servers
         void Poll();
     }
     
-    public class Server : IServer
+    public abstract class Server : IServer
     {
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
@@ -143,7 +143,7 @@ namespace Fracture.Net.Hosting.Servers
             => lookup.Keys;
         #endregion
         
-        public Server(IPeerFactory factory, IListener listener)
+        protected Server(IPeerFactory factory, IListener listener)
         {
             this.factory  = factory ?? throw new ArgumentNullException(nameof(factory));
             this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
