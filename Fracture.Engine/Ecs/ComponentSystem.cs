@@ -34,6 +34,11 @@ namespace Fracture.Engine.Ecs
    public interface IComponentSystem : IObjectManagementSystem, IEnumerable<int>
    {
       /// <summary>
+      /// Returns the id of the entity that owns the component with given id.
+      /// </summary>
+      int OwnerOf(int id);
+      
+      /// <summary>
       /// Returns boolean declaring whether a component with given id is alive.
       /// </summary>
       bool IsAlive(int id);
@@ -109,9 +114,6 @@ namespace Fracture.Engine.Ecs
       protected int IdAtIndex(int index)
          => aliveComponents[index];
       
-      protected int OwnerOf(int id) 
-         => componentToEntityMap[id];
-
       protected virtual int InitializeComponent(int entityId)
       {
          var id = freeComponents.Take();
@@ -129,6 +131,9 @@ namespace Fracture.Engine.Ecs
          return id;
       }
       
+      public int OwnerOf(int id) 
+         => componentToEntityMap[id];
+
       public virtual bool Delete(int id)
       {
          if (!componentToEntityMap.Remove(id))

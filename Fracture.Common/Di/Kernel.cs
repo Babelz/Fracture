@@ -198,6 +198,8 @@ namespace Fracture.Common.Di
                     binders.RemoveAt(i);
 
                     dependencies.Add(dependency);
+                    
+                    i = 0;
 
                     continue;
                 }

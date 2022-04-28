@@ -107,7 +107,7 @@ namespace Fracture.Net.Hosting
         }
         #endregion
         
-        void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript;
+        void Load(Type type, params IBindingValue[] args);
     }
 
     /// <summary>
@@ -251,10 +251,8 @@ namespace Fracture.Net.Hosting
             scripts.Verify();
         }
         
-        public void Load<T>(params IBindingValue[] args) where T : class, IApplicationScript
+        public void Load(Type type, params IBindingValue[] args)
         {
-            var type = typeof(T);
-            
             if (!typeof(IApplicationScript).IsAssignableFrom(type))
                 throw new ArgumentException($"{type.Name} is not a script type", nameof(type));
                 
@@ -264,7 +262,7 @@ namespace Fracture.Net.Hosting
             if (type.IsValueType)
                 throw new ArgumentException($"{type.Name} is a value type", nameof(type)); 
             
-            var script = (IApplicationScript)scripts.Activate(typeof(T), args);
+            var script = (IApplicationScript)scripts.Activate(type, args);
             
             switch (script)
             {
