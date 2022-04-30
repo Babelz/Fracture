@@ -76,7 +76,7 @@ namespace Fracture.Common.Events
                     continue;
                 
                 if (pair.Value.Type == ScheduledEventType.Pulse) 
-                    pair.Value.Wait();
+                    pair.Value.Wait(pair.Value.DueTime);
                 else                                             
                     pairs.Remove(pair.Key);
             }

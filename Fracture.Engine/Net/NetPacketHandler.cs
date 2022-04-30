@@ -7,13 +7,26 @@ namespace Fracture.Engine.Net
 {
     public delegate void NetPacketHandlerDelegate(ClientUpdate.Packet packet);
 
+    /// <summary>
+    /// Interface for implementing net packet handlers that provide handling functionality for packets.
+    /// </summary>
     public interface INetPacketHandler
     {
+        /// <summary>
+        /// Creates new named packet handler route that handles all incoming packets using the handler callback that match the
+        /// provided match delegate.
+        /// </summary>
         void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
         
+        /// <summary>
+        /// Revokes named route and removes it from the handler.
+        /// </summary>
         void Revoke(string name);
     }
     
+    /// <summary>
+    /// Default implementation of <see cref="INetPacketHandler"/>.
+    /// </summary>
     public class NetPacketHandler : INetPacketHandler
     {
         #region Private net message handler context

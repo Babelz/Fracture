@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
@@ -24,6 +25,14 @@ namespace Fracture.Engine.Ecs
       }
    }
    
+   public enum EntityPairEventAction : byte
+   {
+      MadeParent = 0,
+      MadeChild,
+      ChildrenRemoved,
+      ParentRemoved,
+   }
+
    public readonly struct EntityPairEventArgs
    {
       #region Properties
@@ -36,12 +45,18 @@ namespace Fracture.Engine.Ecs
       {
          get;
       }
+      
+      public EntityPairEventAction Action
+      {
+         get;
+      }
       #endregion
 
-      public EntityPairEventArgs(int parentId, int childId)
+      public EntityPairEventArgs(int parentId, int childId, EntityPairEventAction action)
       {
          ParentId = parentId;
          ChildId  = childId;
+         Action   = action;
       }
    }
 
@@ -152,23 +167,14 @@ namespace Fracture.Engine.Ecs
       // Entity events. 
       private readonly IUniqueEvent<int, EntityEventArgs> deletedEvent;
       
-      private readonly ISharedEvent<int, EntityPairEventArgs> unpairedFromChildEvent;
-      private readonly ISharedEvent<int, EntityPairEventArgs> unpairedFromParentEvent;
-      
-      private readonly ISharedEvent<int, EntityPairEventArgs> madeParentOfEvent;
-      private readonly ISharedEvent<int, EntityPairEventArgs> madeChildOfEvent;
+      private readonly ISharedEvent<int, EntityPairEventArgs> pairEvent;
       #endregion
       
       [BindingConstructor]
       public EntitySystem(IEventQueueSystem events)
       {
          deletedEvent = events.CreateUnique<int, EntityEventArgs>();
-         
-         unpairedFromChildEvent  = events.CreateShared<int, EntityPairEventArgs>();
-         unpairedFromParentEvent = events.CreateShared<int, EntityPairEventArgs>();
-         
-         madeParentOfEvent = events.CreateShared<int, EntityPairEventArgs>();
-         madeChildOfEvent  = events.CreateShared<int, EntityPairEventArgs>();
+         pairEvent    = events.CreateShared<int, EntityPairEventArgs>();
 
          // Create entity data. 
          var idc = 0;
@@ -208,13 +214,8 @@ namespace Fracture.Engine.Ecs
          
          // Create events.
          deletedEvent.Create(id);
-         
-         unpairedFromChildEvent.Create(id);
-         unpairedFromParentEvent.Create(id);
-         
-         madeParentOfEvent.Create(id);
-         madeChildOfEvent.Create(id);
-         
+         pairEvent.Create(id);
+
          aliveEntityIds.Add(id);
          
          // Lastly pair.
@@ -252,11 +253,7 @@ namespace Fracture.Engine.Ecs
          // Delete all events.
          deletedEvent.Delete(id);
          
-         unpairedFromChildEvent.Delete(id);
-         unpairedFromParentEvent.Delete(id);
-         
-         madeParentOfEvent.Delete(id);
-         madeChildOfEvent.Delete(id);
+         pairEvent.Delete(id);
          
          // Clear rest of the state and return id to pool.
          freeEntityIds.Return(id);
@@ -312,8 +309,8 @@ namespace Fracture.Engine.Ecs
          // Pair with new parent.
          child.ParentId = parentId;
          
-         madeParentOfEvent.Publish(parentId, new EntityPairEventArgs(parentId, childId));
-         madeChildOfEvent.Publish(childId, new EntityPairEventArgs(parentId, childId));
+         pairEvent.Publish(parentId, new EntityPairEventArgs(parentId, childId, EntityPairEventAction.MadeParent));
+         pairEvent.Publish(parentId, new EntityPairEventArgs(childId, parentId, EntityPairEventAction.MadeChild));
       }
 
       public void Unpair(int parentId, int childId)
@@ -330,8 +327,8 @@ namespace Fracture.Engine.Ecs
          // Unpair child from parent.
          child.ParentId = null;
 
-         unpairedFromChildEvent.Publish(parentId, new EntityPairEventArgs(parentId, childId));
-         unpairedFromParentEvent.Publish(childId, new EntityPairEventArgs(parentId, childId));
+         pairEvent.Publish(parentId, new EntityPairEventArgs(parentId, childId, EntityPairEventAction.ChildrenRemoved));
+         pairEvent.Publish(parentId, new EntityPairEventArgs(childId, parentId, EntityPairEventAction.ParentRemoved));
       }
       
       public bool HasParent(int id)
@@ -363,7 +360,7 @@ namespace Fracture.Engine.Ecs
 
       public void Clear()
       {
-         foreach (var id in aliveEntityIds)
+         foreach (var id in aliveEntityIds.ToList())
             Delete(id);
       }
 

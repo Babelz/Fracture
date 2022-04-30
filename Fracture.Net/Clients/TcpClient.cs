@@ -22,7 +22,8 @@ namespace Fracture.Net.Clients
 
         #region Fields
         private readonly byte[] receiveBuffer;
-        private readonly Socket socket;
+        
+        private Socket socket;
         
         private DateTime lastReceiveTime;
 
@@ -34,14 +35,12 @@ namespace Fracture.Net.Clients
         
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
 
-        public override bool IsConnected => socket.Connected;
+        public override bool IsConnected => socket?.Connected ?? false;
         #endregion
         
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
             : base(serializer, gracePeriod)
         {
-            socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
             receiveBuffer   = new byte[ReceiveBufferSize];
             lastReceiveTime = DateTime.UtcNow; 
         }
@@ -114,14 +113,18 @@ namespace Fracture.Net.Clients
             try
             {
                 socket.EndConnect(ar);
-                            
+                      
                 UpdateState(ClientState.Connected);
                 
                 Updates.Push((ClientUpdate)ar.AsyncState);
             }
             catch (SocketException se)
             {
-                Log.Error(se, "socket error occurred connecting");
+                Log.Error(se, "socket error occurred while connecting");
+                
+                UpdateState(ClientState.Disconnected);
+                
+                Updates.Push(new ClientUpdate.ConnectFailed(se, se.SocketErrorCode));
             }
         }
         
@@ -234,6 +237,14 @@ namespace Fracture.Net.Clients
             
             try
             {
+                if (socket != null)
+                {
+                    socket.Close();
+                    socket.Dispose();
+                }
+
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                
                 socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
             }
             catch (SocketException se)

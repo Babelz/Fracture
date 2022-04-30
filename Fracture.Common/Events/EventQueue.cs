@@ -135,13 +135,6 @@ namespace Fracture.Common.Events
 
    public class Event<TTopic, TArgs> : IEventQueue, IEventBacklog<TTopic>, IEventHandler<TTopic, TArgs>
    {
-      #region Static properties
-      public static Event<TTopic, TArgs> Empty
-      {
-         get;
-      }
-      #endregion
-      
       #region Fields
       private readonly HashSet<TTopic> deletedTopics;
       private readonly HashSet<TTopic> activeTopics;
@@ -159,11 +152,6 @@ namespace Fracture.Common.Events
          get;
       }
       #endregion
-      
-      static Event()
-      {
-         Empty = new Event<TTopic, TArgs>(1);
-      }
       
       protected Event(int capacity, LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics)
       {
@@ -191,11 +179,21 @@ namespace Fracture.Common.Events
          return publishedLettersCount++;
       }
       
-      protected void InsertLetter(int index, in TTopic topic, in TArgs args)
-         => letters.Insert(index, new Letter<TTopic, TArgs>(topic, args));
-      
+      protected void UpdateLetter(int index, in TTopic topic, in TArgs args)
+      {
+         if (index >= publishedLettersCount)
+            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}");
+
+         letters.Insert(index, new Letter<TTopic, TArgs>(topic, args));
+      }
+         
       protected ref Letter<TTopic, TArgs> LetterAtIndex(int index)
-         => ref letters.AtIndex(index);
+      {
+         if (index >= publishedLettersCount)
+            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}");
+         
+         return ref letters.AtIndex(index);
+      }
       
       public void Handle(EventHandlerDelegate<TTopic, TArgs> handler)
       {
@@ -282,9 +280,9 @@ namespace Fracture.Common.Events
          
          if (!TopicActive(topic) && RetentionPolicy == LetterRetentionPolicy.SilenceDeletedTopics)
             return;
-
+         
          if (topicLetterIndices.TryGetValue(topic, out var index))
-            InsertLetter(index, topic, (aggregator != null ? aggregator(LetterAtIndex(index).Args, args) : args));
+            UpdateLetter(index, topic, (aggregator != null ? aggregator(LetterAtIndex(index).Args, args) : args));
          else
             topicLetterIndices[topic] = EnqueueLetter(topic, args);
       }

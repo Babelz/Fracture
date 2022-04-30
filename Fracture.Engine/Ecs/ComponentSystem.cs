@@ -11,21 +11,6 @@ using Fracture.Engine.Events;
 
 namespace Fracture.Engine.Ecs
 {
-   public readonly struct ComponentEventArgs
-   {
-      #region Properties
-      public int Id
-      {
-         get;
-      }
-      #endregion
-
-      public ComponentEventArgs(int id)
-      {
-         Id = id;
-      }
-   }
-   
    /// <summary>
    /// Interface for implementing component systems. Components in Minima
    /// are represented as identifiers and systems associate them with data
@@ -58,7 +43,7 @@ namespace Fracture.Engine.Ecs
       /// </summary>
       bool Delete(int id);
    }
-   
+
    /// <summary>
    /// Abstract base class for all component systems.
    /// </summary>
@@ -73,10 +58,6 @@ namespace Fracture.Engine.Ecs
       private readonly FreeList<int> freeComponents;
       
       private readonly List<int> aliveComponents;
-      
-      private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvent;
-      
-      private readonly IUniqueEvent<int, ComponentEventArgs> componentDeletedEvent;
       #endregion
 
       #region Properties
@@ -85,12 +66,16 @@ namespace Fracture.Engine.Ecs
       /// </summary>
       protected IEnumerable<int> Alive 
          => aliveComponents;
+      
+      protected IEventQueueSystem Events
+      {
+         get;
+      }
       #endregion
       
       protected ComponentSystem(IEventQueueSystem events)
       {
-         componentDeletedEvent = events.CreateUnique<int, ComponentEventArgs>();
-         entityDeletedEvent    = events.GetEventHandler<int, EntityEventArgs>();
+         Events = events;
          
          // Create basic component data.
          var idc = 0;
@@ -124,9 +109,6 @@ namespace Fracture.Engine.Ecs
          
          aliveComponents.Add(id);
          componentToEntityMap.Add(id, entityId);
-         
-         // Create events.
-         componentDeletedEvent.Create(id);
 
          return id;
       }
@@ -138,12 +120,6 @@ namespace Fracture.Engine.Ecs
       {
          if (!componentToEntityMap.Remove(id))
             return false;
-         
-         // Publish deleted event.
-         componentDeletedEvent.Publish(id, new ComponentEventArgs(id));
-
-         // Delete events.
-         componentDeletedEvent.Delete(id);
          
          aliveComponents.Remove(id);
          componentToEntityMap.Remove(id);
@@ -162,10 +138,8 @@ namespace Fracture.Engine.Ecs
 
       public override void Update(IGameEngineTime time)
       {
-         entityDeletedEvent.Handle((in Letter<int, EntityEventArgs> letter) => 
+         Events.GetEventHandler<int, EntityEventArgs>().Handle((in Letter<int, EntityEventArgs> letter) => 
          {
-            Console.WriteLine($"DELETING COMPONENTS IN SYS {this.GetType().FullName} FOR E {letter.Args.EntityId}");
-               
             foreach (var id in AllFor(letter.Args.EntityId))
                Delete(id);
             

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Di.Attributes;
@@ -12,13 +13,13 @@ namespace Fracture.Engine.Events
    public interface IEventQueueSystem : IGameEngineSystem
    {
       /// <summary>
-      /// Creates new shared event queue and returns the backlog to the caller.
+      /// Creates shared event that accepts specific topic and args and returns the backlog to the caller.
       /// </summary>
       ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity = 64, 
                                                               LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
 
       /// <summary>
-      /// Create new unique event queue and returns the backlog to the caller.
+      /// Creates shared event that accepts specific topic and args and returns the backlog to the caller.
       /// </summary>
       IUniqueEvent<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity = 16, 
                                                               LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics);
@@ -61,7 +62,14 @@ namespace Fracture.Engine.Events
       }
 
       public IEventHandler<TTopic, TArgs> GetEventHandler<TTopic, TArgs>()
-         => (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>) ?? Event<TTopic, TArgs>.Empty;
+      {
+         var handler = (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>);
+
+         if (handler == null)
+            throw new InvalidOperationException($"could not find handler for topic <{typeof(TTopic).FullName}, {typeof(TArgs).FullName}>");
+         
+         return handler;
+      }
       
       public override void Update(IGameEngineTime time)
       {

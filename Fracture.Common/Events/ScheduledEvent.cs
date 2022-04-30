@@ -78,11 +78,6 @@ namespace Fracture.Common.Events
         void Wait(TimeSpan dueTime);
 
         /// <summary>
-        /// Begins waiting to invoke the event using last interval.
-        /// </summary>
-        void Wait();
-        
-        /// <summary>
         /// Resumes waiting for the event.
         /// </summary>
         void Resume();
@@ -163,9 +158,6 @@ namespace Fracture.Common.Events
             ElapsedTime = TimeSpan.Zero;
             Waiting     = true;
         }
-
-        public void Wait()
-            => Wait(DueTime);
 
         public void Suspend()
         {

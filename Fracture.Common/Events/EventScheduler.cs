@@ -60,14 +60,9 @@ namespace Fracture.Common.Events
                     continue;
                 
                 if (scheduledEvent.Type == ScheduledEventType.Pulse)
-                {
-                    scheduledEvent.Wait();
-                }
+                    scheduledEvent.Wait(scheduledEvent.DueTime);
                 else
-                {
-                    // Continue from current index as the event was removed.
                     scheduledEvents.Remove(scheduledEvent);
-                }
             }
         }
     }

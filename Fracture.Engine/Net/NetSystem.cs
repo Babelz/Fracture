@@ -15,36 +15,68 @@ namespace Fracture.Engine.Net
     public delegate void NetSystemConnectFailedCallback(Exception exception, SocketError error);
     public delegate void NetSystemDisconnectedCallback(Exception exception, ResetReason reason);
 
-    public interface INetSystem : IGameEngineSystem
+    /// <summary>
+    /// Interface for implementing low level networking systems that provide functionality for connection management.
+    /// </summary>
+    public interface INetConnectionSystem : IGameEngineSystem
     {
         #region Properties
+        /// <summary>
+        /// Gets boolean declaring whether the system is connected to the remote host.
+        /// </summary>
         public bool IsConnected
         {
             get;
         }
         #endregion
         
+        /// <summary>
+        /// Begins connecting to the remote host at given endpoint. The provided callbacks are called when an event
+        /// regarding the connection status occurs.
+        /// </summary>
+        /// <param name="endPoint">endpoint where the connection should be established</param>
+        /// <param name="connectedCallback">callback invoked when connection has been established</param>
+        /// <param name="connectFailedCallback">callback invoked when connecting to the remote endpoint failed</param>
+        /// <param name="disconnectedCallback">callback invoked when the underlying connection has been disconnected</param>
         void Connect(IPEndPoint endPoint,
                      NetSystemConnectedCallback connectedCallback,
                      NetSystemConnectFailedCallback connectFailedCallback,
                      NetSystemDisconnectedCallback disconnectedCallback);
         
+        /// <summary>
+        /// Begins disconnecting the underlying connection with the remote host.
+        /// </summary>
         void Disconnect();
     }
     
     public delegate void NetMessageQueryResponseCallback(IQueryMessage response);
     public delegate void NetMessageQueryTimeoutCallback(IQueryMessage request);
     
-    public interface INetPacketSystem : INetSystem, INetPacketHandler
+    /// <summary>
+    /// Interface for implementing net systems that provide messaging functionality.
+    /// </summary>
+    public interface INetMessageSystem : INetConnectionSystem, INetPacketHandler
     {
+        /// <summary>
+        /// Sends message to the connected remote endpoint.
+        /// </summary>
         void Send<T>(in T message) where T : IMessage;
         
+        /// <summary>
+        /// Sends query message to connected remote end point. Based on the query outcome the provided callbacks will be invoked.
+        /// </summary>
+        /// <param name="message">query message that will be send out</param>
+        /// <param name="responseCallback">callback invoked when response to the query has been received</param>
+        /// <param name="timeoutCallback">callback invoked in case the query has timed out</param>
         void Send<T>(in T message, 
                      NetMessageQueryResponseCallback responseCallback, 
                      NetMessageQueryTimeoutCallback timeoutCallback) where T : IQueryMessage;
     }
     
-    public sealed class NetSystem : GameEngineSystem, INetPacketSystem
+    /// <summary>
+    /// Default implementation of <see cref="INetMessageSystem"/>.
+    /// </summary>
+    public sealed class NetSystem : GameEngineSystem, INetMessageSystem
     {
         #region Private query message context class
         public class QueryMessageContext

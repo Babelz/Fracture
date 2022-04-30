@@ -145,8 +145,6 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       #region Fields
-      private readonly IEventHandler<int, TransformChangedEventArgs> transformChangedEvent;
-
       private readonly HashSet<int> scrubbed;
       private readonly HashSet<int> dirty;
       #endregion
@@ -182,8 +180,6 @@ namespace Fracture.Engine.Ecs
          
          Layers     = layers ?? throw new ArgumentNullException(nameof(layers));
          Transforms = transforms ?? throw new ArgumentNullException(nameof(layers));
-         
-         transformChangedEvent = events.GetEventHandler<int, TransformChangedEventArgs>();
          
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
@@ -361,7 +357,7 @@ namespace Fracture.Engine.Ecs
          scrubbed.Clear();
          
          // Update transformations.
-         transformChangedEvent.Handle((in Letter<int, TransformChangedEventArgs> letter) =>
+         Events.GetEventHandler<int, TransformChangedEventArgs>().Handle((in Letter<int, TransformChangedEventArgs> letter) =>
          {
             if (!BoundTo(letter.Args.EntityId))
                return LetterHandlingResult.Retain;
@@ -860,6 +856,19 @@ namespace Fracture.Engine.Ecs
       void SetEffects(int id, SpriteEffects effects);
    }
    
+   public readonly struct SpriteAnimationFinishedEventArgs
+   {
+      #region Properties
+      public int Id
+      {
+         get;
+      }
+      #endregion
+
+      public SpriteAnimationFinishedEventArgs(int id)
+         => Id = id;
+   }
+   
    public sealed class SpriteAnimationComponentSystem : 
       GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>,
       ISpriteAnimationComponentSystem
@@ -987,7 +996,7 @@ namespace Fracture.Engine.Ecs
       
       private readonly Dictionary<int, SpriteAnimationPlaylist> playlists;
       
-      private readonly IUniqueEvent<int, ComponentEventArgs> finishedEvents;
+      private readonly IUniqueEvent<int, SpriteAnimationFinishedEventArgs> finishedEvents;
       #endregion
 
       [BindingConstructor]
@@ -997,7 +1006,7 @@ namespace Fracture.Engine.Ecs
                                             ITransformComponentSystem transforms) 
          : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
       {
-         finishedEvents = events.CreateUnique<int, ComponentEventArgs>();
+         finishedEvents = events.CreateUnique<int, SpriteAnimationFinishedEventArgs>();
 
          var idc = 1;
          
@@ -1133,7 +1142,7 @@ namespace Fracture.Engine.Ecs
                
             component.FrameId = 0;
 
-            finishedEvents.Publish(id, new ComponentEventArgs(id));
+            finishedEvents.Publish(id, new SpriteAnimationFinishedEventArgs(id));
                   
             if (component.Mode != SpriteAnimationMode.Play)
                continue;

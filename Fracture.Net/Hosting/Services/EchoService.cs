@@ -108,7 +108,13 @@ namespace Fracture.Net.Hosting.Services
             if (!samples.TryGetValue(id, out var peerSamples))
                 return TimeSpan.Zero;
             
-            return peerSamples.Count == 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(peerSamples.Average(t => t.TotalMilliseconds));
+            if (peerSamples.Count < 3)
+                return peerSamples.Count == 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(peerSamples.Average(t => t.TotalMilliseconds));
+            
+            var max = GetMax(id);
+            var min = GetMin(id);
+            
+            return TimeSpan.FromMilliseconds(peerSamples.Where(s => s > min && s < max).Average(t => t.TotalMilliseconds));
         }
         
         public TimeSpan GetMax(int id)
