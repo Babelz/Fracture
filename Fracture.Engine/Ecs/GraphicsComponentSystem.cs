@@ -146,6 +146,8 @@ namespace Fracture.Engine.Ecs
       #endregion
       
       #region Fields
+      private readonly IEventHandler<int, TransformChangedEventArgs> transformChangedEvents;
+      
       private readonly HashSet<int> scrubbed;
       private readonly HashSet<int> dirty;
       #endregion
@@ -178,6 +180,8 @@ namespace Fracture.Engine.Ecs
                                         int graphicsComponentTypeId)
          : base(events)
       {
+       
+         transformChangedEvents = events.GetEventHandler<int, TransformChangedEventArgs>();
          
          Layers     = layers ?? throw new ArgumentNullException(nameof(layers));
          Transforms = transforms ?? throw new ArgumentNullException(nameof(layers));
@@ -348,7 +352,7 @@ namespace Fracture.Engine.Ecs
          scrubbed.Clear();
          
          // Update transformations.
-         Events.GetEventHandler<int, TransformChangedEventArgs>().Handle((in Letter<int, TransformChangedEventArgs> letter) =>
+         transformChangedEvents.Handle((in Letter<int, TransformChangedEventArgs> letter) =>
          {
             if (!BoundTo(letter.Args.EntityId))
                return LetterHandlingResult.Retain;

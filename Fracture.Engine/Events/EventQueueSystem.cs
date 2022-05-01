@@ -4,6 +4,7 @@ using System.Linq;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
+using NLog.Targets;
 
 namespace Fracture.Engine.Events
 {
@@ -35,13 +36,38 @@ namespace Fracture.Engine.Events
    /// </summary>
    public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
    {
+      #region Private lazy event handler class
+      private sealed class LazyEventHandler<TTopic, TArgs> : IEventHandler<TTopic, TArgs> 
+      {
+         #region Properties
+         public IEventHandler<TTopic, TArgs> Value
+         {
+            get;
+            set;
+         }
+         #endregion
+
+         public LazyEventHandler()
+         {
+         }
+         
+         public void Handle(EventHandlerDelegate<TTopic, TArgs> handler)
+            => Value?.Handle(handler);
+      }
+      #endregion
+      
       #region Fields
       private readonly List<IEventQueue> queues;
+      
+      private readonly Dictionary<Type, object> handlers;
       #endregion
 
       public EventQueueSystem()
-         => queues = new List<IEventQueue>();
-      
+      {
+         queues   = new List<IEventQueue>();
+         handlers = new Dictionary<Type, object>();
+      }
+         
       private void AssertEventDoesNotExist<TTopic, TArgs>()
       {
          if (queues.Any(q => q.GetType().GetGenericArguments().SequenceEqual(new [] { typeof(TTopic), typeof(TArgs) })))
@@ -54,6 +80,14 @@ namespace Fracture.Engine.Events
                }
             };
       }
+
+      private void UpdateHandlers<TTopic, TArgs>(IEventHandler<TTopic, TArgs> backlog)
+      {
+         if (handlers.TryGetValue(typeof(IEventHandler<TTopic, TArgs>), out var handler))
+            (handler as LazyEventHandler<TTopic, TArgs>)!.Value = backlog;
+         else
+            handlers.Add(typeof(IEventHandler<TTopic, TArgs>), new LazyEventHandler<TTopic, TArgs> { Value = backlog });
+      }
       
       public ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
       {
@@ -63,6 +97,8 @@ namespace Fracture.Engine.Events
 
          queues.Add(backlog);
          
+         UpdateHandlers(backlog);
+
          return backlog;
       }
 
@@ -74,6 +110,8 @@ namespace Fracture.Engine.Events
          
          queues.Add(backlog);
          
+         UpdateHandlers(backlog);
+         
          return backlog;
       }
 
@@ -81,15 +119,12 @@ namespace Fracture.Engine.Events
       {
          var handler = (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>);
 
-         if (handler == null)
-            throw new InvalidOperationException($"could not find handler for event")
-            {
-               Data =
-               {
-                  { nameof(TTopic), typeof(TTopic) },
-                  { nameof(TArgs), typeof(TArgs) }
-               }
-            };
+         if (handler != null) 
+            return handler;
+         
+         handler = new LazyEventHandler<TTopic, TArgs>();
+            
+         handlers.Add(typeof(IEventHandler<TTopic, TArgs>), handler);
 
          return handler;
       }

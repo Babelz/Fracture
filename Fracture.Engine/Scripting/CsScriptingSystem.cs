@@ -134,7 +134,7 @@ namespace Fracture.Engine.Scripting
         {
             this.activator = activator;
 
-            actors = new List<ICsScriptActor>()
+            actors = new List<ICsScriptActor>
             {
                 new ActiveCsScriptActor(),
                 new CommandCsScriptActor(),

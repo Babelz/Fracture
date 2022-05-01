@@ -11,7 +11,7 @@ namespace Fracture.Net.Serialization
     public static class EnumSerializer 
     {   
         #region Static fields
-        private static readonly Dictionary<Type, SerializeDelegate<object>> SerializeDelegates = new Dictionary<Type, SerializeDelegate<object>>()
+        private static readonly Dictionary<Type, SerializeDelegate<object>> SerializeDelegates = new Dictionary<Type, SerializeDelegate<object>>
         {
             { typeof(sbyte),  (value, buffer, offset) => MemoryMapper.WriteSByte((sbyte)value, buffer, offset)   },
             { typeof(byte),   (value, buffer, offset) => MemoryMapper.WriteByte((byte)value, buffer, offset)     },
@@ -23,7 +23,7 @@ namespace Fracture.Net.Serialization
             { typeof(ulong),  (value, buffer, offset) => MemoryMapper.WriteUlong((ulong)value, buffer, offset)   }
         };
         
-        private static readonly Dictionary<Type, DeserializeDelegate<object>> DeserializeDelegates = new Dictionary<Type, DeserializeDelegate<object>>()
+        private static readonly Dictionary<Type, DeserializeDelegate<object>> DeserializeDelegates = new Dictionary<Type, DeserializeDelegate<object>>
         {
             { typeof(sbyte),  (buffer, offset) => MemoryMapper.ReadSByte(buffer, offset)  },
             { typeof(byte),   (buffer, offset) => MemoryMapper.ReadByte(buffer, offset)   },
@@ -35,7 +35,7 @@ namespace Fracture.Net.Serialization
             { typeof(ulong),  (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset)  }
         };
         
-        private static readonly Dictionary<Type, ushort> SizeOfUnderlyingTypes = new Dictionary<Type, ushort>()
+        private static readonly Dictionary<Type, ushort> SizeOfUnderlyingTypes = new Dictionary<Type, ushort>
         {
             { typeof(sbyte),  sizeof(sbyte)  },
             { typeof(byte),   sizeof(byte)   },

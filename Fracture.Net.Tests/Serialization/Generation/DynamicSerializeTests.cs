@@ -281,7 +281,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new FieldTestClass() { X = 1500, Y = 37500 };
+            var testObject = new FieldTestClass { X = 1500, Y = 37500 };
             var buffer     = new byte[8];
 
             serializeDelegate(testObject, buffer, 0);
@@ -307,7 +307,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new NullableFieldTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var testObject = new NullableFieldTestClass { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
             serializeDelegate(testObject, buffer, 0);
@@ -342,7 +342,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new NonValueTypeFieldTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var testObject = new NonValueTypeFieldTestClass { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var buffer     = new byte[128];
             
             serializeDelegate(testObject, buffer, 0);
@@ -386,7 +386,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new PropertyTestClass() { Id = 255255, Greet = "Hello stranger!" };
+            var testObject = new PropertyTestClass { Id = 255255, Greet = "Hello stranger!" };
             var buffer     = new byte[64];
             
             serializeDelegate(testObject, buffer, 0);
@@ -418,7 +418,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new NullablePropertyTestClass() { X = null, Y = null, I = 200, J = 300 };
+            var testObject = new NullablePropertyTestClass { X = null, Y = null, I = 200, J = 300 };
             var buffer     = new byte[64];
 
             serializeDelegate(testObject, buffer, 0);
@@ -450,7 +450,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new NonValueTypePropertyTestClass() { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
+            var testObject = new NonValueTypePropertyTestClass { S1 = "Hello fucking world", S2 = null, S3 = "Hello again", I = 1993, J = 200 };
             var buffer     = new byte[128];
 
             serializeDelegate(testObject, buffer, 0);
@@ -495,7 +495,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new FieldAndPropertyTestClassClass() { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
+            var testObject = new FieldAndPropertyTestClassClass { B1 = 0, B2 = 20, B3 = 150, B4 = 200 };
             var buffer     = new byte[64];
 
             serializeDelegate(testObject, buffer, 0);
@@ -525,7 +525,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
 
-            var testObject = new NonZeroNullValueOffsetMixedTestClass() { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
+            var testObject = new NonZeroNullValueOffsetMixedTestClass { I = 200, J = 300, K = 400, X = 2, Y = 1, P9 = 500};
             var buffer     = new byte[64];
 
             serializeDelegate(testObject, buffer, 0);
@@ -582,7 +582,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObject = new AllPropertyAndFieldKindsMixTestClass() 
+            var testObject = new AllPropertyAndFieldKindsMixTestClass
             {
                 Y  = 200,
                 X  = null,

@@ -105,7 +105,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            var testObjectIn = new AllFieldTypesTestClass()
+            var testObjectIn = new AllFieldTypesTestClass
             {
                 X      = 200,
                 MaybeX = null,
@@ -117,19 +117,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 NullableNumbers = new int?[] { null, null, 200, null, null },
                 MaybeNumbers    = null,
                 
-                Map = new Dictionary<string, float>()
+                Map = new Dictionary<string, float>
                 {
                     { "x", 200.0f },
                     { "y", 500.0f },
                     { "z", 5.0f },
                 },
-                MaybeMap = new Dictionary<int, int>()
+                MaybeMap = new Dictionary<int, int>
                 {
                     { 10, 0 },
                     { 20, 1 },
                     { 30, 2 },
                 },
-                NullableMap = new Dictionary<int, string?>()
+                NullableMap = new Dictionary<int, string?>
                 {
                     { 1, null },
                     { 2, null },

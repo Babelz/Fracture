@@ -16,19 +16,19 @@ namespace Fracture.Common.Tests.Events
 
       [Fact]
       public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
-         => Assert.Null(Record.Exception(() => new UniqueEvent<object, int>(0)));
+         => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(0)));
       
       [Fact]
       public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
-         => Assert.Null(Record.Exception(() => new UniqueEvent<object, int>(-1)));
+         => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(-1)));
       
       [Fact]
       public void SharedEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
-         => Assert.Null(Record.Exception(() => new SharedEvent<object, int>(0)));
+         => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(0)));
       
       [Fact]
       public void SharedEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
-         => Assert.Null(Record.Exception(() => new SharedEvent<object, int>(-1)));
+         => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(-1)));
 
       [Fact]
       public void Shared_QueueAllows_Multiple_Letters()
@@ -40,7 +40,7 @@ namespace Fracture.Common.Tests.Events
          queue.Create(TestTopic);
          
          // Publish 3 events, should get invoked 3 times.
-         var expectedValues = new HashSet<int>()
+         var expectedValues = new HashSet<int>
          {
             10, 100, 1000   
          };
@@ -67,7 +67,7 @@ namespace Fracture.Common.Tests.Events
          queue.Create(TestTopic);
          
          // Publish 3 events, should get invoked 3 times.
-         var expectedValues = new HashSet<int>()
+         var expectedValues = new HashSet<int>
          {
             10, 1000   
          };

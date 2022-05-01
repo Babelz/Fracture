@@ -137,8 +137,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             Assert.Equal(11, getSizeFromValueDelegate(new NonValueTypeTestClass()));
-            Assert.Equal(39, getSizeFromValueDelegate(new NonValueTypeTestClass() { PS = "hello, world!" }));
-            Assert.Equal(51, getSizeFromValueDelegate(new NonValueTypeTestClass() { PS = "hello, world!", FS = "hello" }));
+            Assert.Equal(39, getSizeFromValueDelegate(new NonValueTypeTestClass { PS = "hello, world!" }));
+            Assert.Equal(51, getSizeFromValueDelegate(new NonValueTypeTestClass { PS = "hello, world!", FS = "hello" }));
         }
         
         [Fact]
@@ -159,9 +159,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
             );
             
             Assert.Equal(3, getSizeFromValueDelegate(new NullableNonValueTypeTestClass()));
-            Assert.Equal(15, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { FS = "hello" }));
-            Assert.Equal(7, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { PX = 200 }));
-            Assert.Equal(17, getSizeFromValueDelegate(new NullableNonValueTypeTestClass() { FS = "s1", FX = 100, PS = "s2", PX = 200 }));
+            Assert.Equal(15, getSizeFromValueDelegate(new NullableNonValueTypeTestClass { FS = "hello" }));
+            Assert.Equal(7, getSizeFromValueDelegate(new NullableNonValueTypeTestClass { PX = 200 }));
+            Assert.Equal(17, getSizeFromValueDelegate(new NullableNonValueTypeTestClass { FS = "s1", FX = 100, PS = "s2", PX = 200 }));
         }
         
         [Fact]
@@ -181,9 +181,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(7, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0 }));
-            Assert.Equal(11, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(15, getSizeFromValueDelegate(new NullableFieldTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(7, getSizeFromValueDelegate(new NullableFieldTestClass { X = 0 }));
+            Assert.Equal(11, getSizeFromValueDelegate(new NullableFieldTestClass { X = 0, Y = 200 }));
+            Assert.Equal(15, getSizeFromValueDelegate(new NullableFieldTestClass { X = 0, Y = 200, Z = 400 }));
         }
         
         [Fact]
@@ -203,9 +203,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 serializationOps
             );
             
-            Assert.Equal(7, getSizeFromValueDelegate(new NullablePropertyTestClass() { X  = 0 }));
-            Assert.Equal(11, getSizeFromValueDelegate(new NullablePropertyTestClass() { X = 0, Y = 200 }));
-            Assert.Equal(15, getSizeFromValueDelegate(new NullablePropertyTestClass() { X = 0, Y = 200, Z = 400 }));
+            Assert.Equal(7, getSizeFromValueDelegate(new NullablePropertyTestClass { X  = 0 }));
+            Assert.Equal(11, getSizeFromValueDelegate(new NullablePropertyTestClass { X = 0, Y = 200 }));
+            Assert.Equal(15, getSizeFromValueDelegate(new NullablePropertyTestClass { X = 0, Y = 200, Z = 400 }));
         }
 
         [Fact]

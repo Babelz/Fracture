@@ -138,7 +138,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Structures_Composed_Of_Structures_Back_And_Forth()
         {
-            var testValueIn = new ClassComposedOfStructs()
+            var testValueIn = new ClassComposedOfStructs
             {
                 X = new Vec2(1.0f, 2.0f),
                 Z = new Vec2(3.0f, 4.0f)
@@ -156,15 +156,15 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Complex_Nested_Structures_Composed_Of_Structures_Back_And_Forth()
         {
-            var testValueIn = new Inner()
+            var testValueIn = new Inner
             {
-                Value = new Inner1()
+                Value = new Inner1
                 {
-                    Inner = new Inner2()
+                    Inner = new Inner2
                     {
-                        Inner = new Inner3()
+                        Inner = new Inner3
                         {
-                            Inner = new Inner4()
+                            Inner = new Inner4
                             {
                                 Value = new Vec2(float.MinValue, float.MaxValue)
                             }

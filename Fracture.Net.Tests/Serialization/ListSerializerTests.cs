@@ -20,7 +20,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
-            var numbersIn = new List<int>()
+            var numbersIn = new List<int>
             {
                 0,
                 1,
@@ -47,7 +47,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
-            var numbersIn = new List<int?>()
+            var numbersIn = new List<int?>
             {
                 0,
                 1,

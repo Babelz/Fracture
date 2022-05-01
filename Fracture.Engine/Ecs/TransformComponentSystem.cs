@@ -123,7 +123,7 @@ namespace Fracture.Engine.Ecs
          var componentId = InitializeComponent(entityId);
          
          // Store component data and state.
-         components.Insert(componentId, new TransformComponent()
+         components.Insert(componentId, new TransformComponent
          {
             EntityId  = entityId,
             Transform = transform

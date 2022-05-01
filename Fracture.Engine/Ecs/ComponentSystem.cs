@@ -58,6 +58,8 @@ namespace Fracture.Engine.Ecs
       private readonly FreeList<int> freeComponents;
       
       private readonly List<int> aliveComponents;
+      
+      private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
       #endregion
 
       #region Properties
@@ -66,17 +68,12 @@ namespace Fracture.Engine.Ecs
       /// </summary>
       protected IEnumerable<int> Alive 
          => aliveComponents;
-      
-      protected IEventQueueSystem Events
-      {
-         get;
-      }
       #endregion
       
       protected ComponentSystem(IEventQueueSystem events)
       {
-         Events = events;
-         
+         entityDeletedEvents = events.GetEventHandler<int, EntityEventArgs>();
+
          // Create basic component data.
          var idc = 0;
          
@@ -138,7 +135,7 @@ namespace Fracture.Engine.Ecs
 
       public override void Update(IGameEngineTime time)
       {
-         Events.GetEventHandler<int, EntityEventArgs>().Handle((in Letter<int, EntityEventArgs> letter) => 
+         entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) => 
          {
             foreach (var componentId in AllFor(letter.Args.EntityId))
                Delete(componentId);

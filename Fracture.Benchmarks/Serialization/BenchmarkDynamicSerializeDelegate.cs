@@ -133,7 +133,7 @@ namespace Fracture.Benchmarks.Serialization
             
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
             
-            testObject = new TestClass()
+            testObject = new TestClass
             {
                 X = 1500, 
                 Y = null,

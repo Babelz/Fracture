@@ -122,17 +122,19 @@ namespace Fracture.Engine.Ecs
         
         #region Fields
         private readonly ICsScriptingSystem scripts;
-        private readonly IEventQueueSystem events;
         
         private readonly Dictionary<int, List<Behavior>> entityBehaviourLists;
+        
+        private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
         #endregion
         
         [BindingConstructor]
         public BehaviorSystem(ICsScriptingSystem scripts, IEventQueueSystem events)
         {
             this.scripts = scripts;
-            this.events  = events;
-
+        
+            entityDeletedEvents = events.GetEventHandler<int, EntityEventArgs>();
+            
             entityBehaviourLists = new Dictionary<int, List<Behavior>>();
         }
         
@@ -175,7 +177,7 @@ namespace Fracture.Engine.Ecs
 
         public override void Update(IGameEngineTime time)
         {
-            events.GetEventHandler<int, EntityEventArgs>().Handle((in Letter<int, EntityEventArgs> letter) =>
+            entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
             {
                 if (!entityBehaviourLists.TryGetValue(letter.Args.EntityId, out var behaviors))
                     return LetterHandlingResult.Retain;

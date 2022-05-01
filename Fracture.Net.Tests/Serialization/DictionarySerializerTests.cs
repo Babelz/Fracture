@@ -20,7 +20,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
-            var lookupIn = new Dictionary<string, int>()
+            var lookupIn = new Dictionary<string, int>
             {
                 { "a", 200 },
                 { "b", 400 },
@@ -45,7 +45,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
-            var lookupIn = new Dictionary<string, int?>()
+            var lookupIn = new Dictionary<string, int?>
             {
                 { "a", 200 },
                 { "b", 400 },
