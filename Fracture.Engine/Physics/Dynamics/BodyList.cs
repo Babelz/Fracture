@@ -67,13 +67,13 @@ namespace Fracture.Engine.Physics.Dynamics
       
       public int Create(BodyType type, in Vector2 position, float rotation, in Shape shape, object userData = null)
       {
-         var id = ids.Take();
+         var componentId = ids.Take();
          
-         indices.Add(id);
+         indices.Add(componentId);
          
-         bodies.Insert(id, new Body(id, type, position, rotation, shape, userData));
+         bodies.Insert(componentId, new Body(componentId, type, position, rotation, shape, userData));
          
-         return id;
+         return componentId;
       }
       
       public void Delete(int id)

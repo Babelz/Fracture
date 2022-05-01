@@ -164,16 +164,10 @@ namespace Fracture.Engine.Physics.Spatial
             // Delete this nodes body list and transfer to children.
             foreach (var bodyList in bodyLists)
             {
-                foreach (var id in bodyList)
+                foreach (var bodyId in bodyList)
                 {
                     // Bodies can exist in more than one cell.
-                    var tl = TopLeft.Add(id);
-                    var tr = TopRight.Add(id);
-
-                    var br = BottomRight.Add(id);
-                    var bl = BottomLeft.Add(id);
-
-                    Debug.Assert(tl || tr || br || bl);
+                    Debug.Assert(TopLeft.Add(bodyId) || TopRight.Add(bodyId) || BottomRight.Add(bodyId) || BottomLeft.Add(bodyId));
                 }
             }
 
@@ -348,16 +342,16 @@ namespace Fracture.Engine.Physics.Spatial
 
                 foreach (var bodyList in bodyLists)
                 {
-                    foreach (var id in bodyList.Where(id => !(!selector?.Invoke(id, bodies) ?? false)))
+                    foreach (var bodyId in bodyList.Where(id => !(!selector?.Invoke(id, bodies) ?? false)))
                     {
                         // All queries should be done using the current 
                         // bounding box, not the future one.
-                        ref var body = ref bodies.WithId(id);
+                        ref var body = ref bodies.WithId(bodyId);
                         
                         if (!Aabb.Intersects(body.BoundingBox, aabb))
                             continue;
 
-                        results[(int)body.Type - 1].Add(id);
+                        results[(int)body.Type - 1].Add(bodyId);
                     }
                 }
 
@@ -387,16 +381,16 @@ namespace Fracture.Engine.Physics.Spatial
 
                 foreach (var bodyList in bodyLists)
                 {
-                    foreach (var id in bodyList.Where(id => !(!selector?.Invoke(id, bodies) ?? false)))
+                    foreach (var bodyId in bodyList.Where(id => !(!selector?.Invoke(id, bodies) ?? false)))
                     {
                         // All queries should be done using the current 
                         // bounding box, not the future one.
-                        ref var body = ref bodies.WithId(id);
+                        ref var body = ref bodies.WithId(bodyId);
                         
                         if (!Line.Intersects(line, body.BoundingBox))
                             continue;
 
-                        results[(int)body.Type - 1].Add(id);
+                        results[(int)body.Type - 1].Add(bodyId);
                     }
                 }
 

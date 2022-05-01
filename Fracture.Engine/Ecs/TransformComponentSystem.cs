@@ -118,33 +118,33 @@ namespace Fracture.Engine.Ecs
 
       protected override int InitializeComponent(int entityId)
       {
-         var id = base.InitializeComponent(entityId);
+         var componentId = base.InitializeComponent(entityId);
          
-         while (id >= components.Length) 
+         while (componentId >= components.Length) 
             components.Grow();
 
-         return id;
+         return componentId;
       }
 
       public int Create(int entityId, in Transform transform)
       {
          // Initialize component and reserve enough storage.
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
          // Store component data and state.
-         components.Insert(id, new TransformComponent()
+         components.Insert(componentId, new TransformComponent()
          {
             EntityId  = entityId,
             Transform = transform
          });
          
          // Create events.
-         changedEvent.Create(id);
+         changedEvent.Create(componentId);
          
          // Publish initial change.
-         changedEvent.Publish(id, new TransformChangedEventArgs(entityId, Transform.Default, transform));
+         changedEvent.Publish(componentId, new TransformChangedEventArgs(entityId, Transform.Default, transform));
          
-         return id;
+         return componentId;
       }
       
       public int Create(int entityId)

@@ -277,8 +277,8 @@ namespace Fracture.Engine.Physics
                 return;
             }
 
-            foreach (var id in node.Dynamics.Concat(node.Sensors))
-                ApplyConstantForces(id);
+            foreach (var bodyId in node.Dynamics.Concat(node.Sensors))
+                ApplyConstantForces(bodyId);
         }
         
         private void ApplyForces(int id, TimeSpan delta)
@@ -314,11 +314,11 @@ namespace Fracture.Engine.Physics
                 return;
             }
 
-            foreach (var id in node.Dynamics.Concat(node.Sensors))
-                ApplyForces(id, delta);
+            foreach (var bodyId in node.Dynamics.Concat(node.Sensors))
+                ApplyForces(bodyId, delta);
 
-            foreach (var id in node.Statics)
-                ApplyForces(id, delta);
+            foreach (var bodyId in node.Statics)
+                ApplyForces(bodyId, delta);
         }
         
         private void RelocateLostBody(int id, TimeSpan delta)
@@ -386,21 +386,21 @@ namespace Fracture.Engine.Physics
                           in Shape shape, 
                           object userData = null)
         {
-            var id = bodies.Create(type, position, rotation, shape, userData);
+            var bodyId = bodies.Create(type, position, rotation, shape, userData);
             
-            if (!tree.Add(id))
-                RelocateLostBody(id, TimeSpan.Zero);
+            if (!tree.Add(bodyId))
+                RelocateLostBody(bodyId, TimeSpan.Zero);
             
             // Static bodies should not have contact lists.
             if (type == BodyType.Static) 
-                return id;
+                return bodyId;
             
-            var contactList = new ContactList(id);
+            var contactList = new ContactList(bodyId);
 
             contactLists.Add(contactList);
-            contactListLookup.Add(id, contactList);
+            contactListLookup.Add(bodyId, contactList);
 
-            return id;
+            return bodyId;
         }
 
         public int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null)
@@ -519,8 +519,8 @@ namespace Fracture.Engine.Physics
             ApplyConstantForces(tree.Root, delta);
             
             // Sweep quad tree and re-position lost bodies.
-            foreach (var id in tree.RelocateLostBodies())
-                RelocateLostBody(id, delta);
+            foreach (var bodyId in tree.RelocateLostBodies())
+                RelocateLostBody(bodyId, delta);
             
             // Normalize user transformations before solve.
             ApplyForces(tree.Root, delta);

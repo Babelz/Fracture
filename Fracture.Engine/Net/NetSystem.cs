@@ -136,7 +136,6 @@ namespace Fracture.Engine.Net
             => client.IsConnected;
         #endregion
 
-        [BindingConstructor]
         public NetSystem(Client client, TimeSpan queryGracePeriod)
         {
             this.client           = client ?? throw new ArgumentException(nameof(client));
@@ -146,24 +145,11 @@ namespace Fracture.Engine.Net
             queries       = new List<QueryMessageContext>(256);
         }
 
-        [BindingConstructor]
         public NetSystem(Client client)   
             : this(client, DefaultQueryGracePeriod)
         {
         }
 
-        public void Connect(IPEndPoint endPoint,
-                            NetSystemConnectedCallback connectedCallback,
-                            NetSystemConnectFailedCallback connectFailedCallback,
-                            NetSystemDisconnectedCallback disconnectedCallback)
-        {
-            this.connectedCallback     = connectedCallback ?? throw new ArgumentNullException(nameof(connectedCallback)); 
-            this.connectFailedCallback = connectFailedCallback ?? throw new ArgumentNullException(nameof(connectFailedCallback));
-            this.disconnectedCallback  = disconnectedCallback ?? throw new ArgumentNullException(nameof(disconnectedCallback));
-            
-            client.Connect(endPoint);
-        }
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReleasePacket(ClientUpdate.Packet packet)
         {
@@ -246,6 +232,18 @@ namespace Fracture.Engine.Net
             packetHandler.Handle(packet);
             
             ReleasePacket(packet);
+        }
+        
+        public void Connect(IPEndPoint endPoint,
+                            NetSystemConnectedCallback connectedCallback,
+                            NetSystemConnectFailedCallback connectFailedCallback,
+                            NetSystemDisconnectedCallback disconnectedCallback)
+        {
+            this.connectedCallback     = connectedCallback ?? throw new ArgumentNullException(nameof(connectedCallback)); 
+            this.connectFailedCallback = connectFailedCallback ?? throw new ArgumentNullException(nameof(connectFailedCallback));
+            this.disconnectedCallback  = disconnectedCallback ?? throw new ArgumentNullException(nameof(disconnectedCallback));
+            
+            client.Connect(endPoint);
         }
         
         public void Disconnect()

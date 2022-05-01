@@ -274,12 +274,12 @@ namespace Fracture.Engine.Ecs
          
       protected override int InitializeComponent(int entityId)
       {
-         var id = base.InitializeComponent(entityId);
+         var componentId = base.InitializeComponent(entityId);
          
-         while (id >= components.Length) 
+         while (componentId >= components.Length) 
             components.Grow();
          
-         return id;
+         return componentId;
       }
 
       public int Create(int entityId, 
@@ -291,11 +291,11 @@ namespace Fracture.Engine.Ecs
                         bool primary = false)
       {
          // Create component.
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
          // Create actual body. Store component id as user data for the actual body
          // for reverse lookups.
-         var bodyId = world.Create(type, position, rotation, shape, id);
+         var bodyId = world.Create(type, position, rotation, shape, componentId);
          
          if (primary)
          {
@@ -304,7 +304,7 @@ namespace Fracture.Engine.Ecs
          }
          
          // Store component data and state.
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.EntityId          = entityId;
          component.BodyId            = bodyId;
@@ -315,7 +315,7 @@ namespace Fracture.Engine.Ecs
          component.EnteringContacts ??= new List<BodyComponentContact>();
          component.LeavingContacts  ??= new List<BodyComponentContact>();
 
-         return id;
+         return componentId;
       }
 
       public override bool Delete(int id)
@@ -541,10 +541,10 @@ namespace Fracture.Engine.Ecs
          
          if (dirty.Count == 0) return;
          
-         foreach (var id in dirty)
+         foreach (var componentId in dirty)
          {
-            ref var component = ref components.AtIndex(id);
-            ref var body      = ref world.Bodies.WithId(components.AtIndex(id).BodyId);
+            ref var component = ref components.AtIndex(componentId);
+            ref var body      = ref world.Bodies.WithId(components.AtIndex(componentId).BodyId);
          
             // Update contact states:
             // leaving, entering ->

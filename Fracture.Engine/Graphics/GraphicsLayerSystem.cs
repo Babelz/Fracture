@@ -233,8 +233,8 @@ namespace Fracture.Engine.Graphics
             {
                for (var j = 0; j < Columns; j++)
                {
-                  foreach (var id in grid[i][j]) 
-                     results.Add(elements.AtIndex(id));
+                  foreach (var elementId in grid[i][j]) 
+                     results.Add(elements.AtIndex(elementId));
                }
             }   
             
@@ -452,8 +452,8 @@ namespace Fracture.Engine.Graphics
          
          if (range.Unique())
          {
-            foreach (var id in grid[range.Begin.Row][range.Begin.Column]) 
-               results.Add(elements.AtIndex(id));
+            foreach (var elementId in grid[range.Begin.Row][range.Begin.Column]) 
+               results.Add(elements.AtIndex(elementId));
          }
          else
          {
@@ -461,8 +461,8 @@ namespace Fracture.Engine.Graphics
             {
                for (var j = range.Begin.Column; j <= range.End.Column; j++)
                {
-                  foreach (var id in grid[i][j]) 
-                     results.Add(elements.AtIndex(id));
+                  foreach (var elementId in grid[i][j]) 
+                     results.Add(elements.AtIndex(elementId));
                }
             }  
          }

@@ -20,9 +20,7 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       public EntityEventArgs(int entityId)
-      {
-         EntityId = entityId;
-      }
+         => EntityId = entityId;
    }
    
    public enum EntityPairEventAction : byte
@@ -194,15 +192,15 @@ namespace Fracture.Engine.Ecs
       public int Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "")
       {
          // Get next free entity id and reserve space for it.
-         var id = freeEntityIds.Take();
+         var entityId = freeEntityIds.Take();
          
-         while (id >= entities.Length)
+         while (entityId >= entities.Length)
             entities.Grow();
          
          // Decorate entity structure.
-         ref var entity = ref entities.AtIndex(id);
+         ref var entity = ref entities.AtIndex(entityId);
          
-         entity.Id            = id;
+         entity.Id            = entityId;
          entity.RemoteId      = remoteId;
          entity.Annotation    = annotation;
          entity.Tag           = tag;
@@ -210,19 +208,19 @@ namespace Fracture.Engine.Ecs
          entity.ChildrenIds ??= new List<int>();
 
          if (remoteId.HasValue)
-            remoteEntityIdMap.Add(remoteId.Value, id);
+            remoteEntityIdMap.Add(remoteId.Value, entityId);
          
          // Create events.
-         deletedEvent.Create(id);
-         pairEvent.Create(id);
+         deletedEvent.Create(entityId);
+         pairEvent.Create(entityId);
 
-         aliveEntityIds.Add(id);
+         aliveEntityIds.Add(entityId);
          
          // Lastly pair.
          if (parentId.HasValue)
-            Pair(parentId.Value, id);
+            Pair(parentId.Value, entityId);
          
-         return id;
+         return entityId;
       }
 
       public void Delete(int id)
@@ -360,8 +358,8 @@ namespace Fracture.Engine.Ecs
 
       public void Clear()
       {
-         foreach (var id in aliveEntityIds.ToList())
-            Delete(id);
+         foreach (var entityId in aliveEntityIds.ToList())
+            Delete(entityId);
       }
 
       public IEnumerator<int> GetEnumerator()

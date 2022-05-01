@@ -101,16 +101,16 @@ namespace Fracture.Engine.Ecs
       
       protected virtual int InitializeComponent(int entityId)
       {
-         var id = freeComponents.Take();
+         var componentId = freeComponents.Take();
          
          // Make sure this component is not duplicated.
-         if (componentToEntityMap.ContainsKey(id)) 
-            throw new InvalidOperationException($"duplicated internal component id {id}");
+         if (componentToEntityMap.ContainsKey(componentId)) 
+            throw new InvalidOperationException($"duplicated internal component id {componentId}");
          
-         aliveComponents.Add(id);
-         componentToEntityMap.Add(id, entityId);
+         aliveComponents.Add(componentId);
+         componentToEntityMap.Add(componentId, entityId);
 
-         return id;
+         return componentId;
       }
       
       public int OwnerOf(int id) 
@@ -140,8 +140,8 @@ namespace Fracture.Engine.Ecs
       {
          Events.GetEventHandler<int, EntityEventArgs>().Handle((in Letter<int, EntityEventArgs> letter) => 
          {
-            foreach (var id in AllFor(letter.Args.EntityId))
-               Delete(id);
+            foreach (var componentId in AllFor(letter.Args.EntityId))
+               Delete(componentId);
             
             return LetterHandlingResult.Retain;
          });
@@ -180,11 +180,11 @@ namespace Fracture.Engine.Ecs
          if (BoundTo(entityId))
             throw new InvalidOperationException($"entity {entityId} already has unique component");
          
-         var id = base.InitializeComponent(entityId);
+         var componentId = base.InitializeComponent(entityId);
          
-         entityToComponentMap.Add(entityId, id);
+         entityToComponentMap.Add(entityId, componentId);
          
-         return id;
+         return componentId;
       }
       
       public override bool Delete(int id)
@@ -248,18 +248,18 @@ namespace Fracture.Engine.Ecs
       
       protected override int InitializeComponent(int entityId)
       {
-         var id = base.InitializeComponent(entityId);
+         var componentId = base.InitializeComponent(entityId);
          
-         if (!entityToComponentsMap.TryGetValue(entityId, out var components))
+         if (!entityToComponentsMap.TryGetValue(entityId, out var componentList))
          {
-            components = EntityComponentListPool.Take();
+            componentList = EntityComponentListPool.Take();
             
-            entityToComponentsMap.Add(entityId, components);
+            entityToComponentsMap.Add(entityId, componentList);
          }
          
-         components.Add(id);
+         componentList.Add(componentId);
          
-         return id;
+         return componentId;
       }
 
       public override bool Delete(int id)

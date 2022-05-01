@@ -190,12 +190,12 @@ namespace Fracture.Engine.Ecs
       
       protected override int InitializeComponent(int entityId)
       {
-         var id = base.InitializeComponent(entityId);
+         var componentId = base.InitializeComponent(entityId);
          
-         if (id >= Components.Length)
+         if (componentId >= Components.Length)
             Components.Grow();
 
-         return id;
+         return componentId;
       }
 
       public override bool Delete(int id)
@@ -351,8 +351,8 @@ namespace Fracture.Engine.Ecs
          base.Update(time);
          
          // Add dirty components from last frame.
-         foreach (var id in scrubbed)
-            dirty.Add(id);
+         foreach (var componentId in scrubbed)
+            dirty.Add(componentId);
          
          scrubbed.Clear();
          
@@ -362,21 +362,21 @@ namespace Fracture.Engine.Ecs
             if (!BoundTo(letter.Args.EntityId))
                return LetterHandlingResult.Retain;
             
-            foreach (var id in AllFor(letter.Args.EntityId))
+            foreach (var componentId in AllFor(letter.Args.EntityId))
             {
-               Components.AtIndex(id).GlobalTransform = letter.Args.Transform;
+               Components.AtIndex(componentId).GlobalTransform = letter.Args.Transform;
                
-               dirty.Add(id);
+               dirty.Add(componentId);
             }
                
             return LetterHandlingResult.Retain;
          });
          
          // Update all dirty elements.
-         foreach (var id in dirty.Where(IsAlive))
+         foreach (var componentId in dirty.Where(IsAlive))
          {
             // Get associated data.
-            ref var component = ref Components.AtIndex(id);
+            ref var component = ref Components.AtIndex(componentId);
          
             // Recompute AABB.
             component.Aabb = new Aabb(component.GlobalTransform.Position + component.LocalTransform.Position,
@@ -393,17 +393,17 @@ namespace Fracture.Engine.Ecs
                
                // Remove from current layer if component has one.
                if (Layers.TryGetLayer(component.CurrentLayer, out var currentLayer))
-                  currentLayer.Remove(id);
+                  currentLayer.Remove(componentId);
                
                // Add to next layer.
                if (!Layers.TryGetLayer(component.NextLayer, out var nextLayer))
                {
-                  scrubbed.Add(id);
+                  scrubbed.Add(componentId);
                   
                   continue;
                }
                
-               nextLayer.Add(id, GraphicsComponentTypeId, ref aabb, out var clamped);
+               nextLayer.Add(componentId, GraphicsComponentTypeId, ref aabb, out var clamped);
          
                // Update AABB if clamped.
                if (clamped)
@@ -419,12 +419,12 @@ namespace Fracture.Engine.Ecs
                // Update on layer.
                if (Layers.TryGetLayer(component.CurrentLayer, out var layer))
                {
-                  scrubbed.Add(id);
+                  scrubbed.Add(componentId);
                   
                   continue;
                }
                
-               layer.Update(id, ref aabb, out var clamped);
+               layer.Update(componentId, ref aabb, out var clamped);
 
                // Update in system if AABB was clamped.
                if (clamped) 
@@ -611,16 +611,16 @@ namespace Fracture.Engine.Ecs
                         in Color color,
                         Texture2D texture)
       {         
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
-         SetTransform(id, transform);
-         SetBounds(id, bounds);
-         SetColor(id, color);
+         SetTransform(componentId, transform);
+         SetBounds(componentId, bounds);
+         SetColor(componentId, color);
          
-         SetTexture(id, texture);
-         SetLayer(id, layer);
+         SetTexture(componentId, texture);
+         SetLayer(componentId, layer);
          
-         return id;
+         return componentId;
       }
       
       public int Create(int entityId,
@@ -631,17 +631,17 @@ namespace Fracture.Engine.Ecs
                         in Color color,
                         Texture2D texture)
       {         
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
-         SetTransform(id, transform);
-         SetBounds(id, bounds);
-         SetColor(id, color);
+         SetTransform(componentId, transform);
+         SetBounds(componentId, bounds);
+         SetColor(componentId, color);
          
-         SetSource(id, source);
-         SetTexture(id, texture);
-         SetLayer(id, layer);
+         SetSource(componentId, source);
+         SetTexture(componentId, texture);
+         SetLayer(componentId, layer);
          
-         return id;
+         return componentId;
       }
 
       public Rectangle? GetSource(int id)
@@ -775,16 +775,16 @@ namespace Fracture.Engine.Ecs
       
       public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, QuadDrawMode mode)
       {
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
-         SetTransform(id, transform);
-         SetBounds(id, bounds);
-         SetColor(id, color);
+         SetTransform(componentId, transform);
+         SetBounds(componentId, bounds);
+         SetColor(componentId, color);
          
-         SetMode(id, mode);
-         SetLayer(id, layer);
+         SetMode(componentId, mode);
+         SetLayer(componentId, layer);
          
-         return id;
+         return componentId;
       }
       
       public QuadDrawMode GetMode(int id)
@@ -1038,34 +1038,34 @@ namespace Fracture.Engine.Ecs
       
       public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color)
       {
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
-         SetTransform(id, transform);
-         SetBounds(id, bounds);
-         SetColor(id, color);
-         SetLayer(id, layer);
+         SetTransform(componentId, transform);
+         SetBounds(componentId, bounds);
+         SetColor(componentId, color);
+         SetLayer(componentId, layer);
          
-         finishedEvents.Create(id);
+         finishedEvents.Create(componentId);
          
-         return id;
+         return componentId;
       }
 
       public int AddPlaylist(SpriteAnimationPlaylist playlist)
       {
-         var id = indices.Take();
+         var playlistId = indices.Take();
          
-         playlists.Add(id, playlist);
+         playlists.Add(playlistId, playlist);
          
-         return id;
+         return playlistId;
       }
 
       public void RemovePlaylist(int playlistId)
       {
          indices.Return(playlistId);
          
-         foreach (var id in Alive)
+         foreach (var componentId in Alive)
          {
-            ref var component = ref Components.AtIndex(id);
+            ref var component = ref Components.AtIndex(componentId);
             
             if (component.PlaylistId == playlistId)
                component.PlaylistId = SpriteAnimationComponent.NoAnimation;
@@ -1117,9 +1117,9 @@ namespace Fracture.Engine.Ecs
       {
          base.Update(time);
 
-         foreach (var id in Alive)
+         foreach (var componentId in Alive)
          {
-            ref var component = ref Components.AtIndex(id);
+            ref var component = ref Components.AtIndex(componentId);
             
             if (!component.Playing)
                continue;
@@ -1142,7 +1142,7 @@ namespace Fracture.Engine.Ecs
                
             component.FrameId = 0;
 
-            finishedEvents.Publish(id, new SpriteAnimationFinishedEventArgs(id));
+            finishedEvents.Publish(componentId, new SpriteAnimationFinishedEventArgs(componentId));
                   
             if (component.Mode != SpriteAnimationMode.Play)
                continue;
@@ -1303,19 +1303,19 @@ namespace Fracture.Engine.Ecs
                         SpriteFont font,
                         TextDrawMode mode)
       {  
-         var id = InitializeComponent(entityId);
+         var componentId = InitializeComponent(entityId);
          
-         SetTransform(id, transform);
-         SetBounds(id, bounds);
-         SetColor(id, color);
+         SetTransform(componentId, transform);
+         SetBounds(componentId, bounds);
+         SetColor(componentId, color);
          
-         SetText(id, text);
-         SetFont(id, font);
-         SetMode(id, mode);
+         SetText(componentId, text);
+         SetFont(componentId, font);
+         SetMode(componentId, mode);
          
-         SetLayer(id, layer);
+         SetLayer(componentId, layer);
          
-         return id;
+         return componentId;
       }
 
       public string GetText(int id)
