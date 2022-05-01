@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Fracture.Common.Di.Attributes;
+using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
+using Fracture.Engine.Core.Systems;
+using NLog;
 
 namespace Fracture.Engine.Input.Devices
 {
@@ -9,7 +13,7 @@ namespace Fracture.Engine.Input.Devices
     /// Interface for implementing input device interfaces. Input devices
     /// are used to read input from the user.
     /// </summary>
-    public interface IInputDevice
+    public interface IInputDevice 
     {
         #region Properties
         /// <summary>
@@ -29,25 +33,52 @@ namespace Fracture.Engine.Input.Devices
     
     /// <summary>
     /// Interface for implementing input device systems.
-    /// 
-    /// TODO: update to support multiple keyboards, mouses and game pads.
     /// </summary>
-    public interface IInputDeviceSystem : IGameEngineSystem, IEnumerable<IInputDevice>
+    public interface IInputDeviceSystem : IEnumerable<IInputDevice>
     {
-        void Register(IInputDevice device);
-        
-        void Unregister(IInputDevice device);
+        // Nothing to implement. Union interface.
     }
     
     public sealed class InputDeviceSystem : GameEngineSystem, IInputDeviceSystem
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly HashSet<IInputDevice> devices;
         #endregion
 
-        public InputDeviceSystem(params IInputDevice[] devices)
-            => this.devices = new HashSet<IInputDevice>(devices);
-        
+        [BindingConstructor]
+        public InputDeviceSystem(IGameObjectActivatorSystem activator, IEnumerable<IPlatformDeviceConfiguration> configurations)
+        {
+            devices = new HashSet<IInputDevice>();
+            
+            foreach (var configuration in configurations)
+            {
+                try
+                {
+                    var device = configuration.CreateDevice(activator);
+
+                    if (!devices.Add(device))
+                        throw new InvalidOperationException($"duplicated input device {device.GetType().FullName} in configuration")
+                        {
+                            Data =
+                            {
+                                { nameof(device), device },
+                                { nameof(devices), devices }
+                            }
+                        };   
+                }
+                catch (Exception e)
+                {
+                    Log.Warn(e, "input device activation failed");
+                    
+                    throw;
+                }
+            }
+        }
+
         public override void Update(IGameEngineTime time)
         {
             foreach (var device in devices)

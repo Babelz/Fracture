@@ -940,7 +940,7 @@ namespace Fracture.Engine.Graphics
       [BindingConstructor]
       public GraphicsPipelineSystem(IGraphicsDeviceSystem graphics)
       {
-         this.graphics = graphics ?? throw new ArgumentNullException(nameof(graphics));
+         this.graphics = graphics;
          
          // Initialize system.
          fragments = new LinearRegistry<GraphicsFragment>();

@@ -182,7 +182,14 @@ namespace Fracture.Common.Events
       protected void UpdateLetter(int index, in TTopic topic, in TArgs args)
       {
          if (index >= publishedLettersCount)
-            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}");
+            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}")
+            {
+               Data =
+               {
+                  { nameof(index), index },
+                  { nameof(publishedLettersCount), publishedLettersCount }
+               }
+            };
 
          letters.Insert(index, new Letter<TTopic, TArgs>(topic, args));
       }
@@ -190,7 +197,14 @@ namespace Fracture.Common.Events
       protected ref Letter<TTopic, TArgs> LetterAtIndex(int index)
       {
          if (index >= publishedLettersCount)
-            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}");
+            throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}")
+            {
+               Data =
+               {
+                  { nameof(index), index },
+                  { nameof(publishedLettersCount), publishedLettersCount }
+               }
+            };
          
          return ref letters.AtIndex(index);
       }

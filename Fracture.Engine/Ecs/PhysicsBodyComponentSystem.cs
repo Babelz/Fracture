@@ -195,8 +195,8 @@ namespace Fracture.Engine.Ecs
                                         ITransformComponentSystem transforms)
          : base(events)
       {
-         this.world      = world ?? throw new ArgumentNullException(nameof(world));
-         this.transforms = transforms ?? throw new ArgumentNullException(nameof(transforms));
+         this.world      = world;
+         this.transforms = transforms;
          
          world.BeginContact += World_BeginContact;
          world.EndContact   += World_EndContact;

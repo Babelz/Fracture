@@ -10,12 +10,6 @@ namespace Fracture.Common.Di.Binding
     public interface IDependencyActivator
     {
         /// <summary>
-        /// Attempts to active dependency of given type and returns it to the caller via out instance.
-        /// </summary>
-        /// <returns>boolean declaring whether the type could be activated</returns>
-        bool TryActivate(Type type, out object instance);
-        
-        /// <summary>
         /// Attempts to active dependency of given type and returns it to the caller via out instance. Throws if the dependency could not be activated.
         /// </summary>
         void Activate(Type type, out object instance);
@@ -61,24 +55,6 @@ namespace Fracture.Common.Di.Binding
             AssertTypeHasDefaultConstructor(type);
             
             InternalActivate(type, out instance);
-        }
-        
-        public bool TryActivate(Type type, out object instance)
-        {
-            AssertTypeHasDefaultConstructor(type);
-            
-            instance = null;
-            
-            try
-            {
-                InternalActivate(type, out instance);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            
-            return true;
         }
     }
     
@@ -127,24 +103,6 @@ namespace Fracture.Common.Di.Binding
             AssertTypeHasBindingConstructor(type);
             
             InternalActivate(type, out instance);
-        }
-
-        public bool TryActivate(Type type, out object instance)
-        {
-            AssertTypeHasBindingConstructor(type);
-            
-            instance = null;
-            
-            try
-            {
-                InternalActivate(type, out instance);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            
-            return true;
         }
     }
 }

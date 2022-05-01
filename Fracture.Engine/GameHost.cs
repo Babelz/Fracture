@@ -3,6 +3,8 @@ using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
+using Fracture.Engine.Ecs;
+using Fracture.Engine.Events;
 using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -137,13 +139,18 @@ namespace Fracture.Engine
         
         private void Initialize()
         {
-            // Bind core systems that every game should have. Core systems can be distinguished from other systems based the fact that they do not have binding
-            // constructors and they are always initialized with the engine.
+            // Bind core systems that every game should have. 
             Log.Info($"binding core systems...");
+            
+            systems.Bind<EventQueueSystem>();
+            systems.Bind<EventSchedulerSystem>();
             
             systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager, game.Window));
             systems.Bind(new ContentSystem(game.Content));
             systems.Bind(new GameObjectActivatorSystem(kernel));
+            
+            systems.Bind<EntitySystem>();
+            systems.Bind<EntityPrefabSystem>();
 
             // Allow game to bind game specific bindings.
             Log.Info($"binding game specific systems...");
@@ -151,13 +158,15 @@ namespace Fracture.Engine
             Initialize(systems);
             
             // Initialize all systems bound to the kernel.
+            Log.Info("initializing systems...");
+            
             foreach (var system in systems.GetInOrder())
             {
                 Log.Info($"initializing system {system.GetType().Name}...");
                 
                 system.Initialize();
             }
-            
+
             Start(systems);
         }
         
@@ -165,9 +174,8 @@ namespace Fracture.Engine
         /// Override in inheriting game to initialize all your game systems and perform any configuration require before starting the game. You should not
         /// touch systems at this point as they are not yet initialized.
         /// </summary>
-        protected virtual void Initialize(IGameEngineSystemHost systems)
+        protected virtual void Initialize(IGameEngineSystemBinder binder)
         {
-            
         }
         
         /// <summary>
@@ -175,7 +183,6 @@ namespace Fracture.Engine
         /// </summary>
         protected virtual void Start(IGameEngineSystemHost systems)
         {
-            
         }
         
         public void Run()

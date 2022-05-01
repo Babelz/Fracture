@@ -11,12 +11,6 @@ namespace Fracture.Common.Di.Binding
     public interface IDependencyBinding
     {
         /// <summary>
-        /// Attempts to bind dependencies to given object.
-        /// </summary>
-        /// <returns>boolean declaring whether the binding was successful</returns>
-        bool TryBind(object instance);
-        
-        /// <summary>
         /// Attempts to bind dependencies to given object. Throws if binding could not be complete.
         /// </summary>
         void Bind(object instance);
@@ -61,22 +55,6 @@ namespace Fracture.Common.Di.Binding
             AssertTypeHasBindingMethods(instance.GetType());
             
             InternalBind(instance);
-        }
-        
-        public bool TryBind(object instance)
-        {
-            AssertTypeHasBindingMethods(instance.GetType());
-            
-            try
-            {
-                InternalBind(instance);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            
-            return true;
         }
     }
 
@@ -128,24 +106,6 @@ namespace Fracture.Common.Di.Binding
             ValidateBindingProperties(instance.GetType());
             
             InternalBind(instance);
-        }
-        
-        public bool TryBind(object instance)
-        {
-            AssertTypeHasBindingProperties(instance.GetType());
-            
-            ValidateBindingProperties(instance.GetType());
-            
-            try
-            {
-                InternalBind(instance);
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-            
-            return true;
         }
     }
 }

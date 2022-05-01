@@ -503,9 +503,7 @@ namespace Fracture.Engine.Graphics
       
       [BindingConstructor]
       public GraphicsLayerSystem()
-      {
-         layers = new List<GraphicsElementLayer>();
-      }
+         => layers = new List<GraphicsElementLayer>();
       
       public GraphicsElementLayer Create(string name, int order)
       {

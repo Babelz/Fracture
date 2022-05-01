@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Components;
 using Microsoft.Xna.Framework;
@@ -116,6 +117,7 @@ namespace Fracture.Engine.Input.Devices
         /// to ensure that there are at least 2 states being recorded.
         /// </summary>
         /// <param name="statesCount"></param>
+        [BindingConstructor]
         public MouseDevice(int statesCount = 0)
         {
             statesCount += 2;

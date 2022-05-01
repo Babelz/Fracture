@@ -83,16 +83,5 @@ namespace Fracture.Common.Di.Binding
             for (var i = binders.Count - 1; i >= 0; i--)
                 binders[i].Bind(instance);
         }
-
-        public bool TryBind()
-        {
-            if (activator != null && instance == null && !activator.TryActivate(Type, out instance))
-                return false;
-            
-            for (var i = binders.Count - 1; i >= 0; i--)
-                if (!binders[i].TryBind(instance)) return false;
-            
-            return true;
-        }
     }
 }

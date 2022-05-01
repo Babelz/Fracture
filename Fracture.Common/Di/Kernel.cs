@@ -82,7 +82,8 @@ namespace Fracture.Common.Di
         void Proxy<T>(object instance, params IBindingValue[] values);
         
         /// <summary>
-        /// Runs verification for the bindings and raises exception if some of the dependencies can't be activated.
+        /// Runs verification for the bindings and raises exception if some of the dependencies can't be activated. This is to assure that no dependencies
+        /// are left hanging.
         /// </summary>
         void Verify();
     }
@@ -99,7 +100,6 @@ namespace Fracture.Common.Di
         object Activate(Type type, params IBindingValue[] values);
         
         /// <summary>
-                                          
         /// Attempts to activate object of specified type. Dependencies for this object are retrieved from the kernel. The object will not be registered to the
         /// kernel after it has been activated.
         /// </summary>
@@ -139,8 +139,15 @@ namespace Fracture.Common.Di
         {
             dependency = null;
 
-            if (!binder.TryBind()) return false;
-
+            try
+            {
+                binder.Bind();    
+            }
+            catch
+            {
+                return false;
+            }
+            
             var options = binder.Options;
             var strict  = (options & DependencyBindingOptions.Strict) == DependencyBindingOptions.Strict;
 

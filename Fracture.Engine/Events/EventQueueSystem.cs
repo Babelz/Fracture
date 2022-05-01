@@ -8,7 +8,7 @@ using Fracture.Engine.Core;
 namespace Fracture.Engine.Events
 {
    /// <summary>
-   /// Interface for implementing event queue systems.
+   /// Interface for implementing event queue systems. These systems provide interface for publishing and handling events.
    /// </summary>
    public interface IEventQueueSystem : IGameEngineSystem
    {
@@ -39,14 +39,28 @@ namespace Fracture.Engine.Events
       private readonly List<IEventQueue> queues;
       #endregion
 
-      [BindingConstructor]
       public EventQueueSystem()
          => queues = new List<IEventQueue>();
       
+      private void AssertEventDoesNotExist<TTopic, TArgs>()
+      {
+         if (queues.Any(q => q.GetType().GetGenericArguments().SequenceEqual(new [] { typeof(TTopic), typeof(TArgs) })))
+            throw new InvalidOperationException($"event with given topic and argument types already exists")
+            {
+               Data =
+               {
+                  { nameof(TTopic), typeof(TTopic) },
+                  { nameof(TArgs), typeof(TArgs) }
+               }
+            };
+      }
+      
       public ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
       {
-         var backlog = new SharedEvent<TTopic, TArgs>(capacity, retentionPolicy);
+         AssertEventDoesNotExist<TTopic, TArgs>();
          
+         var backlog = new SharedEvent<TTopic, TArgs>(capacity, retentionPolicy);
+
          queues.Add(backlog);
          
          return backlog;
@@ -54,6 +68,8 @@ namespace Fracture.Engine.Events
 
       public IUniqueEvent<TTopic, TArgs> CreateUnique<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
       {
+         AssertEventDoesNotExist<TTopic, TArgs>();
+         
          var backlog = new UniqueEvent<TTopic, TArgs>(capacity, retentionPolicy);
          
          queues.Add(backlog);
@@ -66,8 +82,15 @@ namespace Fracture.Engine.Events
          var handler = (IEventHandler<TTopic, TArgs>)queues.FirstOrDefault(q => q is IEventHandler<TTopic, TArgs>);
 
          if (handler == null)
-            throw new InvalidOperationException($"could not find handler for topic <{typeof(TTopic).FullName}, {typeof(TArgs).FullName}>");
-         
+            throw new InvalidOperationException($"could not find handler for event")
+            {
+               Data =
+               {
+                  { nameof(TTopic), typeof(TTopic) },
+                  { nameof(TArgs), typeof(TArgs) }
+               }
+            };
+
          return handler;
       }
       

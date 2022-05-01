@@ -54,7 +54,6 @@ namespace Fracture.Engine.Input
         public int CombinationAccuracy
         {
             get;
-            private set;
         }
         #endregion
 
@@ -146,26 +145,19 @@ namespace Fracture.Engine.Input
         {
             for (var i = 0; i < bindings.Count; i++)
             {
-                var binding   = bindings[i];
-                var triggered = false;
+                var binding = bindings[i];
 
-                switch (binding.State)
+                var triggered = binding.State switch
                 {
-                    case InputTriggerState.Released:
-                        triggered = IsTriggerReleased(binding.Triggers);
-                        break;
-                    case InputTriggerState.Up:
-                        triggered = IsTriggerUp(binding.Triggers);
-                        break;
-                    case InputTriggerState.Pressed:
-                        triggered = IsTriggerPressed(binding.Triggers);
-                        break;
-                    case InputTriggerState.Down:
-                        triggered = IsTriggerDown(binding.Triggers);
-                        break;
-                }
+                    InputTriggerState.Released => IsTriggerReleased(binding.Triggers),
+                    InputTriggerState.Up       => IsTriggerUp(binding.Triggers),
+                    InputTriggerState.Pressed  => IsTriggerPressed(binding.Triggers),
+                    InputTriggerState.Down     => IsTriggerDown(binding.Triggers),
+                    _                          => false
+                };
 
-                if (triggered) binding.Callback(time);
+                if (triggered) 
+                    binding.Callback(time);
             }
         }
     }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Components;
 using Fracture.Engine.Graphics;
@@ -82,7 +83,8 @@ namespace Fracture.Engine.Input.Devices
         /// Creates new instance of <see cref="KeyboardDevice"/> with given states count, keyboard always attempts
         /// to ensure that there are at least 2 states being recorded.
         /// </summary>
-        public KeyboardDevice(IWindow window, int statesCount = 0)
+        [BindingConstructor]
+        public KeyboardDevice(IGraphicsDeviceSystem graphics, int statesCount = 0)
         {
             // Attempt to ensure that at least 2 states get recorded.
             statesCount += 2;
@@ -98,7 +100,7 @@ namespace Fracture.Engine.Input.Devices
 
             keyboardCharacterFrameBuffer = new StringBuilder();
 
-            window.TextInput += Window_TextInput;
+            graphics.Window.TextInput += Window_TextInput;
         }
         
         #region Event handlers

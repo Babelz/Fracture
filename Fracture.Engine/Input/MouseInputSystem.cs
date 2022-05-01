@@ -25,17 +25,14 @@ namespace Fracture.Engine.Input
         public IMouseDevice Device
         {
             get;
-            private set;
         }
         #endregion
 
         [BindingConstructor]
         public MouseInputSystem(IInputDeviceSystem devices) 
         {
-            // Get mouse device.
             Device = devices.First(d => d is IMouseDevice) as IMouseDevice;
 
-            // Initialize manager.
             manager = new MouseInputManager(Device);
         }
 

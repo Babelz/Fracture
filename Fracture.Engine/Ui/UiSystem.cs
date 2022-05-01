@@ -88,9 +88,9 @@ namespace Fracture.Engine.Ui
         [BindingConstructor]
         public UiSystem(IInputDeviceSystem devices, IGraphicsDeviceSystem graphics, IContentSystem content)
         {
-            this.graphics = graphics ?? throw new ArgumentNullException(nameof(graphics));
-            this.devices  = devices ?? throw new ArgumentNullException(nameof(devices));
-            this.content  = content ?? throw new ArgumentNullException(nameof(content));
+            this.graphics = graphics;
+            this.devices  = devices;
+            this.content  = content;
             
             uis = new List<Ui>();
         }

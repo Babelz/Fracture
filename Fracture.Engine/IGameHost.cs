@@ -4,20 +4,30 @@ using System.Linq;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
+using NLog;
 
 namespace Fracture.Engine
 {
-    public interface IGameEngineSystemHost
+    public interface IGameEngineSystemBinder
     {
         void Bind<T>(params IBindingValue[] bindings) where T : IGameEngineSystem;
         void Bind<T>(T system) where T : IGameEngineSystem;
-        
+    }
+    
+    public interface IGameEngineSystemHost : IGameEngineSystemBinder
+    {
         IEnumerable<T> All<T>() where T : IGameEngineSystem;
         T First<T>() where T : IGameEngineSystem;
+        
+        void Verify();
     }
 
     public sealed class GameEngineSystemHost : IGameEngineSystemHost
     {
+        #region Static fields
+        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        #endregion
+        
         #region Fields
         private readonly SortedList<int, Type> context;
         
@@ -35,6 +45,8 @@ namespace Fracture.Engine
         
         public void Bind<T>(params IBindingValue[] bindings) where T : IGameEngineSystem
         {
+            Log.Info($"binding system {typeof(T).FullName}...");
+            
             context.Add(count++, typeof(T));
             
             kernel.Bind<T>(bindings);
@@ -42,6 +54,8 @@ namespace Fracture.Engine
 
         public void Bind<T>(T system) where T : IGameEngineSystem
         {
+            Log.Info($"binding system {typeof(T).FullName}...");
+
             context.Add(count++, system.GetType());
             
             kernel.Bind(system);
@@ -55,6 +69,9 @@ namespace Fracture.Engine
         
         public IEnumerable<IGameEngineSystem> GetInOrder()
             => context.Select(c => kernel.First(c.Value)).Cast<IGameEngineSystem>();
+        
+        public void Verify()
+            => kernel.Verify();
     }
 
     /// <summary>

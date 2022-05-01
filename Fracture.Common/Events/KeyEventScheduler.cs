@@ -11,7 +11,6 @@ namespace Fracture.Common.Events
     public interface IKeyEventScheduler
     {
         IScheduledEvent GetEvent(object key);
-        bool TryGetEvent(object key, out IScheduledEvent scheduledEvent);
 
         bool Exists(object key);
 
@@ -33,13 +32,6 @@ namespace Fracture.Common.Events
       
         public IScheduledEvent GetEvent(object key)
             => pairs[key];
-        
-        public bool TryGetEvent(object key, out IScheduledEvent scheduledEvent)
-        {
-            pairs.TryGetValue(key, out scheduledEvent);
-
-            return scheduledEvent == null;
-        }
 
         public bool Exists(object key)
             => pairs.ContainsKey(key);

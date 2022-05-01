@@ -36,11 +36,11 @@ namespace Fracture.Engine.Graphics
         {
             this.window = window ?? throw new ArgumentNullException(nameof(window));
             
-            window.TextInput += WindowOnTextInput;
+            window.TextInput += Window_OnTextInput;
         }
 
         #region Event handlers
-        private void WindowOnTextInput(object sender, TextInputEventArgs e)
+        private void Window_OnTextInput(object sender, TextInputEventArgs e)
             => TextInput?.Invoke(this, e);
         #endregion
     }

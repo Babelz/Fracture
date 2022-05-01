@@ -137,7 +137,7 @@ namespace Fracture.Engine.Core.Systems
         [BindingConstructor]
         public SceneSystem(IGameObjectActivatorSystem activator)
         {
-            this.activator = activator ?? throw new ArgumentException(nameof(activator));
+            this.activator = activator;
         
             scenes = new Stack<Scene>();
         }

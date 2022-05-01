@@ -135,7 +135,7 @@ namespace Fracture.Engine.Graphics
             get => manager.IsFullScreen;
             set
             {
-                manager.IsFullScreen = true;
+                manager.IsFullScreen = value;
                 
                 manager.ApplyChanges();
             }
@@ -168,8 +168,9 @@ namespace Fracture.Engine.Graphics
 
         public Texture2D CreateTexture2D(byte[] data)
         {
-            using (var ms = new MemoryStream(data))
-                return Texture2D.FromStream(manager.GraphicsDevice, ms);
+            using var ms = new MemoryStream(data);
+            
+            return Texture2D.FromStream(manager.GraphicsDevice, ms);
         }
 
         public SpriteBatch CreateSpriteBatch(int capacity)

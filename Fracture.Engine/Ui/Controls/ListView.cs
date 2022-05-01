@@ -29,7 +29,6 @@ namespace Fracture.Engine.Ui.Controls
         public IListViewItem Item
         {
             get;
-            private set;
         }
         #endregion
 

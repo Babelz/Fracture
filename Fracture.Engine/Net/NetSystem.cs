@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Net;
 using Fracture.Net.Clients;
@@ -135,6 +136,7 @@ namespace Fracture.Engine.Net
             => client.IsConnected;
         #endregion
 
+        [BindingConstructor]
         public NetSystem(Client client, TimeSpan queryGracePeriod)
         {
             this.client           = client ?? throw new ArgumentException(nameof(client));
@@ -144,6 +146,7 @@ namespace Fracture.Engine.Net
             queries       = new List<QueryMessageContext>(256);
         }
 
+        [BindingConstructor]
         public NetSystem(Client client)   
             : this(client, DefaultQueryGracePeriod)
         {

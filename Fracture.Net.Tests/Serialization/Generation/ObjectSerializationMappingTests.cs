@@ -19,7 +19,6 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public int Foo
             {
                 get;
-                set;
             }
             #endregion
 

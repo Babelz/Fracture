@@ -19,8 +19,8 @@ namespace Fracture.Engine.Events
         private readonly EventScheduler scheduler;
         #endregion
         
-        [BindingConstructor]
-        public EventSchedulerSystem() => scheduler = new EventScheduler();
+        public EventSchedulerSystem()
+            => scheduler = new EventScheduler();
 
         public void Add(IScheduledEvent scheduledEvent)
             => scheduler.Add(scheduledEvent);

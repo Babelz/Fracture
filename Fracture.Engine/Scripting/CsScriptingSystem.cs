@@ -132,7 +132,7 @@ namespace Fracture.Engine.Scripting
         [BindingConstructor]
         public CsScriptingSystem(IGameObjectActivatorSystem activator)
         {
-            this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            this.activator = activator;
 
             actors = new List<ICsScriptActor>()
             {
