@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
@@ -61,7 +62,7 @@ namespace Fracture.Net.Messages
     public abstract class Message : IMessage
     {
         #region Static fields
-        private static readonly Dictionary<Type, IPool<IMessage>> Pools = new Dictionary<Type, IPool<IMessage>>();
+        private static readonly ConcurrentDictionary<Type, IPool<IMessage>> Pools = new ConcurrentDictionary<Type, IPool<IMessage>>();
         #endregion
 
         protected Message()
@@ -113,7 +114,7 @@ namespace Fracture.Net.Messages
                                                () => new T(), 8)
                 );
                 
-                Pools.Add(type, pool);
+                Pools.TryAdd(type, pool);
             }
                 
             var message = (T)pool.Take();

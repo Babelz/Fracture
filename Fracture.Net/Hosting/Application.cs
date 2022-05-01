@@ -63,7 +63,7 @@ namespace Fracture.Net.Hosting
     }
     
     /// <summary>
-    /// Flags for defining peer pipeline fidelity. Use these flags to enable immediate peer resets from application layer when unhandled error occurrs.
+    /// Flags for defining peer pipeline fidelity. Use these flags to enable immediate peer resets from application layer when unhandled error occurs.
     /// </summary>
     [Flags]
     public enum PeerPipelineFidelity : byte
