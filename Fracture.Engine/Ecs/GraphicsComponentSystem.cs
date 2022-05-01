@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
+using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core;
@@ -160,7 +161,7 @@ namespace Fracture.Engine.Ecs
          get;
       }
 
-      protected LinearGrowthArray<T> Components
+      protected LinearGrowthList<T> Components
       {
          get;
       }
@@ -183,21 +184,11 @@ namespace Fracture.Engine.Ecs
          
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
-         Components = new LinearGrowthArray<T>(ComponentsCapacity);
+         Components = new LinearGrowthList<T>(ComponentsCapacity);
          scrubbed   = new HashSet<int>(ComponentsCapacity);
          dirty      = new HashSet<int>(ComponentsCapacity);
       }
       
-      protected override int InitializeComponent(int entityId)
-      {
-         var componentId = base.InitializeComponent(entityId);
-         
-         if (componentId >= Components.Length)
-            Components.Grow();
-
-         return componentId;
-      }
-
       public override bool Delete(int id)
       {
          var deleted = base.Delete(id);

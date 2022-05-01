@@ -1,4 +1,5 @@
 using Fracture.Common.Collections;
+using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Fracture.Engine.Core.Primitives;
@@ -97,7 +98,7 @@ namespace Fracture.Engine.Ecs
       
       #region Fields
       // Transform components data.
-      private readonly LinearGrowthArray<TransformComponent> components;
+      private readonly LinearGrowthList<TransformComponent> components;
       
       // Transform component events.
       private readonly IUniqueEvent<int, TransformChangedEventArgs> changedEvent;
@@ -110,21 +111,11 @@ namespace Fracture.Engine.Ecs
          changedEvent = events.CreateUnique<int, TransformChangedEventArgs>();
          
          // Allocate data.
-         components = new LinearGrowthArray<TransformComponent>(ComponentsCapacity);
+         components = new LinearGrowthList<TransformComponent>(ComponentsCapacity);
       }
       
       private static TransformChangedEventArgs AggregateTransformChanges(in TransformChangedEventArgs current, in TransformChangedEventArgs next)
          => new TransformChangedEventArgs(current.EntityId, current.Translation + next.Translation, next.Transform);
-
-      protected override int InitializeComponent(int entityId)
-      {
-         var componentId = base.InitializeComponent(entityId);
-         
-         while (componentId >= components.Length) 
-            components.Grow();
-
-         return componentId;
-      }
 
       public int Create(int entityId, in Transform transform)
       {

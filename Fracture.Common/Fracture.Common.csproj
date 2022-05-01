@@ -51,10 +51,10 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Collections\CirularBuffer.cs" />
-        <Compile Include="Collections\Concurrent\LinearGrowthList.cs" />
         <Compile Include="Collections\Concurrent\LockedDoubleBuffer.cs" />
         <Compile Include="Collections\FreeList.cs" />
         <Compile Include="Collections\LinearGrowthArray.cs" />
+        <Compile Include="Collections\LinearGrowthList.cs" />
         <Compile Include="Collections\LinearRegistry.cs" />
         <Compile Include="Collections\Stack.cs" />
         <Compile Include="Di\Attributes\BindingConstructorAttribute.cs" />

@@ -1,8 +1,7 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Fracture.Common.Collections.Concurrent
+namespace Fracture.Common.Collections
 {
     /// <summary>
     /// List that grows in linear manner by using <see cref="LinearGrowthArray{T}"/> for it's internal storage.
@@ -47,8 +46,21 @@ namespace Fracture.Common.Collections.Concurrent
         public ref T AtIndex(int index)
             => ref items.AtIndex(index);
         
+        /// <summary>
+        /// Inserts given item to given index. This insert function allows inserting past the collection. When inserting past
+        /// the collection bounds the collection will grow to fit to the index that is out of the current bounds.
+        /// </summary>
         public void Insert(int index, in T value)
-            => items.Insert(index, value);
+        {
+            while (index >= items.Length)
+            {
+                items.Grow();
+                
+                Count = items.Length;
+            }
+            
+            items.Insert(index, value);
+        }
         
         public IEnumerator<T> GetEnumerator()
             => items.GetEnumerator();

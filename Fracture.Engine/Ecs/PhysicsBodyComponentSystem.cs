@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Common.Collections;
+using Fracture.Common.Collections.Concurrent;
 using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
@@ -181,7 +182,7 @@ namespace Fracture.Engine.Ecs
       #endregion
 
       #region Fields
-      private readonly LinearGrowthArray<PhysicsBodyComponent> components;
+      private readonly LinearGrowthList<PhysicsBodyComponent> components;
 
       private readonly ITransformComponentSystem transforms;
       private readonly IPhysicsWorldSystem world;
@@ -202,7 +203,7 @@ namespace Fracture.Engine.Ecs
          world.EndContact   += World_EndContact;
          world.Moved        += World_Relocated;
 
-         components = new LinearGrowthArray<PhysicsBodyComponent>();
+         components = new LinearGrowthList<PhysicsBodyComponent>();
          dirty      = new List<int>();
       }
 
@@ -270,16 +271,6 @@ namespace Fracture.Engine.Ecs
          
          // Flag for next update to sync transform data from body to transform component.
          dirty.Add(id);
-      }
-         
-      protected override int InitializeComponent(int entityId)
-      {
-         var componentId = base.InitializeComponent(entityId);
-         
-         while (componentId >= components.Length) 
-            components.Grow();
-         
-         return componentId;
       }
 
       public int Create(int entityId, 
