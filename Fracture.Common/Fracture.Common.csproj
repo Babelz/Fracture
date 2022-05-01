@@ -51,6 +51,7 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Collections\CirularBuffer.cs" />
+        <Compile Include="Collections\Concurrent\LinearGrowthList.cs" />
         <Compile Include="Collections\Concurrent\LockedDoubleBuffer.cs" />
         <Compile Include="Collections\FreeList.cs" />
         <Compile Include="Collections\LinearGrowthArray.cs" />

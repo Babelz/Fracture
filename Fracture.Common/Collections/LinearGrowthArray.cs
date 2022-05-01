@@ -72,6 +72,19 @@ namespace Fracture.Common.Collections
 
             buckets[i][j] = value;
         }
+        
+        public int IndexOf(in T value)
+        {
+            for (var i = 0; i < buckets.Length; i++)
+            {
+                var index = Array.BinarySearch(buckets[i], 0, bucketSize, value);
+                
+                if (index >= 0)
+                    return index;
+            }
+            
+            return -1;
+        }
 
         /// <summary>
         /// Grows the array from the end with given count of new buckets.
