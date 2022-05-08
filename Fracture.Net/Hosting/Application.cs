@@ -8,7 +8,7 @@ using Fracture.Common.Events;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting
 {
@@ -110,10 +110,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class Application
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly IRequestRouter requestRouter;
         private readonly INotificationCenter notificationCenter;
@@ -274,7 +270,7 @@ namespace Fracture.Net.Hosting
             if ((fidelity & flag) != flag) 
                 return;
             
-            Log.Warn($"marking peer {peer} to be reset as it broke required fidelity level of " +
+            Log.Warning($"marking peer {peer} to be reset as it broke required fidelity level of " +
                      $"{Enum.GetName(typeof(PeerPipelineFidelity), flag)}");
                 
             leavingPeers.Add(peer);
@@ -337,13 +333,13 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
-                    Log.Info($"peer {joinEvent.Peer.Id} joining");
+                    Log.Information($"peer {joinEvent.Peer.Id} joining");
 
                     Join?.Invoke(this, joinEvent);
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "unhandled error occurred notifying about joining peer");
+                    Log.Warning(e, "unhandled error occurred notifying about joining peer");
                     
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Join, joinEvent.Peer.Id);
                 }
@@ -365,13 +361,13 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
-                    Log.Info($"peer {resetEvent.Peer.Id} resetting, reason: {resetEvent.Reason}");
+                    Log.Information($"peer {resetEvent.Peer.Id} resetting, reason: {resetEvent.Reason}");
                     
                     Reset?.Invoke(this, resetEvent);
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "unhandled error occurred notifying about reseting peer");
+                    Log.Warning(e, "unhandled error occurred notifying about reseting peer");
                 }
                 
                 leavedPeers.Add(resetEvent.Peer.Id);
@@ -412,7 +408,7 @@ namespace Fracture.Net.Hosting
                         {
                             HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
                             
-                            Log.Warn($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
+                            Log.Warning($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
                             
                             BadRequest?.Invoke(this, incomingEvent);
                             
@@ -425,7 +421,7 @@ namespace Fracture.Net.Hosting
                         {
                             HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
                             
-                            Log.Warn($"invalid sized message received from peer {incomingEvent.Peer.Id}, reading further would go outside the bounds of the" +
+                            Log.Warning($"invalid sized message received from peer {incomingEvent.Peer.Id}, reading further would go outside the bounds of the" +
                                      $" receive buffer");
                             
                             BadRequest?.Invoke(this, incomingEvent);
@@ -459,7 +455,7 @@ namespace Fracture.Net.Hosting
 
                         BadRequest?.Invoke(this, incomingEvent);
                         
-                        Log.Warn(e, "unhandled error occurred while processing request from peer");
+                        Log.Warning(e, "unhandled error occurred while processing request from peer");
                         
                         break;
                     }
@@ -492,7 +488,7 @@ namespace Fracture.Net.Hosting
                     
                     ReleaseRequest(request);
                     
-                    Log.Warn(e, "unhandled error occurred in request middleware");
+                    Log.Warning(e, "unhandled error occurred in request middleware");
                 }
             }
         }
@@ -523,32 +519,32 @@ namespace Fracture.Net.Hosting
                     switch (response.StatusCode)
                     {
                         case ResponseStatus.Code.Empty:
-                            Log.Warn("received empty response from handler", request);
+                            Log.Warning("received empty response from handler, {@request}", request);
                             break;
                         case ResponseStatus.Code.Ok:
-                            Log.Info("request was handled successfully", response, request);
+                            Log.Debug("request was handled successfully, {@response}, {@request}", response, request);
                             break;
                         case ResponseStatus.Code.Reset:
-                            Log.Info("request will reset the peer", response, request);
+                            Log.Debug("request will reset the peer, {@response}, {@request}", response, request);
                             
                             // Disallow handling of any remaining requests and mark the peer as leaving.
                             leavingPeers.Add(request.Peer.Id);
                             break;
                         case ResponseStatus.Code.ServerError:
-                            Log.Warn("server error occurred whle processing request", response, request);
+                            Log.Debug("server error occurred while processing request, {@response}, {@request}", response, request);
                             break;
                         case ResponseStatus.Code.BadRequest:
-                            Log.Warn("handler received bad request", response, request);
+                            Log.Debug("handler received bad request, {@response}, {@request}", response, request);
                             break;
                         case ResponseStatus.Code.NoRoute:
-                            Log.Warn("no route accepted the request", response, request);
+                            Log.Debug("no route accepted the request, {@response}, {@request}", response, request);
                             break;
                         default:
                             throw new InvalidOrUnsupportedException(nameof(ResponseStatus.Code), response.StatusCode);
                     }
                     
                     if (response.ContainsException)
-                        Log.Warn(response.Exception, "response object contains expection");
+                        Log.Warning(response.Exception, "response object contains exception");
                     
                     if (response.ContainsReply)
                         outgoingResponses.Enqueue(new RequestResponse(request, response));
@@ -565,7 +561,7 @@ namespace Fracture.Net.Hosting
                     ReleaseRequest(request);
                     ReleaseResponse(response);
                     
-                    Log.Warn(e, "unhandled server error occurred while handling request");
+                    Log.Warning(e, "unhandled server error occurred while handling request");
                 }
             }
         }
@@ -581,7 +577,7 @@ namespace Fracture.Net.Hosting
             }
             catch (Exception e)
             {
-                Log.Warn(e, "unhandled error occurred when invoking tick");
+                Log.Warning(e, "unhandled error occurred when invoking tick");
             }
         }
         
@@ -608,7 +604,7 @@ namespace Fracture.Net.Hosting
                     
                     ReleaseRequestResponse(requestResponse);
                     
-                    Log.Warn(e, "unhandled error occurred in request response middleware");
+                    Log.Warning(e, "unhandled error occurred in request response middleware");
                 }
             }
         }
@@ -639,7 +635,7 @@ namespace Fracture.Net.Hosting
 
                     ReleaseNotification(notification);
                     
-                    Log.Warn(e, "unhandled error occurred in notification middleware");
+                    Log.Warning(e, "unhandled error occurred in notification middleware");
                 }
             });
         }
@@ -667,7 +663,7 @@ namespace Fracture.Net.Hosting
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
                     
-                    Log.Warn(e, "unhandled error occurred while handling accepted responses");
+                    Log.Warning(e, "unhandled error occurred while handling accepted responses");
                 }
                 
                 ReleaseRequestResponse(requestResponse);
@@ -756,7 +752,7 @@ namespace Fracture.Net.Hosting
                     foreach (var peer in peers)
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
                     
-                    Log.Warn(e, "unhandled error occurred while handling accepted notifications");
+                    Log.Warning(e, "unhandled error occurred while handling accepted notifications");
                 }
                 
                 ReleaseNotification(notification);
@@ -788,7 +784,7 @@ namespace Fracture.Net.Hosting
             if (!running)
                 throw new InvalidOperationException("already running");
             
-            Log.Info("application shutdown signaled");
+            Log.Information("application shutdown signaled");
             
             running = false;
         }
@@ -798,13 +794,13 @@ namespace Fracture.Net.Hosting
             if (running)
                 throw new InvalidOperationException("already running");
             
-            Log.Info("starting application...");
+            Log.Information("starting application...");
             
             Initialize();
 
             running = true;
             
-            Log.Info("entering application event loop");
+            Log.Information("entering application event loop");
             
             while (running)
             {
@@ -835,7 +831,7 @@ namespace Fracture.Net.Hosting
                 ResetLeavingPeers(); 
             }
 
-            Log.Info("exited application event loop");
+            Log.Information("exited application event loop");
             
             Deinitialize();
         }

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -42,10 +42,6 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     public sealed class RequestRouter : IRequestRouter
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Private request route class
         /// <summary>
         /// Class representing single request route.

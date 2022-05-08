@@ -24,8 +24,6 @@ namespace Fracture.Engine
         private sealed class Game : Microsoft.Xna.Framework.Game
         {
             #region Fields
-            private readonly GameEngineTime time;
-            
             private readonly UpdateCallback update;
 
             private readonly InitializeCallback initialize;
@@ -36,6 +34,11 @@ namespace Fracture.Engine
             {
                 get;
             }
+            
+            public GameEngineTime Time
+            {
+                get;
+            }
             #endregion
             
             public Game(UpdateCallback update, InitializeCallback initialize)
@@ -43,7 +46,7 @@ namespace Fracture.Engine
                 this.update     = update ?? throw new ArgumentNullException(nameof(update));
                 this.initialize = initialize ?? throw new ArgumentNullException(nameof(initialize));
 
-                time = new GameEngineTime();
+                Time = new GameEngineTime();
                 
                 GraphicsDeviceManager = new GraphicsDeviceManager(this)
                 {
@@ -55,12 +58,12 @@ namespace Fracture.Engine
             {
                 base.Update(gameTime);
                 
-                time.Elapsed = gameTime.ElapsedGameTime;
-                time.Total   = gameTime.TotalGameTime;
+                Time.Elapsed = gameTime.ElapsedGameTime;
+                Time.Total   = gameTime.TotalGameTime;
 
-                update(time);
+                update(Time);
                 
-                time.Frame++;
+                Time.Tick++;
             }
 
             protected override void Initialize()
@@ -141,6 +144,8 @@ namespace Fracture.Engine
         {
             // Bind core systems that every game should have. 
             Log.Info($"binding core systems...");
+            
+            systems.Bind(new GameTimeSystem(game.Time));
             
             systems.Bind<EventQueueSystem>();
             systems.Bind<EventSchedulerSystem>();

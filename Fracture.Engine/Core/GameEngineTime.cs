@@ -36,7 +36,7 @@ namespace Fracture.Engine.Core
         /// <summary>
         /// Gets the current frame number.
         /// </summary>
-        ulong Frame
+        ulong Tick
         {
             get;
         }
@@ -67,7 +67,7 @@ namespace Fracture.Engine.Core
             set;
         }
 
-        public ulong Frame
+        public ulong Tick
         {
             get;
             set;

@@ -67,6 +67,7 @@
         <Compile Include="Core\Primitives\Transform.cs" />
         <Compile Include="Core\Systems\ContentSystem.cs" />
         <Compile Include="Core\Systems\GameObjectActivatorSystem.cs" />
+        <Compile Include="Core\Systems\GameTimeSystem.cs" />
         <Compile Include="Core\Systems\SceneSystem.cs" />
         <Compile Include="Ecs\BehaviorSystem.cs" />
         <Compile Include="Ecs\ComponentSystem.cs" />

@@ -6,7 +6,7 @@ using Fracture.Common.Util;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Newtonsoft.Json;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting.Services
 {
@@ -175,10 +175,6 @@ namespace Fracture.Net.Hosting.Services
     /// </summary>
     public sealed class ClearSessionScript : ApplicationScript
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly ISessionService sessions;
         #endregion
@@ -198,7 +194,7 @@ namespace Fracture.Net.Hosting.Services
             if (!sessions.Active(e.Peer.Id))
                 return;
             
-            Log.Info($"clearing session for peer {e.Peer.Id}");
+            Log.Information($"clearing session for peer {e.Peer.Id}");
                 
             sessions.Clear(e.Peer.Id);
         }
@@ -210,10 +206,6 @@ namespace Fracture.Net.Hosting.Services
     /// </summary>
     public sealed class SessionAuthenticateScript<T> : ApplicationScript where T : SessionBase, new()
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         [BindingConstructor]
         public SessionAuthenticateScript(IApplicationScriptingHost application, ISessionService<T> sessions) 
             : base(application)
@@ -223,7 +215,7 @@ namespace Fracture.Net.Hosting.Services
             
             application.Join += (object sender, in PeerJoinEventArgs e) =>
             {
-                Log.Info($"new peer {e.Peer.Id} connected, creating session");
+                Log.Information($"new peer {e.Peer.Id} connected, creating session");
                 
                 sessions.Update(e.Peer.Id, new T());
             };

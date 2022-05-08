@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
 using Fracture.Common.Reflection;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
 {
@@ -23,8 +23,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
             (t) => t.Type == typeof(string),
             (t) => t.IsNullAssignable
         };
-        
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
         
         #region Fields

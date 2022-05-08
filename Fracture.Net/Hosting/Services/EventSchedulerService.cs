@@ -2,7 +2,7 @@ using System;
 using Fracture.Common;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting.Services
 {
@@ -25,10 +25,6 @@ namespace Fracture.Net.Hosting.Services
     
     public sealed class EventSchedulerService : ActiveApplicationService, IEventSchedulerService
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly EventScheduler scheduler;
         #endregion

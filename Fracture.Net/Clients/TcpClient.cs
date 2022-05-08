@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Clients
 {
@@ -13,13 +13,9 @@ namespace Fracture.Net.Clients
     public sealed class TcpClient : Client 
     {
         #region Constant fields
-        private const int ReceiveBufferSize = 65536;
+        private const int BufferSizes = 65536;
         #endregion
         
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly byte[] receiveBuffer;
         
@@ -41,7 +37,7 @@ namespace Fracture.Net.Clients
         public TcpClient(IMessageSerializer serializer, TimeSpan gracePeriod) 
             : base(serializer, gracePeriod)
         {
-            receiveBuffer   = new byte[ReceiveBufferSize];
+            receiveBuffer   = new byte[BufferSizes];
             lastReceiveTime = DateTime.UtcNow; 
         }
 
@@ -63,14 +59,14 @@ namespace Fracture.Net.Clients
                     
                     if (size == 0)
                     {
-                        Log.Warn("packet contains zero sized message from server");
+                        Log.Warning("packet contains zero sized message from server");
                         
                         break;
                     }
                     
                     if (size > length - offset)
                     {
-                        Log.Warn($"invalid size in packet, reading further would go outside the bounds of the receive buffer");
+                        Log.Warning($"invalid size in packet, reading further would go outside the bounds of the receive buffer");
                             
                         break;
                     }
@@ -142,6 +138,8 @@ namespace Fracture.Net.Clients
             UpdateState(ClientState.Disconnected);
             
             Updates.Push((ClientUpdate)ar.AsyncState);
+            
+            socket.Dispose();
         }
         #endregion
 
@@ -243,7 +241,12 @@ namespace Fracture.Net.Clients
                     socket.Dispose();
                 }
 
-                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+                {
+                    NoDelay           = true,
+                    ReceiveBufferSize = BufferSizes,
+                    SendBufferSize    = BufferSizes
+                };
                 
                 socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
             }

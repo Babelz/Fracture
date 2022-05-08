@@ -5,7 +5,7 @@ using Fracture.Common.Di.Binding;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting
 {
@@ -14,10 +14,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationBuilder
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly Kernel binder;
         #endregion
@@ -33,7 +29,7 @@ namespace Fracture.Net.Hosting
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(Type type, string asWhat = "")
-            => Log.Info($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
+            => Log.Information($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(object value, string asWhat = "")
@@ -141,7 +137,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         public Application Build()
         {
-            Log.Info("building application");
+            Log.Information("building application");
             
             // Check application bindings and bind default values if any are missing.
             if (!binder.Exists<IRequestRouter>()) 

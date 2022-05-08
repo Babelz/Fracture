@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Reflection;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
 {
@@ -18,8 +18,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
         private static readonly Dictionary<Type, Action<DynamicMethodBuilder>> EmitLoadDefaultValueMap = new Dictionary<Type, Action<DynamicMethodBuilder>>
         {
             { typeof(sbyte),   dmb => dmb.Emit(OpCodes.Ldc_I4_0) },

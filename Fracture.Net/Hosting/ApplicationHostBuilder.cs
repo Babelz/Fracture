@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting
 {
@@ -11,10 +11,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationHostBuilder
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly Application application;
         
@@ -32,7 +28,7 @@ namespace Fracture.Net.Hosting
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(Type type, string asWhat = "")
-            => Log.Info($"binding {type.FullName} to application host builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
+            => Log.Information($"binding {type.FullName} to application host builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(object value, string asWhat = "")
@@ -94,7 +90,7 @@ namespace Fracture.Net.Hosting
         
         public ApplicationHost Build()
         {
-            Log.Info("building application host"); 
+            Log.Information("building application host"); 
             
             return new ApplicationHost(application, 
                                        new ApplicationServiceHost(services, application),

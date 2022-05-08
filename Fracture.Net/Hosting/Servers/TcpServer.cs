@@ -278,13 +278,20 @@ namespace Fracture.Net.Hosting.Servers
     /// </summary>
     public sealed class TcpPeerFactory : IPeerFactory
     {
-        #region Fields
-        private readonly TimeSpan gracePeriod;
+        #region Constant fields
+        public const int BufferSizes = 65536;
         #endregion
         
-        public TcpPeerFactory(TimeSpan gracePeriod)
+        #region Fields
+        private readonly TimeSpan gracePeriod;
+        
+        private readonly int bufferSizes;
+        #endregion
+        
+        public TcpPeerFactory(TimeSpan gracePeriod, int bufferSizes = BufferSizes)
         {
             this.gracePeriod = gracePeriod;
+            this.bufferSizes = bufferSizes;
         }
             
         public IPeer Create(Socket socket)
@@ -292,6 +299,10 @@ namespace Fracture.Net.Hosting.Servers
             if (socket.ProtocolType != ProtocolType.Tcp)
                 throw new ArgumentException("expecting TCP socket");    
             
+            socket.NoDelay           = true;
+            socket.ReceiveBufferSize = bufferSizes;
+            socket.SendBufferSize    = bufferSizes;
+
             return new TcpPeer(socket, gracePeriod);
         }
     }
@@ -338,7 +349,11 @@ namespace Fracture.Net.Hosting.Servers
             this.port    = port;
             this.backlog = backlog;
             
-            listener       = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
+            {
+                NoDelay = true
+            };
+            
             newConnections = new LockedDoubleBuffer<Socket>();
         }
 
@@ -362,7 +377,7 @@ namespace Fracture.Net.Hosting.Servers
                 
                     return;
                 }
-            
+                
                 newConnections.Push(socket);   
             }
             catch (SocketException se)

@@ -269,7 +269,13 @@ namespace Fracture.Engine.Net
             
             client.Send(message);
         }
-        
+
+        public override void Deinitialize()
+        {
+            if (client.IsConnected)
+                client.Disconnect();
+        }
+
         public override void Update(IGameEngineTime time)
         {
             HandleClientUpdates();

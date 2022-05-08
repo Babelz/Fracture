@@ -6,7 +6,7 @@ using Fracture.Common.Di.Attributes;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting.Services
 {
@@ -132,10 +132,6 @@ namespace Fracture.Net.Hosting.Services
     /// </summary>
     public sealed class EchoControlScript : ApplicationScript
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly ILatencyService latency;
         private readonly IEventSchedulerService scheduler;
@@ -160,7 +156,7 @@ namespace Fracture.Net.Hosting.Services
             switch (message.Phase)
             {
                 case EchoPhase.Ping:
-                    Log.Trace($"received echo request from peer {request.Peer.Id}");
+                    Log.Debug($"received echo request from peer {request.Peer.Id}");
                     
                     response.Ok(Message.Create<EchoMessage>(m =>
                     {
@@ -171,15 +167,15 @@ namespace Fracture.Net.Hosting.Services
                 case EchoPhase.Pong:
                     if (latency.RecordPong(request.Peer.Id, message.RequestId))
                     {
-                        Log.Trace($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
-                                  $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
-                                  $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
+                        Log.Information($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
+                                        $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
+                                        $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
                         
                         response.Ok();
                     }
                     else
                     {
-                        Log.Warn($"got unexpected echo response from peer {request.Peer.Id}", request);
+                        Log.Warning($"got unexpected echo response from peer {request.Peer.Id}", request);
                         
                         response.BadRequest();
                     }
@@ -195,14 +191,14 @@ namespace Fracture.Net.Hosting.Services
             {
                 if (!Application.Peers.Contains(id))
                 {
-                    Log.Trace($"clearing peer {id} latency metrics");
+                    Log.Debug($"clearing peer {id} latency metrics");
                     
                     latency.Reset(id);
                     
                     return PulseEventResult.Break;
                 }
                 
-                Log.Trace($"testing peer {id} latency...");
+                Log.Debug($"testing peer {id} latency...");
 
                 Application.Notifications.Queue.Enqueue(n => n.Send(id, Message.Create<EchoMessage>(m =>
                 {

@@ -7,7 +7,7 @@ using Fracture.Common.Di.Binding;
 using Fracture.Common.Events;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting
 {
@@ -115,10 +115,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationServiceHost : IApplicationServiceHost
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly Application application;
         
@@ -147,7 +143,7 @@ namespace Fracture.Net.Hosting
             application.Starting     += delegate { Starting?.Invoke(this, EventArgs.Empty); };
             
             foreach (var service in services.All<IApplicationService>())
-                Log.Info($"loaded service {service.GetType().FullName} at startup..."); 
+                Log.Information($"loaded service {service.GetType().FullName} at startup..."); 
             
             services.Verify();
         }
@@ -162,7 +158,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "unhandled error occurred while updating service", service);
+                    Log.Warning(e, "unhandled error occurred while updating service", service);
                 }   
             }
         }
@@ -176,10 +172,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationScriptingHost : IApplicationScriptingHost
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         #region Fields
         private readonly Application application;
         
@@ -224,19 +216,19 @@ namespace Fracture.Net.Hosting
             // Unload all scripts when the application exists.
             application.ShuttingDown += delegate
             {
-                Log.Info("application shutdown signaled, unloading all scripts...");
+                Log.Information("application shutdown signaled, unloading all scripts...");
                 
                 foreach (var script in scripts.All<IApplicationScript>().ToList())
                 {
                     try
                     {
-                        Log.Info($"unloading script ${script.GetType().FullName}...");
+                        Log.Information($"unloading script ${script.GetType().FullName}...");
                         
                         script.Unload();
                     }
                     catch (Exception ex)
                     {
-                        Log.Warn(ex, "unhandled error occurred while unloading script");
+                        Log.Warning(ex, "unhandled error occurred while unloading script");
                     }
                 }
             };
@@ -246,7 +238,7 @@ namespace Fracture.Net.Hosting
             application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
             
             foreach (var script in scripts.All<IApplicationScript>())
-                Log.Info($"loaded script {script.GetType().FullName} at startup..."); 
+                Log.Information($"loaded script {script.GetType().FullName} at startup..."); 
             
             scripts.Verify();
         }
@@ -267,13 +259,13 @@ namespace Fracture.Net.Hosting
             switch (script)
             {
                 case IApplicationCommandScript ics:
-                    Log.Info($"loaded command script: {type.Name}...");
+                    Log.Information($"loaded command script: {type.Name}...");
                     break;
                 case IActiveApplicationScript ias:
-                    Log.Info($"loaded active script: {type.Name}...");
+                    Log.Information($"loaded active script: {type.Name}...");
                     break;
                 default:
-                    Log.Info($"loaded script: {type.Name}...");
+                    Log.Information($"loaded script: {type.Name}...");
                     break;
             }
             
@@ -295,7 +287,7 @@ namespace Fracture.Net.Hosting
                         }
                         catch (Exception e)
                         {
-                            Log.Warn(e, "unahdled error occurred while invoking command script", script);
+                            Log.Warning(e, "unahdled error occurred while invoking command script", script);
                         }
                         break;
                     case IActiveApplicationScript iaas:
@@ -305,7 +297,7 @@ namespace Fracture.Net.Hosting
                         }
                         catch (Exception e)
                         {
-                            Log.Warn(e, "unahdled error occurred while executing active script", script);
+                            Log.Warning(e, "unahdled error occurred while executing active script", script);
                         }
                         break;
                 }

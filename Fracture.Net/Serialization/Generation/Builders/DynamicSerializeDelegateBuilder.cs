@@ -1,7 +1,7 @@
 using System;
 using System.Reflection.Emit;
 using Fracture.Common.Reflection;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Serialization.Generation.Builders
 {
@@ -16,18 +16,12 @@ namespace Fracture.Net.Serialization.Generation.Builders
     public sealed class DynamicSerializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Fields
+        private int nullableValueIndex;
+        
         private LocalBuilder localNullMask;
         private LocalBuilder localNullMaskOffset;
         #endregion
         
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
-        #region Fields
-        private int nullableValueIndex;
-        #endregion
-
         public DynamicSerializeDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType)
             : base(valueRanges,
                    serializationType,

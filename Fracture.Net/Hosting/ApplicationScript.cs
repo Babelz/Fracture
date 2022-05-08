@@ -1,6 +1,6 @@
 using System;
 using Fracture.Common.Di.Attributes;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Hosting
 {
@@ -91,10 +91,6 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public abstract class ApplicationCommandScript : ApplicationScript, IApplicationCommandScript
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-        
         /// <summary>
         /// Creates new instance of this script. Mark the constructor with <see cref="BindingConstructorAttribute"/> and use it to locate any dependencies.
         /// </summary>
@@ -113,7 +109,7 @@ namespace Fracture.Net.Hosting
             }
             catch (Exception e)
             {
-                Log.Warn(e, "unhandled exception occurred while running command script");   
+                Log.Warning(e, "unhandled exception occurred while running command script");   
             }
             
             Unload();

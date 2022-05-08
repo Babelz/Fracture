@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Reflection;
-using NLog;
+using Serilog;
 
 namespace Fracture.Net.Serialization
 {
@@ -182,8 +182,6 @@ namespace Fracture.Net.Serialization
     public static class ValueSerializerRegistry
     {
         #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
         private static readonly List<Type> ValueSerializerTypes = new List<Type>();
         #endregion
 
@@ -198,7 +196,7 @@ namespace Fracture.Net.Serialization
                 }   
                 catch (ReflectionTypeLoadException e)
                 {
-                    Log.Warn(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
+                    Log.Warning(e, $"{nameof(ReflectionTypeLoadException)} occured while loading assemblies");
                 }
             }
         }
