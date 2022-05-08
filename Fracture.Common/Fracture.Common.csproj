@@ -99,6 +99,7 @@
         <Compile Include="Reflection\DynamicPropertyBinder.cs" />
         <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
         <Compile Include="Reflection\ReflectionUtil.cs" />
+        <Compile Include="Runtime\ExecutionTimer.cs" />
         <Compile Include="Util\HashUtil.cs" />
         <Compile Include="Util\MathUtil.cs" />
     </ItemGroup>

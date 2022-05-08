@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
+using Fracture.Common.Runtime;
 using Fracture.Net.Hosting.Messaging;
 using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
@@ -150,6 +152,8 @@ namespace Fracture.Net.Hosting
         
         // Peers that were marked as leaving by message pipeline.
         private readonly HashSet<int> leavingPeers;
+
+        private ExecutionTimer applicationLoopTimer;
         
         private bool running;
         #endregion
@@ -226,6 +230,8 @@ namespace Fracture.Net.Hosting
 
             leavedPeers  = new HashSet<int>();
             leavingPeers = new HashSet<int>();
+            
+            applicationLoopTimer = new ExecutionTimer("application-loop-round", TimeSpan.FromSeconds(15));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -804,6 +810,8 @@ namespace Fracture.Net.Hosting
             
             while (running)
             {
+                applicationLoopTimer.Begin();
+                
                 // Step 1: poll server and receive events, update application time. Handle all incoming peer leave and join events first and track all peers that
                 //         are about to leave.
                 PollApplication();
@@ -829,6 +837,13 @@ namespace Fracture.Net.Hosting
             
                 // Step 6: disconnect all leaving peers.
                 ResetLeavingPeers(); 
+                
+                applicationLoopTimer.End(() =>
+                {
+                   Log.Debug($"{applicationLoopTimer.Name} metrics: min: {applicationLoopTimer.Min.TotalMilliseconds}ms - " +
+                             $"avg: {applicationLoopTimer.Average.TotalMilliseconds}ms - " +
+                             $"max: {applicationLoopTimer.Max.TotalMilliseconds}ms"); 
+                });
             }
 
             Log.Information("exited application event loop");

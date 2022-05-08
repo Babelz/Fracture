@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory;
@@ -61,7 +62,7 @@ namespace Fracture.Net.Messages
     public abstract class Message : IMessage
     {
         #region Static fields
-        private static readonly ConcurrentDictionary<Type, IPool<IMessage>> Pools = new ConcurrentDictionary<Type, IPool<IMessage>>();
+        private static readonly Dictionary<Type, IPool<IMessage>> Pools = new Dictionary<Type, IPool<IMessage>>();
         #endregion
 
         protected Message()
@@ -106,21 +107,24 @@ namespace Fracture.Net.Messages
             if (!StructSerializer.SupportsType(type))
                 throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
             
-            if (!Pools.TryGetValue(type, out var pool))
+            lock (Pools)
             {
-                pool = new CleanPool<IMessage>(
-                    new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
-                                               () => new T(), 8)
-                );
+                if (!Pools.TryGetValue(type, out var pool))
+                {
+                    pool = new CleanPool<IMessage>(
+                        new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
+                                                   () => new T(), 8)
+                    );
                 
-                Pools.TryAdd(type, pool);
+                    Pools.Add(type, pool);
+                }
+                
+                var message = (T)pool.Take();
+            
+                decorator?.Invoke(message);
+            
+                return message;
             }
-                
-            var message = (T)pool.Take();
-            
-            decorator?.Invoke(message);
-            
-            return message;
         }
 
         /// <summary>
@@ -128,16 +132,24 @@ namespace Fracture.Net.Messages
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPooled(in IMessage message)
-            => Pools.ContainsKey(message.GetType());
-        
+        {
+            lock (Pools)
+            {
+                return Pools.ContainsKey(message.GetType());
+            }
+        }
+            
         /// <summary>
         /// Attempts to return given message back to the pool. Has no effect if the message type is not a pooled message type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Release(in IMessage message)
         {
-            if (IsPooled(message))
-                Pools[message.GetType()].Return(message);
+            lock (Pools)
+            {
+                if (IsPooled(message))
+                    Pools[message.GetType()].Return(message);
+            }
         }
     }
     
