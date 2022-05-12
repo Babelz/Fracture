@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory;
@@ -72,7 +74,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the optional peer list associated with this notification.
         /// </summary>
-        int[] PeerIds
+        IEnumerable<int> PeerIds
         {
             get;
         }
@@ -97,7 +99,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         /// <param name="message">message that will be broadcast</param>
         /// <param name="peerIds">peers that the message will be broadcast to</param>
-        void BroadcastNarrow(in IMessage message, params int[] peerIds);
+        void BroadcastNarrow(in IMessage message, IEnumerable<int> peerIds);
         
         /// <summary>
         /// Enqueues broadcast message for handling. This message will be send to all connected peers.
@@ -136,7 +138,7 @@ namespace Fracture.Net.Hosting.Messaging
             private set;
         }
 
-        public int[] PeerIds
+        public IEnumerable<int> PeerIds
         {
             get;
             private set;
@@ -158,7 +160,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
             
             Command = NotificationCommand.Send;
-            PeerIds   = new[] { peerId };
+            PeerIds = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
@@ -167,19 +169,19 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.Reset;
-            PeerIds   = new[] { peerId };
+            PeerIds = new[] { peerId };
             Message = message;
         }
         
-        public void BroadcastNarrow(in IMessage message, params int[] peerIds)
+        public void BroadcastNarrow(in IMessage message, IEnumerable<int> peerIds)
         {
             AssertUnset();
 
-            if (peerIds?.Length == 0)
+            if (!(peerIds?.Any() ?? false)) 
                 throw new ArgumentException("expecting at least one peer to be present");
 
             Command = NotificationCommand.BroadcastNarrow;
-            PeerIds   = peerIds;
+            PeerIds = peerIds;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
@@ -188,7 +190,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.BroadcastWide;
-            PeerIds   = null;
+            PeerIds = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
@@ -197,14 +199,14 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.Shutdown;
-            PeerIds   = null;
+            PeerIds = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
         public void Clear()
         {
             Command = default;
-            PeerIds   = default;
+            PeerIds = default;
             Message = default;
         }
         
