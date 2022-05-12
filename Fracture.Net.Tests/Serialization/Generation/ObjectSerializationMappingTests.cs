@@ -435,7 +435,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
             Assert.Contains(mapping.Values, f => f.Name == "MaybeByte");
         }
 
-        [Fact()]
+        [Fact]
         public void Should_Order_Activation_Values_First()
         {
             var mapping = ObjectSerializationMapper.ForType<ActivationTestClass>()

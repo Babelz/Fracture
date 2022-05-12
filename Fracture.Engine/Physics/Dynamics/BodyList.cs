@@ -19,7 +19,7 @@ namespace Fracture.Engine.Physics.Dynamics
       /// <summary>
       /// Deletes body with given id from the list.
       /// </summary>
-      void Delete(int id);
+      void Delete(int bodyId);
    }
    
    /// <summary>
@@ -34,7 +34,7 @@ namespace Fracture.Engine.Physics.Dynamics
       }
       #endregion
 
-      ref Body WithId(int id);
+      ref Body WithId(int bodyId);
       
       ref Body AtIndex(int index);
    }
@@ -76,18 +76,18 @@ namespace Fracture.Engine.Physics.Dynamics
          return componentId;
       }
       
-      public void Delete(int id)
+      public void Delete(int bodyId)
       {
-         if (!indices.Remove(id)) 
-            throw new InvalidOperationException($"body with id {id} does not exist");
+         if (!indices.Remove(bodyId)) 
+            throw new InvalidOperationException($"body with id {bodyId} does not exist");
          
-         bodies.Insert(id, default);
+         bodies.Insert(bodyId, default);
          
-         ids.Return(id);
+         ids.Return(bodyId);
       }
       
-      public ref Body WithId(int id)
-         => ref bodies.AtIndex(id);
+      public ref Body WithId(int bodyId)
+         => ref bodies.AtIndex(bodyId);
       
       public ref Body AtIndex(int index)
          => ref bodies.AtIndex(indices[index]);

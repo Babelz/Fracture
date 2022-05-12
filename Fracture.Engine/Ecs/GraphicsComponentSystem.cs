@@ -114,25 +114,25 @@ namespace Fracture.Engine.Ecs
       }
       #endregion
       
-      Aabb GetAabb(int id);
-      Transform GetTransform(int id);
-      Color GetColor(int id);
-      string GetLayer(int id);
+      Aabb GetAabb(int componentId);
+      Transform GetTransform(int componentId);
+      Color GetColor(int componentId);
+      string GetLayer(int componentId);
       
-      void SetBounds(int id, in Vector2 bounds);
-      void SetTransform(int id, in Transform transform);
-      void SetColor(int id, in Color color);
-      void SetLayer(int id, string name);
+      void SetBounds(int componentId, in Vector2 bounds);
+      void SetTransform(int componentId, in Transform transform);
+      void SetColor(int componentId, in Color color);
+      void SetLayer(int componentId, string name);
       
-      void TranslatePosition(int id, in Vector2 translation);
-      void TranslateScale(int id, in Vector2 translation);
-      void TranslateRotation(int id, float translation);
+      void TranslatePosition(int componentId, in Vector2 translation);
+      void TranslateScale(int componentId, in Vector2 translation);
+      void TranslateRotation(int componentId, float translation);
       
-      void TransformPosition(int id, in Vector2 transformation);
-      void TransformScale(int id, in Vector2 transformation);
-      void TransformRotation(int id, float transformation);
+      void TransformPosition(int componentId, in Vector2 transformation);
+      void TransformScale(int componentId, in Vector2 transformation);
+      void TransformRotation(int componentId, float transformation);
 
-      void DrawElement(int id, IGraphicsFragment fragment);
+      void DrawElement(int componentId, IGraphicsFragment fragment);
    }
    
    public abstract class GraphicsComponentSystem<T> : SharedComponentSystem, IGraphicsComponentSystem 
@@ -148,8 +148,8 @@ namespace Fracture.Engine.Ecs
       #region Fields
       private readonly IEventHandler<int, TransformChangedEventArgs> transformChangedEvents;
       
-      private readonly HashSet<int> scrubbed;
-      private readonly HashSet<int> dirty;
+      private readonly HashSet<int> scrubbedComponentIds;
+      private readonly HashSet<int> dirtyComponentIds;
       #endregion
 
       #region Properties
@@ -188,168 +188,168 @@ namespace Fracture.Engine.Ecs
          
          GraphicsComponentTypeId = graphicsComponentTypeId;
          
-         Components = new LinearGrowthList<T>(ComponentsCapacity);
-         scrubbed   = new HashSet<int>(ComponentsCapacity);
-         dirty      = new HashSet<int>(ComponentsCapacity);
+         Components           = new LinearGrowthList<T>(ComponentsCapacity);
+         scrubbedComponentIds = new HashSet<int>(ComponentsCapacity);
+         dirtyComponentIds    = new HashSet<int>(ComponentsCapacity);
       }
       
-      public override bool Delete(int id)
+      public override bool Delete(int componentId)
       {
-         var deleted = base.Delete(id);
+         var deleted = base.Delete(componentId);
 
          if (deleted)
          {
-            var layer = Components.AtIndex(id).CurrentLayer;
+            var layer = Components.AtIndex(componentId).CurrentLayer;
             
-            Layers.FirstOrDefault(l => l.Name == layer)?.Remove(id);
+            Layers.FirstOrDefault(l => l.Name == layer)?.Remove(componentId);
             
-            Components.Insert(id, default);
+            Components.Insert(componentId, default);
          }
          
-         dirty.Remove(id);
+         dirtyComponentIds.Remove(componentId);
 
          return deleted;
       }
 
-      public Aabb GetAabb(int id)
+      public Aabb GetAabb(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Aabb;
+         return Components.AtIndex(componentId).Aabb;
       }
-      public Transform GetTransform(int id)
+      public Transform GetTransform(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
             
          return Transform.TranslateLocal(component.GlobalTransform, component.GlobalTransform);
       }
       
-      public Color GetColor(int id)
+      public Color GetColor(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Color;
+         return Components.AtIndex(componentId).Color;
       }
-      public string GetLayer(int id)
+      public string GetLayer(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).CurrentLayer;
+         return Components.AtIndex(componentId).CurrentLayer;
       }
       
-      public void SetTransform(int id, in Transform transform)
+      public void SetTransform(int componentId, in Transform transform)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).LocalTransform = transform;
+         Components.AtIndex(componentId).LocalTransform = transform;
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
-      public void SetBounds(int id, in Vector2 bounds)
+      public void SetBounds(int componentId, in Vector2 bounds)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.Bounds = bounds; 
          component.Aabb   = new Aabb(component.LocalTransform.Position, component.LocalTransform.Rotation, bounds);
 
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
-      public void SetColor(int id, in Color color)
+      public void SetColor(int componentId, in Color color)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Color = color;
+         Components.AtIndex(componentId).Color = color;
       }
-      public void SetLayer(int id, string name)
+      public void SetLayer(int componentId, string name)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
        
-         Components.AtIndex(id).NextLayer = name;
+         Components.AtIndex(componentId).NextLayer = name;
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TranslatePosition(int id, in Vector2 translation)
+      public void TranslatePosition(int componentId, in Vector2 translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TranslatePosition(component.LocalTransform, translation);
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TranslateScale(int id, in Vector2 translation)
+      public void TranslateScale(int componentId, in Vector2 translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TranslateScale(component.LocalTransform, translation);
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TranslateRotation(int id, float translation)
+      public void TranslateRotation(int componentId, float translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TranslateRotation(component.LocalTransform, translation);
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TransformPosition(int id, in Vector2 transformation)
+      public void TransformPosition(int componentId, in Vector2 transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TransformPosition(component.LocalTransform, transformation);
          
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TransformScale(int id, in Vector2 transformation)
+      public void TransformScale(int componentId, in Vector2 transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TransformScale(component.LocalTransform, transformation);
 
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public void TransformRotation(int id, float transformation)
+      public void TransformRotation(int componentId, float transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          component.LocalTransform = Transform.TransformRotation(component.LocalTransform, transformation);
 
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
-      public abstract void DrawElement(int id, IGraphicsFragment fragment);
+      public abstract void DrawElement(int componentId, IGraphicsFragment fragment);
       
       public override void Update(IGameEngineTime time)
       {
          base.Update(time);
          
          // Add dirty components from last frame.
-         foreach (var componentId in scrubbed)
-            dirty.Add(componentId);
+         foreach (var componentId in scrubbedComponentIds)
+            dirtyComponentIds.Add(componentId);
          
-         scrubbed.Clear();
+         scrubbedComponentIds.Clear();
          
          // Update transformations.
          transformChangedEvents.Handle((in Letter<int, TransformChangedEventArgs> letter) =>
@@ -361,14 +361,14 @@ namespace Fracture.Engine.Ecs
             {
                Components.AtIndex(componentId).GlobalTransform = letter.Args.Transform;
                
-               dirty.Add(componentId);
+               dirtyComponentIds.Add(componentId);
             }
                
             return LetterHandlingResult.Retain;
          });
          
          // Update all dirty elements.
-         foreach (var componentId in dirty.Where(IsAlive))
+         foreach (var componentId in dirtyComponentIds.Where(IsAlive))
          {
             // Get associated data.
             ref var component = ref Components.AtIndex(componentId);
@@ -393,7 +393,7 @@ namespace Fracture.Engine.Ecs
                // Add to next layer.
                if (!Layers.TryGetLayer(component.NextLayer, out var nextLayer))
                {
-                  scrubbed.Add(componentId);
+                  scrubbedComponentIds.Add(componentId);
                   
                   continue;
                }
@@ -414,7 +414,7 @@ namespace Fracture.Engine.Ecs
                // Update on layer.
                if (Layers.TryGetLayer(component.CurrentLayer, out var layer))
                {
-                  scrubbed.Add(componentId);
+                  scrubbedComponentIds.Add(componentId);
                   
                   continue;
                }
@@ -427,7 +427,7 @@ namespace Fracture.Engine.Ecs
             }
          }
          
-         dirty.Clear();
+         dirtyComponentIds.Clear();
       }
    }
    
@@ -471,13 +471,13 @@ namespace Fracture.Engine.Ecs
       int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, Texture2D texture);
       int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Rectangle source, in Color color, Texture2D texture);
       
-      Rectangle? GetSource(int id);
-      Texture2D GetTexture(int id);
-      SpriteEffects GetEffects(int id);
+      Rectangle? GetSource(int componentId);
+      Texture2D GetTexture(int componentId);
+      SpriteEffects GetEffects(int componentId);
 
-      void SetSource(int id, in Rectangle? source);
-      void SetTexture(int id, Texture2D texture);
-      void SetEffects(int id, SpriteEffects effects);
+      void SetSource(int componentId, in Rectangle? source);
+      void SetTexture(int componentId, Texture2D texture);
+      void SetEffects(int componentId, SpriteEffects effects);
    }
    
    public sealed class SpriteComponentSystem : GraphicsComponentSystem<SpriteComponentSystem.SpriteComponent>, ISpriteComponentSystem
@@ -566,11 +566,11 @@ namespace Fracture.Engine.Ecs
       {
       }
 
-      public override void DrawElement(int id, IGraphicsFragment fragment)
+      public override void DrawElement(int componentId, IGraphicsFragment fragment)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
 
          var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
 
@@ -639,46 +639,46 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
 
-      public Rectangle? GetSource(int id)
+      public Rectangle? GetSource(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Source;
+         return Components.AtIndex(componentId).Source;
       }
 
-      public Texture2D GetTexture(int id)
+      public Texture2D GetTexture(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Texture;
+         return Components.AtIndex(componentId).Texture;
       }
       
-      public SpriteEffects GetEffects(int id)
+      public SpriteEffects GetEffects(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Effects;
+         return Components.AtIndex(componentId).Effects;
       }
       
-      public void SetSource(int id, in Rectangle? source)
+      public void SetSource(int componentId, in Rectangle? source)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Source = source;
+         Components.AtIndex(componentId).Source = source;
       }
 
-      public void SetTexture(int id, Texture2D texture)
+      public void SetTexture(int componentId, Texture2D texture)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Texture = texture;
+         Components.AtIndex(componentId).Texture = texture;
       }
 
-      public void SetEffects(int id, SpriteEffects effects)
+      public void SetEffects(int componentId, SpriteEffects effects)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Effects = effects;
+         Components.AtIndex(componentId).Effects = effects;
       }
    }
    
@@ -691,9 +691,9 @@ namespace Fracture.Engine.Ecs
                  in Color color,
                  QuadDrawMode mode);
       
-      QuadDrawMode GetMode(int id);
+      QuadDrawMode GetMode(int componentId);
       
-      void SetMode(int id, QuadDrawMode mode);
+      void SetMode(int componentId, QuadDrawMode mode);
    }
    
    public sealed class QuadComponentSystem : GraphicsComponentSystem<QuadComponentSystem.QuadComponent>, IQuadComponentSystem
@@ -782,25 +782,25 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
       
-      public QuadDrawMode GetMode(int id)
+      public QuadDrawMode GetMode(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Mode;
+         return Components.AtIndex(componentId).Mode;
       }
 
-      public void SetMode(int id, QuadDrawMode mode)
+      public void SetMode(int componentId, QuadDrawMode mode)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Mode = mode;
+         Components.AtIndex(componentId).Mode = mode;
       }
       
-      public override void DrawElement(int id, IGraphicsFragment fragment)
+      public override void DrawElement(int componentId, IGraphicsFragment fragment)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
 
@@ -845,23 +845,23 @@ namespace Fracture.Engine.Ecs
       void Stop(int componentId);
       void Resume(int componentId);
       
-      int GetCurrentPlaylistId(int id);
-      string GetCurrentAnimationName(int id);
-      SpriteEffects GetEffects(int id);
-      void SetEffects(int id, SpriteEffects effects);
+      int GetCurrentPlaylistId(int componentId);
+      string GetCurrentAnimationName(int componentId);
+      SpriteEffects GetEffects(int componentId);
+      void SetEffects(int componentId, SpriteEffects effects);
    }
    
    public readonly struct SpriteAnimationFinishedEventArgs
    {
       #region Properties
-      public int Id
+      public int ComponentId
       {
          get;
       }
       #endregion
 
-      public SpriteAnimationFinishedEventArgs(int id)
-         => Id = id;
+      public SpriteAnimationFinishedEventArgs(int componentId)
+         => ComponentId = componentId;
    }
    
    public sealed class SpriteAnimationComponentSystem : 
@@ -1079,33 +1079,33 @@ namespace Fracture.Engine.Ecs
       public void Resume(int componentId)
          => ChangeState(componentId, true);
       
-      public int GetCurrentPlaylistId(int id)
+      public int GetCurrentPlaylistId(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).PlaylistId;
+         return Components.AtIndex(componentId).PlaylistId;
       }
-      public string GetCurrentAnimationName(int id)
+      public string GetCurrentAnimationName(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          return component.PlaylistId == SpriteAnimationComponent.NoAnimation ? string.Empty : component.AnimationName;
       }
       
-      public SpriteEffects GetEffects(int id)
+      public SpriteEffects GetEffects(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Effects;
+         return Components.AtIndex(componentId).Effects;
       }
       
-      public void SetEffects(int id, SpriteEffects effects)
+      public void SetEffects(int componentId, SpriteEffects effects)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Effects = effects;
+         Components.AtIndex(componentId).Effects = effects;
       }
 
       public override void Update(IGameEngineTime time)
@@ -1146,11 +1146,11 @@ namespace Fracture.Engine.Ecs
          }
       }
 
-      public override void DrawElement(int id, IGraphicsFragment fragment)
+      public override void DrawElement(int componentId, IGraphicsFragment fragment)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
          
          var playlist  = playlists[component.PlaylistId];
          var animation = playlist.Animations[component.AnimationName];
@@ -1195,13 +1195,13 @@ namespace Fracture.Engine.Ecs
                  SpriteFont font,
                  TextDrawMode mode);
 
-      string GetText(int id);
-      SpriteFont GetFont(int id);
-      TextDrawMode GetMode(int id);
+      string GetText(int componentId);
+      SpriteFont GetFont(int componentId);
+      TextDrawMode GetMode(int componentId);
       
-      void SetText(int id, string text);
-      void SetFont(int id, SpriteFont font);
-      void SetMode(int id, TextDrawMode mode);
+      void SetText(int componentId, string text);
+      void SetFont(int componentId, SpriteFont font);
+      void SetMode(int componentId, TextDrawMode mode);
    }
    
    public sealed class SpriteTextComponentSystem : GraphicsComponentSystem<SpriteTextComponentSystem.SpriteTextComponent>,
@@ -1313,53 +1313,53 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
 
-      public string GetText(int id)
+      public string GetText(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Text;
+         return Components.AtIndex(componentId).Text;
       }
 
-      public SpriteFont GetFont(int id)
+      public SpriteFont GetFont(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Font;
+         return Components.AtIndex(componentId).Font;
       }
       
-      public TextDrawMode GetMode(int id)
+      public TextDrawMode GetMode(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return Components.AtIndex(id).Mode;
+         return Components.AtIndex(componentId).Mode;
       }
 
-      public void SetText(int id, string text)
+      public void SetText(int componentId, string text)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Text = text;
+         Components.AtIndex(componentId).Text = text;
       }
 
-      public void SetFont(int id, SpriteFont font)
+      public void SetFont(int componentId, SpriteFont font)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Font = font;
+         Components.AtIndex(componentId).Font = font;
       }
       
-      public void SetMode(int id, TextDrawMode mode)
+      public void SetMode(int componentId, TextDrawMode mode)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         Components.AtIndex(id).Mode = mode;
+         Components.AtIndex(componentId).Mode = mode;
       }
       
-      public override void DrawElement(int id, IGraphicsFragment fragment)
+      public override void DrawElement(int componentId, IGraphicsFragment fragment)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(id);
+         ref var component = ref Components.AtIndex(componentId);
 
          var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
          

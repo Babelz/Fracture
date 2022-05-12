@@ -369,13 +369,13 @@ namespace Fracture.Engine.Physics.Contacts
        /// <summary>
        /// Gets translation for this collision pair.
        /// </summary>
-       public Vector2 GetTranslation(int id)
-         => translations.TryGetValue(id, out var translation) ? translation : Vector2.Zero;
+       public Vector2 GetTranslation(int bodyId)
+         => translations.TryGetValue(bodyId, out var translation) ? translation : Vector2.Zero;
 
        /// <summary>
        /// Adds new body to contact list.
        /// </summary>
-       public void Add(int id, ulong frame, Vector2 translation)
+       public void Add(int bodyId, ulong frame, Vector2 translation)
        {
            if (lastFrame < frame)
            {
@@ -393,9 +393,9 @@ namespace Fracture.Engine.Physics.Contacts
                lastFrame = frame;
            }
            
-           translations.Add(id, translation);
+           translations.Add(bodyId, translation);
            
-           newBodyIds.Add(id);
+           newBodyIds.Add(bodyId);
        }
    }
 }

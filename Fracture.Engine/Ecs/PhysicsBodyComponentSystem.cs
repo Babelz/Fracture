@@ -42,39 +42,39 @@ namespace Fracture.Engine.Ecs
                  object userData = null,
                  bool primary = false);
       
-      Vector2 GetPosition(int id);
-      float GetRotation(int id);
-      Vector2 GetActiveLinearForce(int id);
-      float GetActiveAngularForce(int id);
-      Vector2 GetNextPosition(int id);
-      float GetNextRotation(int id);
-      Aabb GetBoundingBox(int id);
-      BodyType GetType(int id);
-      Shape GetShape(int id);
-      IEnumerable<BodyComponentContact> GetCurrentContacts(int id);
-      IEnumerable<BodyComponentContact> GetLeavingContacts(int id);
-      object GetUserData(int id);
+      Vector2 GetPosition(int componentId);
+      float GetRotation(int componentId);
+      Vector2 GetActiveLinearForce(int componentId);
+      float GetActiveAngularForce(int componentId);
+      Vector2 GetNextPosition(int componentId);
+      float GetNextRotation(int componentId);
+      Aabb GetBoundingBox(int componentId);
+      BodyType GetType(int componentId);
+      Shape GetShape(int componentId);
+      IEnumerable<BodyComponentContact> GetCurrentContacts(int componentId);
+      IEnumerable<BodyComponentContact> GetLeavingContacts(int componentId);
+      object GetUserData(int componentId);
       
-      bool IsPrimary(int id);
+      bool IsPrimary(int componentId);
 
-      void SetPosition(int id, Vector2 position);
-      void SetRotation(int id, float rotation);
+      void SetPosition(int componentId, Vector2 position);
+      void SetRotation(int componentId, float rotation);
       
-      void SetLinearVelocity(int id, Vector2 velocity);
-      void SetAngularVelocity(int id, float velocity);
+      void SetLinearVelocity(int componentId, Vector2 velocity);
+      void SetAngularVelocity(int componentId, float velocity);
       
-      void ApplyLinearImpulse(int id, float magnitude, Vector2 direction);
-      void ApplyAngularImpulse(int id, float magnitude);
+      void ApplyLinearImpulse(int componentId, float magnitude, Vector2 direction);
+      void ApplyAngularImpulse(int componentId, float magnitude);
       
-      void SetUserData(int id, object userData);
+      void SetUserData(int componentId, object userData);
       
       /// <summary>
       /// Query surroundings of body component with given id.
       /// </summary>
-      /// <param name="id">id of the component which surrounding will be queried</param>
+      /// <param name="componentId">id of the component which surrounding will be queried</param>
       /// <param name="area">additional area added to components AABB for the query</param>
       /// <returns>body components that are inside the are of components AABB + area</returns>
-      IEnumerable<int> QuerySurroundings(int id, float area);
+      IEnumerable<int> QuerySurroundings(int componentId, float area);
       
       IEnumerable<int> RootQuery();
         
@@ -187,7 +187,7 @@ namespace Fracture.Engine.Ecs
       private readonly ITransformComponentSystem transforms;
       private readonly IPhysicsWorldSystem world;
       
-      private readonly List<int> dirty;
+      private readonly List<int> dirtyComponentIds;
       #endregion
 
       [BindingConstructor]
@@ -203,8 +203,8 @@ namespace Fracture.Engine.Ecs
          world.EndContact   += World_EndContact;
          world.Moved        += World_Relocated;
 
-         components = new LinearGrowthList<PhysicsBodyComponent>();
-         dirty      = new List<int>();
+         components        = new LinearGrowthList<PhysicsBodyComponent>();
+         dirtyComponentIds = new List<int>();
       }
 
       #region Event handlers
@@ -222,8 +222,8 @@ namespace Fracture.Engine.Ecs
          firstComponent.LeavingContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, e.Translation));
          secondComponent.LeavingContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, e.Translation));
          
-         dirty.Add(firstComponentId);
-         dirty.Add(secondComponentId);
+         dirtyComponentIds.Add(firstComponentId);
+         dirtyComponentIds.Add(secondComponentId);
       }
 
       private void World_BeginContact(object sender, BodyContactEventArgs e)
@@ -237,8 +237,8 @@ namespace Fracture.Engine.Ecs
          firstComponent.EnteringContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, e.Translation));
          secondComponent.EnteringContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, e.Translation));
 
-         dirty.Add(firstComponentId);
-         dirty.Add(secondComponentId);
+         dirtyComponentIds.Add(firstComponentId);
+         dirtyComponentIds.Add(secondComponentId);
       }
       #endregion
 
@@ -261,16 +261,16 @@ namespace Fracture.Engine.Ecs
          return results;
       }
       
-      private void UpdateBodyDirtyState(int id)
+      private void UpdateBodyDirtyState(int componentId)
       {
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          // Do not mark dirty if body modified was not primary.
          if (!component.Primary)
             return;
          
          // Flag for next update to sync transform data from body to transform component.
-         dirty.Add(id);
+         dirtyComponentIds.Add(componentId);
       }
 
       public int Create(int entityId, 
@@ -309,9 +309,9 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
 
-      public override bool Delete(int id)
+      public override bool Delete(int componentId)
       {
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.CurrentContacts.Clear();
          component.LastContacts.Clear();
@@ -321,168 +321,168 @@ namespace Fracture.Engine.Ecs
          // Delete world data.           
          world.Delete(component.BodyId);
          
-         dirty.Remove(id);
+         dirtyComponentIds.Remove(componentId);
          
-         return base.Delete(id);
+         return base.Delete(componentId);
       }
 
-      public Vector2 GetPosition(int id)
+      public Vector2 GetPosition(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).Position;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).Position;
       }
 
-      public float GetRotation(int id)
+      public float GetRotation(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).Rotation;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).Rotation;
       }
 
-      public Vector2 GetActiveLinearForce(int id)
+      public Vector2 GetActiveLinearForce(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).LinearVelocity;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).LinearVelocity;
       }
 
-      public float GetActiveAngularForce(int id)
+      public float GetActiveAngularForce(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).AngularVelocity;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).AngularVelocity;
       }
 
-      public Vector2 GetNextPosition(int id)
+      public Vector2 GetNextPosition(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedPosition;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).ForcedPosition;
       }
 
-      public float GetNextRotation(int id)
+      public float GetNextRotation(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedRotation;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).ForcedRotation;
       }
 
-      public Aabb GetBoundingBox(int id)
+      public Aabb GetBoundingBox(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).BoundingBox;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).BoundingBox;
       }
 
-      public BodyType GetType(int id)
+      public BodyType GetType(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).Type;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).Type;
       }
 
-      public Shape GetShape(int id)
+      public Shape GetShape(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return world.Bodies.WithId(components.AtIndex(id).BodyId).Shape;
+         return world.Bodies.WithId(components.AtIndex(componentId).BodyId).Shape;
       }
 
-      public IEnumerable<BodyComponentContact> GetCurrentContacts(int id)
+      public IEnumerable<BodyComponentContact> GetCurrentContacts(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return components.AtIndex(id).CurrentContacts;
+         return components.AtIndex(componentId).CurrentContacts;
       }
 
-      public IEnumerable<BodyComponentContact> GetLeavingContacts(int id)
+      public IEnumerable<BodyComponentContact> GetLeavingContacts(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return components.AtIndex(id).LeavingContacts;
+         return components.AtIndex(componentId).LeavingContacts;
       }
 
-      public object GetUserData(int id)
+      public object GetUserData(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return components.AtIndex(id).UserData;
+         return components.AtIndex(componentId).UserData;
       }
 
-      public bool IsPrimary(int id)
+      public bool IsPrimary(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
 
-         return components.AtIndex(id).Primary;
+         return components.AtIndex(componentId).Primary;
       }
 
-      public void SetPosition(int id, Vector2 position)
+      public void SetPosition(int componentId, Vector2 position)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedPosition = position;
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).ForcedPosition = position;
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void SetRotation(int id, float rotation)
+      public void SetRotation(int componentId, float rotation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).ForcedRotation = rotation;
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).ForcedRotation = rotation;
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void SetLinearVelocity(int id, Vector2 velocity)
+      public void SetLinearVelocity(int componentId, Vector2 velocity)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).SetLinearVelocity(velocity);
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).SetLinearVelocity(velocity);
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void SetAngularVelocity(int id, float velocity)
+      public void SetAngularVelocity(int componentId, float velocity)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).SetAngularVelocity(velocity);
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).SetAngularVelocity(velocity);
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void ApplyLinearImpulse(int id, float magnitude, Vector2 direction)
+      public void ApplyLinearImpulse(int componentId, float magnitude, Vector2 direction)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).ApplyLinearImpulse(magnitude, direction);
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).ApplyLinearImpulse(magnitude, direction);
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void ApplyAngularImpulse(int id, float magnitude)
+      public void ApplyAngularImpulse(int componentId, float magnitude)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         world.Bodies.WithId(components.AtIndex(id).BodyId).ApplyAngularImpulse(magnitude);
+         world.Bodies.WithId(components.AtIndex(componentId).BodyId).ApplyAngularImpulse(magnitude);
          
-         UpdateBodyDirtyState(id);
+         UpdateBodyDirtyState(componentId);
       }
 
-      public void SetUserData(int id, object userData)
+      public void SetUserData(int componentId, object userData)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         components.AtIndex(id).UserData = userData;
+         components.AtIndex(componentId).UserData = userData;
       }
 
-      public IEnumerable<int> QuerySurroundings(int id, float area)
+      public IEnumerable<int> QuerySurroundings(int componentId, float area)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var body = ref world.Bodies.WithId(components.AtIndex(id).BodyId);
+         ref var body = ref world.Bodies.WithId(components.AtIndex(componentId).BodyId);
          
          var link = world.AabbQueryBroad(new Aabb(body.Position, 
                                                   body.Rotation, 
@@ -530,9 +530,9 @@ namespace Fracture.Engine.Ecs
       {
          base.Update(time);
          
-         if (dirty.Count == 0) return;
+         if (dirtyComponentIds.Count == 0) return;
          
-         foreach (var componentId in dirty)
+         foreach (var componentId in dirtyComponentIds)
          {
             ref var component = ref components.AtIndex(componentId);
             ref var body      = ref world.Bodies.WithId(components.AtIndex(componentId).BodyId);
@@ -569,7 +569,7 @@ namespace Fracture.Engine.Ecs
             transforms.ApplyTransformation(transformId, new Transform(body.Position, currentTransform.Scale, body.Rotation));
          }
          
-         dirty.Clear();
+         dirtyComponentIds.Clear();
       }
    }
 }

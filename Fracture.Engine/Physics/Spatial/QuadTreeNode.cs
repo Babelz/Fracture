@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics.Spatial
 {
-    public delegate bool BodySelector(int id, BodyList bodies);
+    public delegate bool BodySelector(int bodyId, BodyList bodies);
     
     /// <summary>
     /// Represents single node inside the quad tree.
@@ -192,9 +192,9 @@ namespace Fracture.Engine.Physics.Spatial
             }
         }
 
-        public bool Add(int id)
+        public bool Add(int bodyId)
         {
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
             
             // If no collision with this cell, we assume no collision
             // can exist with the children cells even while split.
@@ -210,28 +210,28 @@ namespace Fracture.Engine.Physics.Spatial
             if (IsSplit)
             {
                 // Body can exist in multiple nodes.
-                var tla = TopLeft.Add(id);
-                var tra = TopRight.Add(id);
+                var tla = TopLeft.Add(bodyId);
+                var tra = TopRight.Add(bodyId);
 
-                var bra = BottomRight.Add(id);
-                var bla = BottomLeft.Add(id);
+                var bra = BottomRight.Add(bodyId);
+                var bla = BottomLeft.Add(bodyId);
 
                 return tla || tra || bra || bla;
             }
             else
             {
                 // Add to self.
-                bodyLists[(int)body.Type - 1].Add(id);
+                bodyLists[(int)body.Type - 1].Add(bodyId);
 
-                Added?.Invoke(this, new BodyEventArgs(id));
+                Added?.Invoke(this, new BodyEventArgs(bodyId));
             }
 
             return true;
         }
 
-        public bool Remove(int id)
+        public bool Remove(int bodyId)
         {
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
             
             // If no collision with this cell, we assume no collision
             // can exist with the children cells even while split. 
@@ -243,19 +243,19 @@ namespace Fracture.Engine.Physics.Spatial
             if (IsSplit)
             {
                 // Body can exist in multiple nodes.
-                var tlr = TopLeft.Remove(id);
-                var trr = TopRight.Remove(id);
+                var tlr = TopLeft.Remove(bodyId);
+                var trr = TopRight.Remove(bodyId);
 
-                var brr = BottomRight.Remove(id);
-                var blr = BottomLeft.Remove(id);
+                var brr = BottomRight.Remove(bodyId);
+                var blr = BottomLeft.Remove(bodyId);
 
                 return tlr || trr || brr || blr;
             }
 
-            if (!bodyLists[(int) body.Type - 1].Remove(id)) 
+            if (!bodyLists[(int) body.Type - 1].Remove(bodyId)) 
                 return false;
             
-            Removed?.Invoke(this, new BodyEventArgs(id));
+            Removed?.Invoke(this, new BodyEventArgs(bodyId));
 
             return true;
 

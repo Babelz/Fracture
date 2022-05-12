@@ -72,24 +72,24 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Attempts to delete entity with given id. 
       /// </summary>
-      void Delete(int id);
+      void Delete(int entityId);
       
       /// <summary>
       /// Returns boolean declaring whether entity with given id
       /// is alive.
       /// </summary>
-      bool Alive(int id);
+      bool Alive(int entityId);
       
-      bool IsAnnotated(int id);
-      int GetAnnotation(int id);
+      bool IsAnnotated(int entityId);
+      int GetAnnotation(int entityId);
       
-      string GetTag(int id);
+      string GetTag(int entityId);
 
       void Pair(int parentId, int childId);
       void Unpair(int parentId, int childId);
       
-      bool HasParent(int id);
-      int ParentOf(int id);
+      bool HasParent(int entityId);
+      int ParentOf(int entityId);
       
       bool LocalExists(int remoteId);
       int LocalIdOf(int remoteId);
@@ -183,10 +183,10 @@ namespace Fracture.Engine.Ecs
          remoteEntityIdMap = new Dictionary<int, int>();
       }
       
-      private void AssertAlive(int id)
+      private void AssertAlive(int entityId)
       {
-         if (!Alive(id)) 
-            throw new InvalidOperationException($"entity {id} does not exist");
+         if (!Alive(entityId)) 
+            throw new InvalidOperationException($"entity {entityId} does not exist");
       }
       
       public int Create(int? parentId = null, int? remoteId = null, int? annotation = null, string tag = "")
@@ -223,67 +223,67 @@ namespace Fracture.Engine.Ecs
          return entityId;
       }
 
-      public void Delete(int id)
+      public void Delete(int entityId)
       {
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         ref var entity = ref entities.AtIndex(id);
+         ref var entity = ref entities.AtIndex(entityId);
          
          // Publish deleted event.
-         deletedEvent.Publish(id, new EntityEventArgs(id));
+         deletedEvent.Publish(entityId, new EntityEventArgs(entityId));
 
          // Delete and unpair children.
          foreach (var childId in entity.ChildrenIds)
          {
-            Unpair(id, childId);
+            Unpair(entityId, childId);
             
             Delete(childId);
          }
          
          // Unpair from parents.
          if (entity.ParentId.HasValue)
-            Unpair(entity.ParentId.Value, id);
+            Unpair(entity.ParentId.Value, entityId);
          
          // Remove from remote and annotation lookups.
          if (entity.RemoteId.HasValue)
             remoteEntityIdMap.Remove(entity.RemoteId.Value);
          
          // Delete all events.
-         deletedEvent.Delete(id);
+         deletedEvent.Delete(entityId);
          
-         pairEvent.Delete(id);
+         pairEvent.Delete(entityId);
          
          // Clear rest of the state and return id to pool.
-         freeEntityIds.Return(id);
+         freeEntityIds.Return(entityId);
        
          // Mark as not alive.
          entity.Alive = false;
          
-         aliveEntityIds.Remove(id);
+         aliveEntityIds.Remove(entityId);
       }
 
-      public bool Alive(int id)
-         => id < entities.Length && entities.AtIndex(id).Alive;
+      public bool Alive(int entityId)
+         => entityId < entities.Length && entities.AtIndex(entityId).Alive;
 
-      public bool IsAnnotated(int id)
+      public bool IsAnnotated(int entityId)
       {
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         return entities.AtIndex(id).Annotation.HasValue;
+         return entities.AtIndex(entityId).Annotation.HasValue;
       }
 
-      public int GetAnnotation(int id)
+      public int GetAnnotation(int entityId)
       {
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         return entities.AtIndex(id).Annotation!.Value;
+         return entities.AtIndex(entityId).Annotation!.Value;
       }
 
-      public string GetTag(int id)
+      public string GetTag(int entityId)
       {
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         return entities.AtIndex(id).Tag;
+         return entities.AtIndex(entityId).Tag;
       }
 
       public void Pair(int parentId, int childId)
@@ -329,18 +329,18 @@ namespace Fracture.Engine.Ecs
          pairEvent.Publish(parentId, new EntityPairEventArgs(childId, parentId, EntityPairEventAction.ParentRemoved));
       }
       
-      public bool HasParent(int id)
+      public bool HasParent(int entityId)
       {
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         return entities.AtIndex(id).ParentId.HasValue;
+         return entities.AtIndex(entityId).ParentId.HasValue;
       }
       
-      public int ParentOf(int id)
+      public int ParentOf(int entityId)
       {  
-         AssertAlive(id);
+         AssertAlive(entityId);
          
-         return entities.AtIndex(id).ParentId!.Value;
+         return entities.AtIndex(entityId).ParentId!.Value;
       }
       
       public bool LocalExists(int remoteId)

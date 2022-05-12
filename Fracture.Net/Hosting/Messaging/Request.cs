@@ -20,7 +20,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the peer that created this request.
         /// </summary>
-        PeerConnection Peer
+        PeerConnection Connection
         {
             get;
         }
@@ -104,7 +104,7 @@ namespace Fracture.Net.Hosting.Messaging
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
             
-            return (in RequestMiddlewareContext context) => predicate(context.Request.Peer);
+            return (in RequestMiddlewareContext context) => predicate(context.Request.Connection);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -130,7 +130,7 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
         
         #region Properties
-        public PeerConnection Peer
+        public PeerConnection Connection
         {
             get;
             set;
@@ -167,11 +167,11 @@ namespace Fracture.Net.Hosting.Messaging
         
         public void Clear()
         {
-            Peer      = default;
-            Contents  = default;
-            Message   = default;
-            Timestamp = default;
-            Length    = default;
+            Connection = default;
+            Contents   = default;
+            Message    = default;
+            Timestamp  = default;
+            Length     = default;
         }
 
         public override string ToString()
@@ -179,7 +179,7 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Peer)
+                        .Append(Connection)
                         .Append(Contents)
                         .Append(Message)
                         .Append(Timestamp);

@@ -18,21 +18,21 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Records ping timestamp for peer with given id.
         /// </summary>
-        ulong RecordPing(int id);
+        ulong RecordPing(int peerId);
         
         /// <summary>
         /// Records pong timestamp for peer with given id. Returns boolean declaring whether request pair was found.
         /// </summary>
-        bool RecordPong(int id, ulong requestId);
+        bool RecordPong(int peerId, ulong requestId);
 
-        TimeSpan GetAverage(int id);
-        TimeSpan GetMax(int id);
-        TimeSpan GetMin(int id);
+        TimeSpan GetAverage(int peerId);
+        TimeSpan GetMax(int peerId);
+        TimeSpan GetMin(int peerId);
         
         /// <summary>
         /// Resets latency metrics for peer with given id.
         /// </summary>
-        void Reset(int id);
+        void Reset(int peerId);
     }
     
     public sealed class LatencyService : ApplicationService, ILatencyService
@@ -61,35 +61,35 @@ namespace Fracture.Net.Hosting.Services
             pings   = new Dictionary<int, Dictionary<ulong, TimeSpan>>();
         }
 
-        public ulong RecordPing(int id)
+        public ulong RecordPing(int peerId)
         {
             // Create latency "session" if it does not exist.
-            if (!samples.ContainsKey(id))
+            if (!samples.ContainsKey(peerId))
             {
-                samples.Add(id, new Queue<TimeSpan>());
+                samples.Add(peerId, new Queue<TimeSpan>());
                 
-                pings.Add(id, new Dictionary<ulong, TimeSpan>());
+                pings.Add(peerId, new Dictionary<ulong, TimeSpan>());
             }
             
             // Record the ping and create new request id.
             var requestId = RequestCounter++;
             
-            pings[id].Add(requestId, DateTime.UtcNow.TimeOfDay);
+            pings[peerId].Add(requestId, DateTime.UtcNow.TimeOfDay);
             
             return requestId;
         }
 
-        public bool RecordPong(int id, ulong requestId)
+        public bool RecordPong(int peerId, ulong requestId)
         {
             // Make sure peer has active session.
-            if (!samples.TryGetValue(id, out var sampleBuffer))
+            if (!samples.TryGetValue(peerId, out var sampleBuffer))
                 return false;
             
-            if (!pings[id].TryGetValue(requestId, out var pingTime))
+            if (!pings[peerId].TryGetValue(requestId, out var pingTime))
                 return false;
             
             // Remove the ping request from pending ones.
-            pings[id].Remove(requestId);
+            pings[peerId].Remove(requestId);
             
             // Get pong time that is the current time.
             var pongTime = DateTime.UtcNow.TimeOfDay;
@@ -103,28 +103,28 @@ namespace Fracture.Net.Hosting.Services
             return true;
         }
 
-        public TimeSpan GetAverage(int id)
+        public TimeSpan GetAverage(int peerId)
         {
-            if (!samples.TryGetValue(id, out var peerSamples))
+            if (!samples.TryGetValue(peerId, out var peerSamples))
                 return TimeSpan.Zero;
             
             if (peerSamples.Count < 3)
                 return peerSamples.Count == 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(peerSamples.Average(t => t.TotalMilliseconds));
             
-            var max = GetMax(id);
-            var min = GetMin(id);
+            var max = GetMax(peerId);
+            var min = GetMin(peerId);
             
             return TimeSpan.FromMilliseconds(peerSamples.Where(s => s > min && s < max).Average(t => t.TotalMilliseconds));
         }
         
-        public TimeSpan GetMax(int id)
-            => !samples.ContainsKey(id) ? TimeSpan.Zero : samples[id].Max();
+        public TimeSpan GetMax(int peerId)
+            => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Max();
 
-        public TimeSpan GetMin(int id)
-            => !samples.ContainsKey(id) ? TimeSpan.Zero : samples[id].Min();
+        public TimeSpan GetMin(int peerId)
+            => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Min();
 
-        public void Reset(int id)
-            => samples.Remove(id);
+        public void Reset(int peerId)
+            => samples.Remove(peerId);
     }
 
     /// <summary>
@@ -156,7 +156,7 @@ namespace Fracture.Net.Hosting.Services
             switch (message.Phase)
             {
                 case EchoPhase.Ping:
-                    Log.Debug($"received echo request from peer {request.Peer.Id}");
+                    Log.Debug($"received echo request from peer {request.Connection.PeerId}");
                     
                     response.Ok(Message.Create<EchoMessage>(m =>
                     {
@@ -165,17 +165,17 @@ namespace Fracture.Net.Hosting.Services
                     }));
                     break;
                 case EchoPhase.Pong:
-                    if (latency.RecordPong(request.Peer.Id, message.RequestId))
+                    if (latency.RecordPong(request.Connection.PeerId, message.RequestId))
                     {
-                        Log.Information($"updated peer {request.Peer.Id} latency metrics: min: {latency.GetMin(request.Peer.Id).TotalMilliseconds}ms, " +
-                                        $"average: {latency.GetAverage(request.Peer.Id).TotalMilliseconds}ms, " +
-                                        $"max: {latency.GetMax(request.Peer.Id).TotalMilliseconds}ms");
+                        Log.Information($"updated peer {request.Connection.PeerId} latency metrics: min: {latency.GetMin(request.Connection.PeerId).TotalMilliseconds}ms, " +
+                                        $"average: {latency.GetAverage(request.Connection.PeerId).TotalMilliseconds}ms, " +
+                                        $"max: {latency.GetMax(request.Connection.PeerId).TotalMilliseconds}ms");
                         
                         response.Ok();
                     }
                     else
                     {
-                        Log.Warning($"got unexpected echo response from peer {request.Peer.Id}", request);
+                        Log.Warning($"got unexpected echo response from peer {request.Connection.PeerId}", request);
                         
                         response.BadRequest();
                     }
@@ -185,24 +185,24 @@ namespace Fracture.Net.Hosting.Services
             }
         }
         
-        private void CreatePeerLatencyTestScheduler(int id)
+        private void CreatePeerLatencyTestScheduler(int peerId)
         {
             scheduler.Pulse((args) =>
             {
-                if (!Application.Peers.Contains(id))
+                if (!Application.PeerIds.Contains(peerId))
                 {
-                    Log.Debug($"clearing peer {id} latency metrics");
+                    Log.Debug($"clearing peer {peerId} latency metrics");
                     
-                    latency.Reset(id);
+                    latency.Reset(peerId);
                     
                     return PulseEventResult.Break;
                 }
                 
-                Log.Debug($"testing peer {id} latency...");
+                Log.Debug($"testing peer {peerId} latency...");
 
-                Application.Notifications.Queue.Enqueue(n => n.Send(id, Message.Create<EchoMessage>(m =>
+                Application.Notifications.Queue.Enqueue(n => n.Send(peerId, Message.Create<EchoMessage>(m =>
                 {
-                    m.RequestId = latency.RecordPing(id);
+                    m.RequestId = latency.RecordPing(peerId);
                 })));
                 
                 return PulseEventResult.Continue;
@@ -211,7 +211,7 @@ namespace Fracture.Net.Hosting.Services
 
         #region Event handlers
         private void Application_OnJoin(object sender, in PeerJoinEventArgs e)
-            => CreatePeerLatencyTestScheduler(e.Peer.Id);
+            => CreatePeerLatencyTestScheduler(e.Connection.PeerId);
         #endregion
     }
 }

@@ -51,21 +51,21 @@ namespace Fracture.Engine.Ecs
       /// </summary>
       int Create(int entityId);
       
-      Vector2 GetPosition(int id);
-      Vector2 GetScale(int id);
-      float GetRotation(int id);
-      Transform GetTransform(int id);
+      Vector2 GetPosition(int componentId);
+      Vector2 GetScale(int componentId);
+      float GetRotation(int componentId);
+      Transform GetTransform(int componentId);
       
-      void ApplyTransformation(int id, in Transform transform);
-      void ApplyTranslation(int id, in Transform translation);
+      void ApplyTransformation(int componentId, in Transform transform);
+      void ApplyTranslation(int componentId, in Transform translation);
       
-      void TranslatePosition(int id, in Vector2 translation);
-      void TranslateScale(int id, in Vector2 translation);
-      void TranslateRotation(int id, float translation);
+      void TranslatePosition(int componentId, in Vector2 translation);
+      void TranslateScale(int componentId, in Vector2 translation);
+      void TranslateRotation(int componentId, float translation);
       
-      void TransformPosition(int id, in Vector2 transformation);
-      void TransformScale(int id, in Vector2 transformation);
-      void TransformRotation(int id, float transformation);
+      void TransformPosition(int componentId, in Vector2 transformation);
+      void TransformScale(int componentId, in Vector2 transformation);
+      void TransformRotation(int componentId, float transformation);
    }
    
    /// <summary>
@@ -141,145 +141,145 @@ namespace Fracture.Engine.Ecs
       public int Create(int entityId)
          => Create(entityId, Transform.Default);
 
-      public override bool Delete(int id)
+      public override bool Delete(int componentId)
       {
-         if (!base.Delete(id))
+         if (!base.Delete(componentId))
             return false;
          
          // Delete events.
-         changedEvent.Delete(id);
+         changedEvent.Delete(componentId);
          
          return true;
       }
 
-      public Vector2 GetPosition(int id)
+      public Vector2 GetPosition(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return components.AtIndex(id).Transform.Position;
+         return components.AtIndex(componentId).Transform.Position;
       }
 
-      public Vector2 GetScale(int id)
+      public Vector2 GetScale(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return components.AtIndex(id).Transform.Scale;
+         return components.AtIndex(componentId).Transform.Scale;
       }
 
-      public float GetRotation(int id)
+      public float GetRotation(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return components.AtIndex(id).Transform.Rotation;
+         return components.AtIndex(componentId).Transform.Rotation;
       }
       
-      public Transform GetTransform(int id)
+      public Transform GetTransform(int componentId)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         return components.AtIndex(id).Transform;
+         return components.AtIndex(componentId).Transform;
       }
       
-      public void ApplyTransformation(int id, in Transform transform)
+      public void ApplyTransformation(int componentId, in Transform transform)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = transform;
          
-         changedEvent.Publish(id,
+         changedEvent.Publish(componentId,
                               new TransformChangedEventArgs(component.EntityId, Transform.Default, transform),
                               AggregateTransformChanges);
       }
 
-      public void ApplyTranslation(int id, in Transform translation)
+      public void ApplyTranslation(int componentId, in Transform translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform += translation;
          
-         changedEvent.Publish(id,
+         changedEvent.Publish(componentId,
                               new TransformChangedEventArgs(component.EntityId, component.Transform, translation),
                               AggregateTransformChanges);
       }
 
-      public void TranslatePosition(int id, in Vector2 translation)
+      public void TranslatePosition(int componentId, in Vector2 translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TranslatePosition(component.Transform, translation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.ComponentPosition(translation), component.Transform),
                               AggregateTransformChanges);
       }
 
-      public void TranslateScale(int id, in Vector2 translation)
+      public void TranslateScale(int componentId, in Vector2 translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TranslateScale(component.Transform, translation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.ComponentScale(translation), component.Transform),
                               AggregateTransformChanges);
       }
 
-      public void TranslateRotation(int id, float translation)
+      public void TranslateRotation(int componentId, float translation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TranslateRotation(component.Transform, translation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.ComponentRotation(translation), component.Transform),
                               AggregateTransformChanges);
       }
 
-      public void TransformPosition(int id, in Vector2 transformation)
+      public void TransformPosition(int componentId, in Vector2 transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TransformPosition(component.Transform, transformation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.Default, component.Transform),
                               AggregateTransformChanges);
       }
 
-      public void TransformScale(int id, in Vector2 transformation)
+      public void TransformScale(int componentId, in Vector2 transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TransformScale(component.Transform, transformation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.Default, component.Transform),
                               AggregateTransformChanges);
       }
 
-      public void TransformRotation(int id, float transformation)
+      public void TransformRotation(int componentId, float transformation)
       {
-         AssertAlive(id);
+         AssertAlive(componentId);
          
-         ref var component = ref components.AtIndex(id);
+         ref var component = ref components.AtIndex(componentId);
          
          component.Transform = Transform.TransformRotation(component.Transform, transformation);
          
-         changedEvent.Publish(id, 
+         changedEvent.Publish(componentId, 
                               new TransformChangedEventArgs(component.EntityId, Transform.Default, component.Transform),
                               AggregateTransformChanges);
       }

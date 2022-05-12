@@ -72,7 +72,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the optional peer list associated with this notification.
         /// </summary>
-        int[] Peers
+        int[] PeerIds
         {
             get;
         }
@@ -81,23 +81,23 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Enqueues message notification for handling. 
         /// </summary>
-        /// <param name="peer">id of the peer this message is send to</param>
+        /// <param name="peerId">id of the peer this message is send to</param>
         /// <param name="message">message that will be send</param>
-        void Send(int peer, in IMessage message);
+        void Send(int peerId, in IMessage message);
         
         /// <summary>
         /// Enqueues reset notification for handling.
         /// </summary>
-        /// <param name="peer">peer that will be reset</param>
+        /// <param name="peerId">peer that will be reset</param>
         /// <param name="message">optional last message send to the peer before resetting</param>
-        void Reset(int peer, in IMessage message = null);
+        void Reset(int peerId, in IMessage message = null);
 
         /// <summary>
         /// Enqueues broadcast message for handling. 
         /// </summary>
         /// <param name="message">message that will be broadcast</param>
-        /// <param name="peers">peers that the message will be broadcast to</param>
-        void BroadcastNarrow(in IMessage message, params int[] peers);
+        /// <param name="peerIds">peers that the message will be broadcast to</param>
+        void BroadcastNarrow(in IMessage message, params int[] peerIds);
         
         /// <summary>
         /// Enqueues broadcast message for handling. This message will be send to all connected peers.
@@ -136,7 +136,7 @@ namespace Fracture.Net.Hosting.Messaging
             private set;
         }
 
-        public int[] Peers
+        public int[] PeerIds
         {
             get;
             private set;
@@ -153,33 +153,33 @@ namespace Fracture.Net.Hosting.Messaging
                 throw new InvalidOperationException("notification is not unset");
         }
         
-        public void Send(int peer, in IMessage message)
+        public void Send(int peerId, in IMessage message)
         {
             AssertUnset();
             
             Command = NotificationCommand.Send;
-            Peers   = new[] { peer };
+            PeerIds   = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
-        public void Reset(int peer, in IMessage message = null)
+        public void Reset(int peerId, in IMessage message = null)
         {   
             AssertUnset();
 
             Command = NotificationCommand.Reset;
-            Peers   = new[] { peer };
+            PeerIds   = new[] { peerId };
             Message = message;
         }
         
-        public void BroadcastNarrow(in IMessage message, params int[] peers)
+        public void BroadcastNarrow(in IMessage message, params int[] peerIds)
         {
             AssertUnset();
 
-            if (peers?.Length == 0)
+            if (peerIds?.Length == 0)
                 throw new ArgumentException("expecting at least one peer to be present");
 
             Command = NotificationCommand.BroadcastNarrow;
-            Peers   = peers;
+            PeerIds   = peerIds;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
         
@@ -188,7 +188,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.BroadcastWide;
-            Peers   = null;
+            PeerIds   = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
@@ -197,14 +197,14 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.Shutdown;
-            Peers   = null;
+            PeerIds   = null;
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
         public void Clear()
         {
             Command = default;
-            Peers   = default;
+            PeerIds   = default;
             Message = default;
         }
         
@@ -214,7 +214,7 @@ namespace Fracture.Net.Hosting.Messaging
         public override int GetHashCode()
             => HashUtils.Create()
                         .Append(Command)
-                        .Append(Peers)
+                        .Append(PeerIds)
                         .Append(Message);
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

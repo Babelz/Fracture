@@ -36,35 +36,35 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             messages = new Queue<PeerMessageEventArgs>();
         }
         
-        public FakeServerFrame Leave(PeerConnection peer, ResetReason reason)
+        public FakeServerFrame Leave(PeerConnection connection, ResetReason reason)
         {
-            leaves.Enqueue(new PeerResetEventArgs(peer, reason, DateTime.UtcNow.TimeOfDay));
+            leaves.Enqueue(new PeerResetEventArgs(connection, reason, DateTime.UtcNow.TimeOfDay));
             
             return this;
         }
         
-        public FakeServerFrame Join(PeerConnection peer)
+        public FakeServerFrame Join(PeerConnection connection)
         {
-            joins.Enqueue(new PeerJoinEventArgs(new PeerConnection(peer.Id, peer.EndPoint), DateTime.UtcNow.TimeOfDay));
+            joins.Enqueue(new PeerJoinEventArgs(new PeerConnection(connection.PeerId, connection.EndPoint), DateTime.UtcNow.TimeOfDay));
             
             return this;
         }
         
-        public FakeServerFrame Incoming(PeerConnection peer, byte[] data, int length)
+        public FakeServerFrame Incoming(PeerConnection connection, byte[] data, int length)
         {
-            messages.Enqueue(new PeerMessageEventArgs(peer, data, length, DateTime.UtcNow.TimeOfDay));
+            messages.Enqueue(new PeerMessageEventArgs(connection, data, length, DateTime.UtcNow.TimeOfDay));
             
             return this;
         }
         
-        public FakeServerFrame Incoming(PeerConnection peer, in IMessage message)
+        public FakeServerFrame Incoming(PeerConnection connection, in IMessage message)
         {
             var size = StructSerializer.GetSizeFromValue(message);
             var data = BufferPool.Take(size);
             
             StructSerializer.Serialize(message, data, 0);
             
-            messages.Enqueue(new PeerMessageEventArgs(peer, data, size, DateTime.UtcNow.TimeOfDay));
+            messages.Enqueue(new PeerMessageEventArgs(connection, data, size, DateTime.UtcNow.TimeOfDay));
             
             return this;
         }
@@ -84,7 +84,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         #endregion
         
         #region Fields
-        private readonly HashSet<int> peers;
+        private readonly HashSet<int> peerIds;
         
         private readonly Dictionary<int, IPEndPoint> endpoints; 
         
@@ -103,16 +103,16 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         #endregion
         
         public int PeersCount
-            => peers.Count;
+            => peerIds.Count;
 
-        public IEnumerable<int> Peers
-            => peers;
+        public IEnumerable<int> PeerIds
+            => peerIds;
 
         private FakeServer(params FakeServerFrame[] frames)
         {
             this.frames = new Queue<FakeServerFrame>(frames);
 
-            peers     = new HashSet<int>();
+            peerIds   = new HashSet<int>();
             leaves    = new HashSet<PeerResetEventArgs>();
             outgoing  = new Queue<ServerMessageEventArgs>();
             endpoints = new Dictionary<int, IPEndPoint>();
@@ -121,14 +121,14 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         public void EnqueueFrame(FakeServerFrame frame)
             => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
         
-        public void Disconnect(int id)
-            => leaves.Add(new PeerResetEventArgs(new PeerConnection(id, endpoints[id]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
+        public void Disconnect(int peerId)
+            => leaves.Add(new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
 
-        public bool Connected(int id)
-            => peers.Contains(id);
+        public bool Connected(int peerId)
+            => peerIds.Contains(peerId);
 
-        public void Send(int id, byte[] data, int offset, int length)
-            => outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(id, endpoints[id]), data, offset, length, DateTime.UtcNow.TimeOfDay));
+        public void Send(int peerId, byte[] data, int offset, int length)
+            => outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(peerId, endpoints[peerId]), data, offset, length, DateTime.UtcNow.TimeOfDay));
 
         public void Start()
         {
@@ -137,12 +137,12 @@ namespace Fracture.Net.Tests.Hosting.Fakes
 
         public void Shutdown()
         {
-            foreach (var peer in peers)
+            foreach (var peerId in peerIds)
             {
-                Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peer, endpoints[peer]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
+                Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
             }
             
-            peers.Clear();
+            peerIds.Clear();
             leaves.Clear();
             endpoints.Clear();
         }
@@ -153,23 +153,23 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             var frame = frames.Count != 0 ? frames.Dequeue() : null;
             
             // Handle leaves.
-            foreach (var leave in leaves.Concat(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>()))
+            foreach (var leaving in leaves.Concat(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>()))
             {
-                peers.Remove(leave.Peer.Id);
-                endpoints.Remove(leave.Peer.Id);
+                peerIds.Remove(leaving.Connection.PeerId);
+                endpoints.Remove(leaving.Connection.PeerId);
 
-                Reset?.Invoke(this, leave);
+                Reset?.Invoke(this, leaving);
             }
             
             leaves.Clear();
             
             // Handle joins.
-            foreach (var join in frame?.Joins ?? Array.Empty<PeerJoinEventArgs>())
+            foreach (var joining in frame?.Joins ?? Array.Empty<PeerJoinEventArgs>())
             {
-                peers.Add(join.Peer.Id);
-                endpoints.Add(join.Peer.Id, join.Peer.EndPoint);
+                peerIds.Add(joining.Connection.PeerId);
+                endpoints.Add(joining.Connection.PeerId, joining.Connection.EndPoint);
 
-                Join?.Invoke(this, join);
+                Join?.Invoke(this, joining);
             }
             
             // Handle incoming

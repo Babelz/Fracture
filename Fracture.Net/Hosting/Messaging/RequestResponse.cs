@@ -100,7 +100,7 @@ namespace Fracture.Net.Hosting.Messaging
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
             
-            return (in RequestResponseMiddlewareContext context) => predicate(context.Request.Peer);
+            return (in RequestResponseMiddlewareContext context) => predicate(context.Request.Connection);
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

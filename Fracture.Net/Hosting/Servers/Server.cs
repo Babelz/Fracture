@@ -94,7 +94,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Returns id of connected peers.
         /// </summary>
-        IEnumerable<int> Peers
+        IEnumerable<int> PeerIds
         {
             get;
         }
@@ -103,12 +103,12 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Disconnects peer with given id.
         /// </summary>
-        void Disconnect(int id);
+        void Disconnect(int peerId);
         
         /// <summary>
         /// Sends message to peer with given id.
         /// </summary>
-        void Send(int id, byte[] data, int offset, int length);
+        void Send(int peerId, byte[] data, int offset, int length);
         
         void Start();
         
@@ -129,7 +129,7 @@ namespace Fracture.Net.Hosting.Servers
         
         #region Fields
         private readonly Dictionary<int, IPeer> lookup;
-        private readonly List<IPeer> peers;
+        private readonly List<IPeer> peerIds;
      
         private readonly IPeerFactory factory;
         private readonly IListener listener;
@@ -137,9 +137,9 @@ namespace Fracture.Net.Hosting.Servers
         
         #region Properties
         public int PeersCount
-            => peers.Count;
+            => peerIds.Count;
         
-        public IEnumerable<int> Peers
+        public IEnumerable<int> PeerIds
             => lookup.Keys;
         #endregion
         
@@ -148,17 +148,17 @@ namespace Fracture.Net.Hosting.Servers
             this.factory  = factory ?? throw new ArgumentNullException(nameof(factory));
             this.listener = listener ?? throw new ArgumentNullException(nameof(listener));
 
-            peers  = new List<IPeer>();
-            lookup = new Dictionary<int, IPeer>();
+            peerIds = new List<IPeer>();
+            lookup  = new Dictionary<int, IPeer>();
         }
 
         #region Event handlers
         private void Peer_OnReset(object sender, in PeerResetEventArgs e)
         {
-            var peer = lookup[e.Peer.Id];
+            var peer = lookup[e.Connection.PeerId];
             
-            peers.Remove(peer);
-            lookup.Remove(e.Peer.Id);
+            peerIds.Remove(peer);
+            lookup.Remove(e.Connection.PeerId);
             
             peer.Incoming -= Peer_OnReceived;
             peer.Outgoing -= Peer_OnSending;
@@ -181,7 +181,7 @@ namespace Fracture.Net.Hosting.Servers
             var peer = factory.Create(e.Socket);
             
             lookup.Add(peer.Id, peer);
-            peers.Add(peer);
+            peerIds.Add(peer);
             
             peer.Incoming += Peer_OnReceived;
             peer.Outgoing += Peer_OnSending;
@@ -192,17 +192,17 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public void Disconnect(int id)
+        public void Disconnect(int peerId)
         {
-            if (!lookup.TryGetValue(id, out var peer))
+            if (!lookup.TryGetValue(peerId, out var peer))
                 throw new InvalidOperationException("peer not connected");
             
             peer.Disconnect();
         }
         
-        public void Send(int id, byte[] data, int offset, int length)
+        public void Send(int peerId, byte[] data, int offset, int length)
         {
-            if (!lookup.TryGetValue(id, out var peer))
+            if (!lookup.TryGetValue(peer, out var peer))
                 throw new InvalidOperationException("peer not connected");
             
             peer.Send(data, offset, length);
@@ -221,13 +221,13 @@ namespace Fracture.Net.Hosting.Servers
         {
             listener.Deafen();
             
-            for (var i = 0; i < peers.Count; i++)
-                peers[i].Disconnect();
+            for (var i = 0; i < peerIds.Count; i++)
+                peerIds[i].Disconnect();
             
-            while (peers.Count != 0)
+            while (peerIds.Count != 0)
             {
-                for (var i = 0; i < peers.Count; i++)
-                    peers[i].Poll();
+                for (var i = 0; i < peerIds.Count; i++)
+                    peerIds[i].Poll();
             }
         }
         
@@ -235,18 +235,18 @@ namespace Fracture.Net.Hosting.Servers
         {
             listener.Poll();
             
-            for (var i = 0; i < peers.Count; i++)
-                peers[i].Poll();
+            for (var i = 0; i < peerIds.Count; i++)
+                peerIds[i].Poll();
         }
 
         public void Dispose()
         {
             listener.Dispose();
             
-            foreach (var peer in peers)
-                peer.Dispose();
+            foreach (var peerId in peerIds)
+                peerId.Dispose();
             
-            peers.Clear();
+            peerIds.Clear();
             lookup.Clear();
         }
     }

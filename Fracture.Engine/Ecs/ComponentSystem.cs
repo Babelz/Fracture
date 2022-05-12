@@ -21,12 +21,12 @@ namespace Fracture.Engine.Ecs
       /// <summary>
       /// Returns the id of the entity that owns the component with given id.
       /// </summary>
-      int OwnerOf(int id);
+      int OwnerOf(int componentId);
       
       /// <summary>
       /// Returns boolean declaring whether a component with given id is alive.
       /// </summary>
-      bool IsAlive(int id);
+      bool IsAlive(int componentId);
       
       /// <summary>
       /// Returns boolean declaring whether any components are bound to this entity.
@@ -41,7 +41,7 @@ namespace Fracture.Engine.Ecs
       /// Attempts to delete component with given id, returns
       /// boolean declaring whether the component was deleted.
       /// </summary>
-      bool Delete(int id);
+      bool Delete(int componentId);
    }
 
    /// <summary>
@@ -82,11 +82,11 @@ namespace Fracture.Engine.Ecs
          componentToEntityMap = new Dictionary<int, int>();
       }
       
-      protected void AssertAlive(int id)
+      protected void AssertAlive(int componentId)
       {
 #if DEBUG || ECS_RUNTIME_CHECKS
-         if (!IsAlive(id)) 
-            throw new InvalidOperationException($"component {id} does not exist");
+         if (!IsAlive(componentId)) 
+            throw new InvalidOperationException($"component {componentId} does not exist");
 #endif
       }
       
@@ -110,24 +110,24 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
       
-      public int OwnerOf(int id) 
-         => componentToEntityMap[id];
+      public int OwnerOf(int componentId) 
+         => componentToEntityMap[componentId];
 
-      public virtual bool Delete(int id)
+      public virtual bool Delete(int componentId)
       {
-         if (!componentToEntityMap.Remove(id))
+         if (!componentToEntityMap.Remove(componentId))
             return false;
          
-         aliveComponents.Remove(id);
-         componentToEntityMap.Remove(id);
+         aliveComponents.Remove(componentId);
+         componentToEntityMap.Remove(componentId);
          
-         freeComponents.Return(id);
+         freeComponents.Return(componentId);
          
          return true;
       }
 
-      public bool IsAlive(int id)
-         => componentToEntityMap.ContainsKey(id);
+      public bool IsAlive(int componentId)
+         => componentToEntityMap.ContainsKey(componentId);
 
       public abstract bool BoundTo(int entityId);
       public abstract int FirstFor(int entityId);
@@ -184,12 +184,12 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
       
-      public override bool Delete(int id)
+      public override bool Delete(int componentId)
       {
-         var success = base.Delete(id);
+         var success = base.Delete(componentId);
          
          if (success)
-            entityToComponentMap.Remove(id);
+            entityToComponentMap.Remove(componentId);
          
          return success;
       }
@@ -259,20 +259,20 @@ namespace Fracture.Engine.Ecs
          return componentId;
       }
 
-      public override bool Delete(int id)
+      public override bool Delete(int componentId)
       {
-         if (!IsAlive(id)) 
+         if (!IsAlive(componentId)) 
             return false;
          
-         var entityId = OwnerOf(id);
+         var entityId = OwnerOf(componentId);
          
-         if (!base.Delete(id)) 
+         if (!base.Delete(componentId)) 
             return false;
          
          // Remove from map.
          var components = entityToComponentsMap[entityId];
             
-         components.Remove(id);
+         components.Remove(componentId);
             
          // Remove map if empty.
          if (components.Count != 0) 

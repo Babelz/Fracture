@@ -146,11 +146,11 @@ namespace Fracture.Engine.Graphics
       public GraphicsElementCell()
          => elements = new HashSet<int>();
       
-      public void Add(int id)
-         => elements.Add(id);
+      public void Add(int elementId)
+         => elements.Add(elementId);
       
-      public void Remove(int id)
-         => elements.Remove(id);
+      public void Remove(int elementId)
+         => elements.Remove(elementId);
       
       public IEnumerator<int> GetEnumerator()
          => elements.GetEnumerator();
@@ -338,26 +338,26 @@ namespace Fracture.Engine.Graphics
       /// <summary>
       /// Adds new element to the layer with given type id and initial aabb.
       /// </summary>
-      public void Add(int id, int typeId, ref Aabb aabb, out bool clamped)
+      public void Add(int elementId, int typeId, ref Aabb aabb, out bool clamped)
       {
          ClampAabb(ref aabb, out clamped);
          
          GrowToFit(aabb);
          
          // Make sure we have enough space for this new element.
-         if (id >= elements.Length)
+         if (elementId >= elements.Length)
             elements.Grow();
          
          // Compute location for the element.
          AreaRange(aabb, out var location);
 
          // Store actual data of the element.
-         locations.Insert(id, location);
-         elements.Insert(id, new GraphicsElement(id, typeId));
+         locations.Insert(elementId, location);
+         elements.Insert(elementId, new GraphicsElement(elementId, typeId));
          
          // Add to actual cells.
          if (location.Unique())
-            grid[location.Begin.Row][location.Begin.Column].Add(id);
+            grid[location.Begin.Row][location.Begin.Column].Add(elementId);
          else
          {
             // Multiple cells in range, add to them all. Use equal or smaller operator
@@ -366,7 +366,7 @@ namespace Fracture.Engine.Graphics
             for (var i = location.Begin.Row; i <= location.End.Row; i++)
             {
                for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                  grid[i][j].Add(id);
+                  grid[i][j].Add(elementId);
             }
          }
       }
@@ -374,20 +374,20 @@ namespace Fracture.Engine.Graphics
       /// <summary>
       /// Removes element with given id from the layer.
       /// </summary>
-      public void Remove(int id)
+      public void Remove(int elementId)
       {
-         ref var location = ref locations.AtIndex(id);
+         ref var location = ref locations.AtIndex(elementId);
          
          // Remove to actual cells.
          if (location.Unique())
-            grid[location.Begin.Row][location.Begin.Column].Remove(id);
+            grid[location.Begin.Row][location.Begin.Column].Remove(elementId);
          else
          {
             // Multiple cells in range, remove from them all.
             for (var i = location.Begin.Row; i <= location.End.Row; i++)
             {
                for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                  grid[i][j].Remove(id);
+                  grid[i][j].Remove(elementId);
             }
          }
       }
@@ -395,12 +395,12 @@ namespace Fracture.Engine.Graphics
       /// <summary>
       /// Updates given element with given id with new aabb. 
       /// </summary>
-      /// <param name="id">id of the element to be updated</param>
+      /// <param name="elementId">id of the element to be updated</param>
       /// <param name="aabb">new aabb of the element</param>
       /// <param name="clamped">boolean declaring was the element clamped, if true the aabb was changed</param>
-      public void Update(int id, ref Aabb aabb, out bool clamped)
+      public void Update(int elementId, ref Aabb aabb, out bool clamped)
       {
-         ref var location = ref locations.AtIndex(id);
+         ref var location = ref locations.AtIndex(elementId);
          
          AreaRange(aabb, out var updateLocation);
          
@@ -416,25 +416,25 @@ namespace Fracture.Engine.Graphics
          
          // Reinsert, begin by removing.
          if (location.Unique())
-            grid[location.Begin.Row][location.Begin.Column].Remove(id);
+            grid[location.Begin.Row][location.Begin.Column].Remove(elementId);
          else
          {
             for (var i = location.Begin.Row; i <= location.End.Row; i++)
             {
                for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                  grid[i][j].Remove(id);
+                  grid[i][j].Remove(elementId);
             }  
          }
 
          // Reinsert, add to new locations.
          if (updateLocation.Unique())
-            grid[updateLocation.Begin.Row][updateLocation.Begin.Column].Add(id);
+            grid[updateLocation.Begin.Row][updateLocation.Begin.Column].Add(elementId);
          else
          {
             for (var i = updateLocation.Begin.Row; i <= updateLocation.End.Row; i++)
             {
                for (var j = updateLocation.Begin.Column; j <= updateLocation.End.Column; j++)
-                  grid[i][j].Add(id);
+                  grid[i][j].Add(elementId);
             }  
          }
 

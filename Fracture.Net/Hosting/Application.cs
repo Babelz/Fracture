@@ -151,7 +151,7 @@ namespace Fracture.Net.Hosting
         private readonly HashSet<int> leavedPeers;
         
         // Peers that were marked as leaving by message pipeline.
-        private readonly HashSet<int> leavingPeers;
+        private readonly HashSet<int> leavingPeerIds;
 
         private ExecutionTimer applicationLoopTimer;
         
@@ -187,8 +187,8 @@ namespace Fracture.Net.Hosting
         public IApplicationClock Clock 
             => timer;
         
-        public IEnumerable<int> Peers
-            => server.Peers;
+        public IEnumerable<int> PeerIds
+            => server.PeerIds;
         #endregion
 
         [BindingConstructor]
@@ -228,8 +228,8 @@ namespace Fracture.Net.Hosting
             acceptedResponses     = new Queue<RequestResponse>();
             acceptedNotifications = new Queue<Notification>();
 
-            leavedPeers  = new HashSet<int>();
-            leavingPeers = new HashSet<int>();
+            leavedPeers    = new HashSet<int>();
+            leavingPeerIds = new HashSet<int>();
             
             applicationLoopTimer = new ExecutionTimer("application-loop-round", TimeSpan.FromSeconds(15));
         }
@@ -279,7 +279,7 @@ namespace Fracture.Net.Hosting
             Log.Warning($"marking peer {peer} to be reset as it broke required fidelity level of " +
                      $"{Enum.GetName(typeof(PeerPipelineFidelity), flag)}");
                 
-            leavingPeers.Add(peer);
+            leavingPeerIds.Add(peer);
         }
 
         #region Event handlers
@@ -339,7 +339,7 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
-                    Log.Information($"peer {joinEvent.Peer.Id} joining");
+                    Log.Information($"peer {joinEvent.Connection.PeerId} joining");
 
                     Join?.Invoke(this, joinEvent);
                 }
@@ -347,7 +347,7 @@ namespace Fracture.Net.Hosting
                 {
                     Log.Warning(e, "unhandled error occurred notifying about joining peer");
                     
-                    HandlePeerFidelityViolation(PeerPipelineFidelity.Join, joinEvent.Peer.Id);
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Join, joinEvent.Connection.PeerId);
                 }
             }
         }
@@ -367,7 +367,7 @@ namespace Fracture.Net.Hosting
                 
                 try
                 {
-                    Log.Information($"peer {resetEvent.Peer.Id} resetting, reason: {resetEvent.Reason}");
+                    Log.Information($"peer {resetEvent.Connection.PeerId} resetting, reason: {resetEvent.Reason}");
                     
                     Reset?.Invoke(this, resetEvent);
                 }
@@ -376,7 +376,7 @@ namespace Fracture.Net.Hosting
                     Log.Warning(e, "unhandled error occurred notifying about reseting peer");
                 }
                 
-                leavedPeers.Add(resetEvent.Peer.Id);
+                leavedPeers.Add(resetEvent.Connection.PeerId);
             }
         }
         
@@ -391,7 +391,7 @@ namespace Fracture.Net.Hosting
                 var incomingEvent = incomingEvents.Dequeue();
                 
                 // Skip handling for all requests where the peer has leaved or is about to leave.
-                if (leavedPeers.Contains(incomingEvent.Peer.Id) || leavingPeers.Contains(incomingEvent.Peer.Id))
+                if (leavedPeers.Contains(incomingEvent.Connection.PeerId) || leavingPeerIds.Contains(incomingEvent.Connection.PeerId))
                 {
                     BufferPool.Return(incomingEvent.Contents);
                     
@@ -412,9 +412,9 @@ namespace Fracture.Net.Hosting
                         
                         if (size == 0)
                         {
-                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Connection.PeerId);
                             
-                            Log.Warning($"packet contains zero sized message from peer {incomingEvent.Peer.Id}");
+                            Log.Warning($"packet contains zero sized message from peer {incomingEvent.Connection.PeerId}");
                             
                             BadRequest?.Invoke(this, incomingEvent);
                             
@@ -425,9 +425,9 @@ namespace Fracture.Net.Hosting
                         
                         if (size > incomingEvent.Length - offset)
                         {
-                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                            HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Connection.PeerId);
                             
-                            Log.Warning($"invalid sized message received from peer {incomingEvent.Peer.Id}, reading further would go outside the bounds of the" +
+                            Log.Warning($"invalid sized message received from peer {incomingEvent.Connection.PeerId}, reading further would go outside the bounds of the" +
                                      $" receive buffer");
                             
                             BadRequest?.Invoke(this, incomingEvent);
@@ -445,7 +445,7 @@ namespace Fracture.Net.Hosting
                         // Deserialize and create the actual request.
                         request.Message   = serializer.Deserialize(contents, 0);
                         request.Contents  = contents;
-                        request.Peer      = incomingEvent.Peer;
+                        request.Connection      = incomingEvent.Connection;
                         request.Timestamp = incomingEvent.Timestamp;
                         request.Length    = size;
                         
@@ -455,7 +455,7 @@ namespace Fracture.Net.Hosting
                     }
                     catch (Exception e)
                     {
-                        HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Peer.Id);
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Connection.PeerId);
                         
                         ReleaseRequest(request);
 
@@ -490,7 +490,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Peer.Id);
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Connection.PeerId);
                     
                     ReleaseRequest(request);
                     
@@ -509,7 +509,7 @@ namespace Fracture.Net.Hosting
                 var request = acceptedRequests.Dequeue();
                 
                 // Do not allow handling of requests if the handler reset the peer.
-                if (leavingPeers.Contains(request.Peer.Id))
+                if (leavingPeerIds.Contains(request.Connection.PeerId))
                 {
                     ReleaseRequest(request);
                     
@@ -534,7 +534,7 @@ namespace Fracture.Net.Hosting
                             Log.Debug("request will reset the peer, {@response}, {@request}", response, request);
                             
                             // Disallow handling of any remaining requests and mark the peer as leaving.
-                            leavingPeers.Add(request.Peer.Id);
+                            leavingPeerIds.Add(request.Connection.PeerId);
                             break;
                         case ResponseStatus.Code.ServerError:
                             Log.Debug("server error occurred while processing request, {@response}, {@request}", response, request);
@@ -562,7 +562,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Peer.Id);
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Connection.PeerId);
                     
                     ReleaseRequest(request);
                     ReleaseResponse(response);
@@ -606,7 +606,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Connection.PeerId);
                     
                     ReleaseRequestResponse(requestResponse);
                     
@@ -624,20 +624,20 @@ namespace Fracture.Net.Hosting
             notificationCenter.Handle((notification) =>
             {
                 // All notifications might not have peers associated with them. In this case we broadcast the notification to all peers.
-                var peers = (notification.Peers ?? server.Peers).ToArray();
+                var peerIds = (notification.PeerIds ?? server.PeerIds).ToArray();
 
                 try
                 {   
                     // Filter all requests that are rejected by the middleware.
-                    if (notificationMiddleware.Invoke(new NotificationMiddlewareContext(peers, notification)))
+                    if (notificationMiddleware.Invoke(new NotificationMiddlewareContext(peerIds, notification)))
                         ReleaseNotification(notification);
                     else
                         acceptedNotifications.Enqueue(notification);
                 }
                 catch (Exception e)
                 {
-                    foreach (var peer in peers)
-                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
+                    foreach (var peerId in peerIds)
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peerId);
 
                     ReleaseNotification(notification);
                     
@@ -663,11 +663,11 @@ namespace Fracture.Net.Hosting
                     
                     serializer.Serialize(requestResponse.Response.Message, contents, 0);
                     
-                    server.Send(requestResponse.Request.Peer.Id, contents, 0, size);
+                    server.Send(requestResponse.Request.Connection.PeerId, contents, 0, size);
                 }
                 catch (Exception e)
                 {
-                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Peer.Id);
+                    HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Connection.PeerId);
                     
                     Log.Warning(e, "unhandled error occurred while handling accepted responses");
                 }
@@ -681,48 +681,48 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void HandleAcceptedNotifications()
         {
-            void Send(in IMessage message, int peer)
+            void Send(in IMessage message, int peerId)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
 
                 serializer.Serialize(message, contents, 0);
                     
-                server.Send(peer, contents, 0, size);
+                server.Send(peerId, contents, 0, size);
             }
                 
-            void Broadcast(in IMessage message, int[] peers)
+            void Broadcast(in IMessage message, int[] peerIds)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
 
                 serializer.Serialize(message, contents, 0);
                     
-                foreach (var peer in peers)
+                foreach (var peerId in peerIds)
                 {
                     var copy = BufferPool.Take(size);
                         
                     contents.CopyTo(copy, 0);
                         
-                    server.Send(peer, copy, 0, size);
+                    server.Send(peerId, copy, 0, size);
                 }
                 
                 BufferPool.Return(contents);
             }
             
-            void Reset(in IMessage message, int[] peers)
+            void Reset(in IMessage message, int[] peerIds)
             {
                 if (message != null)
-                    Broadcast(message, peers);
+                    Broadcast(message, peerIds);
                     
-                foreach (var peer in peers)
-                    leavingPeers.Add(peer);
+                foreach (var peerId in peerIds)
+                    leavingPeerIds.Add(peerId);
             }
             
             while (acceptedNotifications.Count != 0)
             {
                 var notification = acceptedNotifications.Dequeue();
-                var peers        = (notification.Peers ?? server.Peers).Where(p => !leavingPeers.Contains(p)).ToArray();
+                var peerIds      = (notification.PeerIds ?? server.PeerIds).Where(p => !leavingPeerIds.Contains(p)).ToArray();
                                                                               
                 try
                 {
@@ -731,22 +731,22 @@ namespace Fracture.Net.Hosting
                     switch (notification.Command)
                     {
                         case NotificationCommand.Send:
-                            var peer = peers.First();
+                            var peerId = peerIds.First();
                             
-                            if (!leavingPeers.Contains(peer))
-                                Send(notification.Message, peer);
+                            if (!leavingPeerIds.Contains(peerId))
+                                Send(notification.Message, peerId);
                             break;
                         case NotificationCommand.BroadcastNarrow:
-                            Broadcast(notification.Message, peers);
+                            Broadcast(notification.Message, peerIds);
                             break;
                         case NotificationCommand.BroadcastWide:
-                            Broadcast(notification.Message, peers);
+                            Broadcast(notification.Message, peerIds);
                             break;
                         case NotificationCommand.Reset:
-                            Reset(notification.Message, peers);
+                            Reset(notification.Message, peerIds);
                             break;
                         case NotificationCommand.Shutdown:
-                            Reset(notification.Message, peers);
+                            Reset(notification.Message, peerIds);
                             break;
                         default:
                             Log.Error("notification command was unset or unsupported", notification);
@@ -755,8 +755,8 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    foreach (var peer in peers)
-                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peer);
+                    foreach (var peerId in peerIds)
+                        HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peerId);
                     
                     Log.Warning(e, "unhandled error occurred while handling accepted notifications");
                 }
@@ -770,11 +770,11 @@ namespace Fracture.Net.Hosting
         /// </summary>
         private void ResetLeavingPeers()
         {
-            foreach (var peer in leavingPeers)
+            foreach (var peerId in leavingPeerIds)
             {
                 try
                 {
-                    server.Disconnect(peer);
+                    server.Disconnect(peerId);
                 }
                 catch (Exception e)
                 {
@@ -782,7 +782,7 @@ namespace Fracture.Net.Hosting
                 }
             }
             
-            leavingPeers.Clear();
+            leavingPeerIds.Clear();
         }
         
         public void Shutdown()

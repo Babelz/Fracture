@@ -79,7 +79,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
         }
         
-        [Fact()]
+        [Fact]
         public void Serialization_Back_And_Forth_Works_With_All_Field_Types()
         {
             var mapping = ObjectSerializationMapper.ForType<AllFieldTypesTestClass>()

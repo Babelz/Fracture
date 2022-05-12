@@ -6,7 +6,7 @@ namespace Fracture.Net.Hosting.Servers
     public readonly struct PeerJoinEventArgs : IStructEventArgs
     {
         #region Properties
-        public PeerConnection Peer
+        public PeerConnection Connection
         {
             get;
         }
@@ -17,17 +17,17 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
 
-        public PeerJoinEventArgs(PeerConnection peer, TimeSpan timestamp)
+        public PeerJoinEventArgs(in PeerConnection connection, in TimeSpan timestamp)
         {
-            Peer      = peer;
-            Timestamp = timestamp;
+            Connection = connection;
+            Timestamp  = timestamp;
         }
     }
     
     public readonly struct PeerResetEventArgs : IStructEventArgs
     {
         #region Fields
-        public PeerConnection Peer
+        public PeerConnection Connection
         {
             get;
         }
@@ -43,18 +43,18 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public PeerResetEventArgs(PeerConnection peer, ResetReason reason, TimeSpan timestamp)
+        public PeerResetEventArgs(in PeerConnection connection, ResetReason reason, in TimeSpan timestamp)
         {
-            Peer      = peer;
-            Reason    = reason;
-            Timestamp = timestamp;
+            Connection = connection;
+            Reason     = reason;
+            Timestamp  = timestamp;
         }
     }
     
     public readonly struct PeerMessageEventArgs : IStructEventArgs
     {
         #region Properties
-        public PeerConnection Peer
+        public PeerConnection Connection
         {
             get;
         }
@@ -84,19 +84,19 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public PeerMessageEventArgs(PeerConnection peer, byte[] contents, int length, TimeSpan timestamp)
+        public PeerMessageEventArgs(in PeerConnection connection, byte[] contents, int length, in TimeSpan timestamp)
         {
-            Peer      = peer;
-            Contents  = contents;
-            Length    = length;
-            Timestamp = timestamp;
+            Connection = connection;
+            Contents   = contents;
+            Length     = length;
+            Timestamp  = timestamp;
         }
     }
     
     public readonly struct ServerMessageEventArgs : IStructEventArgs
     {
         #region Properties
-        public PeerConnection Peer
+        public PeerConnection Connection
         {
             get;
         }
@@ -120,13 +120,13 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
         
-        public ServerMessageEventArgs(PeerConnection peer, byte[] contents, int offset, int length, TimeSpan timestamp)
+        public ServerMessageEventArgs(in PeerConnection connection, byte[] contents, int offset, int length, in TimeSpan timestamp)
         {
-            Peer      = peer;
-            Contents  = contents;
-            Offset    = offset;
-            Length    = length;
-            Timestamp = timestamp;
+            Connection = connection;
+            Contents   = contents;
+            Offset     = offset;
+            Length     = length;
+            Timestamp  = timestamp;
         }
     }
 }

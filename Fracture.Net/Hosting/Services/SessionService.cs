@@ -18,12 +18,12 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Returns boolean declaring whether given peer id has session associated with it. 
         /// </summary>
-        bool Active(int id);
+        bool Active(int peerId);
         
         /// <summary>
         /// Clears session object from given peer.
         /// </summary>
-        void Clear(int peer);
+        void Clear(int peerId);
     }
     
     /// <summary>
@@ -82,22 +82,22 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Creates or updates session of specific peer.
         /// </summary>
-        void Update(int peer, T session);
+        void Update(int peerId, T session);
         
         /// <summary>
         /// Updates session of specific peer using aggregator delegate.
         /// </summary>
-        T Update(int peer, SessionAggregatorDelegate<T> aggregator);
+        T Update(int peerId, SessionAggregatorDelegate<T> aggregator);
         
         /// <summary>
         /// Attempts to get the session for given session id and returns boolean declaring whether a active session could be retrieved for the peer.
         /// </summary>
-        bool TryGet(int peer, out T session);
+        bool TryGet(int peerId, out T session);
         
         /// <summary>
         /// Gets session for peer with given id.
         /// </summary>
-        T Get(int peer);
+        T Get(int peerId);
     }
     
     public static class SessionServiceMiddleware<T> where T : SessionBase
@@ -105,7 +105,7 @@ namespace Fracture.Net.Hosting.Services
         public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions)
             => (in RequestMiddlewareContext context) =>
             {
-                if (sessions.TryGet(context.Request.Peer.Id, out var session))
+                if (sessions.TryGet(context.Request.Connection.PeerId, out var session))
                     session.Refresh();
                 
                 return MiddlewareHandlerResult.Accept;  
@@ -128,40 +128,40 @@ namespace Fracture.Net.Hosting.Services
             sessions = new Dictionary<int, T>();
         }
 
-        public bool Active(int id)
-            => sessions.ContainsKey(id);
+        public bool Active(int peerId)
+            => sessions.ContainsKey(peerId);
 
-        public void Update(int peer, T session)
+        public void Update(int peerId, T session)
         {
-            if (!Active(peer))
-                sessions.Add(peer, session ?? throw new ArgumentNullException(nameof(session)));
+            if (!Active(peerId))
+                sessions.Add(peerId, session ?? throw new ArgumentNullException(nameof(session)));
             else
-                sessions[peer] = session;
+                sessions[peerId] = session;
         }
         
-        public T Update(int peer, SessionAggregatorDelegate<T> aggregator)
+        public T Update(int peerId, SessionAggregatorDelegate<T> aggregator)
         {
             if (aggregator == null)
                 throw new ArgumentNullException(nameof(aggregator));
             
-            if (!sessions.TryGetValue(peer, out var currentSession))
-                throw new InvalidOperationException($"unable to patch session for peer {peer}, no past session exists");
+            if (!sessions.TryGetValue(peerId, out var currentSession))
+                throw new InvalidOperationException($"unable to patch session for peer {peerId}, no past session exists");
             
             var newSession = aggregator(currentSession);
             
-            sessions[peer] = newSession;
+            sessions[peerId] = newSession;
             
             return newSession;
         }
 
-        public void Clear(int peer)
-            => sessions.Remove(peer);
+        public void Clear(int peerId)
+            => sessions.Remove(peerId);
         
-        public bool TryGet(int peer, out T session)
-            => sessions.TryGetValue(peer, out session);
+        public bool TryGet(int peerId, out T session)
+            => sessions.TryGetValue(peerId, out session);
         
-        public T Get(int peer)
-            => sessions[peer];
+        public T Get(int peerId)
+            => sessions[peerId];
 
         public IEnumerator<T> GetEnumerator()
             => sessions.Values.GetEnumerator();
@@ -191,12 +191,12 @@ namespace Fracture.Net.Hosting.Services
         #region Event handlers
         private void Application_OnReset(object sender, in PeerResetEventArgs e) 
         {
-            if (!sessions.Active(e.Peer.Id))
+            if (!sessions.Active(e.Connection.PeerId))
                 return;
             
-            Log.Information($"clearing session for peer {e.Peer.Id}");
+            Log.Information($"clearing session for peer {e.Connection.PeerId}");
                 
-            sessions.Clear(e.Peer.Id);
+            sessions.Clear(e.Connection.PeerId);
         }
         #endregion
     }
@@ -215,9 +215,9 @@ namespace Fracture.Net.Hosting.Services
             
             application.Join += (object sender, in PeerJoinEventArgs e) =>
             {
-                Log.Information($"new peer {e.Peer.Id} connected, creating session");
+                Log.Information($"new peer {e.Connection.PeerId} connected, creating session");
                 
-                sessions.Update(e.Peer.Id, new T());
+                sessions.Update(e.Connection.PeerId, new T());
             };
         }
     }

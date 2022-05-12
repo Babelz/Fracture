@@ -16,7 +16,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Runtime id of the peer.
         /// </summary>
-        public readonly int Id;
+        public readonly int PeerId;
         
         /// <summary>
         /// Remote end point of the peer.
@@ -24,9 +24,9 @@ namespace Fracture.Net.Hosting.Servers
         public readonly IPEndPoint EndPoint;
         #endregion
         
-        public PeerConnection(int id, IPEndPoint endPoint)
+        public PeerConnection(int peerId, IPEndPoint endPoint)
         {
-            Id       = id;
+            PeerId   = peerId;
             EndPoint = endPoint;
         }
 
@@ -34,14 +34,14 @@ namespace Fracture.Net.Hosting.Servers
         {
             var sb = new StringBuilder();
             
-            sb.Append($"{{ \"{nameof(Id)}\": {Id}, \"{nameof(EndPoint)}\": \"{EndPoint.Address}:{EndPoint.Port}\" }}");
+            sb.Append($"{{ \"{nameof(PeerId)}\": {PeerId}, \"{nameof(EndPoint)}\": \"{EndPoint.Address}:{EndPoint.Port}\" }}");
             
             return sb.ToString();
         }
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Id)
+                        .Append(PeerId)
                         .Append(EndPoint)
                         .Append(EndPoint.Port);
     }

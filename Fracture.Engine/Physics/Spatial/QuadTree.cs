@@ -60,12 +60,12 @@ namespace Fracture.Engine.Physics.Spatial
         /// <summary>
         /// Adds given body to the tree.
         /// </summary>
-        public bool Add(int id)
+        public bool Add(int bodyId)
         {
-            var added = Root.Add(id);
+            var added = Root.Add(bodyId);
 
             if (added)
-                Added?.Invoke(this, new BodyEventArgs(id));
+                Added?.Invoke(this, new BodyEventArgs(bodyId));
             
             return added;
         }
@@ -73,12 +73,12 @@ namespace Fracture.Engine.Physics.Spatial
         /// <summary>
         /// Removes given body from the tree.
         /// </summary>
-        public bool Remove(int id)   
+        public bool Remove(int bodyId)   
         {
-            var removed = Root.Remove(id);
+            var removed = Root.Remove(bodyId);
             
             if (removed)
-                Removed?.Invoke(this, new BodyEventArgs(id));
+                Removed?.Invoke(this, new BodyEventArgs(bodyId));
         
             return removed;
         }

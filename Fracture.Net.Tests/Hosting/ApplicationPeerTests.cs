@@ -48,7 +48,7 @@ namespace Fracture.Net.Tests.Hosting
         [Fact]
         public void Should_Handle_Joins_Before_Leaves()
         {
-            var handledPeers = new Queue<PeerConnection>();
+            var handledConnections = new Queue<PeerConnection>();
             
             var first  = FakePeer.Create();
             var second = FakePeer.Create();
@@ -60,24 +60,24 @@ namespace Fracture.Net.Tests.Hosting
 
             ApplicationTestUtils.LimitFrames(application, 2);
             
-            application.Join  += (object s, in PeerJoinEventArgs e) =>  { handledPeers.Enqueue(e.Peer); };
-            application.Reset += (object s, in PeerResetEventArgs e) => { handledPeers.Enqueue(e.Peer); };
+            application.Join  += (object s, in PeerJoinEventArgs e) =>  { handledConnections.Enqueue(e.Connection); };
+            application.Reset += (object s, in PeerResetEventArgs e) => { handledConnections.Enqueue(e.Connection); };
                                                                         
             application.Start();
             
-            Assert.Equal(handledPeers.Dequeue(), first);
-            Assert.Equal(handledPeers.Dequeue(), second);
-            Assert.Equal(handledPeers.Dequeue(), first);
+            Assert.Equal(handledConnections.Dequeue(), first);
+            Assert.Equal(handledConnections.Dequeue(), second);
+            Assert.Equal(handledConnections.Dequeue(), first);
         }
 
         [Fact]
         public void Should_Not_Pass_Messages_Forward_If_Peer_Leaves()
         {
-            var peer = FakePeer.Create();
+            var peerId = FakePeer.Create();
             
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(peer),
-                                                                                  FakeServerFrame.Create().Incoming(peer, Message.Create<TestValueMessage>())
-                                                                                                 .Leave(peer, ResetReason.RemoteReset)))
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(peerId),
+                                                                                  FakeServerFrame.Create().Incoming(peerId, Message.Create<TestValueMessage>())
+                                                                                                 .Leave(peerId, ResetReason.RemoteReset)))
                                                 .Build();
             
             ApplicationTestUtils.LimitFrames(application, 4);
@@ -93,7 +93,7 @@ namespace Fracture.Net.Tests.Hosting
             var first  = FakePeer.Create();
             var second = FakePeer.Create();
 
-            var resetPeers = new List<PeerConnection>();
+            var resetConnections = new List<PeerConnection>();
             
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
                                                                                   FakeServerFrame.Create().Join(second),
@@ -104,12 +104,12 @@ namespace Fracture.Net.Tests.Hosting
             
             application.Requests.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
 
-            application.Reset += (object sender, in PeerResetEventArgs args) => { resetPeers.Add(args.Peer); };
+            application.Reset += (object sender, in PeerResetEventArgs args) => { resetConnections.Add(args.Connection); };
             
             application.Start();
             
-            Assert.Single(resetPeers);
-            Assert.Contains(first, resetPeers);
+            Assert.Single(resetConnections);
+            Assert.Contains(first, resetConnections);
         }
         
         [Fact]
@@ -118,21 +118,21 @@ namespace Fracture.Net.Tests.Hosting
             var first  = FakePeer.Create();
             var second = FakePeer.Create();
 
-            var resetPeers = new List<PeerConnection>();
+            var resetConnections = new List<PeerConnection>();
 
             var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
                                                                                   FakeServerFrame.Create().Join(second)))
                                                 .Build();
 
             ApplicationTestUtils.LimitFrames(application, 3);
-            ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue(n => n.Reset(first.Id)));
+            ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue(n => n.Reset(first.PeerId)));
             
-            application.Reset += (object sender, in PeerResetEventArgs args) => { resetPeers.Add(args.Peer); };
+            application.Reset += (object sender, in PeerResetEventArgs args) => { resetConnections.Add(args.Connection); };
             
             application.Start();
             
-            Assert.Single(resetPeers);
-            Assert.Contains(first, resetPeers);
+            Assert.Single(resetConnections);
+            Assert.Contains(first, resetConnections);
         }
     }
 }

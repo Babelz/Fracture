@@ -101,7 +101,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Gets all peers currently connected to the application.
         /// </summary>
-        IEnumerable<int> Peers
+        IEnumerable<int> PeerIds
         {
             get;
         }
@@ -197,8 +197,8 @@ namespace Fracture.Net.Hosting
         public IApplicationClock Clock
             => application.Clock;
         
-        public IEnumerable<int> Peers
-            => application.Peers;
+        public IEnumerable<int> PeerIds
+            => application.PeerIds;
         #endregion
         
         public ApplicationScriptingHost(Kernel scripts, Application application, IEnumerable<IApplicationService> services)

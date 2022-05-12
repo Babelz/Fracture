@@ -119,7 +119,7 @@ namespace Fracture.Engine.Physics
         int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null);
         int Create(BodyType type, in Shape shape, object userData = null);
         
-        void Delete(int id);
+        void Delete(int bodyId);
 
         /// <summary>
         /// Resizes the simulation area of the world. This is heavy operation as the whole
@@ -143,7 +143,7 @@ namespace Fracture.Engine.Physics
         QuadTreeNodeLink AabbQueryBroad(in Aabb aabb, BodySelector selector = null);
         QuadTreeNodeLink AabbQueryNarrow(in Aabb aabb);
         
-        IEnumerable<int> ContactsOf(int id);
+        IEnumerable<int> ContactsOf(int bodyId);
     }
     
     /// <summary>
@@ -256,9 +256,9 @@ namespace Fracture.Engine.Physics
             body.ResetForces();
         }
 
-        private void ApplyConstantForces(int id)
+        private void ApplyConstantForces(int bodyId)
         {
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
 
             // Apply gravity and wind forces.
             body.ApplyLinearImpulse(Wind, Vector2.UnitX);
@@ -281,9 +281,9 @@ namespace Fracture.Engine.Physics
                 ApplyConstantForces(bodyId);
         }
         
-        private void ApplyForces(int id, TimeSpan delta)
+        private void ApplyForces(int bodyId, TimeSpan delta)
         {
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
                 
             if (!body.IsActive())
                 return;
@@ -299,7 +299,7 @@ namespace Fracture.Engine.Physics
                 
             body.ResetForces();
                 
-            Moved?.Invoke(this, new BodyEventArgs(id));
+            Moved?.Invoke(this, new BodyEventArgs(bodyId));
         }
         
         private void ApplyForces(QuadTreeNode node, TimeSpan delta)
@@ -321,10 +321,10 @@ namespace Fracture.Engine.Physics
                 ApplyForces(bodyId, delta);
         }
         
-        private void RelocateLostBody(int id, TimeSpan delta)
+        private void RelocateLostBody(int bodyId, TimeSpan delta)
         {
             // Compute distance between bounding box points.
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
             
             var bb = body.BoundingBox;
             var tb = tree.BoundingBox;
@@ -363,7 +363,7 @@ namespace Fracture.Engine.Physics
             if (!tree.Add(body.Id))
                 throw new InvalidOperationException("could not add lost body to world");
             
-            Moved?.Invoke(this, new BodyEventArgs(id));
+            Moved?.Invoke(this, new BodyEventArgs(bodyId));
         }
         
         public void Resize(Vector2 bounds)
@@ -409,20 +409,20 @@ namespace Fracture.Engine.Physics
         public int Create(BodyType type, in Shape shape, object userData = null)
             => Create(type, Vector2.Zero, 0.0f, shape, userData);
         
-        public void Delete(int id)
+        public void Delete(int bodyId)
         {
-            if (!tree.Remove(id))
+            if (!tree.Remove(bodyId))
                 throw new InvalidOperationException("could not delete body");
 
-            ref var body = ref bodies.WithId(id);
+            ref var body = ref bodies.WithId(bodyId);
             
             if (body.Type != BodyType.Static)
             {
-                contactLists.Remove(contactListLookup[id]);
-                contactListLookup.Remove(id);
+                contactLists.Remove(contactListLookup[bodyId]);
+                contactListLookup.Remove(bodyId);
             }
 
-            bodies.Delete(id);
+            bodies.Delete(bodyId);
         }
         
         public void RootQuery(QuadTreeNodeLink link)
@@ -495,8 +495,8 @@ namespace Fracture.Engine.Physics
             return aabbQueryNarrowLink;
         }
 
-        public IEnumerable<int> ContactsOf(int id)
-            => contactListLookup.TryGetValue(id, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
+        public IEnumerable<int> ContactsOf(int bodyId)
+            => contactListLookup.TryGetValue(bodyId, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
 
         public override void Update(IGameEngineTime time)
         {
