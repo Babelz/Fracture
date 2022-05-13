@@ -235,6 +235,8 @@ namespace Fracture.Net.Clients
             
             try
             {
+                lastReceiveTime = DateTime.UtcNow;
+                
                 if (socket != null)
                 {
                     socket.Close();

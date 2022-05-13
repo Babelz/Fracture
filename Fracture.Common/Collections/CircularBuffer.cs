@@ -1,3 +1,7 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Fracture.Common.Collections
@@ -5,7 +9,7 @@ namespace Fracture.Common.Collections
    /// <summary>
    /// Data structured that is fixed size buffer that uses its storage in circular manner.
    /// </summary>
-   public sealed class CircularBuffer<T>
+   public sealed class CircularBuffer<T> : IEnumerable<T>
    {
       #region Fields
       private readonly T[] items;
@@ -20,10 +24,21 @@ namespace Fracture.Common.Collections
       /// Returns the value last written.
       /// </summary>
       public T Head => AtOffset(0);
+      
+      public int Capacity
+      {
+         get;
+      }
       #endregion
 
       public CircularBuffer(int capacity)
-         => items = new T[capacity];
+      {
+         if (capacity <= 0)
+            throw new ArgumentOutOfRangeException(nameof(capacity), "expecting positive non-zero value");
+         
+         Capacity = capacity;
+         items    = new T[capacity];
+      }
       
       /// <summary>
       /// Rotates the index inside the given length and with given offset. 
@@ -40,8 +55,8 @@ namespace Fracture.Common.Collections
          return location;
       }
 
-      public T AtOffset(int offset)
-         => items[Rotate(headIndex - 1, items.Length, offset)];
+      public ref T AtOffset(int offset)
+         => ref items[Rotate(headIndex - 1, items.Length, offset)];
 
       public void Push(T item)
       {
@@ -50,5 +65,18 @@ namespace Fracture.Common.Collections
 
          items[headIndex++] = item;
       }
+      
+      public void Clear()
+      {
+         headIndex = 0;
+         
+         Array.Clear(items, 0, items.Length);
+      }
+
+      public IEnumerator<T> GetEnumerator()
+         => ((IEnumerable<T>)items).GetEnumerator();
+
+      IEnumerator IEnumerable.GetEnumerator()
+         => GetEnumerator();
    }
 }

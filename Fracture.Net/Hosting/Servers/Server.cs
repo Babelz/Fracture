@@ -202,7 +202,7 @@ namespace Fracture.Net.Hosting.Servers
         
         public void Send(int peerId, byte[] data, int offset, int length)
         {
-            if (!lookup.TryGetValue(peer, out var peer))
+            if (!lookup.TryGetValue(peerId, out var peer))
                 throw new InvalidOperationException("peer not connected");
             
             peer.Send(data, offset, length);

@@ -59,6 +59,7 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
+        <Compile Include="Collections\CircularBufferTests.cs" />
         <Compile Include="Collections\FreeListTests.cs" />
         <Compile Include="Collections\LinearGrowthArrayTests.cs" />
         <Compile Include="Collections\LinearGrowthStackTests.cs" />
