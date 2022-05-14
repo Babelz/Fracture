@@ -81,6 +81,7 @@
         <Compile Include="Di\TestTypes\PropFooBar.cs" />
         <Compile Include="Events\EventQueueTests.cs" />
         <Compile Include="Memory\BlockArrayPoolTests.cs" />
+        <Compile Include="Memory\ClearableTests.cs" />
         <Compile Include="Memory\CollectionPoolTests.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
