@@ -16,6 +16,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Content", "Fractur
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Benchmarks", "Fracture.Benchmarks\Fracture.Benchmarks.csproj", "{7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Fracture.Content.Pipeline", "Fracture.Content.Pipeline\Fracture.Content.Pipeline.csproj", "{AB247CBB-B997-4895-BF80-B16A3218AFC2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +56,10 @@ Global
 		{7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B0C7644-D9D6-4464-B2C2-8EBDD22B17B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AB247CBB-B997-4895-BF80-B16A3218AFC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AB247CBB-B997-4895-BF80-B16A3218AFC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AB247CBB-B997-4895-BF80-B16A3218AFC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AB247CBB-B997-4895-BF80-B16A3218AFC2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
