@@ -17,7 +17,7 @@ namespace Fracture.Engine.Graphics
         {
             get;
         }
-        
+
         int BackBufferWidth
         {
             get;
@@ -35,13 +35,13 @@ namespace Fracture.Engine.Graphics
             get;
             set;
         }
-        
+
         bool IsFullScreen
         {
             get;
             set;
         }
-        
+
         int MultiSampleCount
         {
             get;
@@ -54,12 +54,12 @@ namespace Fracture.Engine.Graphics
             set;
         }
         #endregion
-        
+
         void SetRenderTarget(RenderTarget2D renderTarget);
         void Clear(Color color);
-        
-        Texture2D CreateTexture2D(byte[] data);
-        
+
+        Texture2D CreateTexture2D(byte [] data);
+
         RenderTarget2D CreateRenderTarget2D(int width,
                                             int height,
                                             int samples,
@@ -70,7 +70,7 @@ namespace Fracture.Engine.Graphics
 
         SpriteBatch CreateSpriteBatch(int capacity = 64);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IGraphicsDeviceSystem"/>.
     /// </summary>
@@ -85,14 +85,14 @@ namespace Fracture.Engine.Graphics
         {
             get;
         }
-        
+
         public int BackBufferWidth
         {
             get => manager.PreferredBackBufferWidth;
             set
             {
                 manager.PreferredBackBufferWidth = value;
-                
+
                 manager.ApplyChanges();
             }
         }
@@ -103,7 +103,7 @@ namespace Fracture.Engine.Graphics
             set
             {
                 manager.PreferredBackBufferHeight = value;
-                
+
                 manager.ApplyChanges();
             }
         }
@@ -114,18 +114,18 @@ namespace Fracture.Engine.Graphics
             set
             {
                 manager.GraphicsDevice.PresentationParameters.MultiSampleCount = value;
-                
+
                 manager.ApplyChanges();
             }
         }
-        
+
         public bool PreferMultiSampling
         {
             get => manager.PreferMultiSampling;
             set
             {
                 manager.PreferMultiSampling = value;
-                
+
                 manager.ApplyChanges();
             }
         }
@@ -136,7 +136,7 @@ namespace Fracture.Engine.Graphics
             set
             {
                 manager.IsFullScreen = value;
-                
+
                 manager.ApplyChanges();
             }
         }
@@ -147,49 +147,46 @@ namespace Fracture.Engine.Graphics
             set
             {
                 manager.GraphicsDevice.Viewport = value;
-                
+
                 manager.ApplyChanges();
             }
         }
         #endregion
-        
+
         public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
         {
             this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
-            
+
             Window = window != null ? new Window(window) : throw new ArgumentNullException(nameof(window));
         }
-            
-        public void SetRenderTarget(RenderTarget2D renderTarget)
-            => manager.GraphicsDevice.SetRenderTarget(renderTarget);
 
-        public void Clear(Color color)
-            => manager.GraphicsDevice.Clear(color);
+        public void SetRenderTarget(RenderTarget2D renderTarget) => manager.GraphicsDevice.SetRenderTarget(renderTarget);
 
-        public Texture2D CreateTexture2D(byte[] data)
+        public void Clear(Color color) => manager.GraphicsDevice.Clear(color);
+
+        public Texture2D CreateTexture2D(byte [] data)
         {
             using var ms = new MemoryStream(data);
-            
+
             return Texture2D.FromStream(manager.GraphicsDevice, ms);
         }
 
-        public SpriteBatch CreateSpriteBatch(int capacity)
-            => new SpriteBatch(manager.GraphicsDevice, capacity);
-        
+        public SpriteBatch CreateSpriteBatch(int capacity) => new SpriteBatch(manager.GraphicsDevice, capacity);
+
         public RenderTarget2D CreateRenderTarget2D(int width,
                                                    int height,
                                                    int samples,
                                                    bool mipmap,
                                                    SurfaceFormat surfaceFormat,
                                                    DepthFormat depthFormat,
-                                                   RenderTargetUsage usage)
-            => new RenderTarget2D(manager.GraphicsDevice,
-                                  width,
-                                  height,
-                                  mipmap,
-                                  surfaceFormat,
-                                  depthFormat,
-                                  samples,
-                                  usage);
+                                                   RenderTargetUsage usage) =>
+            new RenderTarget2D(manager.GraphicsDevice,
+                               width,
+                               height,
+                               mipmap,
+                               surfaceFormat,
+                               depthFormat,
+                               samples,
+                               usage);
     }
 }

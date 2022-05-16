@@ -18,8 +18,7 @@ namespace Fracture.Content.Pipeline.Ui
         {
         }
 
-        private static void InsertString(IUiStyle uiStyle, string target, string name, string value)
-            => uiStyle.Set($"{target}\\{name}", value);
+        private static void InsertString(IUiStyle uiStyle, string target, string name, string value) => uiStyle.Set($"{target}\\{name}", value);
 
         private static bool InsertTexture(IUiStyle uiStyle, ContentReader input, string target, string name, string value)
         {
@@ -27,7 +26,7 @@ namespace Fracture.Content.Pipeline.Ui
 
             uiStyle.Set($"{target}\\{name}", input.ContentManager.Load<Texture2D>(value));
 
-            return true;    
+            return true;
         }
 
         private static bool InsertFont(IUiStyle uiStyle, ContentReader input, string target, string name, string value)
@@ -51,7 +50,7 @@ namespace Fracture.Content.Pipeline.Ui
 
             var x = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("x:"))?.Replace("x:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
             var y = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("y:"))?.Replace("y:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
-            
+
             uiStyle.Set($"{target}\\{name}", new Vector2(x, y));
 
             return true;
@@ -60,18 +59,17 @@ namespace Fracture.Content.Pipeline.Ui
         private static bool InsertColor(IUiStyle uiStyle, string target, string name, string value)
         {
             if (!name.StartsWith("color")) return false;
-            
+
             if (Regex.Match(value, "[A-Za-z]+").Length == value.Length)
             {
                 var colors = typeof(Color).GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 var color  = colors.FirstOrDefault(p => p.Name.Equals(value, StringComparison.InvariantCultureIgnoreCase))?.GetValue(null);
 
                 if (color == null) return false;
-                
+
                 uiStyle.Set($"{target}\\{name}", color);
 
                 return true;
-
             }
 
             if (!value.Contains("r:") || !value.Contains("g:") || !value.Contains("b:") || !value.Contains("a:"))
@@ -118,7 +116,7 @@ namespace Fracture.Content.Pipeline.Ui
             var bytes  = input.ReadBytes(length);
 
             using var ms = new MemoryStream(bytes);
-            
+
             var document = XDocument.Load(ms);
             var style    = new UiStyle(document.Root!.Attribute("name")!.Value);
 
@@ -130,12 +128,12 @@ namespace Fracture.Content.Pipeline.Ui
                 {
                     var valueName   = value.Name.LocalName;
                     var valueString = value.Attribute("value")!.Value;
-                        
-                    if (InsertSource(style, targetName, valueName, valueString))         continue;
-                    if (InsertColor(style, targetName, valueName, valueString))          continue;
-                    if (InsertOffset(style, targetName, valueName, valueString))         continue;
+
+                    if (InsertSource(style, targetName, valueName, valueString)) continue;
+                    if (InsertColor(style, targetName, valueName, valueString)) continue;
+                    if (InsertOffset(style, targetName, valueName, valueString)) continue;
                     if (InsertTexture(style, input, targetName, valueName, valueString)) continue;
-                    if (InsertFont(style, input, targetName, valueName, valueString))    continue;
+                    if (InsertFont(style, input, targetName, valueName, valueString)) continue;
 
                     InsertString(style, targetName, valueName, valueString);
                 }

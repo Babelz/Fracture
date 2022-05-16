@@ -9,7 +9,7 @@ namespace Fracture.Common.Tests.Collections
         public FreeListTests()
         {
         }
-        
+
         [Fact]
         public void FreeList_Ctor_Test()
         {

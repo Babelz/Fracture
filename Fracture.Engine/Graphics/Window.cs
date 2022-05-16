@@ -11,12 +11,12 @@ namespace Fracture.Engine.Graphics
             get;
         }
         #endregion
-        
+
         #region Events
         event EventHandler<TextInputEventArgs> TextInput;
         #endregion
     }
-    
+
     public sealed class Window : IWindow
     {
         #region Fields
@@ -26,22 +26,20 @@ namespace Fracture.Engine.Graphics
         #region Events
         public event EventHandler<TextInputEventArgs> TextInput;
         #endregion
-        
+
         #region Properties
-        public IntPtr Handle
-            => window.Handle;
+        public IntPtr Handle => window.Handle;
         #endregion
 
         public Window(GameWindow window)
         {
             this.window = window ?? throw new ArgumentNullException(nameof(window));
-            
+
             window.TextInput += Window_OnTextInput;
         }
 
         #region Event handlers
-        private void Window_OnTextInput(object sender, TextInputEventArgs e)
-            => TextInput?.Invoke(this, e);
+        private void Window_OnTextInput(object sender, TextInputEventArgs e) => TextInput?.Invoke(this, e);
         #endregion
     }
 }

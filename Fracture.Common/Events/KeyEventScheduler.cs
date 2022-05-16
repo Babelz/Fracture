@@ -15,32 +15,29 @@ namespace Fracture.Common.Events
         bool Exists(object key);
 
         void Add(IScheduledEvent scheduledEvent, object key);
-        
+
         void Remove(object key);
 
         void Clear();
     }
-    
+
     public class KeyEventScheduler : IKeyEventScheduler
     {
         #region Fields
         private readonly Dictionary<object, IScheduledEvent> pairs;
         #endregion
 
-        public KeyEventScheduler()
-            => pairs = new Dictionary<object, IScheduledEvent>();
-      
-        public IScheduledEvent GetEvent(object key)
-            => pairs[key];
+        public KeyEventScheduler() => pairs = new Dictionary<object, IScheduledEvent>();
 
-        public bool Exists(object key)
-            => pairs.ContainsKey(key);
-        
+        public IScheduledEvent GetEvent(object key) => pairs[key];
+
+        public bool Exists(object key) => pairs.ContainsKey(key);
+
         public void Add(IScheduledEvent scheduledEvent, object key)
         {
             if (scheduledEvent == null)
                 throw new ArgumentNullException(nameof(scheduledEvent));
-            
+
             if (pairs.ContainsKey(key))
                 throw new InvalidOperationException("scheduler with key already present");
 
@@ -52,10 +49,9 @@ namespace Fracture.Common.Events
             if (!pairs.Remove(key))
                 throw new InvalidOperationException("could not remove scheduler");
         }
-        
-        public void Clear()
-            => pairs.Clear();
-         
+
+        public void Clear() => pairs.Clear();
+
         public void Tick(TimeSpan elapsed)
         {
             foreach (var pair in pairs.ToList())
@@ -64,12 +60,12 @@ namespace Fracture.Common.Events
 
                 pair.Value.Tick(elapsed);
 
-                if (!wasWaitingBeforeTick || pair.Value.Waiting) 
+                if (!wasWaitingBeforeTick || pair.Value.Waiting)
                     continue;
-                
-                if (pair.Value.Type == ScheduledEventType.Pulse) 
+
+                if (pair.Value.Type == ScheduledEventType.Pulse)
                     pair.Value.Wait(pair.Value.DueTime);
-                else                                             
+                else
                     pairs.Remove(pair.Key);
             }
         }

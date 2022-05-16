@@ -26,13 +26,13 @@ namespace Fracture.Engine.Ecs
         /// Attempts to register prefab container to the system. Throws if the container is invalid.
         /// </summary>
         void Register<T>() where T : IEntityPrefab;
-        
+
         /// <summary>
         /// Attempts to get prefab container of specific type. Throws if no prefab is found.
         /// </summary>
         T Get<T>() where T : IEntityPrefab;
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IEntityPrefabSystem"/>.
     /// </summary>
@@ -41,18 +41,18 @@ namespace Fracture.Engine.Ecs
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
-        
+
         #region Fields
         private readonly IGameObjectActivatorSystem activator;
-        
+
         private readonly Kernel registry;
         #endregion
-        
+
         [BindingConstructor]
         public EntityPrefabSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
-            
+
             registry = new Kernel(DependencyBindingOptions.Interfaces);
         }
 
@@ -72,10 +72,8 @@ namespace Fracture.Engine.Ecs
             }
         }
 
-        public void Register<T>() where T : IEntityPrefab
-            => registry.Bind(activator.Activate<T>());
-        
-        public T Get<T>() where T : IEntityPrefab
-            => registry.First<T>();
+        public void Register<T>() where T : IEntityPrefab => registry.Bind(activator.Activate<T>());
+
+        public T Get<T>() where T : IEntityPrefab => registry.First<T>();
     }
 }

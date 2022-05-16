@@ -16,7 +16,7 @@ namespace Fracture.Engine.Core
         /// Allows the system do deinitialization. This is called for each system before the game loop exists.
         /// </summary>
         void Deinitialize();
-        
+
         /// <summary>
         /// Allows the system to do updates. This is called for each system on every frame.
         /// </summary>
@@ -31,7 +31,7 @@ namespace Fracture.Engine.Core
     {
         void React(T notification);
     }
-    
+
     /// <summary>
     /// System that works as game engine system and is managing
     /// objects of specific type. Systems should own the objects and
@@ -69,7 +69,7 @@ namespace Fracture.Engine.Core
         public virtual void Deinitialize()
         {
         }
-        
+
         public virtual void Initialize()
         {
         }
@@ -78,7 +78,7 @@ namespace Fracture.Engine.Core
         {
         }
     }
-    
+
     /// <summary>
     /// Abstract base class for implementing reactive game engine systems.
     /// </summary>
@@ -87,7 +87,7 @@ namespace Fracture.Engine.Core
         protected ReactiveGameEngineSystem()
         {
         }
-        
+
         public abstract void React(T notification);
     }
 }

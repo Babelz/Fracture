@@ -16,14 +16,14 @@ namespace Fracture.Engine.Input.Devices
     [Flags]
     public enum MouseButton : byte
     {
-        None   = 0,
-        Left   = (1 << 0),
+        None = 0,
+        Left = (1 << 0),
         Middle = (1 << 1),
-        Right  = (1 << 2),
-        X1     = (1 << 3),
-        X2     = (1 << 4)
+        Right = (1 << 2),
+        X1 = (1 << 3),
+        X2 = (1 << 4)
     }
-    
+
     /// <summary>
     /// Structure that represents the state of the mouse.
     /// </summary>
@@ -38,7 +38,7 @@ namespace Fracture.Engine.Input.Devices
             get;
             private set;
         }
-        
+
         /// <summary>
         /// Flags containing buttons pressed.
         /// </summary>
@@ -63,10 +63,9 @@ namespace Fracture.Engine.Input.Devices
             ScrollWheelValue = scrollWheelValue;
         }
 
-        public void Transform(Point transform)
-            => Position += transform;
+        public void Transform(Point transform) => Position += transform;
     }
-    
+
     /// <summary>
     /// Interface for implementing mouse device interfaces.
     /// </summary>
@@ -89,14 +88,14 @@ namespace Fracture.Engine.Input.Devices
         TimeSpan GetButtonTimeDown(MouseButton button);
         TimeSpan GetButtonTimeUp(MouseButton button);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IMouseDevice"/> that uses MonoGame to toll mouse states.
     /// </summary>
     public sealed class MouseDevice : IMouseDevice
     {
         #region Static fields
-        private static readonly MouseButton[] MouseButtonValues = typeof(MouseButton).GetEnumValues().Cast<MouseButton>().ToArray();
+        private static readonly MouseButton [] MouseButtonValues = typeof(MouseButton).GetEnumValues().Cast<MouseButton>().ToArray();
         #endregion
 
         #region Fields
@@ -221,7 +220,7 @@ namespace Fracture.Engine.Input.Devices
         {
             if (frame >= StatesCount)
                 throw new ArgumentOutOfRangeException(nameof(frame), $"{nameof(frame)} >= {StatesCount}");
-            
+
             return mouseStateBuffer.AtOffset(-frame).ScrollWheelValue;
         }
 
@@ -260,12 +259,10 @@ namespace Fracture.Engine.Input.Devices
 
             return (buttonsDown & button) == button && (buttonsUp & button) != button;
         }
-        
-        public TimeSpan GetButtonTimeDown(MouseButton button)
-            => buttonWatcher.TimeActive(button);
 
-        public TimeSpan GetButtonTimeUp(MouseButton button)
-            => buttonWatcher.TimeInactive(button);
+        public TimeSpan GetButtonTimeDown(MouseButton button) => buttonWatcher.TimeActive(button);
+
+        public TimeSpan GetButtonTimeUp(MouseButton button) => buttonWatcher.TimeInactive(button);
 
         public void Poll(IGameEngineTime time)
         {
@@ -274,11 +271,11 @@ namespace Fracture.Engine.Input.Devices
             var buttons = MouseButton.None;
 
             // Determine button states.
-            if (state.LeftButton == ButtonState.Pressed)   buttons |= MouseButton.Left;
+            if (state.LeftButton == ButtonState.Pressed) buttons   |= MouseButton.Left;
             if (state.MiddleButton == ButtonState.Pressed) buttons |= MouseButton.Middle;
-            if (state.RightButton == ButtonState.Pressed)  buttons |= MouseButton.Right;
-            if (state.XButton1 == ButtonState.Pressed)     buttons |= MouseButton.X1;
-            if (state.XButton2 == ButtonState.Pressed)     buttons |= MouseButton.X2;
+            if (state.RightButton == ButtonState.Pressed) buttons  |= MouseButton.Right;
+            if (state.XButton1 == ButtonState.Pressed) buttons     |= MouseButton.X1;
+            if (state.XButton2 == ButtonState.Pressed) buttons     |= MouseButton.X2;
 
             // Create new state.
             mouseStateBuffer.Push(new MouseState(new Point(state.X, state.Y), buttons, state.ScrollWheelValue));

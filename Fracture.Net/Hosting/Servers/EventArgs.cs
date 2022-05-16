@@ -10,7 +10,7 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
+
         public TimeSpan Timestamp
         {
             get;
@@ -23,7 +23,7 @@ namespace Fracture.Net.Hosting.Servers
             Timestamp  = timestamp;
         }
     }
-    
+
     public readonly struct PeerResetEventArgs : IStructEventArgs
     {
         #region Fields
@@ -31,18 +31,18 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
+
         public ResetReason Reason
         {
             get;
         }
-        
+
         public TimeSpan Timestamp
         {
             get;
         }
         #endregion
-        
+
         public PeerResetEventArgs(in PeerConnection connection, ResetReason reason, in TimeSpan timestamp)
         {
             Connection = connection;
@@ -50,7 +50,7 @@ namespace Fracture.Net.Hosting.Servers
             Timestamp  = timestamp;
         }
     }
-    
+
     public readonly struct PeerMessageEventArgs : IStructEventArgs
     {
         #region Properties
@@ -58,15 +58,15 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the raw serialized contents of this message.
         /// </summary>
-        public byte[] Contents
+        public byte [] Contents
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the length of bytes received from the client. This is the safe amount of bytes you can read from the <see cref="Contents"/>.
         /// </summary>
@@ -74,7 +74,7 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the timestamp when this message was received by the application.
         /// </summary>
@@ -83,8 +83,8 @@ namespace Fracture.Net.Hosting.Servers
             get;
         }
         #endregion
-        
-        public PeerMessageEventArgs(in PeerConnection connection, byte[] contents, int length, in TimeSpan timestamp)
+
+        public PeerMessageEventArgs(in PeerConnection connection, byte [] contents, int length, in TimeSpan timestamp)
         {
             Connection = connection;
             Contents   = contents;
@@ -92,7 +92,7 @@ namespace Fracture.Net.Hosting.Servers
             Timestamp  = timestamp;
         }
     }
-    
+
     public readonly struct ServerMessageEventArgs : IStructEventArgs
     {
         #region Properties
@@ -101,26 +101,28 @@ namespace Fracture.Net.Hosting.Servers
             get;
         }
 
-        public byte[] Contents
+        public byte [] Contents
         {
             get;
         }
+
         public int Offset
         {
             get;
         }
+
         public int Length
         {
             get;
         }
-        
+
         public TimeSpan Timestamp
         {
             get;
         }
         #endregion
-        
-        public ServerMessageEventArgs(in PeerConnection connection, byte[] contents, int offset, int length, in TimeSpan timestamp)
+
+        public ServerMessageEventArgs(in PeerConnection connection, byte [] contents, int offset, int length, in TimeSpan timestamp)
         {
             Connection = connection;
             Contents   = contents;

@@ -8,9 +8,8 @@ namespace Fracture.Common.Memory.Pools
         private readonly IPool<T> pool;
         #endregion
 
-        public ConcurrentPool(IPool<T> pool)
-            => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
-        
+        public ConcurrentPool(IPool<T> pool) => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
+
         public void Return(T element)
         {
             lock (pool) pool.Return(element);

@@ -8,13 +8,13 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Generic delegate for wrapping write calls to buffer.
     /// </summary>
-    public delegate void HeaderWriteDelegate<in T>(T value, byte[] buffer, int offset);
-                  
+    public delegate void HeaderWriteDelegate<in T>(T value, byte [] buffer, int offset);
+
     /// <summary>
     /// Generic delegate for wrapping read calls to buffer.
     /// </summary>
-    public delegate T HeaderReadDelegate<out T>(byte[] buffer, int offset);
-    
+    public delegate T HeaderReadDelegate<out T>(byte [] buffer, int offset);
+
     /// <summary>
     /// Class providing generic wrapper for protocol labels such as message type id and size fields.
     /// </summary>
@@ -24,7 +24,7 @@ namespace Fracture.Net.Serialization
         private readonly HeaderReadDelegate<T> read;
         private readonly HeaderWriteDelegate<T> write;
         #endregion
-        
+
         #region Properties
         /// <summary>
         /// Gets the size of the label inside a message buffer.
@@ -38,31 +38,26 @@ namespace Fracture.Net.Serialization
         public Header(HeaderWriteDelegate<T> write, HeaderReadDelegate<T> read)
         {
             Size = (ushort)Marshal.SizeOf<T>();
-            
+
             this.write = write ?? throw new ArgumentNullException(nameof(write));
             this.read  = read ?? throw new ArgumentNullException(nameof(read));
         }
-        
-        public void Write(T value, byte[] buffer, int offset)
-            => write(value, buffer, offset);
-        
-        public T Read(byte[] buffer, int offset)
-            => read(buffer, offset);
+
+        public void Write(T value, byte [] buffer, int offset) => write(value, buffer, offset);
+
+        public T Read(byte [] buffer, int offset) => read(buffer, offset);
     }
-    
+
     public static class Header
-    {        
+    {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<byte> Byte()
-            => new Header<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);  
-        
+        public static Header<byte> Byte() => new Header<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<ushort> Ushort()
-            => new Header<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
-        
+        public static Header<ushort> Ushort() => new Header<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<uint> Uint()
-            => new Header<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);  
+        public static Header<uint> Uint() => new Header<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);
     }
 
     /// <summary>
@@ -99,24 +94,24 @@ namespace Fracture.Net.Serialization
         /// </summary>
         public const ushort Mtu = ushort.MaxValue;
         #endregion
-        
+
         #region Static fields
         /// <summary>
         /// Header denoting the type id of the object. This type id can denote a single value or structure in the byte stream.
         /// </summary>
         public static readonly Header<ushort> SerializationTypeId = Header.Ushort();
-        
+
         /// <summary>
         /// Header denoting content size inside the message in bytes. This header appears on all object values after their type id or with fields that can
         /// vary in size. This is used for storing for example collection package size in streams and string lengths.
         /// </summary>
         public static readonly Header<ushort> ContentLength = Header.Ushort();
-        
+
         /// <summary>
         /// Header denoting collection length in elements. This header appears on all collection type objects.
         /// </summary>
         public static readonly Header<ushort> CollectionLength = Header.Ushort();
-        
+
         /// <summary>
         /// Header containing small optional serialization data field used by some serialization types to store additional information about the serialized objects.
         /// </summary>

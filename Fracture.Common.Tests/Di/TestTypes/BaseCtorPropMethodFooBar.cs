@@ -27,7 +27,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
             set => throw new NotImplementedException();
         }
         #endregion
-        
+
         [BindingMethod]
         public abstract void Deps0(Dep0 dep);
 

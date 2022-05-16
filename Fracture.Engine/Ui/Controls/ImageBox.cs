@@ -8,13 +8,13 @@ using Shattered.Content.Ui;
 
 namespace Fracture.Engine.Ui.Controls
 {
-    public enum ImageMode : byte 
+    public enum ImageMode : byte
     {
         Normal,
         Source,
         Fit
     }
-    
+
     public sealed class ImageBox : Control
     {
         #region Properties
@@ -54,7 +54,7 @@ namespace Fracture.Engine.Ui.Controls
             Size       = new Vector2(0.25f);
             ImageColor = Color.White;
         }
-        
+
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             if (Image == null) return;
@@ -81,7 +81,7 @@ namespace Fracture.Engine.Ui.Controls
                                         ImageColor);
                     break;
                 case ImageMode.Source:
-                    
+
                     fragment.DrawSprite(new Vector2(imageX, imageY),
                                         Vector2.One,
                                         0.0f,

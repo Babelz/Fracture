@@ -17,19 +17,17 @@ namespace Fracture.Common.Events
 
         void Clear();
     }
-    
+
     public class EventScheduler : IEventScheduler
     {
         #region Fields
         private readonly List<IScheduledEvent> scheduledEvents;
         #endregion
 
-        public EventScheduler()
-            => scheduledEvents = new List<IScheduledEvent>();
-        
-        public bool Exists(IScheduledEvent scheduledEvent)
-            => scheduledEvents.Contains(scheduledEvent);
-        
+        public EventScheduler() => scheduledEvents = new List<IScheduledEvent>();
+
+        public bool Exists(IScheduledEvent scheduledEvent) => scheduledEvents.Contains(scheduledEvent);
+
         public void Add(IScheduledEvent scheduledEvent)
         {
             if (scheduledEvent == null)
@@ -46,10 +44,9 @@ namespace Fracture.Common.Events
             if (!scheduledEvents.Remove(scheduledEvent))
                 throw new InvalidOperationException("could not remove scheduler");
         }
-        
-        public void Clear()
-            => scheduledEvents.Clear();   
-         
+
+        public void Clear() => scheduledEvents.Clear();
+
         public void Tick(TimeSpan elapsed)
         {
             foreach (var scheduledEvent in scheduledEvents.Where(e => e.Waiting).ToList())
@@ -58,7 +55,7 @@ namespace Fracture.Common.Events
 
                 if (scheduledEvent.Waiting)
                     continue;
-                
+
                 if (scheduledEvent.Type == ScheduledEventType.Pulse)
                     scheduledEvent.Wait(scheduledEvent.DueTime);
                 else

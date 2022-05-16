@@ -21,20 +21,20 @@ namespace Fracture.Engine.Ui
         #region Fields
         private readonly IUiSystem uis;
         #endregion
-        
-        public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index) 
+
+        public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index)
             : base(host, pipelines, index, new GraphicsFragmentSettings(
-                   SpriteSortMode.Deferred,
-                   BlendState.AlphaBlend,
-                   new SamplerState
-                   {
-                       Filter   = TextureFilter.Point,
-                       AddressU = TextureAddressMode.Clamp,
-                       AddressV = TextureAddressMode.Clamp,
-                       AddressW = TextureAddressMode.Clamp
-                   },
-                   DepthStencilState.None,
-                   RasterizerState.CullNone))
+                       SpriteSortMode.Deferred,
+                       BlendState.AlphaBlend,
+                       new SamplerState
+                       {
+                           Filter   = TextureFilter.Point,
+                           AddressU = TextureAddressMode.Clamp,
+                           AddressV = TextureAddressMode.Clamp,
+                           AddressW = TextureAddressMode.Clamp
+                       },
+                       DepthStencilState.None,
+                       RasterizerState.CullNone))
         {
             this.uis = uis ?? throw new ArgumentNullException(nameof(uis));
         }
@@ -46,36 +46,36 @@ namespace Fracture.Engine.Ui
             foreach (var ui in uis)
             {
                 ui.BeforeDraw(fragment, time);
-            
+
                 fragment.Begin(ui.View);
-                
+
                 ui.Draw(fragment, time);
 
                 fragment.End();
-   
+
                 ui.AfterDraw(fragment, time);
             }
         }
     }
-    
+
     public interface IUiSystem : IObjectManagementSystem, IEnumerable<Ui>
     {
         Ui Create(IStaticContainerControl root, IUiStyle style, IView view, string name);
         Ui Create(IStaticContainerControl root, IView view, string name);
-        
+
         /// <summary>
         /// Deletes given UI from the system and disposes it.
         /// </summary>
         void Delete(Ui ui);
     }
-    
+
     public sealed class UiSystem : GameEngineSystem, IUiSystem
     {
         #region Fields
         private readonly List<Ui> uis;
 
-        private readonly IGraphicsDeviceSystem graphics;        
-        
+        private readonly IGraphicsDeviceSystem graphics;
+
         private readonly IInputDeviceSystem devices;
 
         private readonly IContentSystem content;
@@ -91,7 +91,7 @@ namespace Fracture.Engine.Ui
             this.graphics = graphics;
             this.devices  = devices;
             this.content  = content;
-            
+
             uis = new List<Ui>();
         }
 
@@ -109,12 +109,12 @@ namespace Fracture.Engine.Ui
             root.Style    = style ?? throw new ArgumentNullException(nameof(style));
             root.Graphics = graphics;
 
-            var ui = new Ui(name, 
-                            view, 
-                            root, 
-                            devices.OfType<IMouseDevice>().First(), 
+            var ui = new Ui(name,
+                            view,
+                            root,
+                            devices.OfType<IMouseDevice>().First(),
                             devices.OfType<IKeyboardDevice>().First());
-            
+
             uis.Add(ui);
 
             root.UpdateLayout();
@@ -122,36 +122,33 @@ namespace Fracture.Engine.Ui
             return ui;
         }
 
-        public Ui Create(IStaticContainerControl root, IView view, string name)
-            => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
+        public Ui Create(IStaticContainerControl root, IView view, string name) => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
 
         public void Delete(Ui ui)
         {
             if (ui == null)
                 throw new ArgumentNullException(nameof(ui));
-            
+
             if (!uis.Remove(ui))
                 throw new InvalidOperationException("could not remove ui");
-            
+
             ui.Dispose();
         }
-        
+
         public void Clear()
         {
             while (uis.Count != 0)
                 Delete(uis[0]);
         }
-        
+
         public override void Update(IGameEngineTime time)
         {
             for (var i = 0; i < uis.Count; i++)
                 uis[i].Update(time);
         }
 
-        IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator()
-            => uis.GetEnumerator();
+        IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator() => uis.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => uis.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => uis.GetEnumerator();
     }
 }

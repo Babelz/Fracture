@@ -40,8 +40,7 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public Checkbox()
-            => Size = new Vector2(0.2f);
+        public Checkbox() => Size = new Vector2(0.2f);
 
         protected override void InternalClick()
         {
@@ -52,7 +51,7 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            var texture     = Style.Get<Texture2D>($"{UiStyleKeys.Target.Checkbox}\\{(Checked? UiStyleKeys.Texture.Checked : UiStyleKeys.Texture.Unchecked)}");
+            var texture     = Style.Get<Texture2D>($"{UiStyleKeys.Target.Checkbox}\\{(Checked ? UiStyleKeys.Texture.Checked : UiStyleKeys.Texture.Unchecked)}");
             var color       = Style.Get<Color>($"{UiStyleKeys.Target.Checkbox}\\{(Enabled ? UiStyleKeys.Color.Enabled : UiStyleKeys.Color.Disabled)}");
             var destination = GetRenderDestinationRectangle();
             var position    = new Vector2(destination.X, destination.Y);

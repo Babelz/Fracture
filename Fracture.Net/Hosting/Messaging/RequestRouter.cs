@@ -23,7 +23,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <param name="handler">handler invoked when request message matches the preceding matcher</param>
         void Use(MessageMatchDelegate match, RequestHandlerDelegate handler);
     }
-    
+
     /// <summary>
     /// Interface that provides full request routing implementation by functioning as route consumer and dispatcher.
     /// </summary>
@@ -67,21 +67,19 @@ namespace Fracture.Net.Hosting.Messaging
             }
         }
         #endregion
-        
+
         #region Fields
         private readonly List<RequestRoute> routes;
         #endregion
 
-        public RequestRouter()
-            => routes = new List<RequestRoute>();
-        
-        public void Use(MessageMatchDelegate match, RequestHandlerDelegate handler)
-            => routes.Add(new RequestRoute(match, handler));
+        public RequestRouter() => routes = new List<RequestRoute>();
+
+        public void Use(MessageMatchDelegate match, RequestHandlerDelegate handler) => routes.Add(new RequestRoute(match, handler));
 
         public void Dispatch(IRequest request, IResponse response)
         {
             var route = routes.FirstOrDefault(r => r.Match(request.Message));
-            
+
             if (route != null)
             {
                 try
@@ -97,7 +95,7 @@ namespace Fracture.Net.Hosting.Messaging
                                      "indicate failure", request, response);
                 }
             }
-            else 
+            else
                 response.NoRoute();
         }
     }

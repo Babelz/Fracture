@@ -25,17 +25,19 @@ namespace Fracture.Engine.Ui
         {
             get;
         }
+
         public IView View
         {
             get;
         }
+
         public string Name
         {
             get;
         }
         #endregion
 
-        public Ui(string name, 
+        public Ui(string name,
                   IView view,
                   IStaticContainerControl root,
                   IMouseDevice mouse,
@@ -57,8 +59,7 @@ namespace Fracture.Engine.Ui
         }
 
         #region Event handlers
-        private void UserInterfaceCanvas_ScreenSizeChanged(object sender, EventArgs e)
-            => Root.UpdateChildrenLayout(); 
+        private void UserInterfaceCanvas_ScreenSizeChanged(object sender, EventArgs e) => Root.UpdateChildrenLayout();
         #endregion
 
         public void Update(IGameEngineTime time)
@@ -75,21 +76,17 @@ namespace Fracture.Engine.Ui
 
             if (!string.IsNullOrEmpty(text))
                 Root.ReceiveTextInput(time, text);
-                
+
             // Do control specific updates.
             Root.Update(time);
         }
 
-        public void BeforeDraw(IGraphicsFragment fragment, IGameEngineTime time)
-            => Root.BeforeDraw(fragment, time);
+        public void BeforeDraw(IGraphicsFragment fragment, IGameEngineTime time) => Root.BeforeDraw(fragment, time);
 
-        public void Draw(IGraphicsFragment fragment, IGameEngineTime time)
-            => Root.Draw(fragment, time);
-            
-        public void AfterDraw(IGraphicsFragment fragment, IGameEngineTime time)
-            => Root.AfterDraw(fragment, time);
-        
-        public void Dispose()
-            => Root.Dispose();
+        public void Draw(IGraphicsFragment fragment, IGameEngineTime time) => Root.Draw(fragment, time);
+
+        public void AfterDraw(IGraphicsFragment fragment, IGameEngineTime time) => Root.AfterDraw(fragment, time);
+
+        public void Dispose() => Root.Dispose();
     }
 }

@@ -57,7 +57,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets or sets the graphics device associated
         /// with this control.
@@ -77,7 +77,7 @@ namespace Fracture.Engine.Ui.Controls
 
         void Clear();
     }
-    
+
     /// <summary>
     /// Base class for implementing container controls.
     /// </summary>
@@ -85,11 +85,11 @@ namespace Fracture.Engine.Ui.Controls
     {
         #region Fields
         private bool suppressRenderTargetRender;
-        
+
         private bool useRenderTarget;
 
         private bool disposed;
-        
+
         private IGraphicsDeviceSystem graphics;
         #endregion
 
@@ -116,7 +116,7 @@ namespace Fracture.Engine.Ui.Controls
                 useRenderTarget = value;
 
                 if (useRenderTarget && !old) UpdateRenderTarget();
-                else                         DeinitializeRenderTarget();    
+                else DeinitializeRenderTarget();
             }
         }
 
@@ -140,7 +140,7 @@ namespace Fracture.Engine.Ui.Controls
                 var y = Controls.Min(c => c.ActualBoundingBox.Y);
                 var r = Controls.Max(c => c.ActualBoundingBox.Right);
                 var b = Controls.Max(c => c.ActualBoundingBox.Bottom);
-                
+
                 return new Vector2(r - x - ActualBoundingBox.Width, b - y - ActualBoundingBox.Height);
             }
         }
@@ -156,7 +156,7 @@ namespace Fracture.Engine.Ui.Controls
                     UpdateRenderTarget();
 
                 foreach (var container in Children.Controls.Where(c => c is IStaticContainerControl)
-                                                           .Cast<IStaticContainerControl>())
+                                                  .Cast<IStaticContainerControl>())
                 {
                     container.Graphics = value;
                 }
@@ -197,8 +197,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void ContainerControl_LayoutChanged(object sender, EventArgs e)
-            => UpdateChildrenLayout();
+        private void ContainerControl_LayoutChanged(object sender, EventArgs e) => UpdateChildrenLayout();
 
         private void Controls_ControlRemoved(object sender, ControlEventArgs e)
         {
@@ -232,7 +231,7 @@ namespace Fracture.Engine.Ui.Controls
             control.Style  = Style;
 
             if (control is IStaticContainerControl container) container.Graphics = graphics;
-            
+
             UpdateChildrenLayout();
         }
 
@@ -240,7 +239,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (useRenderTarget) UpdateRenderTarget();
         }
-        
+
         private void Control_ParentChanged(object sender, ControlParentEventArgs e)
         {
             var control = (IControl)sender;
@@ -279,7 +278,7 @@ namespace Fracture.Engine.Ui.Controls
                                                          DepthFormat.None,
                                                          RenderTargetUsage.DiscardContents);
         }
-        
+
         /// <summary>
         /// Method called when control is being disposed and managed
         /// resources should be disposed. Remember to call the 
@@ -288,7 +287,7 @@ namespace Fracture.Engine.Ui.Controls
         protected virtual void DisposeManaged()
         {
             if (RenderTarget == null) return;
-            
+
             RenderTarget.Dispose();
 
             RenderTarget = null;
@@ -306,7 +305,8 @@ namespace Fracture.Engine.Ui.Controls
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
-                throw new InvalidOperationException($"control {(string.IsNullOrEmpty(Id) ? GetType().Name : $"of type {GetType().Name} with id {Id}")} already disposed");
+                throw new InvalidOperationException(
+                    $"control {(string.IsNullOrEmpty(Id) ? GetType().Name : $"of type {GetType().Name} with id {Id}")} already disposed");
 
             if (disposing)
                 DisposeManaged();
@@ -320,7 +320,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             for (var i = 0; i < ControlsCount; i++) this[i].Update(time);
         }
-        
+
         /// <summary>
         /// Calls before render for all child controls.
         /// </summary>
@@ -329,26 +329,26 @@ namespace Fracture.Engine.Ui.Controls
             for (var i = 0; i < ControlsCount; i++) this[i].BeforeDraw(fragment, time);
 
             if (!UseRenderTarget) return;
-            
-            fragment.Begin(RenderTarget, 
+
+            fragment.Begin(RenderTarget,
                            new Viewport(0, 0, RenderTarget.Width, RenderTarget.Height),
                            View.CreateViewMatrix(
-                               UiCanvas.ToScreenUnits(ActualBoundingBox.Position) + 
-                               new Vector2(RenderTarget.Width * 0.5f, RenderTarget.Height * 0.5f) + 
+                               UiCanvas.ToScreenUnits(ActualBoundingBox.Position) +
+                               new Vector2(RenderTarget.Width * 0.5f, RenderTarget.Height * 0.5f) +
                                UiCanvas.ToScreenUnits(ViewOffset),
-                               new Vector2(RenderTarget.Width, RenderTarget.Height), 
-                               0.0f, 
+                               new Vector2(RenderTarget.Width, RenderTarget.Height),
+                               0.0f,
                                1.0f));
-                
+
             suppressRenderTargetRender = true;
 
             InternalDraw(fragment, time);
 
             suppressRenderTargetRender = false;
-                
+
             fragment.End();
         }
-        
+
         /// <summary>
         /// Calls render for all child controls.
         /// </summary>
@@ -363,7 +363,6 @@ namespace Fracture.Engine.Ui.Controls
                                     new Vector2(RenderTarget.Width, RenderTarget.Height),
                                     RenderTarget,
                                     Color.White);
-                                    
             }
             else
             {
@@ -380,7 +379,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         protected override void InternalReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard)
-        {   
+        {
             for (var i = 0; i < ControlsCount; i++) this[i].ReceiveKeyboardInput(time, keyboard);
         }
 
@@ -393,7 +392,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             for (var i = 0; i < ControlsCount; i++) this[i].ReceiveTextInput(time, text);
         }
-       
+
         public override void UpdateLayout()
         {
             base.UpdateLayout();
@@ -406,15 +405,16 @@ namespace Fracture.Engine.Ui.Controls
             base.Enable();
 
             if (!Enabled) return;
-            
+
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].Enable();
         }
+
         public override void Disable()
         {
             base.Disable();
 
             if (Enabled) return;
-            
+
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].Disable();
         }
 
@@ -423,18 +423,19 @@ namespace Fracture.Engine.Ui.Controls
             base.Show();
 
             if (!Visible) return;
-            
+
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].Show();
         }
+
         public override void Hide()
         {
             base.Hide();
 
             if (Visible) return;
-            
+
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].Hide();
         }
-        
+
         public virtual void UpdateChildrenLayout()
         {
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].UpdateLayout();
@@ -446,7 +447,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             GC.SuppressFinalize(this);
 
-            Dispose(true);        
+            Dispose(true);
         }
     }
 }

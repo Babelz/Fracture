@@ -7,7 +7,7 @@ namespace Fracture.Common.Events
     {
         // Marker interface, nothing to implement.
     }
-    
+
     /// <summary>
     /// Default delegate type for creating structure based event handlers.
     /// </summary>

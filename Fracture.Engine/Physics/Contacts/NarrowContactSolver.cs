@@ -9,393 +9,388 @@ using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics.Contacts
 {
-   /// <summary>
-   /// Structure contains narrow contact solver results.
-   /// </summary>
-   public readonly struct NarrowContactSolverResult
-   {
-      #region Properties
-      /// <summary>
-      /// Gets the id first body involved in the collision. Always guaranteed to be
-      /// dynamic or sensor.
-      /// </summary>
-      public int FirstBodyId
-      {
-         get;
-      }
+    /// <summary>
+    /// Structure contains narrow contact solver results.
+    /// </summary>
+    public readonly struct NarrowContactSolverResult
+    {
+        #region Properties
+        /// <summary>
+        /// Gets the id first body involved in the collision. Always guaranteed to be
+        /// dynamic or sensor.
+        /// </summary>
+        public int FirstBodyId
+        {
+            get;
+        }
 
-      /// <summary>
-      /// Gets the id second body involved in the collision. Always guaranteed to be
-      /// static of dynamic.
-      /// </summary>
-      public int SecondBodyId
-      {
-         get;
-      }
+        /// <summary>
+        /// Gets the id second body involved in the collision. Always guaranteed to be
+        /// static of dynamic.
+        /// </summary>
+        public int SecondBodyId
+        {
+            get;
+        }
 
-      /// <summary>
-      /// Translation required to separate bodies from each other.
-      /// </summary>
-      public Vector2 Translation
-      {
-         get;
-      }
+        /// <summary>
+        /// Translation required to separate bodies from each other.
+        /// </summary>
+        public Vector2 Translation
+        {
+            get;
+        }
 
-      /// <summary>
-      /// Gets the boolean declaring whether and collision actually occurred.
-      /// </summary>
-      public bool Collides
-      {
-         get;
-      }
-      #endregion
+        /// <summary>
+        /// Gets the boolean declaring whether and collision actually occurred.
+        /// </summary>
+        public bool Collides
+        {
+            get;
+        }
+        #endregion
 
-      private NarrowContactSolverResult(int firstBodyId, int secondBodyId, Vector2 translation, bool collides)
-      {
-         FirstBodyId  = firstBodyId;
-         SecondBodyId = secondBodyId;
-         Translation  = translation;
-         Collides     = collides;
-      }
+        private NarrowContactSolverResult(int firstBodyId, int secondBodyId, Vector2 translation, bool collides)
+        {
+            FirstBodyId  = firstBodyId;
+            SecondBodyId = secondBodyId;
+            Translation  = translation;
+            Collides     = collides;
+        }
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult Collision(int firstBodyId, int secondBodyId, Vector2 translation)
-         => new NarrowContactSolverResult(firstBodyId, secondBodyId, translation, true);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult Collision(int firstBodyId, int secondBodyId, Vector2 translation) =>
+            new NarrowContactSolverResult(firstBodyId, secondBodyId, translation, true);
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult Separation()
-         => new NarrowContactSolverResult(0, 0, Vector2.Zero, false);
-   }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult Separation() => new NarrowContactSolverResult(0, 0, Vector2.Zero, false);
+    }
 
-   public static unsafe class NarrowContactSolver
-   {
-      /// <summary>
-      /// Attempts to solve contact between two bodies. If no solver is found
-      /// for the shape types provided, no contact is returned.
-      /// </summary>
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult Solve(in Body a, in Body b)
-      {
-         // Poly to poly.
-         if (a.Shape.IsPolygon() && b.Shape.IsPolygon())
-            return SolvePolygonToPolygon(a, b);
-         
-         // Circle to circle.
-         if (a.Shape.IsCircle() && b.Shape.IsCircle())
-            return SolveCircleToCircle(a, b);
-         
-         // Poly to circle.
-         if ((a.Shape.IsPolygon() || b.Shape.IsPolygon()) && (a.Shape.IsCircle() || b.Shape.IsCircle()))
-            return SolvePolygonToCircle(a, b);
-         
-         return NarrowContactSolverResult.Separation();
-      }
-      
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult SolvePolygonToPolygon(in Body a, in Body b)
-      {
+    public static unsafe class NarrowContactSolver
+    {
+        /// <summary>
+        /// Attempts to solve contact between two bodies. If no solver is found
+        /// for the shape types provided, no contact is returned.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult Solve(in Body a, in Body b)
+        {
+            // Poly to poly.
+            if (a.Shape.IsPolygon() && b.Shape.IsPolygon())
+                return SolvePolygonToPolygon(a, b);
+
+            // Circle to circle.
+            if (a.Shape.IsCircle() && b.Shape.IsCircle())
+                return SolveCircleToCircle(a, b);
+
+            // Poly to circle.
+            if ((a.Shape.IsPolygon() || b.Shape.IsPolygon()) && (a.Shape.IsCircle() || b.Shape.IsCircle()))
+                return SolvePolygonToCircle(a, b);
+
+            return NarrowContactSolverResult.Separation();
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult SolvePolygonToPolygon(in Body a, in Body b)
+        {
 #if DEBUG
-         if (!a.Shape.IsPolygon() || !b.Shape.IsPolygon())
-            throw new InvalidEnumArgumentException("expecting two polygons")
-            {
-               Data = { { "a", a }, { "b", b } }
-            };
+            if (!a.Shape.IsPolygon() || !b.Shape.IsPolygon())
+                throw new InvalidEnumArgumentException("expecting two polygons")
+                {
+                    Data = { { "a", a }, { "b", b } }
+                };
 #endif
-         if (!Aabb.Intersects(a.BoundingBox, b.BoundingBox))
-            return NarrowContactSolverResult.Separation();
+            if (!Aabb.Intersects(a.BoundingBox, b.BoundingBox))
+                return NarrowContactSolverResult.Separation();
 
-         // If no points, return.
-         if (a.Vertices.Length < 1 || b.Vertices.Length < 1)
-            return NarrowContactSolverResult.Separation();
+            // If no points, return.
+            if (a.Vertices.Length < 1 || b.Vertices.Length < 1)
+                return NarrowContactSolverResult.Separation();
 
-         // Minimum translation axis.
-         var mta = Vector2.Zero;
+            // Minimum translation axis.
+            var mta = Vector2.Zero;
 
-         // Minimum translation value. When united with minimum translation axis, we get minimum (response) translation vector.
-         var mt = float.MaxValue;
+            // Minimum translation value. When united with minimum translation axis, we get minimum (response) translation vector.
+            var mt = float.MaxValue;
 
-         // Overlap between projections.
-         float ol;
+            // Overlap between projections.
+            float ol;
 
-         // Check for a-b overlaps. Project a and b to a axes.
-         for (var i = 0; i < a.Shape.Axes.Length; i++)
-         {
-            // Get projections.
-            var cax = a.Shape.Axes[i];
-            var apj = Project.Polygon(a.Vertices, cax);
-            var bpj = Project.Polygon(b.Vertices, cax);
+            // Check for a-b overlaps. Project a and b to a axes.
+            for (var i = 0; i < a.Shape.Axes.Length; i++)
+            {
+                // Get projections.
+                var cax = a.Shape.Axes[i];
+                var apj = Project.Polygon(a.Vertices, cax);
+                var bpj = Project.Polygon(b.Vertices, cax);
 
-            // Check for overlap. If no overlap, then no interaction between polygons so we can return,
-            // otherwise we compare the minimum translation.
-            if (!Project.Overlap(apj, bpj))
-               return NarrowContactSolverResult.Separation();
+                // Check for overlap. If no overlap, then no interaction between polygons so we can return,
+                // otherwise we compare the minimum translation.
+                if (!Project.Overlap(apj, bpj))
+                    return NarrowContactSolverResult.Separation();
 
-            // Get value of overlap.
-            ol = Project.OverlapAmount(apj, bpj);
+                // Get value of overlap.
+                ol = Project.OverlapAmount(apj, bpj);
 
-            // If it is less than previous, change mt and axis accordingly.
-            if (!(ol < mt))
-               continue;
+                // If it is less than previous, change mt and axis accordingly.
+                if (!(ol < mt))
+                    continue;
 
-            mt  = ol;
-            mta = a.Shape.Axes[i];
-         }
+                mt  = ol;
+                mta = a.Shape.Axes[i];
+            }
 
-         // Check for b-a overlaps. Project a and b to b axes.
-         for (var i = 0; i < b.Shape.Axes.Length; i++)
-         {
-            // Get projection.
-            var cax = b.Shape.Axes[i];
-            var apj = Project.Polygon(a.Vertices, cax);
-            var bpj = Project.Polygon(b.Vertices, cax);
+            // Check for b-a overlaps. Project a and b to b axes.
+            for (var i = 0; i < b.Shape.Axes.Length; i++)
+            {
+                // Get projection.
+                var cax = b.Shape.Axes[i];
+                var apj = Project.Polygon(a.Vertices, cax);
+                var bpj = Project.Polygon(b.Vertices, cax);
 
-            if (!Project.Overlap(apj, bpj))
-               return NarrowContactSolverResult.Separation();
+                if (!Project.Overlap(apj, bpj))
+                    return NarrowContactSolverResult.Separation();
 
-            // Get value of overlap.
-            ol = Project.OverlapAmount(apj, bpj);
+                // Get value of overlap.
+                ol = Project.OverlapAmount(apj, bpj);
 
-            // If it is less than previous, change mt and axis accordingly.
-            if (!(ol < mt))
-               continue;
+                // If it is less than previous, change mt and axis accordingly.
+                if (!(ol < mt))
+                    continue;
 
-            mt  = ol;
-            mta = b.Shape.Axes[i];
-         }
+                mt  = ol;
+                mta = b.Shape.Axes[i];
+            }
 
-         // Sensor optimization, translation is irrelevant here.
-         if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
-            return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
+            // Sensor optimization, translation is irrelevant here.
+            if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
+                return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
 
-         // If we got this far then the objects are intersecting and we have the mtv for handling
-         // separation between the objects. 
-         var dv = a.Position - b.Position;
+            // If we got this far then the objects are intersecting and we have the mtv for handling
+            // separation between the objects. 
+            var dv = a.Position - b.Position;
 
-         // Minimum translation vector for separation.
-         // Check side, are we colliding from right or left.
-         if (!(Vector2.Dot(mta, dv) < 0.0f))
+            // Minimum translation vector for separation.
+            // Check side, are we colliding from right or left.
+            if (!(Vector2.Dot(mta, dv) < 0.0f))
+                return NarrowContactSolverResult.Collision(a.Id, b.Id, mta * mt);
+
+            mta.X = -mta.X;
+            mta.Y = -mta.Y;
+
+            // Return new contact for later handling.
             return NarrowContactSolverResult.Collision(a.Id, b.Id, mta * mt);
+        }
 
-         mta.X = -mta.X;
-         mta.Y = -mta.Y;
-
-         // Return new contact for later handling.
-         return NarrowContactSolverResult.Collision(a.Id, b.Id, mta * mt);
-      }
-
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult SolvePolygonToCircle(in Body a, in Body b)
-      {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult SolvePolygonToCircle(in Body a, in Body b)
+        {
 #if DEBUG
-         if (!(!a.Shape.IsPolygon() || !b.Shape.IsPolygon()) || !(!a.Shape.IsCircle() || b.Shape.IsCircle()))
-            throw new InvalidOperationException("expecting one circle and one polygon")
-            {
-               Data = { { "a", a }, { "b", b } }
-            };
+            if (!(!a.Shape.IsPolygon() || !b.Shape.IsPolygon()) || !(!a.Shape.IsCircle() || b.Shape.IsCircle()))
+                throw new InvalidOperationException("expecting one circle and one polygon")
+                {
+                    Data = { { "a", a }, { "b", b } }
+                };
 #endif
-         // Solve polygon and circle where p is polygon 
-         // and c is circle.
-         var polygon = a.Shape.IsPolygon() ? a : b;
-         
-         var circle = b.Shape.IsCircle() ? a : b;
+            // Solve polygon and circle where p is polygon 
+            // and c is circle.
+            var polygon = a.Shape.IsPolygon() ? a : b;
 
-         // Minimum translation axis.
-         var mta = Vector2.Zero;
+            var circle = b.Shape.IsCircle() ? a : b;
 
-         // Minimum translation value. When united with minimum translation axis, we get minimum (response) translation vector.
-         var mt = float.MaxValue;
+            // Minimum translation axis.
+            var mta = Vector2.Zero;
 
-         // Minimum penetration vertex.
-         var mv = Vector2.Zero;
+            // Minimum translation value. When united with minimum translation axis, we get minimum (response) translation vector.
+            var mt = float.MaxValue;
 
-         // Circle position, center.
-         var cp = circle.Position;
+            // Minimum penetration vertex.
+            var mv = Vector2.Zero;
 
-         // Circle radius.
-         var cr = circle.Shape.Radius();
+            // Circle position, center.
+            var cp = circle.Position;
 
-         // Polygon world vertices and axes.
-         var pv = polygon.Vertices;
+            // Circle radius.
+            var cr = circle.Shape.Radius();
 
-         // Copy axes to this span and allocate n + 1.
-         var al = polygon.Shape.Axes.Length + 1;
-         var ax = stackalloc Vector2[al];
+            // Polygon world vertices and axes.
+            var pv = polygon.Vertices;
 
-         for (var i = 0; i < al - 1; i++)
-            ax[i] = polygon.Shape.Axes[i];
+            // Copy axes to this span and allocate n + 1.
+            var al = polygon.Shape.Axes.Length + 1;
+            var ax = stackalloc Vector2 [al];
 
-         // Find minimum penetrating vertex. 
-         for (var i = 0; i < pv.Length; i++)
-         {
-            // Distance from vertex to center.
-            var d = pv[i] - cp;
+            for (var i = 0; i < al - 1; i++)
+                ax[i] = polygon.Shape.Axes[i];
 
-            if (mv == Vector2.Zero || d.LengthSquared() < mv.LengthSquared())
-               mv = d;
-         }
+            // Find minimum penetrating vertex. 
+            for (var i = 0; i < pv.Length; i++)
+            {
+                // Distance from vertex to center.
+                var d = pv[i] - cp;
 
-         // Normalize and make perpendicular.
-         mv.Normalize();
+                if (mv == Vector2.Zero || d.LengthSquared() < mv.LengthSquared())
+                    mv = d;
+            }
 
-         ax[al - 1] = mv;
+            // Normalize and make perpendicular.
+            mv.Normalize();
 
-         // Check intersection along all axes.
-         for (var i = 0; i < al; i++)
-         {
-            // Get projections.
-            var cax = ax[i];
-            var ppj = Project.Polygon(polygon.Vertices, cax);
-            var cpj = Project.Circle(cr, circle.Vertices, cax);
+            ax[al - 1] = mv;
 
-            if (!Project.Overlap(ppj, cpj))
-               return NarrowContactSolverResult.Separation();
+            // Check intersection along all axes.
+            for (var i = 0; i < al; i++)
+            {
+                // Get projections.
+                var cax = ax[i];
+                var ppj = Project.Polygon(polygon.Vertices, cax);
+                var cpj = Project.Circle(cr, circle.Vertices, cax);
 
-            var ol = Project.OverlapAmount(ppj, cpj);
+                if (!Project.Overlap(ppj, cpj))
+                    return NarrowContactSolverResult.Separation();
 
-            if (!(ol < mt))
-               continue;
+                var ol = Project.OverlapAmount(ppj, cpj);
 
-            mt  = ol;
-            mta = ax[i];
-         }
+                if (!(ol < mt))
+                    continue;
 
-         // Sensor optimization, translation is irrelevant here.
-         if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
-            return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
+                mt  = ol;
+                mta = ax[i];
+            }
 
-         // If minimum separation is too small, just 
-         // plain ignore all collisions to prevent 
-         // body snapping.
-         if (mt < 0.005f)
-            return NarrowContactSolverResult.Separation();
+            // Sensor optimization, translation is irrelevant here.
+            if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
+                return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
 
-         // Ensure axis orientation is pointing away.
-         var dv = b.Position - a.Position;
+            // If minimum separation is too small, just 
+            // plain ignore all collisions to prevent 
+            // body snapping.
+            if (mt < 0.005f)
+                return NarrowContactSolverResult.Separation();
 
-         if (Vector2.Dot(dv, mta) >= 0.0f)
-            mta = Vector2.Negate(mta);
+            // Ensure axis orientation is pointing away.
+            var dv = b.Position - a.Position;
 
-         return NarrowContactSolverResult.Collision(a.Id, b.Id, mta * mt);
-      }
+            if (Vector2.Dot(dv, mta) >= 0.0f)
+                mta = Vector2.Negate(mta);
 
-      [MethodImpl(MethodImplOptions.AggressiveInlining)]
-      public static NarrowContactSolverResult SolveCircleToCircle(in Body a, in Body b)
-      {
+            return NarrowContactSolverResult.Collision(a.Id, b.Id, mta * mt);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static NarrowContactSolverResult SolveCircleToCircle(in Body a, in Body b)
+        {
 #if DEBUG
-         if (!a.Shape.IsCircle() && !b.Shape.IsCircle())
-            throw new InvalidOperationException("expecting two circles")
-            {
-               Data = { { "a", a }, { "b", b } }
-            };
+            if (!a.Shape.IsCircle() && !b.Shape.IsCircle())
+                throw new InvalidOperationException("expecting two circles")
+                {
+                    Data = { { "a", a }, { "b", b } }
+                };
 #endif
-         // Distance between circles and the length.
-         var distance = a.Position - b.Position;
+            // Distance between circles and the length.
+            var distance = a.Position - b.Position;
 
-         // Radius sum. 
-         var ar = a.Shape.Radius();
-         var br = b.Shape.Radius();
-         var rs = ar + br;
+            // Radius sum. 
+            var ar = a.Shape.Radius();
+            var br = b.Shape.Radius();
+            var rs = ar + br;
 
-         // Test if two circles collide.
-         if (distance.LengthSquared() > rs * rs)
-            return NarrowContactSolverResult.Separation();
+            // Test if two circles collide.
+            if (distance.LengthSquared() > rs * rs)
+                return NarrowContactSolverResult.Separation();
 
-         // Sensor optimization, translation is irrelevant here.
-         if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
-            return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
+            // Sensor optimization, translation is irrelevant here.
+            if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)
+                return NarrowContactSolverResult.Collision(a.Id, b.Id, Vector2.Zero);
 
-         // If we get this far, collision occurs, solve that collisions.
-         var normal = Vector2.Normalize(distance);
+            // If we get this far, collision occurs, solve that collisions.
+            var normal = Vector2.Normalize(distance);
 
-         // Minimum translation to separate the circles.
-         return NarrowContactSolverResult.Collision(a.Id, b.Id, rs * normal - distance);
-      }
-   }
-   
-   /// <summary>
-   /// List containing last active contacts for single body.
-   /// </summary>
-   public sealed class ContactList
-   {
-       #region Constant fields
-       private const int Capacity = 32;
-       #endregion
+            // Minimum translation to separate the circles.
+            return NarrowContactSolverResult.Collision(a.Id, b.Id, rs * normal - distance);
+        }
+    }
 
-       #region Fields
-       private readonly Dictionary<int, Vector2> translations;
-       
-       private HashSet<int> oldBodyIds;
-       private HashSet<int> newBodyIds;
-       
-       private ulong lastFrame;
-       #endregion
+    /// <summary>
+    /// List containing last active contacts for single body.
+    /// </summary>
+    public sealed class ContactList
+    {
+        #region Constant fields
+        private const int Capacity = 32;
+        #endregion
 
-       #region Properties
-       /// <summary>
-       /// Returns old, leaving contacts.
-       /// </summary>
-       public IEnumerable<int> LeavingBodyIds
-         => oldBodyIds.Where(oldContact => !newBodyIds.Contains(oldContact));
-       
-       /// <summary>
-       /// Returns new, entering contacts.
-       /// </summary>
-       public IEnumerable<int> EnteringBodyIds
-         => newBodyIds.Where(newContact => oldBodyIds.Contains(newContact));
-           
-       /// <summary>
-       /// Returns current contacts.
-       /// </summary>
-       public IEnumerable<int> CurrentBodyIds
-           => oldBodyIds;
+        #region Fields
+        private readonly Dictionary<int, Vector2> translations;
 
-       /// <summary>
-       /// Body that owns this contact list.
-       /// </summary>
-       public int BodyId
-       {
-           get;
-       }
-       #endregion
+        private HashSet<int> oldBodyIds;
+        private HashSet<int> newBodyIds;
 
-       public ContactList(int bodyId)
-       {
-           BodyId       = bodyId;
-           oldBodyIds   = new HashSet<int>(Capacity);
-           newBodyIds   = new HashSet<int>(Capacity);
-           translations = new Dictionary<int, Vector2>();
-       }
-       
-       /// <summary>
-       /// Gets translation for this collision pair.
-       /// </summary>
-       public Vector2 GetTranslation(int bodyId)
-         => translations.TryGetValue(bodyId, out var translation) ? translation : Vector2.Zero;
+        private ulong lastFrame;
+        #endregion
 
-       /// <summary>
-       /// Adds new body to contact list.
-       /// </summary>
-       public void Add(int bodyId, ulong frame, Vector2 translation)
-       {
-           if (lastFrame < frame)
-           {
-               // Swap and clear.
-               var temp = oldBodyIds;
+        #region Properties
+        /// <summary>
+        /// Returns old, leaving contacts.
+        /// </summary>
+        public IEnumerable<int> LeavingBodyIds => oldBodyIds.Where(oldContact => !newBodyIds.Contains(oldContact));
 
-               oldBodyIds = newBodyIds;
-               newBodyIds = temp;
+        /// <summary>
+        /// Returns new, entering contacts.
+        /// </summary>
+        public IEnumerable<int> EnteringBodyIds => newBodyIds.Where(newContact => oldBodyIds.Contains(newContact));
 
-               foreach (var oldBodyId in oldBodyIds)
-                  translations.Remove(oldBodyId);
-               
-               newBodyIds.Clear();
+        /// <summary>
+        /// Returns current contacts.
+        /// </summary>
+        public IEnumerable<int> CurrentBodyIds => oldBodyIds;
 
-               lastFrame = frame;
-           }
-           
-           translations.Add(bodyId, translation);
-           
-           newBodyIds.Add(bodyId);
-       }
-   }
+        /// <summary>
+        /// Body that owns this contact list.
+        /// </summary>
+        public int BodyId
+        {
+            get;
+        }
+        #endregion
+
+        public ContactList(int bodyId)
+        {
+            BodyId       = bodyId;
+            oldBodyIds   = new HashSet<int>(Capacity);
+            newBodyIds   = new HashSet<int>(Capacity);
+            translations = new Dictionary<int, Vector2>();
+        }
+
+        /// <summary>
+        /// Gets translation for this collision pair.
+        /// </summary>
+        public Vector2 GetTranslation(int bodyId) => translations.TryGetValue(bodyId, out var translation) ? translation : Vector2.Zero;
+
+        /// <summary>
+        /// Adds new body to contact list.
+        /// </summary>
+        public void Add(int bodyId, ulong frame, Vector2 translation)
+        {
+            if (lastFrame < frame)
+            {
+                // Swap and clear.
+                var temp = oldBodyIds;
+
+                oldBodyIds = newBodyIds;
+                newBodyIds = temp;
+
+                foreach (var oldBodyId in oldBodyIds)
+                    translations.Remove(oldBodyId);
+
+                newBodyIds.Clear();
+
+                lastFrame = frame;
+            }
+
+            translations.Add(bodyId, translation);
+
+            newBodyIds.Add(bodyId);
+        }
+    }
 }

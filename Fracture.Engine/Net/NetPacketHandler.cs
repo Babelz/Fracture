@@ -17,13 +17,13 @@ namespace Fracture.Engine.Net
         /// provided match delegate.
         /// </summary>
         void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
-        
+
         /// <summary>
         /// Revokes named route and removes it from the handler.
         /// </summary>
         void Revoke(string name);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="INetPacketHandler"/>.
     /// </summary>
@@ -37,7 +37,7 @@ namespace Fracture.Engine.Net
             {
                 get;
             }
-            
+
             public NetPacketMatchDelegate Match
             {
                 get;
@@ -57,32 +57,31 @@ namespace Fracture.Engine.Net
             }
         }
         #endregion
-        
+
         #region Fields
         private readonly List<NetMessageHandlerContext> contexts;
         #endregion
 
-        public NetPacketHandler()
-            => contexts = new List<NetMessageHandlerContext>();
-        
-        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => contexts.Add(new NetMessageHandlerContext(name, match, handler));
-        
+        public NetPacketHandler() => contexts = new List<NetMessageHandlerContext>();
+
+        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler) =>
+            contexts.Add(new NetMessageHandlerContext(name, match, handler));
+
         public void Revoke(string name)
         {
             if (!contexts.Remove(contexts.FirstOrDefault(c => c.Name == name)))
-                throw new InvalidOperationException($"no handle with name {name} exists"); 
+                throw new InvalidOperationException($"no handle with name {name} exists");
         }
-        
+
         public bool Handle(ClientUpdate.Packet packet)
         {
             var context = contexts.FirstOrDefault(c => c.Match(packet));
-            
+
             if (context == default)
                 return false;
-            
+
             context.Handler(packet);
-            
+
             return true;
         }
     }

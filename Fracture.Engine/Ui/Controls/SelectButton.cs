@@ -36,16 +36,15 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public SelectButton()
-            => Size = new Vector2(0.2f);
+        public SelectButton() => Size = new Vector2(0.2f);
 
-        protected override Texture2D GetStyleStateTexture()
-            => Selected ? Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{UiStyleKeys.Texture.Hover}") : base.GetStyleStateTexture();
-        
+        protected override Texture2D GetStyleStateTexture() =>
+            Selected ? Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{UiStyleKeys.Texture.Hover}") : base.GetStyleStateTexture();
+
         protected override Point GetStyleStateOffset()
         {
             if (!Selected) return base.GetStyleStateOffset();
-            
+
             var offset = Style.Get<Vector2>($"{UiStyleKeys.Target.Button}\\{UiStyleKeys.Offset.Click}");
 
             return new Point((int)Math.Floor(offset.X), (int)Math.Floor(offset.Y));
@@ -74,7 +73,7 @@ namespace Fracture.Engine.Ui.Controls
                 if (Selected && !selected) return;
             }
 
-            var old  = Selected;
+            var old = Selected;
             Selected = selected;
 
             if (old != Selected)

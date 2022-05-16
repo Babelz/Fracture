@@ -8,22 +8,22 @@ namespace Fracture.Content.Pipeline
     public static class ContentSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] GetBytes(object target)
+        public static byte [] GetBytes(object target)
         {
             var binaryFormatter = new BinaryFormatter();
 
             using var ms = new MemoryStream();
-            
+
             binaryFormatter.Serialize(ms, target);
 
             return ms.ToArray();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object GetObject(byte[] bytes)
+        public static object GetObject(byte [] bytes)
         {
             using var memoryStream = new MemoryStream();
-            
+
             var binaryFormatter = new BinaryFormatter();
 
             memoryStream.Write(bytes, 0, bytes.Length);

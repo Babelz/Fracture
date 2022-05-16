@@ -11,7 +11,7 @@ using Fracture.Engine.Physics.Spatial;
 using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics
-{   
+{
     /// <summary>
     /// Event arguments that contains single contact event arguments. Use structure to ease
     /// memory pressure when creating the events.
@@ -23,12 +23,12 @@ namespace Fracture.Engine.Physics
         {
             get;
         }
-        
+
         public int SecondBodyId
         {
             get;
         }
-        
+
         public Vector2 Translation
         {
             get;
@@ -50,22 +50,22 @@ namespace Fracture.Engine.Physics
         /// Event invoked when body moved.
         /// </summary>
         event EventHandler<BodyEventArgs> Moved;
-            
+
         /// <summary>
         /// Event invoked when two bodies begin contacting.
         /// </summary>
         event EventHandler<BodyContactEventArgs> BeginContact;
-        
+
         /// <summary>
         /// Event invoked when two bodies stop contacting.
         /// </summary>
         event EventHandler<BodyContactEventArgs> EndContact;
-        
+
         /// <summary>
         /// Event invoked when body is removed from the world.
         /// </summary>
         event EventHandler<BodyEventArgs> Removed;
-        
+
         /// <summary>
         /// Event invoked when body is added to the world.
         /// </summary>
@@ -110,15 +110,15 @@ namespace Fracture.Engine.Physics
         }
         #endregion
 
-        int Create(BodyType type, 
-                   in Vector2 position, 
-                   float rotation, 
-                   in Shape shape, 
+        int Create(BodyType type,
+                   in Vector2 position,
+                   float rotation,
+                   in Shape shape,
                    object userData = null);
-        
+
         int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null);
         int Create(BodyType type, in Shape shape, object userData = null);
-        
+
         void Delete(int bodyId);
 
         /// <summary>
@@ -127,25 +127,25 @@ namespace Fracture.Engine.Physics
         /// performance fast.
         /// </summary>
         void Resize(Vector2 bounds);
-        
+
         void RootQuery(QuadTreeNodeLink link);
-        
+
         void RayCastBroad(QuadTreeNodeLink link, in Line line, BodySelector selector = null);
         void RayCastNarrow(QuadTreeNodeLink link, in Line line);
-        
+
         void AabbQueryBroad(QuadTreeNodeLink link, in Aabb aabb, BodySelector selector = null);
         void AabbQueryNarrow(QuadTreeNodeLink link, in Aabb aabb);
 
         QuadTreeNodeLink RootQuery();
-        
+
         QuadTreeNodeLink RayCastBroad(in Line line, BodySelector selector = null);
         QuadTreeNodeLink RayCastNarrow(in Line line);
         QuadTreeNodeLink AabbQueryBroad(in Aabb aabb, BodySelector selector = null);
         QuadTreeNodeLink AabbQueryNarrow(in Aabb aabb);
-        
+
         IEnumerable<int> ContactsOf(int bodyId);
     }
-    
+
     /// <summary>
     /// Class that provides physics simulation and collision detection for the game engine.
     ///
@@ -174,16 +174,16 @@ namespace Fracture.Engine.Physics
         private readonly BodyList bodies;
 
         private QuadTree tree;
-        
+
         private readonly int treeNodeBodyLimit;
         private readonly int treeNodeMaxDepth;
 
         private ulong frame;
         #endregion
-        
+
         #region Events
         public event EventHandler<BodyEventArgs> Moved;
-        
+
         public event EventHandler<BodyContactEventArgs> BeginContact;
         public event EventHandler<BodyContactEventArgs> EndContact;
 
@@ -197,7 +197,7 @@ namespace Fracture.Engine.Physics
             get;
             set;
         }
-        
+
         public float Wind
         {
             get;
@@ -210,8 +210,7 @@ namespace Fracture.Engine.Physics
             set;
         }
 
-        public IReadOnlyBodyList Bodies
-             => bodies;
+        public IReadOnlyBodyList Bodies => bodies;
         #endregion
 
         /// <summary>
@@ -224,13 +223,13 @@ namespace Fracture.Engine.Physics
         {
             this.treeNodeBodyLimit = treeNodeBodyLimit;
             this.treeNodeMaxDepth  = treeNodeMaxDepth;
-            
+
             rootLink            = new QuadTreeNodeLink();
             rayCastBroadLink    = new QuadTreeNodeLink();
             rayCastNarrowLink   = new QuadTreeNodeLink();
             aabbQueryBroadLink  = new QuadTreeNodeLink();
             aabbQueryNarrowLink = new QuadTreeNodeLink();
-            
+
             bodies            = new BodyList();
             contactListLookup = new Dictionary<int, ContactList>();
             contactLists      = new List<ContactList>();
@@ -239,18 +238,16 @@ namespace Fracture.Engine.Physics
         }
 
         #region Event handlers
-        private void Tree_Removed(object sender, BodyEventArgs e)
-            => Removed?.Invoke(this, e);
+        private void Tree_Removed(object sender, BodyEventArgs e) => Removed?.Invoke(this, e);
 
-        private void Tree_Added(object sender, BodyEventArgs e)
-            => Added?.Invoke(this, e);
+        private void Tree_Added(object sender, BodyEventArgs e) => Added?.Invoke(this, e);
         #endregion
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ApplySeparation(ref Body body, in NarrowContactSolverResult contact, TimeSpan delta)
         {
             body.ForcedPosition = contact.Translation;
-            
+
             body.ApplyLinearForces(delta);
             body.TransformLinearForces();
             body.ResetForces();
@@ -264,7 +261,7 @@ namespace Fracture.Engine.Physics
             body.ApplyLinearImpulse(Wind, Vector2.UnitX);
             body.ApplyLinearImpulse(Gravity, Vector2.UnitY);
         }
-        
+
         private void ApplyConstantForces(QuadTreeNode node, TimeSpan delta)
         {
             if (node.IsSplit)
@@ -280,28 +277,28 @@ namespace Fracture.Engine.Physics
             foreach (var bodyId in node.Dynamics.Concat(node.Sensors))
                 ApplyConstantForces(bodyId);
         }
-        
+
         private void ApplyForces(int bodyId, TimeSpan delta)
         {
             ref var body = ref bodies.WithId(bodyId);
-                
+
             if (!body.IsActive())
                 return;
-                
+
             // Apply angular and linear forces.
             var angularApplied = body.ApplyAngularForces(delta);
             var linearApplied  = body.ApplyLinearForces(delta);
-                
-            if (angularApplied) 
+
+            if (angularApplied)
                 body.TransformAngularForces();
-            else if (linearApplied) 
+            else if (linearApplied)
                 body.TransformLinearForces();
-                
+
             body.ResetForces();
-                
+
             Moved?.Invoke(this, new BodyEventArgs(bodyId));
         }
-        
+
         private void ApplyForces(QuadTreeNode node, TimeSpan delta)
         {
             if (node.IsSplit)
@@ -320,12 +317,12 @@ namespace Fracture.Engine.Physics
             foreach (var bodyId in node.Statics)
                 ApplyForces(bodyId, delta);
         }
-        
+
         private void RelocateLostBody(int bodyId, TimeSpan delta)
         {
             // Compute distance between bounding box points.
             ref var body = ref bodies.WithId(bodyId);
-            
+
             var bb = body.BoundingBox;
             var tb = tree.BoundingBox;
 
@@ -334,7 +331,7 @@ namespace Fracture.Engine.Physics
 
             // Right.
             var dr = tb.Right - bb.Right;
-            
+
             // Bottom.
             var db = tb.Bottom - bb.Bottom;
 
@@ -345,34 +342,34 @@ namespace Fracture.Engine.Physics
             var tr = bb.Position;
 
             // Overlap left or right.
-            if      (dr < 0.0f) tr.X += dr;
+            if (dr < 0.0f) tr.X      += dr;
             else if (dl < 0.0f) tr.X += dl;
 
             // Overlap top or bottom.
-            if      (dt < 0.0f) tr.Y += dt;
+            if (dt < 0.0f) tr.Y      += dt;
             else if (db < 0.0f) tr.Y += dt;
 
             // Apply overlap translation and update.
             body.ForcedPosition = body.Position + tr;
-            
+
             body.ApplyLinearForces(delta);
             body.TransformLinearForces();
             body.ResetForces();
-            
+
             // Should never happen.
             if (!tree.Add(body.Id))
                 throw new InvalidOperationException("could not add lost body to world");
-            
+
             Moved?.Invoke(this, new BodyEventArgs(bodyId));
         }
-        
+
         public void Resize(Vector2 bounds)
         {
             if (bounds.X <= 0.0f || bounds.Y <= 0.0f)
                 throw new InvalidOperationException("both components of size must be greater than zero and positive");
 
             tree = new QuadTree(bodies, treeNodeBodyLimit, treeNodeMaxDepth, bounds);
-            
+
             for (var i = 0; i < bodies.Count; i++)
                 tree.Add(bodies.AtIndex(i).Id);
 
@@ -380,21 +377,21 @@ namespace Fracture.Engine.Physics
             tree.Removed += Tree_Removed;
         }
 
-        public int Create(BodyType type, 
-                          in Vector2 position, 
-                          float rotation, 
-                          in Shape shape, 
+        public int Create(BodyType type,
+                          in Vector2 position,
+                          float rotation,
+                          in Shape shape,
                           object userData = null)
         {
             var bodyId = bodies.Create(type, position, rotation, shape, userData);
-            
+
             if (!tree.Add(bodyId))
                 RelocateLostBody(bodyId, TimeSpan.Zero);
-            
+
             // Static bodies should not have contact lists.
-            if (type == BodyType.Static) 
+            if (type == BodyType.Static)
                 return bodyId;
-            
+
             var contactList = new ContactList(bodyId);
 
             contactLists.Add(contactList);
@@ -403,19 +400,17 @@ namespace Fracture.Engine.Physics
             return bodyId;
         }
 
-        public int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null)
-            => Create(type, position, 0.0f, shape, userData);
+        public int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null) => Create(type, position, 0.0f, shape, userData);
 
-        public int Create(BodyType type, in Shape shape, object userData = null)
-            => Create(type, Vector2.Zero, 0.0f, shape, userData);
-        
+        public int Create(BodyType type, in Shape shape, object userData = null) => Create(type, Vector2.Zero, 0.0f, shape, userData);
+
         public void Delete(int bodyId)
         {
             if (!tree.Remove(bodyId))
                 throw new InvalidOperationException("could not delete body");
 
             ref var body = ref bodies.WithId(bodyId);
-            
+
             if (body.Type != BodyType.Static)
             {
                 contactLists.Remove(contactListLookup[bodyId]);
@@ -424,7 +419,7 @@ namespace Fracture.Engine.Physics
 
             bodies.Delete(bodyId);
         }
-        
+
         public void RootQuery(QuadTreeNodeLink link)
         {
             link.Clear();
@@ -495,16 +490,16 @@ namespace Fracture.Engine.Physics
             return aabbQueryNarrowLink;
         }
 
-        public IEnumerable<int> ContactsOf(int bodyId)
-            => contactListLookup.TryGetValue(bodyId, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
+        public IEnumerable<int> ContactsOf(int bodyId) =>
+            contactListLookup.TryGetValue(bodyId, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
 
         public override void Update(IGameEngineTime time)
         {
             if (tree == null)
                 return;
-            
+
             var delta = FixedTimeStep != TimeSpan.Zero ? FixedTimeStep : time.Elapsed;
-            
+
             // Steps for running the so called simulation are as follows:
             // 
             // 1) apply forces
@@ -514,17 +509,17 @@ namespace Fracture.Engine.Physics
             // 5) apply MTV translations
             // 6) update contact lists 
             // 7) invoke contact events
-            
+
             // Add constant world gravity and wind forces.
             ApplyConstantForces(tree.Root, delta);
-            
+
             // Sweep quad tree and re-position lost bodies.
             foreach (var bodyId in tree.RelocateLostBodies())
                 RelocateLostBody(bodyId, delta);
-            
+
             // Normalize user transformations before solve.
             ApplyForces(tree.Root, delta);
-            
+
             // Solve all broad pairs.
             broad.Solve(tree, bodies);
 
@@ -535,12 +530,12 @@ namespace Fracture.Engine.Physics
                 ref var pair       = ref broad.Next();
                 ref var firstBody  = ref bodies.WithId(pair.FirstBodyId);
                 ref var secondBody = ref bodies.WithId(pair.SecondBodyId);
-                
+
                 var contact = NarrowContactSolver.Solve(firstBody, secondBody);
-                
+
                 if (!contact.Collides)
                     continue;
-                
+
                 // Update contacts.
                 var firstBodyContactList  = contactListLookup[pair.FirstBodyId];
                 var secondBodyContactList = contactListLookup[pair.SecondBodyId];
@@ -554,23 +549,23 @@ namespace Fracture.Engine.Physics
                 else
                     ApplySeparation(ref secondBody, contact, delta);
             }
-            
+
             // Invoke all contact events.
             for (var i = 0; i < contactLists.Count; i++)
             {
                 // Invoke all begin contact events.
                 foreach (var enteringBody in contactLists[i].EnteringBodyIds)
                     BeginContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, enteringBody, contactLists[i].GetTranslation(enteringBody)));
-                
+
                 // Invoke all end contact events.
                 foreach (var leavingBody in contactLists[i].LeavingBodyIds)
                     EndContact?.Invoke(this, new BodyContactEventArgs(contactLists[i].BodyId, leavingBody, contactLists[i].GetTranslation(leavingBody)));
             }
-            
+
             // Advance frame to keep contact lists in check.
             frame++;
         }
-        
+
         public void Clear()
         {
             while (bodies.Count != 0)

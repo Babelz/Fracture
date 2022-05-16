@@ -29,7 +29,7 @@ namespace Fracture.Common.Di
         private readonly bool strict;
         #endregion
 
-        public Dependency(object value, Type[] types, bool strict)
+        public Dependency(object value, Type [] types, bool strict)
         {
             Debug.Assert(types?.Length != 0);
 
@@ -38,11 +38,9 @@ namespace Fracture.Common.Di
             this.strict = strict;
         }
 
-        public T Cast<T>()
-            => (T)value;
-        
-        public bool Castable<T>()
-            => Castable(typeof(T));
+        public T Cast<T>() => (T)value;
+
+        public bool Castable<T>() => Castable(typeof(T));
 
         public bool Castable(Type type)
         {
@@ -56,21 +54,17 @@ namespace Fracture.Common.Di
 
             return containedInTypes || types.Any(type.IsAssignableFrom);
         }
-        
-        public bool ReferenceEquals(object other)
-            => ReferenceEquals(value, other);
 
-        public bool Equals(Dependency other)
-            => other != null && ReferenceEquals(other.value);
+        public bool ReferenceEquals(object other) => ReferenceEquals(value, other);
 
-        public override bool Equals(object obj)
-            => Equals(obj as Dependency);
+        public bool Equals(Dependency other) => other != null && ReferenceEquals(other.value);
 
-        public override string ToString()
-            => $"{value.GetType().Name}";
+        public override bool Equals(object obj) => Equals(obj as Dependency);
 
-        public override int GetHashCode()
-            => HashUtils.Create()
-                        .Append(types);
+        public override string ToString() => $"{value.GetType().Name}";
+
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(types);
     }
 }

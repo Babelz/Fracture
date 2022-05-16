@@ -16,11 +16,10 @@ namespace Fracture.Common.Memory.Pools
         /// Creates new instance of <see cref="CleanPool{T}"/> with.
         /// </summary>
         /// <param name="pool">inner pool that will do the actual pooling</param>
-        public CleanPool(IPool<T> pool)
-            => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
-        
+        public CleanPool(IPool<T> pool) => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
+
         public T Take(PoolElementDecoratorDelegate<T> decorator = null) => pool.Take(decorator);
-        
+
         public void Return(T element)
         {
             pool.Return(element);

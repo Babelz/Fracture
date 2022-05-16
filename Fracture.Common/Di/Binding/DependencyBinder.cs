@@ -6,7 +6,7 @@ namespace Fracture.Common.Di.Binding
     /// <summary>
     /// Class that handles dependency binding to object.
     /// </summary>
-    public sealed class DependencyBinder 
+    public sealed class DependencyBinder
     {
         #region Fields
         private IDependencyActivator activator;
@@ -24,6 +24,7 @@ namespace Fracture.Common.Di.Binding
             get;
             private set;
         }
+
         public Type Type
         {
             get;
@@ -36,7 +37,7 @@ namespace Fracture.Common.Di.Binding
         #endregion
 
         public DependencyBinder(DependencyBindingOptions options, object instance)
-        {            
+        {
             this.instance = instance ?? throw new ArgumentNullException(nameof(instance));
 
             Options = options;
@@ -62,8 +63,7 @@ namespace Fracture.Common.Di.Binding
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
         }
 
-        public void BindWith(IEnumerable<IDependencyBinding> bindings)
-            => binders.AddRange(bindings);
+        public void BindWith(IEnumerable<IDependencyBinding> bindings) => binders.AddRange(bindings);
 
         public void AsProxy(Type proxy)
         {
@@ -74,12 +74,12 @@ namespace Fracture.Common.Di.Binding
             if (!proxy.IsAssignableFrom(actual))
                 throw new InvalidOperationException("invalid proxy type");
         }
-        
+
         public void Bind()
         {
             if (activator != null && instance == null)
                 activator.Activate(Type, out instance);
-            
+
             for (var i = binders.Count - 1; i >= 0; i--)
                 binders[i].Bind(instance);
         }

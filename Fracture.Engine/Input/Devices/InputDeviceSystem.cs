@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using Fracture.Common.Di.Attributes;
-using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
 using NLog;
@@ -13,7 +12,7 @@ namespace Fracture.Engine.Input.Devices
     /// Interface for implementing input device interfaces. Input devices
     /// are used to read input from the user.
     /// </summary>
-    public interface IInputDevice 
+    public interface IInputDevice
     {
         #region Properties
         /// <summary>
@@ -30,7 +29,7 @@ namespace Fracture.Engine.Input.Devices
         /// </summary>
         void Poll(IGameEngineTime time);
     }
-    
+
     /// <summary>
     /// Interface for implementing input device systems.
     /// </summary>
@@ -38,13 +37,13 @@ namespace Fracture.Engine.Input.Devices
     {
         // Nothing to implement. Union interface.
     }
-    
+
     public sealed class InputDeviceSystem : GameEngineSystem, IInputDeviceSystem
     {
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
         #endregion
-        
+
         #region Fields
         private readonly HashSet<IInputDevice> devices;
         #endregion
@@ -53,7 +52,7 @@ namespace Fracture.Engine.Input.Devices
         public InputDeviceSystem(IGameObjectActivatorSystem activator, IEnumerable<IPlatformDeviceConfiguration> configurations)
         {
             devices = new HashSet<IInputDevice>();
-            
+
             foreach (var configuration in configurations)
             {
                 try
@@ -68,12 +67,12 @@ namespace Fracture.Engine.Input.Devices
                                 { nameof(device), device },
                                 { nameof(devices), devices }
                             }
-                        };   
+                        };
                 }
                 catch (Exception e)
                 {
                     Log.Warn(e, "input device activation failed");
-                    
+
                     throw;
                 }
             }
@@ -93,16 +92,15 @@ namespace Fracture.Engine.Input.Devices
             if (!devices.Add(device))
                 throw new InvalidOperationException($"could not register device {device}");
         }
+
         public void Unregister(IInputDevice device)
         {
             if (!devices.Remove(device))
                 throw new InvalidOperationException($"could not remove device {device}");
         }
 
-        public IEnumerator<IInputDevice> GetEnumerator()
-            => devices.GetEnumerator();
+        public IEnumerator<IInputDevice> GetEnumerator() => devices.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

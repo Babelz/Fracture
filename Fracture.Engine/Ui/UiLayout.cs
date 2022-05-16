@@ -10,7 +10,7 @@ namespace Fracture.Engine.Ui
         Horizontal = 0,
         Vertical
     }
-    
+
     /// <summary>
     /// Defines anchoring modes. Anchors define where
     /// element is to be positioned when anchoring position
@@ -35,7 +35,7 @@ namespace Fracture.Engine.Ui
         /// Anchors the element to the bottom of the parent.
         /// </summary>
         Bottom = (1 << 2),
-        
+
         /// <summary>
         /// Anchors the element to the right of the parent.
         /// </summary>
@@ -44,39 +44,39 @@ namespace Fracture.Engine.Ui
         /// <summary>
         /// Anchors the element to the center of the parent.
         /// </summary>
-        Center = (1 << 4) 
+        Center = (1 << 4)
     }
-     
+
     /// <summary>
     /// Defines positioning modes. Positioning modes
     /// define how the element is positioned.
     /// </summary>
     public enum Positioning : byte
     {
-       /// <summary>
-       /// Positioned using relative to parent positioning, position is relative. Allows
-       /// control to be dragged.
-       /// </summary>
-       Relative,
-    
-       /// <summary>
-       /// Positioned using anchor, position is relative position.
-       /// </summary>
-       Anchor,
-         
-       /// <summary>
-       /// Positioned using anchor and offset value, position is offset. Allows
-       /// control to be dragged.
-       /// </summary>
-       Offset,
-         
-       /// <summary>
-       /// Positioned using absolute positioning, position is absolute. Allows 
-       /// to be dragged.
-       /// </summary>
-       Absolute
+        /// <summary>
+        /// Positioned using relative to parent positioning, position is relative. Allows
+        /// control to be dragged.
+        /// </summary>
+        Relative,
+
+        /// <summary>
+        /// Positioned using anchor, position is relative position.
+        /// </summary>
+        Anchor,
+
+        /// <summary>
+        /// Positioned using anchor and offset value, position is offset. Allows
+        /// control to be dragged.
+        /// </summary>
+        Offset,
+
+        /// <summary>
+        /// Positioned using absolute positioning, position is absolute. Allows 
+        /// to be dragged.
+        /// </summary>
+        Absolute
     }
-    
+
     public readonly struct UiOffset
     {
         #region Static fields
@@ -102,36 +102,35 @@ namespace Fracture.Engine.Ui
             : this(value, value, value, value)
         {
         }
-        
-        public override int GetHashCode()
-            => HashUtils.Create().Append(Top)
-                                 .Append(Left)
-                                 .Append(Bottom)
-                                 .Append(Right);
 
-        public override bool Equals(object obj)
-            => obj is UiOffset other && this == other;
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(Top)
+                     .Append(Left)
+                     .Append(Bottom)
+                     .Append(Right);
 
-        public static bool operator ==(in UiOffset lhs, in UiOffset rhs) 
-            => Math.Abs(lhs.Left - rhs.Left) < 0.1f &&
-               Math.Abs(lhs.Right - rhs.Right) < 0.1f &&
-               Math.Abs(lhs.Top - rhs.Top) < 0.1f &&
-               Math.Abs(lhs.Bottom - rhs.Bottom) < 0.1f;
+        public override bool Equals(object obj) => obj is UiOffset other && this == other;
 
-        public static bool operator !=(in UiOffset lhs, in UiOffset rhs)
-            => !(lhs == rhs);
+        public static bool operator ==(in UiOffset lhs, in UiOffset rhs) =>
+            Math.Abs(lhs.Left - rhs.Left) < 0.1f &&
+            Math.Abs(lhs.Right - rhs.Right) < 0.1f &&
+            Math.Abs(lhs.Top - rhs.Top) < 0.1f &&
+            Math.Abs(lhs.Bottom - rhs.Bottom) < 0.1f;
 
-        public static UiOffset operator +(in UiOffset lhs, in UiOffset rhs)
-            => new UiOffset(lhs.Top + rhs.Top,
-                          lhs.Left + rhs.Left,
-                          lhs.Bottom + rhs.Bottom,
-                          lhs.Right + rhs.Right);
+        public static bool operator !=(in UiOffset lhs, in UiOffset rhs) => !(lhs == rhs);
 
-        public static UiOffset operator -(in UiOffset lhs, in UiOffset rhs)
-            => new UiOffset(lhs.Top - rhs.Top,
-                          lhs.Left - rhs.Left,
-                          lhs.Bottom - rhs.Bottom,
-                          lhs.Right - rhs.Right);
+        public static UiOffset operator +(in UiOffset lhs, in UiOffset rhs) =>
+            new UiOffset(lhs.Top + rhs.Top,
+                         lhs.Left + rhs.Left,
+                         lhs.Bottom + rhs.Bottom,
+                         lhs.Right + rhs.Right);
+
+        public static UiOffset operator -(in UiOffset lhs, in UiOffset rhs) =>
+            new UiOffset(lhs.Top - rhs.Top,
+                         lhs.Left - rhs.Left,
+                         lhs.Bottom - rhs.Bottom,
+                         lhs.Right - rhs.Right);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UiOffset ToTop(float value) => new UiOffset(value, 0.0f, 0.0f, 0.0f);
@@ -144,12 +143,12 @@ namespace Fracture.Engine.Ui
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static UiOffset ToRight(float value) => new UiOffset(0.0f, 0.0f, 0.0f, value);
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset Transform(in UiOffset uiOffset, in Vector2 scale)
-            => new UiOffset(uiOffset.Top * scale.Y,
-                          uiOffset.Left * scale.X,
-                          uiOffset.Bottom * scale.Y,
-                          uiOffset.Right * scale.X);
+        public static UiOffset Transform(in UiOffset uiOffset, in Vector2 scale) =>
+            new UiOffset(uiOffset.Top * scale.Y,
+                         uiOffset.Left * scale.X,
+                         uiOffset.Bottom * scale.Y,
+                         uiOffset.Right * scale.X);
     }
 }

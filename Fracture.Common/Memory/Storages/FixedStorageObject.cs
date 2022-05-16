@@ -8,7 +8,7 @@ namespace Fracture.Common.Memory.Storages
     public sealed class FixedStorageObject<T> : IStorageObject<T> where T : class
     {
         #region Fields
-        private readonly T[] storage;
+        private readonly T [] storage;
         #endregion
 
         #region Properties
@@ -21,9 +21,8 @@ namespace Fracture.Common.Memory.Storages
         }
         #endregion
 
-        public FixedStorageObject(T[] storage)
-            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
-        
+        public FixedStorageObject(T [] storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+
         public void Return(T element)
         {
             if (Count >= storage.Length)

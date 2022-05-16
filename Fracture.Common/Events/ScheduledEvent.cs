@@ -7,7 +7,7 @@ namespace Fracture.Common.Events
     /// Enumeration defining scheduled event types and how
     /// the events should behave.
     /// </summary>
-    public enum ScheduledEventType : byte 
+    public enum ScheduledEventType : byte
     {
         /// <summary>
         /// Event invokes the callback once.
@@ -19,7 +19,7 @@ namespace Fracture.Common.Events
         /// </summary>
         Pulse
     }
-    
+
     public sealed class ScheduledEventArgs : EventArgs
     {
         #region Properties
@@ -40,7 +40,7 @@ namespace Fracture.Common.Events
             State   = state;
         }
     }
-    
+
     /// <summary>
     /// Interface for implementing scheduled events. See <see cref="ScheduledEventType"/>
     /// how events behave.
@@ -61,6 +61,7 @@ namespace Fracture.Common.Events
         {
             get;
         }
+
         TimeSpan ElapsedTime
         {
             get;
@@ -89,7 +90,7 @@ namespace Fracture.Common.Events
 
         void Tick(TimeSpan elapsed);
     }
-        
+
     /// <summary>
     /// Scheduled event that runs asynchronously.
     /// </summary>
@@ -98,7 +99,7 @@ namespace Fracture.Common.Events
         #region Fields
         private readonly object state;
         #endregion
-        
+
         #region Events
         public event EventHandler<ScheduledEventArgs> Invoke;
         #endregion
@@ -131,7 +132,7 @@ namespace Fracture.Common.Events
         public AsyncScheduledEvent(ScheduledEventType type, object state = null)
         {
             this.state = state;
-            
+
             Type = type;
         }
 
@@ -142,7 +143,7 @@ namespace Fracture.Common.Events
 
             if (DueTime == TimeSpan.Zero)
                 throw new InvalidOperationException("can't resume, due time not specified");
-            
+
             Waiting = true;
         }
 
@@ -153,7 +154,7 @@ namespace Fracture.Common.Events
 
             if (dueTime == TimeSpan.Zero)
                 throw new InvalidOperationException("due time not specified");
-            
+
             DueTime     = dueTime;
             ElapsedTime = TimeSpan.Zero;
             Waiting     = true;
@@ -173,23 +174,23 @@ namespace Fracture.Common.Events
 
             if (ElapsedTime < DueTime)
             {
-                ElapsedTime += elapsed;    
-                
+                ElapsedTime += elapsed;
+
                 return;
             }
-            
+
             Task.Factory.StartNew(() => Invoke?.Invoke(this, new ScheduledEventArgs(ElapsedTime, state)));
-            
+
             Waiting = false;
         }
     }
-    
+
     public class SyncScheduledEvent : IScheduledEvent
     {
         #region Fields
         private readonly object state;
         #endregion
-        
+
         #region Events
         public event EventHandler<ScheduledEventArgs> Invoke;
         #endregion
@@ -222,7 +223,7 @@ namespace Fracture.Common.Events
         public SyncScheduledEvent(ScheduledEventType type, object state = null)
         {
             this.state = state;
-            
+
             Type = type;
         }
 
@@ -233,7 +234,7 @@ namespace Fracture.Common.Events
 
             if (DueTime == TimeSpan.Zero)
                 throw new InvalidOperationException("can't resume, due time not specified");
-            
+
             Waiting = true;
         }
 
@@ -250,8 +251,7 @@ namespace Fracture.Common.Events
             ElapsedTime = TimeSpan.Zero;
         }
 
-        public void Wait()
-            => Wait(DueTime);
+        public void Wait() => Wait(DueTime);
 
         public void Suspend()
         {
@@ -268,7 +268,7 @@ namespace Fracture.Common.Events
             ElapsedTime += elapsed;
 
             if (ElapsedTime < DueTime) return;
-            
+
             Waiting = false;
 
             Invoke?.Invoke(this, new ScheduledEventArgs(ElapsedTime, state));

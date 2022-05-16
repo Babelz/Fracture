@@ -16,7 +16,7 @@ namespace Fracture.Engine.Ui.Controls
         {
         }
 
-        public Panel(IControlManager controls) 
+        public Panel(IControlManager controls)
             : base(controls)
         {
         }
@@ -29,7 +29,7 @@ namespace Fracture.Engine.Ui.Controls
             var destination = GetRenderDestinationRectangle();
 
             fragment.DrawSurface(texture, center, destination, color);
-            
+
             base.InternalDraw(fragment, time);
         }
     }

@@ -19,33 +19,31 @@ namespace Fracture.Common.Collections
             private set;
         }
         #endregion
-        
-        public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1)
-            => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
+
+        public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1) => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
 
         public void Add(in T value)
         {
             if (Count >= items.Length)
                 items.Grow();
-            
+
             items.Insert(Count++, value);
         }
-        
+
         public bool Remove(in T value)
         {
             var index = items.IndexOf(value);
-            
+
             if (index < 0)
                 return false;
-            
+
             items.Insert(index, default);
-            
+
             return true;
         }
-        
-        public ref T AtIndex(int index)
-            => ref items.AtIndex(index);
-        
+
+        public ref T AtIndex(int index) => ref items.AtIndex(index);
+
         /// <summary>
         /// Inserts given item to given index. This insert function allows inserting past the collection. When inserting past
         /// the collection bounds the collection will grow to fit to the index that is out of the current bounds.
@@ -55,17 +53,15 @@ namespace Fracture.Common.Collections
             while (index >= items.Length)
             {
                 items.Grow();
-                
+
                 Count = items.Length;
             }
-            
+
             items.Insert(index, value);
         }
-        
-        public IEnumerator<T> GetEnumerator()
-            => items.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => items.GetEnumerator();
+        public IEnumerator<T> GetEnumerator() => items.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator() => items.GetEnumerator();
     }
 }

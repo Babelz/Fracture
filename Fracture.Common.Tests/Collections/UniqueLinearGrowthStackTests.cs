@@ -5,15 +5,13 @@ using Xunit;
 namespace Fracture.Common.Tests.Collections
 {
     [Trait("Category", "Collections")]
-    
     public class UniqueLinearGrowthStackTests
     {
         #region Fields
         private readonly UniqueLinearGrowthStack<int> stack;
         #endregion
-        
-        public UniqueLinearGrowthStackTests()
-            => stack = new UniqueLinearGrowthStack<int>();
+
+        public UniqueLinearGrowthStackTests() => stack = new UniqueLinearGrowthStack<int>();
 
         [Fact]
         public void UniqueLinearGrowthStack_Ctor_Test()
@@ -24,7 +22,7 @@ namespace Fracture.Common.Tests.Collections
             {
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new UniqueLinearGrowthStack<int>();
-                
+
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new UniqueLinearGrowthStack<int>(new LinearGrowthStack<int>());
             }
@@ -121,7 +119,7 @@ namespace Fracture.Common.Tests.Collections
                 stack.Push(2);
                 stack.Push(5);
             }
-            catch 
+            catch
             {
                 Assert.True(false);
             }

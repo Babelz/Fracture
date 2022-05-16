@@ -15,7 +15,7 @@ namespace Fracture.Net.Tests.Serialization
             Baz,
             FooBar
         }
-        
+
         private enum EnumWithExplicitUIntType : uint
         {
             Foo = uint.MinValue,
@@ -23,12 +23,12 @@ namespace Fracture.Net.Tests.Serialization
             Baz,
             FooBar = uint.MaxValue
         }
-        
+
         private enum EnumWithImplicitIntType
         {
-            Foo    = 0,
-            Bar    = 1,
-            Baz    = 2,
+            Foo = 0,
+            Bar = 1,
+            Baz = 2,
             FooBar = 3
         }
         #endregion
@@ -41,16 +41,16 @@ namespace Fracture.Net.Tests.Serialization
         public void Serializes_Implicit_Enums_Correctly()
         {
             var buffer = new byte[32];
-            
+
             EnumSerializer.Serialize(EnumWithImplicitIntType.Foo, buffer, 0);
             var offset = EnumSerializer.GetSizeFromValue(EnumWithImplicitIntType.Foo);
-            
+
             EnumSerializer.Serialize(EnumWithImplicitIntType.Bar, buffer, offset);
             offset += EnumSerializer.GetSizeFromValue(EnumWithImplicitIntType.Bar);
-            
+
             EnumSerializer.Serialize(EnumWithImplicitIntType.Baz, buffer, offset);
             offset += EnumSerializer.GetSizeFromValue(EnumWithImplicitIntType.Baz);
-            
+
             EnumSerializer.Serialize(EnumWithImplicitIntType.FooBar, buffer, offset);
 
             Assert.Equal(0, MemoryMapper.ReadInt(buffer, 0));
@@ -63,16 +63,16 @@ namespace Fracture.Net.Tests.Serialization
         public void Serializes_Explicit_Enums_Correctly()
         {
             var buffer = new byte[32];
-            
+
             EnumSerializer.Serialize(EnumWithExplicitUIntType.Foo, buffer, 0);
             var offset = EnumSerializer.GetSizeFromValue(EnumWithExplicitUIntType.Foo);
-            
+
             EnumSerializer.Serialize(EnumWithExplicitUIntType.Bar, buffer, offset);
             offset += EnumSerializer.GetSizeFromValue(EnumWithExplicitUIntType.Bar);
-            
+
             EnumSerializer.Serialize(EnumWithExplicitUIntType.Baz, buffer, offset);
             offset += EnumSerializer.GetSizeFromValue(EnumWithExplicitUIntType.Baz);
-            
+
             EnumSerializer.Serialize(EnumWithExplicitUIntType.FooBar, buffer, offset);
 
             Assert.Equal(uint.MinValue, MemoryMapper.ReadUint(buffer, 0));

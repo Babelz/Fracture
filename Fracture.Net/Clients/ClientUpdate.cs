@@ -17,12 +17,10 @@ namespace Fracture.Net.Clients
             get;
         }
         #endregion
-        
-        protected ClientUpdate()
-            => Timestamp = DateTime.UtcNow.TimeOfDay;
 
-        public override string ToString()
-            => JsonConvert.SerializeObject(this);
+        protected ClientUpdate() => Timestamp = DateTime.UtcNow.TimeOfDay;
+
+        public override string ToString() => JsonConvert.SerializeObject(this);
 
         /// <summary>
         /// Event generated when the client has connected.
@@ -34,9 +32,9 @@ namespace Fracture.Net.Clients
             public IPEndPoint RemoteEndPoint
             {
                 get;
-            }   
+            }
             #endregion
-            
+
             public Connected(IPEndPoint remoteEndPoint)
             {
                 RemoteEndPoint = remoteEndPoint ?? throw new ArgumentNullException(nameof(remoteEndPoint));
@@ -100,13 +98,13 @@ namespace Fracture.Net.Clients
             /// Packet is incoming from remote host.
             /// </summary>
             Remote = 0,
-            
+
             /// <summary>
             /// Packet is outgoing from the client to the remote host.
             /// </summary>
             Local
         }
-        
+
         /// <summary>
         /// Event generated when the client has received or is sending packet.
         /// </summary>
@@ -120,11 +118,11 @@ namespace Fracture.Net.Clients
             {
                 get;
             }
-            
+
             /// <summary>
             /// Gets the contents of the packet.
             /// </summary>
-            public byte[] Contents
+            public byte [] Contents
             {
                 get;
             }
@@ -136,7 +134,7 @@ namespace Fracture.Net.Clients
             {
                 get;
             }
-            
+
             /// <summary>
             /// Gets the message in the packet.
             /// </summary>
@@ -146,7 +144,7 @@ namespace Fracture.Net.Clients
             }
             #endregion
 
-            public Packet(PacketOrigin origin, in IMessage message, byte[] contents, int length)
+            public Packet(PacketOrigin origin, in IMessage message, byte [] contents, int length)
             {
                 Origin   = origin;
                 Message  = message ?? throw new ArgumentNullException(nameof(message));

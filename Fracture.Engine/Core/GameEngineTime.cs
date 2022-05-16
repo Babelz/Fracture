@@ -16,7 +16,7 @@ namespace Fracture.Engine.Core
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the elapsed time from last frame.
         /// </summary>
@@ -32,7 +32,7 @@ namespace Fracture.Engine.Core
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the current frame number.
         /// </summary>
@@ -42,7 +42,7 @@ namespace Fracture.Engine.Core
         }
         #endregion
     }
-    
+
     /// <summary>
     /// Class implementation of <see cref="IGameEngineTime"/>. Mutable by design
     /// to allow reuse of the same object between frames.
@@ -54,7 +54,7 @@ namespace Fracture.Engine.Core
         {
             get;
         }
-        
+
         public TimeSpan Elapsed
         {
             get;

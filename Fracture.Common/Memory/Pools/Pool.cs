@@ -15,7 +15,7 @@ namespace Fracture.Common.Memory.Pools
         /// Takes next available element from the pool.
         /// </summary>
         T Take(PoolElementDecoratorDelegate<T> decorator = null);
-        
+
         /// <summary>
         /// Returns given element to the pool.
         /// </summary>
@@ -39,16 +39,16 @@ namespace Fracture.Common.Memory.Pools
         protected PoolBase(IStorageObject<T> storage, int initialStoredObjectsCount, int capacity)
         {
             if (initialStoredObjectsCount < 0) throw new ArgumentOutOfRangeException(nameof(initialStoredObjectsCount));
-            if (capacity < 0)                  throw new ArgumentOutOfRangeException(nameof(capacity));
+            if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
 
             this.storage  = storage ?? throw new ArgumentNullException(nameof(PoolBase<T>.storage));
             this.capacity = capacity;
         }
-        
+
         protected void CreateObjects(int count)
         {
             if (count == 0) return;
-            
+
             for (var i = 0; i < count; i++) storage.Return(New());
         }
 
@@ -60,9 +60,9 @@ namespace Fracture.Common.Memory.Pools
         public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {
             var element = storage.Empty ? New() : storage.Take();
-            
+
             decorator?.Invoke(element);
-            
+
             return element;
         }
 
@@ -73,11 +73,11 @@ namespace Fracture.Common.Memory.Pools
         {
             if (capacity != 0 && storage.Count + 1 >= capacity)
                 return;
-            
+
             storage.Return(element);
         }
     }
-        
+
     /// <summary>
     /// Basic generic pool that uses dynamic constructor binding for creating new objects.
     /// </summary>

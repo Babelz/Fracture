@@ -10,14 +10,14 @@ namespace Fracture.Net
         #region Static fields
         private static readonly IArrayPool<byte> Buffers = new ConcurrentArrayPool<byte>(
             new BlockArrayPool<byte>(
-                new ArrayPool<byte>(() => new LinearStorageObject<byte[]>(new LinearGrowthArray<byte[]>()), 0), 8, ushort.MaxValue)
-            );
+                new ArrayPool<byte>(() => new LinearStorageObject<byte []>(new LinearGrowthArray<byte []>()), 0), 8, ushort.MaxValue)
+        );
         #endregion
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte[] Take(int size) => Buffers.Take(size);
-        
+        public static byte [] Take(int size) => Buffers.Take(size);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(byte[] buffer) => Buffers.Return(buffer);
+        public static void Return(byte [] buffer) => Buffers.Return(buffer);
     }
 }

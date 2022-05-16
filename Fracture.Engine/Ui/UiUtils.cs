@@ -13,15 +13,15 @@ namespace Fracture.Engine.Ui
         {
             var sx = 0.0f;
             var sy = 0.0f;
-            
+
             if (targetActualSize.X > targetActualSize.Y)
             {
                 // Y to X ration or aspect ratio.
                 var yx = (targetActualSize.Y) / (targetActualSize.X);
-                
+
                 // Difference between.
                 var dxy = (targetActualSize.X - targetActualSize.Y) / (targetActualSize.X);
-                
+
                 // Scale to aspect ration.
                 var adx = yx * diameter;
 
@@ -40,13 +40,14 @@ namespace Fracture.Engine.Ui
                 sy = diameter;
             }
             else
-            {   sx = diameter;
+            {
+                sx = diameter;
 
                 var xy  = (targetActualSize.X) / (targetActualSize.Y);
                 var dyx = (targetActualSize.Y - targetActualSize.X) / (targetActualSize.Y);
                 var ady = xy * diameter;
                 var pdy = diameter * ady;
-                
+
                 if (ady < pdy)
                     sy = ady;
                 else
@@ -57,11 +58,11 @@ namespace Fracture.Engine.Ui
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Rectangle ScaleTextArea(in Vector2 position, in Vector2 scale, in Rectangle source)
-            => new Rectangle((int)Math.Floor(source.X + position.X),
-                             (int)Math.Floor(source.Y + position.Y),
-                             (int)Math.Floor(source.Width * scale.X),
-                             (int)Math.Floor(source.Height * scale.Y));
+        public static Rectangle ScaleTextArea(in Vector2 position, in Vector2 scale, in Rectangle source) =>
+            new Rectangle((int)Math.Floor(source.X + position.X),
+                          (int)Math.Floor(source.Y + position.Y),
+                          (int)Math.Floor(source.Width * scale.X),
+                          (int)Math.Floor(source.Height * scale.Y));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ClipText(string text, Rectangle area, SpriteFont font)

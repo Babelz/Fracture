@@ -13,10 +13,10 @@ namespace Fracture.Engine.Input
     /// </summary>
     public interface IInputBinder<in T> where T : struct
     {
-        void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T[] combination);
+        void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T [] combination);
         void Bind(string name, InputBindingCallback callback, InputTriggerState state, T trigger);
 
-        void Rebind(string name, InputTriggerState state, params T[] combination);
+        void Rebind(string name, InputTriggerState state, params T [] combination);
         void Rebind(string name, InputTriggerState state, T trigger);
         void Unbind(string name);
 
@@ -38,7 +38,7 @@ namespace Fracture.Engine.Input
 
         void Update(IGameEngineTime time);
     }
-    
+
     public abstract class InputManager<T> : IInputManager<T> where T : struct
     {
         #region Constant fields
@@ -67,12 +67,12 @@ namespace Fracture.Engine.Input
             bindings = new List<InputBinding<T>>();
         }
 
-        protected abstract bool IsTriggerUp(T[] triggers);
-        protected abstract bool IsTriggerReleased(T[] triggers);
-        protected abstract bool IsTriggerDown(T[] triggers);
-        protected abstract bool IsTriggerPressed(T[] triggers);
+        protected abstract bool IsTriggerUp(T [] triggers);
+        protected abstract bool IsTriggerReleased(T [] triggers);
+        protected abstract bool IsTriggerDown(T [] triggers);
+        protected abstract bool IsTriggerPressed(T [] triggers);
 
-        protected bool TestTriggers(T[] triggers, Func<int, T, bool> test)
+        protected bool TestTriggers(T [] triggers, Func<int, T, bool> test)
         {
             if (triggers.Length == 1)
                 return test(0, triggers[0]);
@@ -98,49 +98,47 @@ namespace Fracture.Engine.Input
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, T trigger)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-            if (callback == null)           throw new ArgumentNullException(nameof(callback));
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
 
-            bindings.Add(new InputBinding<T>(name, new[] { trigger }, callback, state));
+            bindings.Add(new InputBinding<T>(name, new [] { trigger }, callback, state));
         }
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T[] combination)
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T [] combination)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-            if (callback == null)           throw new ArgumentNullException(nameof(callback));
-            if (combination.Length < 2)     throw new ArgumentOutOfRangeException(nameof(combination), "atleast 2 triggers are required for combination");
+            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (combination.Length < 2) throw new ArgumentOutOfRangeException(nameof(combination), "atleast 2 triggers are required for combination");
 
             bindings.Add(new InputBinding<T>(name, combination, callback, state));
         }
 
-        public void Clear()
-            => bindings.Clear();
+        public void Clear() => bindings.Clear();
 
         public void Rebind(string name, InputTriggerState state, T trigger)
         {
             var binding = bindings.First(b => b.Name == name);
-            
+
             if (binding.Triggers.Length > 1)
-                binding.Triggers = new[] { trigger };
+                binding.Triggers = new [] { trigger };
             else
                 binding.Triggers[0] = trigger;
 
             binding.State = state;
         }
 
-        public void Rebind(string name, InputTriggerState state, params T[] combination)
+        public void Rebind(string name, InputTriggerState state, params T [] combination)
         {
             if (combination.Length < 2)
                 throw new ArgumentOutOfRangeException(nameof(combination), "at least 2 triggers are required for combination");
-            
+
             var binding = bindings.First(b => b.Name == name);
-            
+
             binding.Triggers = combination.ToArray();
             binding.State    = state;
         }
 
-        public void Unbind(string name)
-            => bindings.Remove(bindings.First(b => b.Name == name));
-            
+        public void Unbind(string name) => bindings.Remove(bindings.First(b => b.Name == name));
+
         public void Update(IGameEngineTime time)
         {
             for (var i = 0; i < bindings.Count; i++)
@@ -156,12 +154,12 @@ namespace Fracture.Engine.Input
                     _                          => false
                 };
 
-                if (triggered) 
+                if (triggered)
                     binding.Callback(time);
             }
         }
     }
-    
+
     public sealed class KeyboardInputManager : InputManager<Keys>
     {
         #region Fields
@@ -169,21 +167,18 @@ namespace Fracture.Engine.Input
         #endregion
 
         public KeyboardInputManager(IKeyboardDevice device, int combinationAccuracy = DefaultCombinationAccuracy)
-            : base(combinationAccuracy) => this.device = device ?? throw new ArgumentNullException(nameof(device));
+            : base(combinationAccuracy) =>
+            this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(Keys[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsKeyDown(k, i));
+        protected override bool IsTriggerDown(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyDown(k, i));
 
-        protected override bool IsTriggerPressed(Keys[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsKeyPressed(k, i));
+        protected override bool IsTriggerPressed(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyPressed(k, i));
 
-        protected override bool IsTriggerReleased(Keys[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsKeyReleased(k, i));
+        protected override bool IsTriggerReleased(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyReleased(k, i));
 
-        protected override bool IsTriggerUp(Keys[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsKeyUp(k, i));
+        protected override bool IsTriggerUp(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyUp(k, i));
     }
-    
+
     public sealed class MouseInputManager : InputManager<MouseButton>
     {
         #region Fields
@@ -191,18 +186,15 @@ namespace Fracture.Engine.Input
         #endregion
 
         public MouseInputManager(IMouseDevice device, int combinationAccuracy = DefaultCombinationAccuracy)
-            : base(combinationAccuracy) => this.device = device ?? throw new ArgumentNullException(nameof(device));
+            : base(combinationAccuracy) =>
+            this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(MouseButton[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsButtonDown(k, i));
+        protected override bool IsTriggerDown(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonDown(k, i));
 
-        protected override bool IsTriggerPressed(MouseButton[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsButtonPressed(k, i));
+        protected override bool IsTriggerPressed(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonPressed(k, i));
 
-        protected override bool IsTriggerReleased(MouseButton[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsButtonReleased(k, i));
+        protected override bool IsTriggerReleased(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonReleased(k, i));
 
-        protected override bool IsTriggerUp(MouseButton[] triggers)
-            => TestTriggers(triggers, (i, k) => device.IsButtonUp(k, i));
+        protected override bool IsTriggerUp(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonUp(k, i));
     }
 }

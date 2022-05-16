@@ -11,7 +11,7 @@ namespace Fracture.Net.Serialization
             Data["SerializationType"] = serializationType;
         }
     }
-    
+
     [Serializable]
     public sealed class ValueSerializerSchemaException : Exception
     {

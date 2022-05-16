@@ -17,7 +17,7 @@ namespace Fracture.Engine.Core.Systems
         protected Scene()
         {
         }
-        
+
         /// <summary>
         /// Initializes the scene, allowing it to allocate, locate
         /// and initialize resources it require if required.
@@ -37,11 +37,13 @@ namespace Fracture.Engine.Core.Systems
         {
         }
     }
-    
+
     public delegate void SceneInitializeCallback(Scene last);
+
     public delegate void SceneDeinitializeCallback(Scene next);
+
     public delegate void SceneUpdateCallback(IGameEngineTime time);
-    
+
     public sealed class DelegateScene : Scene
     {
         #region Fields
@@ -51,7 +53,7 @@ namespace Fracture.Engine.Core.Systems
         private readonly SceneUpdateCallback update;
         #endregion
 
-        public DelegateScene(SceneInitializeCallback initialize, 
+        public DelegateScene(SceneInitializeCallback initialize,
                              SceneDeinitializeCallback deinitialize,
                              SceneUpdateCallback update)
         {
@@ -60,18 +62,15 @@ namespace Fracture.Engine.Core.Systems
             this.update       = update;
         }
 
-        public override void Initialize(Scene last)
-            => initialize?.Invoke(last);
+        public override void Initialize(Scene last) => initialize?.Invoke(last);
 
-        public override void Deinitialize(Scene next)
-            => deinitialize?.Invoke(next);
+        public override void Deinitialize(Scene next) => deinitialize?.Invoke(next);
 
-        public override void Update(IGameEngineTime time)
-            => update?.Invoke(time);
+        public override void Update(IGameEngineTime time) => update?.Invoke(time);
     }
-    
+
     public delegate void SceneChangedCallback(Scene last, Scene next);
-    
+
     /// <summary>
     /// Interface for implementing scene systems. Scene systems are responsible
     /// of scene management. Scene systems contain all the scenes and can change between them
@@ -85,7 +84,7 @@ namespace Fracture.Engine.Core.Systems
         {
             get;
         }
-        
+
         Scene Last
         {
             get;
@@ -95,7 +94,7 @@ namespace Fracture.Engine.Core.Systems
         /// <summary>
         /// Adds new scene to the system for later use.
         /// </summary>
-        void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene;
+        void Push<T>(SceneChangedCallback callback = null, params IBindingValue [] bindings) where T : Scene;
 
         /// <summary>
         /// Pop current active scene from the scene stack
@@ -116,10 +115,10 @@ namespace Fracture.Engine.Core.Systems
     {
         #region Fields
         private readonly IGameObjectActivatorSystem activator;
-        
+
         private readonly Stack<Scene> scenes;
         #endregion
-        
+
         #region Properties
         public Scene Current
         {
@@ -133,20 +132,20 @@ namespace Fracture.Engine.Core.Systems
             private set;
         }
         #endregion
-        
+
         [BindingConstructor]
         public SceneSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator;
-        
+
             scenes = new Stack<Scene>();
         }
-            
-        public void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene
+
+        public void Push<T>(SceneChangedCallback callback = null, params IBindingValue [] bindings) where T : Scene
         {
             var last  = scenes.Count == 0 ? null : scenes.Peek();
-            var scene = activator.Activate<T>(bindings); 
-            
+            var scene = activator.Activate<T>(bindings);
+
             last?.Deinitialize(scene);
 
             Last    = Current;
@@ -170,7 +169,7 @@ namespace Fracture.Engine.Core.Systems
             var next = scenes.Count == 0 ? null : scenes.Peek();
 
             last.Deinitialize(next);
-            
+
             Current = next;
             Last    = last;
 
@@ -180,11 +179,11 @@ namespace Fracture.Engine.Core.Systems
 
             Current = next;
         }
-        
+
         public void PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null)
         {
             var last = scenes.Pop();
-            
+
             Last = last;
 
             while (scenes.Count > 0)
@@ -206,7 +205,7 @@ namespace Fracture.Engine.Core.Systems
                     callback?.Invoke(last, next);
 
                     Current = next;
-                    
+
                     return;
                 }
             }
@@ -214,7 +213,6 @@ namespace Fracture.Engine.Core.Systems
             throw new InvalidOperationException("no scene matches predicate");
         }
 
-        public override void Update(IGameEngineTime time)
-            => Current?.Update(time);
+        public override void Update(IGameEngineTime time) => Current?.Update(time);
     }
 }

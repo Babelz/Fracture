@@ -15,17 +15,17 @@ namespace Fracture.Common.Collections
         #region Fields
         // Scale factor for locating buckets.
         private readonly float bucketScale;
-        
+
         private readonly int bucketSize;
 
-        private T[][] buckets;
+        private T [] [] buckets;
         #endregion
 
         #region Properties
-        public int Length  => buckets.Length * bucketSize;
+        public int Length => buckets.Length * bucketSize;
         public int Buckets => buckets.Length;
         #endregion
-        
+
         /// <summary>
         /// Creates new instance of <see cref="LinearGrowthArray{T}"/> with given bucket (page) size and 
         /// with initial count of buckets (pages).
@@ -33,14 +33,14 @@ namespace Fracture.Common.Collections
         public LinearGrowthArray(int bucketSize = 16, int initialBuckets = 1)
         {
             // Do not allow negative or zero initial buckets.
-            if (initialBuckets <= 0) 
+            if (initialBuckets <= 0)
                 throw new ArgumentOutOfRangeException(nameof(initialBuckets));
 
             // Do not allow negative or zero bucket sizes.
             this.bucketSize = bucketSize > 0 ? bucketSize : throw new ArgumentOutOfRangeException(nameof(bucketSize));
 
             // Create initial buckets.
-            buckets = new T[initialBuckets][];
+            buckets = new T[initialBuckets] [];
 
             for (var i = 0; i < initialBuckets; i++) buckets[i] = new T[bucketSize];
 
@@ -49,40 +49,40 @@ namespace Fracture.Common.Collections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void IndexLocation(int index, 
-                                          float bucketScale, 
-                                          int bucketSize, 
-                                          out int bucketLocation, 
+        private static void IndexLocation(int index,
+                                          float bucketScale,
+                                          int bucketSize,
+                                          out int bucketLocation,
                                           out int bucketIndex)
         {
             bucketLocation = (int)(index * bucketScale);
             bucketIndex    = index - bucketLocation * bucketSize;
         }
-        
+
         public ref T AtIndex(int index)
         {
             IndexLocation(index, bucketScale, bucketSize, out var i, out var j);
 
             return ref buckets[i][j];
         }
-        
+
         public void Insert(int index, in T value)
         {
             IndexLocation(index, bucketScale, bucketSize, out var i, out var j);
 
             buckets[i][j] = value;
         }
-        
+
         public int IndexOf(in T value)
         {
             for (var i = 0; i < buckets.Length; i++)
             {
                 var index = Array.BinarySearch(buckets[i], 0, bucketSize, value);
-                
+
                 if (index >= 0)
                     return index;
             }
-            
+
             return -1;
         }
 
@@ -91,7 +91,7 @@ namespace Fracture.Common.Collections
         /// </summary>
         public void Grow(int newBucketsCount = 1)
         {
-            if (newBucketsCount <= 0) 
+            if (newBucketsCount <= 0)
                 throw new ArgumentOutOfRangeException(nameof(newBucketsCount));
 
             var oldLength = buckets.Length;
@@ -101,25 +101,25 @@ namespace Fracture.Common.Collections
             for (int i = oldLength, currentLength = buckets.Length; i < currentLength; i++)
                 buckets[i] = new T[bucketSize];
         }
-        
+
         /// <summary>
         /// Grows the array from the beginning with given count of new buckets.
         /// </summary>
         public void Shift(int newBucketsCount = 1)
         {
-            #warning Test this method before using.
-            
-            if (newBucketsCount <= 0) 
+#warning Test this method before using.
+
+            if (newBucketsCount <= 0)
                 throw new ArgumentOutOfRangeException(nameof(newBucketsCount));
 
             var shiftIndex = buckets.Length - 1;
 
             Array.Resize(ref buckets, buckets.Length + newBucketsCount);
-            
+
             // Shift existing buckets to end.
-            for (var i = buckets.Length - 1; i >= 0; i--) 
+            for (var i = buckets.Length - 1; i >= 0; i--)
                 buckets[i] = buckets[shiftIndex--];
-            
+
             // Create new buckets.
             for (var i = 0; i < newBucketsCount; i++)
                 buckets[i] = new T[bucketSize];
@@ -130,13 +130,12 @@ namespace Fracture.Common.Collections
             for (var i = 0; i < buckets.Length; i++)
             {
                 var bucket = buckets[i];
-                
+
                 for (var j = 0; j < bucket.Length; j++)
                     yield return bucket[j];
             }
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

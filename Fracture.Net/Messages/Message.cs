@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
@@ -19,7 +18,7 @@ namespace Fracture.Net.Messages
     {
         // Marker interface, nothing to implement.
     }
-    
+
     /// <summary>
     /// Interface for implementing query messages. Query messages keep the same message between requests and responses.
     /// </summary>
@@ -53,7 +52,7 @@ namespace Fracture.Net.Messages
         }
         #endregion
     }
-    
+
     public delegate void ObjectSchemaMapDelegate(ObjectSerializationMapper schema);
 
     /// <summary>
@@ -68,31 +67,30 @@ namespace Fracture.Net.Messages
         protected Message()
         {
         }
-        
+
         public virtual void Clear()
         {
         }
 
-        public override string ToString()
-            => JsonConvert.SerializeObject(this);
+        public override string ToString() => JsonConvert.SerializeObject(this);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(in IClockMessage from, Func<T> result) where T : IClockMessage
         {
             var message = result();
-            
+
             message.RequestTime = from.RequestTime;
-            
+
             return message;
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Query<T>(in IQueryMessage from, Func<T> result) where T : IQueryMessage
         {
             var message = result();
-            
+
             message.QueryId = from.QueryId;
-            
+
             return message;
         }
 
@@ -103,26 +101,26 @@ namespace Fracture.Net.Messages
         public static T Create<T>(PoolElementDecoratorDelegate<T> decorator = null) where T : class, IMessage, new()
         {
             var type = typeof(T);
-            
+
             if (!StructSerializer.SupportsType(type))
                 throw new InvalidOperationException($"no schema is registered for message type {type.Name}");
-            
+
             lock (Pools)
             {
                 if (!Pools.TryGetValue(type, out var pool))
                 {
                     pool = new CleanPool<IMessage>(
-                        new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)), 
+                        new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)),
                                                    () => new T(), 8)
                     );
-                
+
                     Pools.Add(type, pool);
                 }
-                
+
                 var message = (T)pool.Take();
-            
+
                 decorator?.Invoke(message);
-            
+
                 return message;
             }
         }
@@ -138,7 +136,7 @@ namespace Fracture.Net.Messages
                 return Pools.ContainsKey(message.GetType());
             }
         }
-            
+
         /// <summary>
         /// Attempts to return given message back to the pool. Has no effect if the message type is not a pooled message type.
         /// </summary>
@@ -152,7 +150,7 @@ namespace Fracture.Net.Messages
             }
         }
     }
-    
+
     /// <summary>
     /// Utility class for defining messaging schemas. Works only as wrapper around serialization library. For any more fine tuned schema mapping use the
     /// serialization type mappers.
@@ -166,26 +164,26 @@ namespace Fracture.Net.Messages
         public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : IMessage
         {
             var mapper = ObjectSerializationMapper.ForType<T>();
-            
+
             map(mapper);
-            
+
             var mapping = mapper.Map();
-            
+
             StructSerializer.Map(mapping);
         }
-        
+
         /// <summary>
         /// Defines structure that can be found inside the messages and maps it for usage.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ForStruct<T>(ObjectSchemaMapDelegate map) 
+        public static void ForStruct<T>(ObjectSchemaMapDelegate map)
         {
             var mapper = ObjectSerializationMapper.ForType<T>();
-            
+
             map(mapper);
-            
+
             var mapping = mapper.Map();
-            
+
             StructSerializer.Map(mapping);
         }
     }

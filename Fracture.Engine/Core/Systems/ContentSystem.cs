@@ -23,11 +23,9 @@ namespace Fracture.Engine.Core.Systems
         #region Fields
         private readonly ContentManager content;
         #endregion
-        
-        public ContentSystem(ContentManager content)
-            => this.content = content ?? throw new ArgumentNullException(nameof(content));
-        
-        public T Load<T>(string assetName)
-            => content.Load<T>(assetName);
+
+        public ContentSystem(ContentManager content) => this.content = content ?? throw new ArgumentNullException(nameof(content));
+
+        public T Load<T>(string assetName) => content.Load<T>(assetName);
     }
 }

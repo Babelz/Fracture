@@ -1,13 +1,15 @@
 ## Serialization
+
 Fracture serializer provides fast and compact serialization format for serializing objects to binary. However it does
 not attempt to be the best fastest or most compact serializer available. Serialization is developed with online games in
 mind and more precisely the Shattered World MMO. Serialization uses dynamic code generation to avoid overhead from reflection
 when serializing and deserializing objects. This format is purely intended to be used for communication and is not suited
-for file serialization as it does not have schema version or migration support.  
+for file serialization as it does not have schema version or migration support.
 
 Serialization is heavily focusing on improving the following aspects:
+
 * Reflection overhead during serialization and deserialization
-    * Dynamic code generation at startup, avoiding reflection after this 
+    * Dynamic code generation at startup, avoiding reflection after this
 * Binary size of objects
     * MTU is limited to 64kb for now
     * Serializing only minimal required information about objects when serialized, minimal schema information needed
@@ -17,14 +19,16 @@ Serialization is heavily focusing on improving the following aspects:
     * Easy to share and keep up to date while developing between client and server
 
 Serialization of objects has the following constraints:
+
 * Serialization works on private and public instance fields and properties
-* Objects with no default constructor can be serialized 
+* Objects with no default constructor can be serialized
 * Both properties and fields can be serialized
 * Serializer can be instructed how to serialize third party types
 * All structure types the serializer comes across must have instructions how to serialize them
 * Null values are supported (both nullable and null references)
 
 Fracture serializer provides serialization for the following types:
+
 - [x] Signed primitives (sbyte, short, int, long)
 - [x] Unsigned primitives (byte, ushort, uint, ulong)
 - [x] Floats and decimals (float, decimal)
@@ -35,9 +39,9 @@ Fracture serializer provides serialization for the following types:
 - [x] Bit fields
 - [x] Enums
 - [x] Structures
-  - [x] Auto mapped
-  - [x] Manually mapped
-- [x] Arrays 
+    - [x] Auto mapped
+    - [x] Manually mapped
+- [x] Arrays
 - [x] Lists
 - [x] Dictionaries
 - [x] Nullable values and null references in possible cases
@@ -47,7 +51,8 @@ Fracture serializer provides serialization for the following types:
 - [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
 ## How to setup serialization
-See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring the serialization 
+
+See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring the serialization
 without this see tests of StructSerializer and ObjectSerializationMapper for more examples.
 
 ```csharp
@@ -81,39 +86,48 @@ StructSerializer.Serialize(new Vec2(200.0f, 100.0f), buffer, 0);
 ```
 
 ## Protocol headers
-Depending on the object that is serialized the serializer can add additional metadata about the object to the serialization stream. 
+
+Depending on the object that is serialized the serializer can add additional metadata about the object to the serialization stream.
 
 ### Serialization type id, 2-bytes
-Contains the runtime type identifier for structures and classes. 
+
+Contains the runtime type identifier for structures and classes.
 
 ### Content length, 2-bytes
+
 Denotes the dynamic content length in bytes for objects that can vary in size.
 
 ### Collection length, 2-bytes
+
 Header that contains the collection length in elements, this header should be present for all collection types. For example when serializing an array with
 length of 32 this header would get the value of 32.
 
 ### Type data, 1-byte
+
 Optional serializer specific "user data" used to store type specific information in context of serialization. For example in case of collections this header
-is used as flags field to determine if the collection is sparse or not. 
+is used as flags field to determine if the collection is sparse or not.
 
 ## Overhead of nulls
+
 Null values are not serialized to streams but instead all objects that have nullable members will be serialized with special bit field that contains
 the field indices and a flag that can be used to determine if the field value is null. Minimum space overhead from having nulls in your objects is 3-bytes
-and for each 8-fields the overhead grows by one byte. 
+and for each 8-fields the overhead grows by one byte.
 
 Few example cases:
+
 * Object with 8 nullable members - overhead is 3-bytes
 * Object with 14 nullable members - overhead is 4-bytes
 * Object with 64 nullable members - overhead is 64 % 8 + 64 / 8 + 2 = 10-bytes
 * Object with zero nullable members - overhead is 0-bytes
 
-These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary format. 
+These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary format.
 
 ## Example objects and how they are represented in binary format
 
 ### Simple structure
+
 Serializing the value to a buffer.
+
 ```csharp
 // Example structure we are using.
 public sealed class Vec2
@@ -138,6 +152,7 @@ StructSerializer.Serialize(new Vec2()
 ```
 
 Buffer contents after serializing.
+
 ```
 Vec2 size in bytes: 12
 
@@ -161,7 +176,9 @@ offset | value
 ```
 
 ### Nested structures
+
 Serializing the value to a buffer.
+
 ```csharp
 public sealed class Vec3
 {
@@ -211,6 +228,7 @@ StructSerializer.Serialize(new Transform()
 ```
 
 Buffer contents after serializing.
+
 ```
 Transform size in bytes: 52
 
@@ -287,7 +305,9 @@ offset | value
 ```
 
 ### Structure with nullable members
+
 Serializing the value to a buffer.
+
 ```csharp
 public sealed class QueryObject
 {
@@ -325,6 +345,7 @@ StructSerializer.Serialize(new Query()
 ```
 
 Buffer contents after serializing.
+
 ```
 Query size in bytes: 24
 
@@ -366,8 +387,11 @@ offset | value
 16     | 00
 17     | 00
 ```
+
 ### Structure with array and sparse array
+
 Serializing the value to a buffer.
+
 ```csharp
 public sealed class Vec2
 {
@@ -417,6 +441,7 @@ StructSerializer.Serialize(new Content()
 ```
 
 Buffer contents after serializing.
+
 ```
 Content size in bytes: 84
 

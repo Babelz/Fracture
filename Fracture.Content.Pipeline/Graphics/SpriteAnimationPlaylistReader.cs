@@ -22,12 +22,12 @@ namespace Fracture.Content.Pipeline.Graphics
             var bytes  = input.ReadBytes(length);
 
             using var ms = new MemoryStream(bytes);
-            
+
             var document   = XDocument.Load(ms);
             var playlists  = document.Element("Playlist");
             var animations = new Dictionary<string, SpriteAnimationFrames>();
             var textures   = new Dictionary<string, Texture2D>();
-                
+
             foreach (var animation in playlists.Elements("Animation"))
             {
                 var animationName = animation.Attribute("name")!.Value;
@@ -36,7 +36,7 @@ namespace Fracture.Content.Pipeline.Graphics
 
                 if (string.IsNullOrEmpty(texturePath))
                     throw new InvalidOperationException($"missing texture path for animation in file {input.AssetName}");
-                
+
                 if (animation.Attribute("duration") != null)
                     baseDuration = TimeSpan.ParseExact(animation.Attribute("duration")!.Value, @"mm\:ss\:FFFF", CultureInfo.InvariantCulture);
 
@@ -54,7 +54,7 @@ namespace Fracture.Content.Pipeline.Graphics
                     var y = int.Parse(frame.Attribute("y")!.Value);
                     var w = int.Parse(frame.Attribute("w")!.Value);
                     var h = int.Parse(frame.Attribute("h")!.Value);
-                        
+
                     frameSources.Add(new Rectangle(x, y, w, h));
 
                     frameDurations.Add(frameDuration);

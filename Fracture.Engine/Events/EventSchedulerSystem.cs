@@ -1,5 +1,4 @@
-﻿using Fracture.Common.Di.Attributes;
-using Fracture.Common.Events;
+﻿using Fracture.Common.Events;
 using Fracture.Engine.Core;
 
 namespace Fracture.Engine.Events
@@ -12,29 +11,23 @@ namespace Fracture.Engine.Events
     {
         // Nothing to implement. Union interface.
     }
-    
+
     public sealed class EventSchedulerSystem : GameEngineSystem, IEventSchedulerSystem
     {
         #region Fields
         private readonly EventScheduler scheduler;
         #endregion
-        
-        public EventSchedulerSystem()
-            => scheduler = new EventScheduler();
 
-        public void Add(IScheduledEvent scheduledEvent)
-            => scheduler.Add(scheduledEvent);
+        public EventSchedulerSystem() => scheduler = new EventScheduler();
 
-        public void Remove(IScheduledEvent scheduledEvent)
-            => scheduler.Remove(scheduledEvent);
+        public void Add(IScheduledEvent scheduledEvent) => scheduler.Add(scheduledEvent);
 
-        public bool Exists(IScheduledEvent scheduledEvent)
-            => scheduler.Exists(scheduledEvent);
+        public void Remove(IScheduledEvent scheduledEvent) => scheduler.Remove(scheduledEvent);
 
-        public void Clear()
-            => scheduler.Clear();
-        
-        public override void Update(IGameEngineTime time)
-            => scheduler.Tick(time.Elapsed);
+        public bool Exists(IScheduledEvent scheduledEvent) => scheduler.Exists(scheduledEvent);
+
+        public void Clear() => scheduler.Clear();
+
+        public override void Update(IGameEngineTime time) => scheduler.Tick(time.Elapsed);
     }
 }

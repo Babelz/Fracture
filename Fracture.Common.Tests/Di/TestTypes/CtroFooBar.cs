@@ -13,7 +13,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
             if (dep2 == null) throw new ArgumentNullException(nameof(dep2));
         }
     }
-    
+
     public sealed class OptionalCtroFooBar : FooBar
     {
         #region Properties

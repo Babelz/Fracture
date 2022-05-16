@@ -12,7 +12,7 @@ namespace Fracture.Engine.Ui.Controls
         {
         }
 
-        public ContentRoot(IControlManager children) 
+        public ContentRoot(IControlManager children)
             : base(children)
         {
         }

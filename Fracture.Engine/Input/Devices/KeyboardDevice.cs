@@ -39,7 +39,7 @@ namespace Fracture.Engine.Input.Devices
         /// Returns boolean declaring whether the key was released this frame.
         /// </summary>
         bool IsKeyReleased(Keys key, int frame = 0);
-        
+
         IEnumerable<Keys> GetKeysDown(int frame = 0);
         IEnumerable<Keys> GetKeysPressed(int frame = 0);
         IEnumerable<Keys> GetKeysUp(int frame = 0);
@@ -51,7 +51,7 @@ namespace Fracture.Engine.Input.Devices
         TimeSpan GetKeyTimeDown(Keys key);
         TimeSpan GetKeyTimeUp(Keys key);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IKeyboardDevice"/> that uses MonoGame to poll key states
     /// and native functions to listen for text input.
@@ -59,7 +59,7 @@ namespace Fracture.Engine.Input.Devices
     public sealed class KeyboardDevice : IKeyboardDevice
     {
         #region Static fields
-        private static readonly HashSet<Keys> KeysHashSet 
+        private static readonly HashSet<Keys> KeysHashSet
             = new HashSet<Keys>(typeof(Keys).GetEnumValues().Cast<Keys>());
         #endregion
 
@@ -102,13 +102,13 @@ namespace Fracture.Engine.Input.Devices
 
             graphics.Window.TextInput += Window_TextInput;
         }
-        
+
         #region Event handlers
         private void Window_TextInput(object sender, TextInputEventArgs e)
         {
             if (char.IsControl(e.Character)) return;
 
-            keyboardCharacterFrameBuffer.Append(e.Character); 
+            keyboardCharacterFrameBuffer.Append(e.Character);
         }
         #endregion
 
@@ -139,13 +139,14 @@ namespace Fracture.Engine.Input.Devices
 
             return downKeys.GetPressedKeys().Where(k => upKeys.IsKeyUp(k));
         }
-        
+
         public IEnumerable<Keys> GetKeysUp(int frame = 0)
         {
             if (frame >= StatesCount)
                 throw new ArgumentOutOfRangeException(nameof(frame), $"{nameof(frame)} >= {StatesCount}");
 
-            return keyboardStateBuffer.AtOffset(-frame).GetPressedKeys()
+            return keyboardStateBuffer.AtOffset(-frame)
+                                      .GetPressedKeys()
                                       .Where(k => !KeysHashSet.Contains(k));
         }
 
@@ -202,11 +203,9 @@ namespace Fracture.Engine.Input.Devices
             return keyboardStateBuffer.AtOffset(-frame).CapsLock;
         }
 
-        public TimeSpan GetKeyTimeDown(Keys key)
-            => keyWatcher.TimeActive(key);
+        public TimeSpan GetKeyTimeDown(Keys key) => keyWatcher.TimeActive(key);
 
-        public TimeSpan GetKeyTimeUp(Keys key)
-            => keyWatcher.TimeInactive(key);
+        public TimeSpan GetKeyTimeUp(Keys key) => keyWatcher.TimeInactive(key);
 
         public void Poll(IGameEngineTime time)
         {

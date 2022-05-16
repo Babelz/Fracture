@@ -44,7 +44,7 @@ namespace Fracture.Common.Util
         /// <param name="value">values to be appended</param>
         /// <returns>hash value that has values appended</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Append<T>(this int hash, T[] value)
+        public static int Append<T>(this int hash, T [] value)
         {
             if (value == null) return hash;
 

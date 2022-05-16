@@ -9,6 +9,7 @@ namespace Fracture.Content.Pipeline.Graphics
         {
             get;
         }
+
         public string Contents
         {
             get;

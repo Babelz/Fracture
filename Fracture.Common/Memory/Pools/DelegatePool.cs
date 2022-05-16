@@ -24,7 +24,7 @@ namespace Fracture.Common.Memory.Pools
 
             CreateObjects(initialStoredObjectsCount);
         }
-        
+
         public DelegatePool(IStorageObject<T> storage, Func<T> newObject, int initialStoredObjectsCount)
             : this(storage, newObject, initialStoredObjectsCount, 0)
         {

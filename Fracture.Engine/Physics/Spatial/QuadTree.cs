@@ -10,12 +10,12 @@ namespace Fracture.Engine.Physics.Spatial
     /// <summary>
     /// Class that represents a tree where each leaf has four children. 
     /// </summary>
-    public sealed class QuadTree 
+    public sealed class QuadTree
     {
         #region Constant fields
         private const int InitialBodyBufferCapacity = 512;
         #endregion
-        
+
         #region Fields
         private readonly HashSet<int> active;
         #endregion
@@ -30,7 +30,7 @@ namespace Fracture.Engine.Physics.Spatial
         {
             get;
         }
-        
+
         public QuadTreeNode Root
         {
             get;
@@ -51,7 +51,7 @@ namespace Fracture.Engine.Physics.Spatial
 
             if (maxDepth < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxDepth));
-            
+
             Root        = new QuadTreeNode(bodies, nodeBodyLimit, maxDepth, bounds);
             BoundingBox = new Aabb(bounds * 0.5f, bounds * 0.5f);
             active      = new HashSet<int>(InitialBodyBufferCapacity);
@@ -66,20 +66,20 @@ namespace Fracture.Engine.Physics.Spatial
 
             if (added)
                 Added?.Invoke(this, new BodyEventArgs(bodyId));
-            
+
             return added;
         }
 
         /// <summary>
         /// Removes given body from the tree.
         /// </summary>
-        public bool Remove(int bodyId)   
+        public bool Remove(int bodyId)
         {
             var removed = Root.Remove(bodyId);
-            
+
             if (removed)
                 Removed?.Invoke(this, new BodyEventArgs(bodyId));
-        
+
             return removed;
         }
 

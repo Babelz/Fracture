@@ -26,13 +26,13 @@ namespace Fracture.Net.Hosting
             get;
         }
         #endregion
-        
+
         /// <summary>
         /// Signals the application to start shutting down.
         /// </summary>
         void Shutdown();
     }
-    
+
     /// <summary>
     /// Interface for application hosts that provides interface for services to interact with the application.
     /// </summary>
@@ -43,14 +43,14 @@ namespace Fracture.Net.Hosting
         /// Event invoked when the application is about to start.
         /// </summary>
         event EventHandler Starting;
-        
+
         /// <summary>
         /// Event invoked when the application is about to shut down.
         /// </summary>
         event EventHandler ShuttingDown;
         #endregion
     }
-    
+
     /// <summary>
     /// Interface for application hosts that provide interface for scripts to interact with the application.
     /// </summary>
@@ -61,18 +61,18 @@ namespace Fracture.Net.Hosting
         /// Event invoked when peer has joined.
         /// </summary>
         event StructEventHandler<PeerJoinEventArgs> Join;
-        
+
         /// <summary>
         /// Event invoked when peer has reset.
         /// </summary>
-        event StructEventHandler<PeerResetEventArgs> Reset; 
-        
+        event StructEventHandler<PeerResetEventArgs> Reset;
+
         /// <summary>
         /// Event invoked when peer makes bad request that can't be deserialized properly by the server.
         /// </summary>
         event StructEventHandler<PeerMessageEventArgs> BadRequest;
         #endregion
-        
+
         #region Properties
         /// <summary>
         /// Gets the application request context for working with the request pipeline.
@@ -89,7 +89,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the application response middleware consumer.
         /// </summary>
@@ -97,7 +97,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets all peers currently connected to the application.
         /// </summary>
@@ -106,8 +106,8 @@ namespace Fracture.Net.Hosting
             get;
         }
         #endregion
-        
-        void Load(Type type, params IBindingValue[] args);
+
+        void Load(Type type, params IBindingValue [] args);
     }
 
     /// <summary>
@@ -117,37 +117,42 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Application application;
-        
+
         private readonly IDependencyLocator services;
         #endregion
-        
+
         #region Events
         public event EventHandler Starting;
         public event EventHandler ShuttingDown;
         #endregion
-        
+
         #region Properties
-        public IApplicationClock Clock
-            => application.Clock;
+        public IApplicationClock Clock => application.Clock;
         #endregion
-        
+
         [BindingConstructor]
         public ApplicationServiceHost(Kernel services, Application application)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             this.services    = services ?? throw new ArgumentNullException(nameof(services));
-            
+
             services.Bind(this);
-            
-            application.ShuttingDown += delegate { ShuttingDown?.Invoke(this, EventArgs.Empty); };
-            application.Starting     += delegate { Starting?.Invoke(this, EventArgs.Empty); };
-            
+
+            application.ShuttingDown += delegate
+            {
+                ShuttingDown?.Invoke(this, EventArgs.Empty);
+            };
+            application.Starting += delegate
+            {
+                Starting?.Invoke(this, EventArgs.Empty);
+            };
+
             foreach (var service in services.All<IApplicationService>())
-                Log.Information($"loaded service {service.GetType().FullName} at startup..."); 
-            
+                Log.Information($"loaded service {service.GetType().FullName} at startup...");
+
             services.Verify();
         }
-        
+
         public void Tick()
         {
             foreach (var service in services.All<IActiveApplicationService>())
@@ -159,14 +164,13 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warning(e, "unhandled error occurred while updating service", service);
-                }   
+                }
             }
         }
-        
-        public void Shutdown()
-            => application.Shutdown();
+
+        public void Shutdown() => application.Shutdown();
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IApplicationScriptingHost"/>.
     /// </summary>
@@ -174,42 +178,37 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Application application;
-        
+
         private readonly Kernel scripts;
         #endregion
 
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
         public event StructEventHandler<PeerResetEventArgs> Reset;
-        public event StructEventHandler<PeerMessageEventArgs> BadRequest; 
+        public event StructEventHandler<PeerMessageEventArgs> BadRequest;
         #endregion
-        
+
         #region Properties
-        public ApplicationRequestContext Requests
-            => application.Requests;
+        public ApplicationRequestContext Requests => application.Requests;
 
-        public ApplicationNotificationContext Notifications
-            => application.Notifications;
+        public ApplicationNotificationContext Notifications => application.Notifications;
 
-        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses
-            => application.Responses;
+        public IMiddlewareConsumer<RequestResponseMiddlewareContext> Responses => application.Responses;
 
-        public IApplicationClock Clock
-            => application.Clock;
-        
-        public IEnumerable<int> PeerIds
-            => application.PeerIds;
+        public IApplicationClock Clock => application.Clock;
+
+        public IEnumerable<int> PeerIds => application.PeerIds;
         #endregion
-        
+
         public ApplicationScriptingHost(Kernel scripts, Application application, IEnumerable<IApplicationService> services)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
-            
+
             // Bind services to scripts.
             foreach (var service in services)
                 scripts.Bind(service);
-            
+
             // Bind host to kernel.
             scripts.Bind(this);
 
@@ -217,13 +216,13 @@ namespace Fracture.Net.Hosting
             application.ShuttingDown += delegate
             {
                 Log.Information("application shutdown signaled, unloading all scripts...");
-                
+
                 foreach (var script in scripts.All<IApplicationScript>().ToList())
                 {
                     try
                     {
                         Log.Information($"unloading script ${script.GetType().FullName}...");
-                        
+
                         script.Unload();
                     }
                     catch (Exception ex)
@@ -232,30 +231,30 @@ namespace Fracture.Net.Hosting
                     }
                 }
             };
-            
-            application.Join       += (object sender, in PeerJoinEventArgs e)    => Join?.Invoke(this, e);
-            application.Reset      += (object sender, in PeerResetEventArgs e)   => Reset?.Invoke(this, e);
+
+            application.Join       += (object sender, in PeerJoinEventArgs e) => Join?.Invoke(this, e);
+            application.Reset      += (object sender, in PeerResetEventArgs e) => Reset?.Invoke(this, e);
             application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
-            
+
             foreach (var script in scripts.All<IApplicationScript>())
-                Log.Information($"loaded script {script.GetType().FullName} at startup..."); 
-            
+                Log.Information($"loaded script {script.GetType().FullName} at startup...");
+
             scripts.Verify();
         }
-        
-        public void Load(Type type, params IBindingValue[] args)
+
+        public void Load(Type type, params IBindingValue [] args)
         {
             if (!typeof(IApplicationScript).IsAssignableFrom(type))
                 throw new ArgumentException($"{type.Name} is not a script type", nameof(type));
-                
+
             if (type.IsAbstract || type.IsInterface)
                 throw new ArgumentException($"{type.Name} is abstract", nameof(type));
-                
+
             if (type.IsValueType)
-                throw new ArgumentException($"{type.Name} is a value type", nameof(type)); 
-            
+                throw new ArgumentException($"{type.Name} is a value type", nameof(type));
+
             var script = (IApplicationScript)scripts.Activate(type, args);
-            
+
             switch (script)
             {
                 case IApplicationCommandScript ics:
@@ -268,12 +267,15 @@ namespace Fracture.Net.Hosting
                     Log.Information($"loaded script: {type.Name}...");
                     break;
             }
-            
-            script.Unloading += delegate { scripts.Unbind(script); };
-            
+
+            script.Unloading += delegate
+            {
+                scripts.Unbind(script);
+            };
+
             scripts.Bind(script);
         }
-        
+
         public void Tick()
         {
             foreach (var script in scripts.All<IApplicationScript>().ToList())
@@ -289,6 +291,7 @@ namespace Fracture.Net.Hosting
                         {
                             Log.Warning(e, "unahdled error occurred while invoking command script", script);
                         }
+
                         break;
                     case IActiveApplicationScript iaas:
                         try
@@ -299,15 +302,15 @@ namespace Fracture.Net.Hosting
                         {
                             Log.Warning(e, "unahdled error occurred while executing active script", script);
                         }
+
                         break;
                 }
             }
         }
 
-        public void Shutdown()
-            => application.Shutdown();
+        public void Shutdown() => application.Shutdown();
     }
-    
+
     /// <summary>
     /// Class that serves as application host in cases the service and script layer is used for application programming. This class groups application,
     /// services and scripts together.
@@ -316,24 +319,23 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Application application;
-        
+
         private readonly ApplicationScriptingHost scripts;
         private readonly ApplicationServiceHost services;
         #endregion
-        
+
         public ApplicationHost(Application application, ApplicationServiceHost services, ApplicationScriptingHost scripts)
         {
             this.application = application ?? throw new ArgumentNullException(nameof(application));
             this.services    = services ?? throw new ArgumentNullException(nameof(services));
             this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
         }
-        
+
         /// <summary>
         /// Signals the application to shutdown.
         /// </summary>
-        public void Shutdown()
-            => application.Shutdown();
-        
+        public void Shutdown() => application.Shutdown();
+
         /// <summary>
         /// Starts running the application.
         /// </summary>
@@ -342,10 +344,10 @@ namespace Fracture.Net.Hosting
             application.Tick += delegate
             {
                 services.Tick();
-                
+
                 scripts.Tick();
             };
-                
+
             application.Start();
         }
     }

@@ -43,7 +43,7 @@ namespace Fracture.Engine.Ui.Components
         }
         #endregion
     }
-    
+
     /// <summary>
     /// Interface for implementing control collections. Collections
     /// provide storage for children controls.
@@ -56,7 +56,7 @@ namespace Fracture.Engine.Ui.Components
 
         void Clear();
     }
-    
+
     /// <summary>
     /// Interface for implementing control managers. Managers combine functionalities
     /// of control containers and enumerators.
@@ -65,7 +65,7 @@ namespace Fracture.Engine.Ui.Components
     {
         // No implementation specific members, joins two interfaces.
     }
-    
+
     /// <summary>
     /// Class that contains and manages controls.
     /// </summary>
@@ -90,16 +90,15 @@ namespace Fracture.Engine.Ui.Components
         public IControl this[int index] => controls[index];
         #endregion
 
-        public ControlManager()
-            => controls = new List<IControl>();
+        public ControlManager() => controls = new List<IControl>();
 
         public void Add(IControl control)
         {
             if (control == null)
                 throw new ArgumentNullException(nameof(control));
 
-            if (controls.Contains(control)) 
-                throw new InvalidCastException($"duplicated control {control}"); 
+            if (controls.Contains(control))
+                throw new InvalidCastException($"duplicated control {control}");
 
             controls.Add(control);
 

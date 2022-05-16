@@ -19,8 +19,7 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlEventArgs(IControl control)
-            => Control = control;
+        public ControlEventArgs(IControl control) => Control = control;
     }
 
     public sealed class ControlParentEventArgs : EventArgs
@@ -30,6 +29,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         public IControl NextParent
         {
             get;
@@ -52,8 +52,7 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlMouseInputEventArgs(ControlMouseInputManager mouseInputManager)
-            => MouseInputManager = mouseInputManager;
+        public ControlMouseInputEventArgs(ControlMouseInputManager mouseInputManager) => MouseInputManager = mouseInputManager;
     }
 
     public sealed class ControlKeyboardInputEventArgs : EventArgs
@@ -62,11 +61,10 @@ namespace Fracture.Engine.Ui.Controls
         public ControlKeyboardInputManager KeyboardInputManager
         {
             get;
-        } 
+        }
         #endregion
 
-        public ControlKeyboardInputEventArgs(ControlKeyboardInputManager keyboardInputManager)
-            => KeyboardInputManager = keyboardInputManager;
+        public ControlKeyboardInputEventArgs(ControlKeyboardInputManager keyboardInputManager) => KeyboardInputManager = keyboardInputManager;
     }
 
     public sealed class ControlTextInputEventArgs : EventArgs
@@ -75,13 +73,12 @@ namespace Fracture.Engine.Ui.Controls
         public string Input
         {
             get;
-        } 
+        }
         #endregion
 
-        public ControlTextInputEventArgs(string input)
-            => Input = input;
+        public ControlTextInputEventArgs(string input) => Input = input;
     }
-    
+
     /// <summary>
     /// Interface creating controls. Controls define
     /// their transform, parent-child relation and events they use.
@@ -106,7 +103,7 @@ namespace Fracture.Engine.Ui.Controls
         event EventHandler MarginChanged;
 
         event EventHandler LayoutChanged;
-        
+
         event EventHandler FocusChanged;
 
         event EventHandler<ControlKeyboardInputEventArgs> KeyboardInputReceived;
@@ -153,6 +150,7 @@ namespace Fracture.Engine.Ui.Controls
             get;
             set;
         }
+
         /// <summary>
         /// Actual position of the control. Actual position on the screen,
         /// not relative to the parent.
@@ -162,7 +160,7 @@ namespace Fracture.Engine.Ui.Controls
             get;
             set;
         }
-        
+
         /// <summary>
         /// Size of the control. Relative to the parent.
         /// </summary>
@@ -171,6 +169,7 @@ namespace Fracture.Engine.Ui.Controls
             get;
             set;
         }
+
         /// <summary>
         /// Actual size of the control. Actual size on the screen,
         /// not relative to the parent.
@@ -188,6 +187,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         /// <summary>
         /// Actual bounding box of the control. Actual bounding box on
         /// the screen, not relative to the parent.
@@ -232,6 +232,7 @@ namespace Fracture.Engine.Ui.Controls
             get;
             set;
         }
+
         /// <summary>
         /// Positioning mode of this control.
         /// </summary>
@@ -249,6 +250,7 @@ namespace Fracture.Engine.Ui.Controls
             get;
             set;
         }
+
         /// <summary>
         /// Prent control of this control.
         /// </summary>
@@ -284,6 +286,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         /// <summary>
         /// Is the control enabled.
         /// </summary>
@@ -312,7 +315,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
-        
+
         bool Draggable
         {
             get;
@@ -365,6 +368,7 @@ namespace Fracture.Engine.Ui.Controls
         /// Focuses this control.
         /// </summary>
         void Focus();
+
         /// <summary>
         /// Removes focus from this control.
         /// </summary>
@@ -374,6 +378,7 @@ namespace Fracture.Engine.Ui.Controls
         /// Enables this control allowing it to perform updates.
         /// </summary>
         void Enable();
+
         /// <summary>
         /// Disables this control disallowing it to perform any updates.
         /// </summary>
@@ -383,6 +388,7 @@ namespace Fracture.Engine.Ui.Controls
         /// Makes this control visible.
         /// </summary>
         void Show();
+
         /// <summary>
         /// Makes this control hidden.
         /// </summary>
@@ -392,10 +398,12 @@ namespace Fracture.Engine.Ui.Controls
         /// Apply mouse input to this control.
         /// </summary>
         void ReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse);
+
         /// <summary>
         /// Apply keyboard input for this control.
         /// </summary>
         void ReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard);
+
         /// <summary>
         /// Apply text input for this control.
         /// </summary>
@@ -416,13 +424,13 @@ namespace Fracture.Engine.Ui.Controls
         /// Called when the control is allowed to render.
         /// </summary>
         void Draw(IGraphicsFragment fragment, IGameEngineTime time);
-    
+
         /// <summary>
         /// Called when the control is done rendering.
         /// </summary>
         void AfterDraw(IGraphicsFragment fragment, IGameEngineTime time);
     }
-        
+
     public abstract class Control : IControl
     {
         #region Fields
@@ -430,13 +438,13 @@ namespace Fracture.Engine.Ui.Controls
 
         private Vector2 position;
         private Vector2 actualPosition;
-        
+
         private Rectf actualBoundingBox;
         private Rectf boundingBox;
 
         private Vector2 size;
         private Vector2 actualSize;
-        
+
         private Positioning positioning;
         private Anchor anchor;
 
@@ -525,7 +533,7 @@ namespace Fracture.Engine.Ui.Controls
                 position = value;
 
                 if (position == old) return;
-                
+
                 UpdatePosition();
 
                 UpdateBoundingBox();
@@ -535,6 +543,7 @@ namespace Fracture.Engine.Ui.Controls
                 LayoutChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
         public virtual Vector2 ActualPosition
         {
             get => actualPosition;
@@ -545,7 +554,7 @@ namespace Fracture.Engine.Ui.Controls
                 actualPosition = value;
 
                 if (actualPosition == old) return;
-                
+
                 UpdatePosition(true);
 
                 UpdateBoundingBox();
@@ -566,7 +575,7 @@ namespace Fracture.Engine.Ui.Controls
                 size = value;
 
                 if (size == old) return;
-                
+
                 UpdateSize();
 
                 UpdatePosition();
@@ -578,6 +587,7 @@ namespace Fracture.Engine.Ui.Controls
                 LayoutChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
         public virtual Vector2 ActualSize
         {
             get => actualSize;
@@ -588,7 +598,7 @@ namespace Fracture.Engine.Ui.Controls
                 actualSize = value;
 
                 if (actualSize == old) return;
-                
+
                 UpdateSize(true);
 
                 UpdatePosition();
@@ -601,7 +611,7 @@ namespace Fracture.Engine.Ui.Controls
             }
         }
 
-        public virtual Rectf BoundingBox       => boundingBox;
+        public virtual Rectf BoundingBox => boundingBox;
         public virtual Rectf ActualBoundingBox => actualBoundingBox;
 
         public Rectf CollisionBoundingBox
@@ -610,7 +620,7 @@ namespace Fracture.Engine.Ui.Controls
             {
                 if (!(parent is IStaticContainerControl container) || !container.UseRenderTarget)
                     return actualBoundingBox;
-                
+
                 var offset       = container.ViewOffset;
                 var myBounds     = ActualBoundingBox;
                 var parentBounds = parent.ActualBoundingBox;
@@ -620,8 +630,8 @@ namespace Fracture.Engine.Ui.Controls
                 var x = MathHelper.Clamp(myBounds.X, parentBounds.Left, parentBounds.Right);
                 var y = MathHelper.Clamp(myBounds.Y, parentBounds.Top, parentBounds.Bottom);
 
-                float w; 
-                float h; 
+                float w;
+                float h;
 
                 // Clamp vertical.
                 if (myBounds.Top < parentBounds.Top)
@@ -652,7 +662,7 @@ namespace Fracture.Engine.Ui.Controls
                 {
                     w = myBounds.Width;
                 }
-                    
+
                 return new Rectf(new Vector2(x, y), new Vector2(w, h));
             }
         }
@@ -680,6 +690,7 @@ namespace Fracture.Engine.Ui.Controls
                 }
             }
         }
+
         public virtual UiOffset Padding
         {
             get => padding;
@@ -690,7 +701,7 @@ namespace Fracture.Engine.Ui.Controls
                 padding = value;
 
                 if (padding == old) return;
-                
+
                 UpdateSize();
 
                 UpdatePosition();
@@ -713,7 +724,7 @@ namespace Fracture.Engine.Ui.Controls
                 anchor = value;
 
                 if (anchor == old || Positioning != Positioning.Anchor) return;
-                
+
                 UpdateAnchor();
 
                 UpdateBoundingBox();
@@ -721,6 +732,7 @@ namespace Fracture.Engine.Ui.Controls
                 LayoutChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
         public virtual Positioning Positioning
         {
             get => positioning;
@@ -731,7 +743,7 @@ namespace Fracture.Engine.Ui.Controls
                 positioning = value;
 
                 if (positioning == old) return;
-                
+
                 UpdatePosition();
 
                 UpdateBoundingBox();
@@ -739,7 +751,7 @@ namespace Fracture.Engine.Ui.Controls
                 LayoutChanged?.Invoke(this, EventArgs.Empty);
             }
         }
-        
+
         public virtual IUiStyle Style
         {
             get => style;
@@ -764,7 +776,7 @@ namespace Fracture.Engine.Ui.Controls
                 parent = value;
 
                 if (parent == old) return;
-                
+
                 UpdateSize();
 
                 UpdatePosition();
@@ -785,9 +797,9 @@ namespace Fracture.Engine.Ui.Controls
         {
             get
             {
-                if (!(parent is IStaticContainerControl container) || !container.UseRenderTarget) 
+                if (!(parent is IStaticContainerControl container) || !container.UseRenderTarget)
                     return true;
-                
+
                 var offset       = container.ViewOffset;
                 var myBounds     = ActualBoundingBox;
                 var parentBounds = parent.ActualBoundingBox;
@@ -887,13 +899,13 @@ namespace Fracture.Engine.Ui.Controls
 
         private void UpdateMouseDrag()
         {
-            if (!HasFocus)               return;
+            if (!HasFocus) return;
             if (!Mouse.IsHovering(this)) return;
-            if (!Draggable)              return;
+            if (!Draggable) return;
 
-            if (!Mouse.IsDown(MouseButton.Left) || Mouse.TimeDown(MouseButton.Left) < TimeSpan.FromSeconds(0.2f)) 
+            if (!Mouse.IsDown(MouseButton.Left) || Mouse.TimeDown(MouseButton.Left) < TimeSpan.FromSeconds(0.2f))
                 return;
-            
+
             Drag?.Invoke(this, new ControlMouseInputEventArgs(Mouse));
 
             Position += Mouse.LocalPositionDelta;
@@ -917,7 +929,7 @@ namespace Fracture.Engine.Ui.Controls
             var controlSize    = ActualSize;
             var parentPosition = GetParentActualPosition();
             var parentSize     = GetParentActualSize();
-            
+
             if ((anchor & Anchor.Center) == Anchor.Center)
             {
                 actualPosition = parentPosition + (parentSize * 0.5f) - (actualSize * 0.5f);
@@ -930,21 +942,21 @@ namespace Fracture.Engine.Ui.Controls
 
                 if ((anchor & Anchor.Left) == Anchor.Left)
                     actualPosition = new Vector2(parentPosition.X, actualPosition.Y);
-                
+
                 if ((anchor & Anchor.Right) == Anchor.Right)
                     actualPosition = new Vector2(parentPosition.X + parentSize.X - controlSize.X, actualPosition.Y);
             }
             else
             {
                 actualPosition = new Vector2(parentPosition.X, parentPosition.Y);
-                
+
                 if ((anchor & Anchor.Bottom) == Anchor.Bottom)
                     actualPosition = new Vector2(actualPosition.X, parentPosition.Y + parentSize.Y - controlSize.Y);
-                
+
                 if ((anchor & Anchor.Right) == Anchor.Right)
                     actualPosition = new Vector2(actualPosition.X + parentSize.X - controlSize.X, actualPosition.Y);
             }
-            
+
             if (Positioning == Positioning.Anchor)
                 position = actualPosition + parentPosition;
             else
@@ -964,7 +976,7 @@ namespace Fracture.Engine.Ui.Controls
             if (Parent != null)
             {
                 var actualParentSize = GetParentActualSize();
-                
+
                 marginTransform  = UiOffset.Transform(marginTransform, actualParentSize);
                 paddingTransform = UiOffset.Transform(paddingTransform, actualParentSize);
             }
@@ -1008,13 +1020,13 @@ namespace Fracture.Engine.Ui.Controls
                     var parentActualPosition = GetParentActualPosition();
                     var parentActualSize     = GetParentActualSize();
 
-                    if (actual) position       = parentActualPosition - position;
-                    else        actualPosition = position * parentActualSize + parentActualPosition;
+                    if (actual) position = parentActualPosition - position;
+                    else actualPosition  = position * parentActualSize + parentActualPosition;
                     break;
                 case Positioning.Absolute:
                     // Update absolute position for control.
-                    if (actual) position       = actualPosition;
-                    else        actualPosition = position;
+                    if (actual) position = actualPosition;
+                    else actualPosition  = position;
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(Positioning), Positioning);
@@ -1034,7 +1046,7 @@ namespace Fracture.Engine.Ui.Controls
             else
                 actualSize = size * parentSize;
         }
-        
+
         protected virtual void InternalReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard)
         {
         }
@@ -1058,20 +1070,20 @@ namespace Fracture.Engine.Ui.Controls
         protected virtual void InternalBeforeDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
         }
-        
+
         protected virtual void InternalUpdate(IGameEngineTime time)
         {
         }
-        
+
         public virtual void UpdateLayout()
         {
             UpdateSize();
-            
+
             UpdatePosition();
 
             UpdateBoundingBox();
         }
-        
+
         /// <summary>
         /// Returns the destination rectangle of the control for rendering.
         /// </summary>
@@ -1079,7 +1091,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             var screenPosition = UiCanvas.ToScreenUnits(actualBoundingBox.Position);
             var screenSize     = UiCanvas.ToScreenUnits(actualBoundingBox.Bounds);
-            
+
             return new Rectangle((int)Math.Floor(screenPosition.X),
                                  (int)Math.Floor(screenPosition.Y),
                                  (int)Math.Floor(screenSize.X),
@@ -1103,7 +1115,7 @@ namespace Fracture.Engine.Ui.Controls
         public void BeforeDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             if (!Visible) return;
-            
+
             InternalBeforeDraw(fragment, time);
         }
 
@@ -1111,7 +1123,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (HasFocus || !VisibleFromParent)
                 return;
-                
+
             HasFocus = true;
 
             FocusChanged?.Invoke(this, EventArgs.Empty);
@@ -1121,7 +1133,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (!HasFocus)
                 return;
-            
+
             HasFocus = false;
 
             FocusChanged?.Invoke(this, EventArgs.Empty);
@@ -1131,7 +1143,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (Enabled)
                 return;
-            
+
             Enabled = true;
 
             EnabledChanged?.Invoke(this, EventArgs.Empty);
@@ -1141,7 +1153,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (!Enabled)
                 return;
-            
+
             // Defocus control in case when it is being disabled
             // and it contains focus.
             if (HasFocus)
@@ -1151,12 +1163,12 @@ namespace Fracture.Engine.Ui.Controls
 
             EnabledChanged?.Invoke(this, EventArgs.Empty);
         }
-        
+
         public virtual void Show()
         {
             if (Visible)
                 return;
-            
+
             Visible = true;
 
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
@@ -1166,21 +1178,19 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (!Visible)
                 return;
-            
+
             Visible = false;
 
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public virtual void EnableDrag()
-            => Draggable = true;
+        public virtual void EnableDrag() => Draggable = true;
 
-        public virtual void DisableDrag()
-            => Draggable = false;
+        public virtual void DisableDrag() => Draggable = false;
 
         public virtual void ResumeKeyboardInputUpdate()
         {
-            if (AcceptsKeyboardInput) 
+            if (AcceptsKeyboardInput)
                 return;
 
             AcceptsKeyboardInput = true;
@@ -1190,7 +1200,7 @@ namespace Fracture.Engine.Ui.Controls
 
         public virtual void SuspendKeyboardInputUpdate()
         {
-            if (!AcceptsKeyboardInput) 
+            if (!AcceptsKeyboardInput)
                 return;
 
             AcceptsTextInput = false;
@@ -1287,7 +1297,7 @@ namespace Fracture.Engine.Ui.Controls
             if (!Enabled)
                 return;
 
-            if (!AcceptsTextInput) 
+            if (!AcceptsTextInput)
                 return;
 
             Input = text;
@@ -1301,7 +1311,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (!VisibleFromParent && HasFocus)
                 Defocus();
-            
+
             if (!Enabled)
                 return;
 

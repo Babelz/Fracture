@@ -17,7 +17,7 @@ namespace Fracture.Net.Hosting.Servers
         #region Constant fields
         private const int ReceiveBufferSize = 65536;
         #endregion
-        
+
         #region Static fields
         private static readonly HashSet<SocketError> GracefulSocketErrors = new HashSet<SocketError>
         {
@@ -26,31 +26,31 @@ namespace Fracture.Net.Hosting.Servers
             SocketError.NetworkReset,
             SocketError.NotConnected
         };
-        
+
         private static int IdCounter;
         #endregion
 
         #region Fields
         private readonly TimeSpan gracePeriod;
-        
-        private readonly byte[] receiveBuffer;
+
+        private readonly byte [] receiveBuffer;
         private readonly Socket socket;
-        
+
         private readonly LockedDoubleBuffer<PeerMessageEventArgs> incomingMessageBuffer;
         private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
-        
+
         private IAsyncResult receiveResult;
         private IAsyncResult disconnectResult;
 
         private DateTime lastReceiveTime;
-        
+
         private ResetReason reason;
         private PeerState state;
         #endregion
-        
+
         #region Events
         public event StructEventHandler<PeerResetEventArgs> Reset;
-        
+
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
         public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
@@ -58,10 +58,10 @@ namespace Fracture.Net.Hosting.Servers
         #region Properties
         private bool IsConnected => socket.Connected;
         private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) > gracePeriod;
-        
+
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
         private bool HasDisconnected => disconnectResult?.IsCompleted ?? false;
-        
+
         public int Id
         {
             get;
@@ -80,15 +80,15 @@ namespace Fracture.Net.Hosting.Servers
 
             Id       = IdCounter++;
             EndPoint = (IPEndPoint)socket.RemoteEndPoint;
-            
+
             incomingMessageBuffer = new LockedDoubleBuffer<PeerMessageEventArgs>();
             outgoingMessageBuffer = new LockedDoubleBuffer<ServerMessageEventArgs>();
             receiveBuffer         = new byte[ReceiveBufferSize];
-            
+
             state           = PeerState.Connected;
             lastReceiveTime = DateTime.UtcNow;
-        }        
-        
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void HandleSocketException(Exception ex)
         {
@@ -98,9 +98,9 @@ namespace Fracture.Net.Hosting.Servers
                     throw ex;
             }
             else if (!(ex is ObjectDisposedException))
-                throw ex; 
+                throw ex;
         }
-        
+
         #region Async callbacks
         private void DisconnectCallback(IAsyncResult ar)
         {
@@ -114,7 +114,7 @@ namespace Fracture.Net.Hosting.Servers
                 HandleSocketException(e);
             }
         }
-            
+
         private void SendCallback(IAsyncResult ar)
         {
             // Handle all async operations in try catch because the socket might already be closed or disposed when the callback is executed.
@@ -136,15 +136,15 @@ namespace Fracture.Net.Hosting.Servers
             try
             {
                 var length = socket.EndReceive(ar);
-                
+
                 if (length == 0)
                     return;
-            
+
                 var contents = BufferPool.Take(length);
-            
+
                 Array.Copy(receiveBuffer, 0, contents, 0, length);
-            
-                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), contents, length, DateTime.UtcNow.TimeOfDay));   
+
+                incomingMessageBuffer.Push(new PeerMessageEventArgs(new PeerConnection(Id, EndPoint), contents, length, DateTime.UtcNow.TimeOfDay));
             }
             catch (Exception e)
             {
@@ -152,7 +152,7 @@ namespace Fracture.Net.Hosting.Servers
             }
         }
         #endregion
-        
+
         private void InternalDisconnect(ResetReason reason)
         {
             // Omit calls if peer is not in connected state.
@@ -167,36 +167,36 @@ namespace Fracture.Net.Hosting.Servers
             catch (Exception e)
             {
                 HandleSocketException(e);
-                
+
                 state = PeerState.Disconnected;
             }
-            
+
             this.reason = reason;
         }
-        
+
         private void HandleMessages()
         {
             // Get all messages from both of the locked double buffers. 
             var outgoingMessages = outgoingMessageBuffer.Read();
             var incomingMessages = incomingMessageBuffer.Read();
-            
+
             // Handle all outgoing messages.
             foreach (var outgoing in outgoingMessages)
                 Outgoing?.Invoke(this, outgoing);
-            
+
             // Handle all incoming messages.
-            foreach (var incoming in incomingMessages) 
+            foreach (var incoming in incomingMessages)
                 Incoming?.Invoke(this, incoming);
-                
+
             // Set activity timestamp to be current time if we are sending or receiving any messages.
             lastReceiveTime = incomingMessages.Length > 0 ? DateTime.UtcNow : lastReceiveTime;
         }
-        
+
         private void UpdateConnectedState()
         {
-            if (state != PeerState.Connected) 
+            if (state != PeerState.Connected)
                 return;
-            
+
             if (!IsConnected)
                 InternalDisconnect(ResetReason.RemoteReset);
             else if (HasTimedOut)
@@ -207,52 +207,51 @@ namespace Fracture.Net.Hosting.Servers
                 {
                     receiveResult = socket.BeginReceive(receiveBuffer, 0, receiveBuffer.Length, SocketFlags.None, ReceiveCallback, null);
                 }
-                catch (Exception e) 
+                catch (Exception e)
                 {
                     HandleSocketException(e);
-                
+
                     InternalDisconnect(ResetReason.RemoteReset);
                 }
             }
         }
-        
+
         private void UpdateDisconnectingState()
         {
             if (state != PeerState.Disconnecting)
                 return;
-            
+
             if (!HasDisconnected)
                 return;
-            
+
             state = PeerState.Disconnected;
-                        
+
             Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason, DateTime.UtcNow.TimeOfDay));
         }
-        
-        public void Disconnect()
-            => InternalDisconnect(ResetReason.LocalReset);
-        
-        public void Send(byte[] data, int offset, int length)
+
+        public void Disconnect() => InternalDisconnect(ResetReason.LocalReset);
+
+        public void Send(byte [] data, int offset, int length)
         {
             if (state != PeerState.Connected)
                 return;
-            
+
             if (!IsConnected)
                 return;
 
             try
             {
-                socket.BeginSend(data, 
-                                 offset, 
-                                 length, 
-                                 SocketFlags.None, 
-                                 SendCallback, 
+                socket.BeginSend(data,
+                                 offset,
+                                 length,
+                                 SocketFlags.None,
+                                 SendCallback,
                                  new ServerMessageEventArgs(new PeerConnection(Id, EndPoint), data, offset, length, DateTime.UtcNow.TimeOfDay));
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 HandleSocketException(e);
-                
+
                 InternalDisconnect(ResetReason.RemoteReset);
             }
         }
@@ -261,18 +260,17 @@ namespace Fracture.Net.Hosting.Servers
         {
             if (state == PeerState.Disconnected)
                 return;
-            
+
             HandleMessages();
-            
+
             UpdateConnectedState();
-            
+
             UpdateDisconnectingState();
         }
-        
-        public void Dispose()
-            => socket.Dispose();
+
+        public void Dispose() => socket.Dispose();
     }
-    
+
     /// <summary>
     /// Peer factory implementation that creates peers that use the TCP protocol for communication.
     /// </summary>
@@ -281,24 +279,24 @@ namespace Fracture.Net.Hosting.Servers
         #region Constant fields
         public const int BufferSizes = 65536;
         #endregion
-        
+
         #region Fields
         private readonly TimeSpan gracePeriod;
-        
+
         private readonly int bufferSizes;
         #endregion
-        
+
         public TcpPeerFactory(TimeSpan gracePeriod, int bufferSizes = BufferSizes)
         {
             this.gracePeriod = gracePeriod;
             this.bufferSizes = bufferSizes;
         }
-            
+
         public IPeer Create(Socket socket)
         {
             if (socket.ProtocolType != ProtocolType.Tcp)
-                throw new ArgumentException("expecting TCP socket");    
-            
+                throw new ArgumentException("expecting TCP socket");
+
             socket.NoDelay           = true;
             socket.ReceiveBufferSize = bufferSizes;
             socket.SendBufferSize    = bufferSizes;
@@ -306,7 +304,7 @@ namespace Fracture.Net.Hosting.Servers
             return new TcpPeer(socket, gracePeriod);
         }
     }
-    
+
     /// <summary>
     /// Listener implementation that listens for incoming TPC connections.
     /// </summary>
@@ -315,12 +313,12 @@ namespace Fracture.Net.Hosting.Servers
         #region Fields
         private readonly int port;
         private readonly int backlog;
-        
+
         private readonly LockedDoubleBuffer<Socket> newConnections;
         private readonly Socket listener;
-        
+
         private IAsyncResult listenResult;
-        
+
         private long acceptingData;
         #endregion
 
@@ -335,25 +333,25 @@ namespace Fracture.Net.Hosting.Servers
         private bool Accepting
         {
             get => Convert.ToBoolean(Interlocked.CompareExchange(ref acceptingData, 0, 0));
-            set => Interlocked.Exchange(ref acceptingData, Convert.ToInt32(value));           
+            set => Interlocked.Exchange(ref acceptingData, Convert.ToInt32(value));
         }
-        
+
         /// <summary>
         /// Returns boolean declaring whether the listener is listening for incoming connections.
         /// </summary>
         private bool Listening => (!listenResult?.IsCompleted ?? false);
         #endregion
-        
+
         public TcpListener(int port, int backlog = 0)
         {
             this.port    = port;
             this.backlog = backlog;
-            
+
             listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
                 NoDelay = true
             };
-            
+
             newConnections = new LockedDoubleBuffer<Socket>();
         }
 
@@ -367,18 +365,18 @@ namespace Fracture.Net.Hosting.Servers
             try
             {
                 var socket = listener.EndAccept(ar);
-            
+
                 // If we are not accepting clients anymore just dispose any new sockets if possible.
                 if (!Accepting)
                 {
                     socket.Disconnect(false);
-                
+
                     socket.Dispose();
-                
+
                     return;
                 }
-                
-                newConnections.Push(socket);   
+
+                newConnections.Push(socket);
             }
             catch (SocketException se)
             {
@@ -388,17 +386,17 @@ namespace Fracture.Net.Hosting.Servers
             }
         }
         #endregion
-        
+
         public void Listen()
-        {   
+        {
             if (Accepting)
                 throw new InvalidOperationException("listener already listening");
-            
+
             Accepting = true;
-            
+
             // Place socket in listening state and listen on all interfaces on given port.
             listener.Bind(new IPEndPoint(IPAddress.Any, port));
-            
+
             listener.Listen(backlog);
         }
 
@@ -406,12 +404,12 @@ namespace Fracture.Net.Hosting.Servers
         {
             if (!Accepting)
                 throw new InvalidOperationException("listener not in listen state");
-        
+
             Accepting = false;
-            
+
             // Stop listening and allow socket reuse when listen is called again.
             listener.Shutdown(SocketShutdown.Both);
-            
+
             listener.Disconnect(true);
         }
 
@@ -421,23 +419,22 @@ namespace Fracture.Net.Hosting.Servers
             if (Accepting && !Listening)
                 listenResult = listener.BeginAccept(AcceptCallback, null);
         }
-        
+
         private void HandleNewConnections()
         {
             // Invoke events for each new connection.
             foreach (var newConnection in newConnections.Read())
                 Connected?.Invoke(this, new ListenerConnectedEventArgs(newConnection, DateTime.UtcNow.TimeOfDay));
         }
-        
+
         public void Poll()
         {
             UpdateListenState();
-            
+
             HandleNewConnections();
         }
 
-        public void Dispose()
-            => listener.Dispose();
+        public void Dispose() => listener.Dispose();
     }
 
     /// <summary>

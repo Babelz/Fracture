@@ -17,6 +17,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         public int NewIndex
         {
             get;
@@ -26,6 +27,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         public IListBoxItem NewItem
         {
             get;
@@ -41,7 +43,7 @@ namespace Fracture.Engine.Ui.Controls
             NewItem = newItem;
         }
     }
-    
+
     /// <summary>
     /// Interface for implementing list box items.
     /// </summary>
@@ -58,7 +60,7 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
     }
-    
+
     /// <summary>
     /// Generic list box item bound by name and user data.
     /// </summary>
@@ -85,7 +87,7 @@ namespace Fracture.Engine.Ui.Controls
             UserData = userData;
         }
     }
-    
+
     /// <summary>
     /// Control that contains list of selectable items.
     /// </summary>
@@ -124,7 +126,7 @@ namespace Fracture.Engine.Ui.Controls
             set;
         }
         #endregion
-        
+
         public ListBox(IEnumerable<IListBoxItem> items)
         {
             this.items = new List<IListBoxItem>(items ?? throw new ArgumentNullException(nameof(items)));
@@ -133,7 +135,7 @@ namespace Fracture.Engine.Ui.Controls
 
             Select(this.items.Count != 0 ? 0 : -1);
         }
-        
+
         public ListBox()
             : this(new List<IListBoxItem>())
         {
@@ -147,7 +149,7 @@ namespace Fracture.Engine.Ui.Controls
 
             var itemSource = Style.Get<Rectangle>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Source.Text}");
             var tuples     = GetItemTuples();
-            
+
             var itemAreaTop    = tuples.First().Rectangle.Bottom;
             var itemAreaBottom = tuples.Last().Rectangle.Bottom;
             var itemArea       = itemAreaBottom - itemAreaTop - itemSource.Y;
@@ -156,27 +158,27 @@ namespace Fracture.Engine.Ui.Controls
 
             return size;
         }
-        
+
         private Vector2 GetBackgroundScale()
         {
             var background = Style.Get<Texture2D>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Texture.Normal}");
             var area       = GetRenderDestinationRectangle();
-            
+
             return GraphicsUtils.ScaleToTarget(new Vector2(background.Width, background.Height),
-                                                      new Vector2(area.Width, area.Height));
+                                               new Vector2(area.Width, area.Height));
         }
 
-        private (Rectangle Rectangle, IListBoxItem Item)[] GetItemTuples()
+        private (Rectangle Rectangle, IListBoxItem Item) [] GetItemTuples()
         {
             var font       = Style.Get<SpriteFont>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Font.Normal}");
             var itemSource = Style.Get<Rectangle>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Source.Text}");
-            
+
             var areas           = new (Rectangle Rectangle, IListBoxItem Item)[items.Count];
             var separator       = (int)Math.Floor(UiCanvas.ToScreenUnits(ItemSeparator * Vector2.UnitY).Y);
             var backgroundScale = GetBackgroundScale();
             var area            = GetRenderDestinationRectangle();
             var i               = 0;
-            
+
             var itemArea = UiUtils.ScaleTextArea(new Vector2(area.X, area.Y), backgroundScale, itemSource);
 
             foreach (var item in items)
@@ -184,30 +186,30 @@ namespace Fracture.Engine.Ui.Controls
                 var size = font.MeasureString(item.Name);
 
                 areas[i].Rectangle = itemArea;
-                
+
                 if (i > 0) areas[i].Rectangle.Y = areas[i - 1].Rectangle.Bottom + separator;
-                else       areas[i].Rectangle.Y = itemArea.Y;
+                else areas[i].Rectangle.Y       = itemArea.Y;
 
                 areas[i].Rectangle.Width  = (int)Math.Floor(size.X);
                 areas[i].Rectangle.Height = (int)Math.Floor(size.Y);
-                
+
                 areas[i++].Item = item;
             }
 
             return areas;
         }
-        
+
         protected override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
             if (!HasFocus) return;
-            
+
             // If we have focus and we are clicked, collapse.
             if (!Mouse.IsPressed(MouseButton.Left)) return;
-            
+
             // If we have focus and we are clicked and we are collapsed, resolve selected item 
             // and retract.
             if (collapsed) Retract();
-            else           Collapse();
+            else Collapse();
         }
 
         protected override void UpdateSize(bool actual = false)
@@ -246,7 +248,7 @@ namespace Fracture.Engine.Ui.Controls
 
             var destination     = GetRenderDestinationRectangle();
             var backgroundScale = GetBackgroundScale();
-            
+
             // Draw box background.
             fragment.DrawSprite(new Vector2(destination.X, destination.Y),
                                 Vector2.One,
@@ -255,7 +257,7 @@ namespace Fracture.Engine.Ui.Controls
                                 new Vector2(destination.Width, destination.Height),
                                 background,
                                 color);
-            
+
             if (collapsed && items.Count != 0)
             {
                 // Draw item we are hovering over highlighted with highlight color. 
@@ -263,12 +265,12 @@ namespace Fracture.Engine.Ui.Controls
                 {
                     Color activeColor;
 
-                    if      (ReferenceEquals(SelectedItem, tuple.Item)) activeColor = itemSelectedColor;
-                    else if (Mouse.IsHovering(tuple.Rectangle))         activeColor = itemHoverColor;
-                    else                                                activeColor = itemNormalColor;
-                    
+                    if (ReferenceEquals(SelectedItem, tuple.Item)) activeColor = itemSelectedColor;
+                    else if (Mouse.IsHovering(tuple.Rectangle)) activeColor    = itemHoverColor;
+                    else activeColor                                           = itemNormalColor;
+
                     fragment.DrawSpriteText(new Vector2(tuple.Rectangle.X, tuple.Rectangle.Y),
-                                            Vector2.One, 
+                                            Vector2.One,
                                             0.0f,
                                             Vector2.Zero,
                                             tuple.Item.Name,
@@ -294,17 +296,17 @@ namespace Fracture.Engine.Ui.Controls
                                             itemSelectedColor);
                 }
             }
-            
+
             // Draw arrow.
             fragment.DrawSprite(new Vector2(destination.Right - arrow.Width, destination.Top),
                                 Vector2.One,
                                 0.0f,
-                                Vector2.Zero, 
+                                Vector2.Zero,
                                 new Vector2(arrow.Width, arrow.Height),
                                 arrow,
                                 color);
         }
-        
+
         public void Add(IListBoxItem item)
         {
             if (item == null)
@@ -312,10 +314,11 @@ namespace Fracture.Engine.Ui.Controls
 
             items.Add(item);
         }
+
         public bool Remove(IListBoxItem item)
         {
             var removed = items.Remove(item);
-            
+
             if (SelectedIndex != -1 && ReferenceEquals(item, SelectedItem))
                 Select(-1);
 
@@ -329,6 +332,7 @@ namespace Fracture.Engine.Ui.Controls
 
             items.Insert(index, item);
         }
+
         public void RemoveAt(int index)
         {
             if (ReferenceEquals(SelectedItem, items[index])) Select(-1);
@@ -377,11 +381,11 @@ namespace Fracture.Engine.Ui.Controls
         {
             // If no item is clicked, retract and use the currently selected item.
             var tuples = GetItemTuples();
-            
+
             foreach (var tuple in tuples)
             {
                 if (!Mouse.IsHovering(tuple.Rectangle)) continue;
-                
+
                 Select(tuple.Item);
 
                 break;

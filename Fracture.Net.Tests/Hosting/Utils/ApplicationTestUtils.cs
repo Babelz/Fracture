@@ -21,15 +21,15 @@ namespace Fracture.Net.Tests.Hosting.Utils
             {
                 if (application.Clock.Ticks < limit)
                     return;
-                
+
                 application.Shutdown();
-                
+
                 application.Tick -= Tick;
             }
-            
+
             application.Tick += Tick;
         }
-        
+
         /// <summary>
         /// Binds action to application loop that will be executed on specified frame.
         /// </summary>
@@ -44,17 +44,17 @@ namespace Fracture.Net.Tests.Hosting.Utils
 
             if (action == null)
                 throw new ArgumentNullException(nameof(frame));
-            
+
             void Tick(object sender, EventArgs args)
             {
                 if (application.Clock.Ticks != frame)
                     return;
-                
+
                 action();
-                
+
                 application.Tick -= Tick;
             }
-            
+
             application.Tick += Tick;
         }
     }

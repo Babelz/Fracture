@@ -15,13 +15,13 @@ namespace Fracture.Common.Reflection
         public static Action<object, object> BindSet(Type type, PropertyInfo property)
         {
             var setMethod = property.SetMethod;
-            
+
             if (setMethod == null)
                 throw new InvalidOperationException("property does not have set method");
-            
+
             var parameterType = setMethod.GetParameters().FirstOrDefault()!.ParameterType;
-            
-            var dynamicMethod = new DynamicMethod("Set", typeof(void), new[] { typeof(object), typeof(object) }, true);
+
+            var dynamicMethod = new DynamicMethod("Set", typeof(void), new [] { typeof(object), typeof(object) }, true);
             var il            = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);
@@ -50,13 +50,13 @@ namespace Fracture.Common.Reflection
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Func<object, object> BindGet(Type type, PropertyInfo property)
-        {            
+        {
             var getMethod = property.GetMethod;
-            
+
             if (getMethod == null)
                 throw new InvalidOperationException("property does not have get method");
-            
-            var dynamicMethod = new DynamicMethod("Get", typeof(object), new[] { typeof(object) }, true);
+
+            var dynamicMethod = new DynamicMethod("Get", typeof(object), new [] { typeof(object) }, true);
             var il            = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);

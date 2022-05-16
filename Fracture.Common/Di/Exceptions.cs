@@ -15,7 +15,7 @@ namespace Fracture.Common.Di
         {
         }
 
-        private DependencyNotFoundException(SerializationInfo info, StreamingContext context) 
+        private DependencyNotFoundException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
@@ -36,12 +36,12 @@ namespace Fracture.Common.Di
             Data["Type"] = type;
         }
 
-        private DependencyBinderException(SerializationInfo info, StreamingContext context) 
+        private DependencyBinderException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
         }
     }
-    
+
     [Serializable]
     public sealed class DependencyBinderVerificationException : Exception
     {

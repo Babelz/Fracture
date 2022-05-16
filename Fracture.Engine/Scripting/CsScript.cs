@@ -14,12 +14,12 @@ namespace Fracture.Engine.Scripting
         /// Event invoked when the script is being unloaded.
         /// </summary>
         public event EventHandler Unloading;
-        
+
         /// <summary>
         /// Event invoked when the script is being loaded.
         /// </summary>
         public event EventHandler Loading;
-        #endregion  
+        #endregion
 
         /// <summary>
         /// Creates new instance of script. Use <see cref="BindingConstructorAttribute"/> to parametrize script activation.
@@ -53,7 +53,7 @@ namespace Fracture.Engine.Scripting
         protected CommandCsScript()
         {
         }
-        
+
         /// <summary>
         /// Method invoke once for the script before it is unloaded.
         /// </summary>
@@ -65,7 +65,7 @@ namespace Fracture.Engine.Scripting
         protected ActiveCsScript()
         {
         }
-        
+
         /// <summary>
         /// Method called every frame to allow the script run custom update logic.
         /// </summary>

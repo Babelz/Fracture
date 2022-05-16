@@ -9,7 +9,7 @@ using Microsoft.Xna.Framework;
 namespace Fracture.Engine.Physics.Spatial
 {
     public delegate bool BodySelector(int bodyId, BodyList bodies);
-    
+
     /// <summary>
     /// Represents single node inside the quad tree.
     /// </summary>
@@ -17,14 +17,14 @@ namespace Fracture.Engine.Physics.Spatial
     {
         #region Fields
         private readonly BodyList bodies;
-        
+
         private readonly Aabb boundingBox;
 
         private readonly int bodyLimit;
         private readonly int maxDepth;
-        
+
         // Body lists that separate bodies based on their type.
-        private List<int>[] bodyLists;
+        private List<int> [] bodyLists;
         #endregion
 
         #region Events
@@ -38,6 +38,7 @@ namespace Fracture.Engine.Physics.Spatial
             get;
             private set;
         }
+
         public QuadTreeNode TopRight
         {
             get;
@@ -49,6 +50,7 @@ namespace Fracture.Engine.Physics.Spatial
             get;
             private set;
         }
+
         public QuadTreeNode BottomRight
         {
             get;
@@ -60,23 +62,17 @@ namespace Fracture.Engine.Physics.Spatial
             get;
         }
 
-        public bool IsSplit
-            => TopLeft != null; // We can always assume if split has happened, top left is not null.
+        public bool IsSplit => TopLeft != null; // We can always assume if split has happened, top left is not null.
 
-        public int Count
-            => bodyLists?.Sum(l => l.Count) ?? 0;
-        
-        public Aabb BoundingBox
-            => boundingBox;
+        public int Count => bodyLists?.Sum(l => l.Count) ?? 0;
 
-        public IEnumerable<int> Sensors
-            => bodyLists?[(int)BodyType.Sensor - 1] ?? Enumerable.Empty<int>();
+        public Aabb BoundingBox => boundingBox;
 
-        public IEnumerable<int> Statics
-            => bodyLists?[(int)BodyType.Static - 1] ?? Enumerable.Empty<int>();
+        public IEnumerable<int> Sensors => bodyLists?[(int)BodyType.Sensor - 1] ?? Enumerable.Empty<int>();
 
-        public IEnumerable<int> Dynamics
-            => bodyLists?[(int)BodyType.Dynamic - 1] ?? Enumerable.Empty<int>();
+        public IEnumerable<int> Statics => bodyLists?[(int)BodyType.Static - 1] ?? Enumerable.Empty<int>();
+
+        public IEnumerable<int> Dynamics => bodyLists?[(int)BodyType.Dynamic - 1] ?? Enumerable.Empty<int>();
         #endregion
 
         /// <summary>
@@ -89,15 +85,15 @@ namespace Fracture.Engine.Physics.Spatial
         /// <param name="depth">current depth of the tree and this node</param>
         /// <param name="center">center position of the node</param>
         /// <param name="bounds">bounds of the node</param>
-        public QuadTreeNode(BodyList bodies, 
-                            int bodyLimit, 
-                            int maxDepth, 
-                            int depth, 
+        public QuadTreeNode(BodyList bodies,
+                            int bodyLimit,
+                            int maxDepth,
+                            int depth,
                             Vector2 center,
                             Vector2 bounds)
         {
             boundingBox = new Aabb(center, bounds * 0.5f);
-            
+
             this.bodies    = bodies ?? throw new ArgumentNullException(nameof(bodies));
             this.bodyLimit = bodyLimit;
             this.maxDepth  = maxDepth;
@@ -115,7 +111,7 @@ namespace Fracture.Engine.Physics.Spatial
                             int bodyLimit,
                             int maxDepth,
                             Vector2 bounds)
-            : this(bodies, 
+            : this(bodies,
                    bodyLimit,
                    maxDepth,
                    0,
@@ -179,15 +175,15 @@ namespace Fracture.Engine.Physics.Spatial
         {
             var bodyList = bodyLists[(int)type - 1];
             var i        = 0;
-        
+
             while (i < bodyList.Count)
             {
                 ref var body = ref bodies.WithId(bodyList[i]);
-                
+
                 // Store bodies out of this nodes bound for reinsertion and skip all duplicates.
                 if (body.IsActive() && !moving.Contains(bodyList[i]))
                     moving.Add(bodyList[i]);
-                
+
                 i++;
             }
         }
@@ -195,12 +191,12 @@ namespace Fracture.Engine.Physics.Spatial
         public bool Add(int bodyId)
         {
             ref var body = ref bodies.WithId(bodyId);
-            
+
             // If no collision with this cell, we assume no collision
             // can exist with the children cells even while split.
             if (!Aabb.Intersects(body.BoundingBox, boundingBox))
                 return false;
-            
+
             // If we have reached the static body limit for this cell
             // and depth allows us to split, do that.
             if (!IsSplit && bodyLists.Sum(l => l.Count) >= bodyLimit && Depth < maxDepth)
@@ -232,7 +228,7 @@ namespace Fracture.Engine.Physics.Spatial
         public bool Remove(int bodyId)
         {
             ref var body = ref bodies.WithId(bodyId);
-            
+
             // If no collision with this cell, we assume no collision
             // can exist with the children cells even while split. 
             // When removing a body, we need to check collision between both 
@@ -252,13 +248,12 @@ namespace Fracture.Engine.Physics.Spatial
                 return tlr || trr || brr || blr;
             }
 
-            if (!bodyLists[(int) body.Type - 1].Remove(bodyId)) 
+            if (!bodyLists[(int)body.Type - 1].Remove(bodyId))
                 return false;
-            
+
             Removed?.Invoke(this, new BodyEventArgs(bodyId));
 
             return true;
-
         }
 
         public QuadTreeNodeLink RootQuery(QuadTreeNodeLink link)
@@ -267,7 +262,7 @@ namespace Fracture.Engine.Physics.Spatial
             {
                 link = TopLeft.RootQuery(link);
                 link = TopRight.RootQuery(link);
-                
+
                 link = BottomRight.RootQuery(link);
                 link = BottomLeft.RootQuery(link);
             }
@@ -321,7 +316,7 @@ namespace Fracture.Engine.Physics.Spatial
             return link;
         }
 
-        public QuadTreeNodeLink AabbQueryBroad(QuadTreeNodeLink link, 
+        public QuadTreeNodeLink AabbQueryBroad(QuadTreeNodeLink link,
                                                in Aabb aabb,
                                                BodySelector selector = null)
         {
@@ -347,7 +342,7 @@ namespace Fracture.Engine.Physics.Spatial
                         // All queries should be done using the current 
                         // bounding box, not the future one.
                         ref var body = ref bodies.WithId(bodyId);
-                        
+
                         if (!Aabb.Intersects(body.BoundingBox, aabb))
                             continue;
 
@@ -386,7 +381,7 @@ namespace Fracture.Engine.Physics.Spatial
                         // All queries should be done using the current 
                         // bounding box, not the future one.
                         ref var body = ref bodies.WithId(bodyId);
-                        
+
                         if (!Line.Intersects(line, body.BoundingBox))
                             continue;
 
@@ -400,7 +395,7 @@ namespace Fracture.Engine.Physics.Spatial
 
             return link;
         }
-        
+
         public void GetActiveBodies(ISet<int> moving)
         {
             if (IsSplit)

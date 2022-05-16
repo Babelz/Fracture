@@ -24,15 +24,15 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the request contents in its raw serialized format.
         /// </summary>
-        byte[] Contents
+        byte [] Contents
         {
             get;
         }
-     
+
         /// <summary>
         /// Gets the request contents in its deserialized format.
         /// </summary>
@@ -40,7 +40,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the timestamp when this request was received by the server.
         /// </summary>
@@ -58,7 +58,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
         #endregion
     }
-    
+
     /// <summary>
     /// Structure containing middleware request context of single request object. 
     /// </summary>
@@ -74,10 +74,9 @@ namespace Fracture.Net.Hosting.Messaging
         }
         #endregion
 
-        public RequestMiddlewareContext(IRequest request)
-            => Request = request ?? throw new ArgumentNullException(nameof(request));
+        public RequestMiddlewareContext(IRequest request) => Request = request ?? throw new ArgumentNullException(nameof(request));
     }
-    
+
     /// <summary>
     /// Static utility class containing request middleware context matching utilities. 
     /// </summary>
@@ -87,14 +86,18 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any() => delegate { return true; };
-        
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any() =>
+            delegate
+            {
+                return true;
+            };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Request(Predicate<IRequest> predicate)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in RequestMiddlewareContext context) => predicate(context.Request);
         }
 
@@ -103,16 +106,16 @@ namespace Fracture.Net.Hosting.Messaging
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in RequestMiddlewareContext context) => predicate(context.Request.Connection);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Message(MessageMatchDelegate match)
         {
             if (match == null)
                 throw new ArgumentNullException(nameof(match));
-            
+
             return (in RequestMiddlewareContext context) => match(context.Request.Message);
         }
     }
@@ -128,7 +131,7 @@ namespace Fracture.Net.Hosting.Messaging
                 new Pool<Request>(new LinearStorageObject<Request>(new LinearGrowthArray<Request>(128)), 128))
         );
         #endregion
-        
+
         #region Properties
         public PeerConnection Connection
         {
@@ -136,7 +139,7 @@ namespace Fracture.Net.Hosting.Messaging
             set;
         }
 
-        public byte[] Contents
+        public byte [] Contents
         {
             get;
             set;
@@ -147,13 +150,13 @@ namespace Fracture.Net.Hosting.Messaging
             get;
             set;
         }
-        
+
         public TimeSpan Timestamp
         {
             get;
             set;
         }
-        
+
         public int Length
         {
             get;
@@ -164,7 +167,7 @@ namespace Fracture.Net.Hosting.Messaging
         public Request()
         {
         }
-        
+
         public void Clear()
         {
             Connection = default;
@@ -174,19 +177,18 @@ namespace Fracture.Net.Hosting.Messaging
             Length     = default;
         }
 
-        public override string ToString()
-            => JsonConvert.SerializeObject(this);
+        public override string ToString() => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode()
-            => HashUtils.Create()
-                        .Append(Connection)
-                        .Append(Contents)
-                        .Append(Message)
-                        .Append(Timestamp);
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(Connection)
+                     .Append(Contents)
+                     .Append(Message)
+                     .Append(Timestamp);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Request Take() => Pool.Take();
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return(Request request) => Pool.Return(request);
     }

@@ -11,31 +11,31 @@ namespace Fracture.Common.Tests.Memory
         {
             #region Fields
             public readonly int X;
-            
+
             public int I, J;
-            
+
             public object O;
             #endregion
-            
+
             #region Properties
             public string A
             {
                 get;
                 set;
             }
-            
+
             public int B
             {
                 get;
                 set;
             }
-            
+
             public float C
             {
                 get;
                 private set;
             }
-            
+
             public object P
             {
                 get;
@@ -47,16 +47,15 @@ namespace Fracture.Common.Tests.Memory
             {
                 X = 500;
             }
-            
-            public void MutateC() 
-                => C = 200.0f;
+
+            public void MutateC() => C = 200.0f;
         }
         #endregion
-        
+
         public ClearableTests()
         {
         }
-        
+
         [Fact]
         public void Default_Clear_Delegate_Clears_All_Fields_And_Properties_That_Are_Public()
         {
@@ -70,11 +69,11 @@ namespace Fracture.Common.Tests.Memory
                 O = new object(),
                 P = new object()
             };
-            
+
             value.MutateC();
-            
+
             clear(ref value);
-            
+
             Assert.Equal(string.Empty, value.A);
             Assert.Equal(0, value.B);
             Assert.Equal(0, value.I);

@@ -13,7 +13,7 @@ namespace Fracture.Engine.Ui.Controls
         Released,
         Down
     }
-    
+
     public class Button : Control
     {
         #region Events
@@ -25,7 +25,7 @@ namespace Fracture.Engine.Ui.Controls
         #region Fields
         private ButtonState state;
         #endregion
-        
+
         #region Properties
         public string Text
         {
@@ -37,7 +37,7 @@ namespace Fracture.Engine.Ui.Controls
         public Button()
         {
             Size = new Vector2(0.25f, 0.15f);
-            
+
             FocusChanged += Button_FocusChanged;
         }
 
@@ -49,25 +49,22 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        protected virtual void InternalClick()
-            => Click?.Invoke(this, EventArgs.Empty);
+        protected virtual void InternalClick() => Click?.Invoke(this, EventArgs.Empty);
 
-        protected virtual void InternalDown()
-            => Down?.Invoke(this, EventArgs.Empty);
+        protected virtual void InternalDown() => Down?.Invoke(this, EventArgs.Empty);
 
-        protected virtual void InternalReleased()
-            => Released?.Invoke(this, EventArgs.Empty);
-        
+        protected virtual void InternalReleased() => Released?.Invoke(this, EventArgs.Empty);
+
         protected sealed override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
             if (!HasFocus) return;
-            
+
             if (Mouse.IsDown(MouseButton.Left))
             {
                 if (state == ButtonState.Released)
                 {
                     InternalClick();
-                    
+
                     state = ButtonState.Down;
                 }
                 else
@@ -77,27 +74,27 @@ namespace Fracture.Engine.Ui.Controls
             {
                 if (state == ButtonState.Released)
                     return;
-                
+
                 InternalReleased();
-                
+
                 state = ButtonState.Released;
             }
         }
 
-        protected virtual Texture2D GetStyleStateTexture()
-            => Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{(Mouse.IsHovering(this) ? UiStyleKeys.Texture.Hover : UiStyleKeys.Texture.Normal)}");
+        protected virtual Texture2D GetStyleStateTexture() =>
+            Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{(Mouse.IsHovering(this) ? UiStyleKeys.Texture.Hover : UiStyleKeys.Texture.Normal)}");
 
         protected virtual Point GetStyleStateOffset()
         {
             if ((!HasFocus || !Mouse.IsHovering(this)) ||
-                (!Mouse.IsDown(MouseButton.Left) && !Mouse.IsPressed(MouseButton.Left))) 
+                (!Mouse.IsDown(MouseButton.Left) && !Mouse.IsPressed(MouseButton.Left)))
                 return Point.Zero;
-            
+
             var offset = Style.Get<Vector2>($"{UiStyleKeys.Target.Button}\\{UiStyleKeys.Offset.Click}");
 
             return new Point((int)Math.Floor(offset.X), (int)Math.Floor(offset.Y));
         }
-            
+
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             var texture     = GetStyleStateTexture();
@@ -114,15 +111,15 @@ namespace Fracture.Engine.Ui.Controls
 
             if (string.IsNullOrEmpty(Text))
                 return;
-            
+
             var position = new Vector2(destination.X, destination.Y) + UiCanvas.ToScreenUnits(ActualSize) * 0.5f - font.MeasureString(Text) * 0.5f;
 
-            fragment.DrawSpriteText(position, 
-                                    Vector2.One, 
-                                    0.0f, 
-                                    Vector2.Zero, 
+            fragment.DrawSpriteText(position,
+                                    Vector2.One,
+                                    0.0f,
+                                    Vector2.Zero,
                                     font.MeasureString(Text),
-                                    Text, 
+                                    Text,
                                     font,
                                     color);
         }

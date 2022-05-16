@@ -40,7 +40,7 @@ namespace Fracture.Engine.Ui.Components
         {
         }
     }
-    
+
     /// <summary>
     /// Abstract base class for handling control focus based on the input source of type <see cref="T"/>.
     /// </summary>
@@ -79,7 +79,7 @@ namespace Fracture.Engine.Ui.Components
         private void Container_ControlRemoved(object sender, ControlEventArgs e)
         {
             var control = e.Control;
-            
+
             if (control is IStaticContainerControl container) UnhookContainerEventHandlers(container);
             else
             {
@@ -89,7 +89,7 @@ namespace Fracture.Engine.Ui.Components
                 UnhookCustomEvents(control);
             }
         }
-        
+
         private void Container_ControlAdded(object sender, ControlEventArgs e)
         {
             var control = e.Control;
@@ -116,19 +116,19 @@ namespace Fracture.Engine.Ui.Components
         private void Control_FocusChanged(object sender, EventArgs e)
         {
             var control = (IControl)sender;
-            
+
             if (control.HasFocus) Focused(control);
-            else                  Defocused(control);
+            else Defocused(control);
         }
         #endregion
-       
+
         protected void HookContainerEventHandlers(IStaticContainerControl container)
         {
             container.ControlAdded   += Container_ControlAdded;
             container.ControlRemoved += Container_ControlRemoved;
 
             foreach (var control in container.Controls)
-            { 
+            {
                 control.FocusChanged   += Control_FocusChanged;
                 control.EnabledChanged += Control_EnabledChanged;
 
@@ -144,7 +144,7 @@ namespace Fracture.Engine.Ui.Components
             container.ControlRemoved -= Container_ControlRemoved;
 
             foreach (var control in container.Controls)
-            { 
+            {
                 control.FocusChanged   -= Control_FocusChanged;
                 control.EnabledChanged -= Control_EnabledChanged;
 
@@ -156,7 +156,7 @@ namespace Fracture.Engine.Ui.Components
 
         protected abstract void HookCustomEvents(IControl control);
         protected abstract void UnhookCustomEvents(IControl control);
-        
+
         /// <summary>
         /// Method called when control in the container has been disabled.
         /// </summary>
@@ -171,7 +171,7 @@ namespace Fracture.Engine.Ui.Components
         /// Method called when control in the container has been defocused.
         /// </summary>
         protected abstract void Defocused(IControl control);
-        
+
         protected abstract void InternalUpdate(IGameEngineTime time, T device);
 
         /// <summary>
@@ -186,11 +186,11 @@ namespace Fracture.Engine.Ui.Components
             Updating = false;
         }
     }
-    
+
     /// <summary>
     /// Focus manager that handles focus based on mouse input.
     /// </summary>
-    public sealed class ControlMouseFocusManager : ControlFocusManager<IMouseDevice> 
+    public sealed class ControlMouseFocusManager : ControlFocusManager<IMouseDevice>
     {
         public ControlMouseFocusManager(IStaticContainerControl root, ControlFocusManagerContext context)
             : base(root, context)
@@ -202,7 +202,7 @@ namespace Fracture.Engine.Ui.Components
         {
             // If not currently focused control, return.
             if (!ReferenceEquals(Context.Mouse, sender)) return;
-            
+
             // If the control stopped accepting mouse input 
             // and it is the focused one, defocus it.
             if (!Context.Mouse.AcceptsMouseInput)
@@ -218,27 +218,27 @@ namespace Fracture.Engine.Ui.Components
         {
             // Container not enabled or does not accept mouse input,
             // can't focus.
-            if (!container.Enabled || !container.AcceptsMouseInput) 
+            if (!container.Enabled || !container.AcceptsMouseInput)
                 return false;
 
             // Not inside container, can't have focus to anything then.
-            if (!Rectf.Intersects(container.CollisionBoundingBox, mouse)) 
+            if (!Rectf.Intersects(container.CollisionBoundingBox, mouse))
                 return false;
 
             if (container.UseRenderTarget)
                 mouse = new Rectf(mouse.Position, mouse.Bounds);
-            
+
             for (var i = container.ControlsCount - 1; i >= 0; i--)
             {
                 var child = container[i];
 
-                if (!child.Enabled || 
-                    !child.Visible || 
-                    !child.VisibleFromParent || 
+                if (!child.Enabled ||
+                    !child.Visible ||
+                    !child.VisibleFromParent ||
                     !child.AcceptsMouseInput ||
-                    !Rectf.Intersects(child.CollisionBoundingBox, mouse)) 
+                    !Rectf.Intersects(child.CollisionBoundingBox, mouse))
                     continue;
-                
+
                 if (child is IStaticContainerControl inner)
                 {
                     // Keep track of the currently focused control.
@@ -252,27 +252,27 @@ namespace Fracture.Engine.Ui.Components
                     // In other case, keep looking for the control that could contain the
                     // focus.
                     var current = Context.Mouse;
-                    
-                    if (!ReferenceEquals(current, last)) 
+
+                    if (!ReferenceEquals(current, last))
                         return true;
-                    
+
                     // If no focus was applied to any child control, apply focus to current container.
                     Context.Mouse?.Defocus();
-                    
+
                     inner.Focus();
                 }
                 else
                 {
                     // Do not refocus if focused control has not changed.
-                    if (ReferenceEquals(Context.Mouse, child)) 
+                    if (ReferenceEquals(Context.Mouse, child))
                         return true;
-                    
+
                     Context.Mouse?.Defocus();
 
                     child.Focus();
                 }
             }
-            
+
             return false;
         }
 
@@ -288,7 +288,7 @@ namespace Fracture.Engine.Ui.Components
         {
             // If the focused control did not get disabled, skip focus changes.
             if (!ReferenceEquals(Context.Mouse, control)) return;
-            
+
             control.Defocus();
         }
 
@@ -301,27 +301,25 @@ namespace Fracture.Engine.Ui.Components
 
             Context.Mouse = control;
         }
-        
-        protected override void HookCustomEvents(IControl control)
-            => control.MouseInputEnabledChanged += Control_MouseInputEnabledChanged;
-        
-        protected override void UnhookCustomEvents(IControl control)
-            => control.MouseInputEnabledChanged -= Control_MouseInputEnabledChanged;
+
+        protected override void HookCustomEvents(IControl control) => control.MouseInputEnabledChanged += Control_MouseInputEnabledChanged;
+
+        protected override void UnhookCustomEvents(IControl control) => control.MouseInputEnabledChanged -= Control_MouseInputEnabledChanged;
 
         protected override void InternalUpdate(IGameEngineTime time, IMouseDevice device)
         {
             // If no click has happened we don't update focus. 
             // Focus requires a click to be applied.
             if (!device.IsButtonPressed(MouseButton.Left)) return;
-            
+
             // Defocus keyboards focus if mouse is gaining the focus.
             Context.Keyboard?.Defocus();
-            
+
             // Find next focused control.
             Focus(Root, new Rectf(UiCanvas.ToLocalUnits(device.GetPosition().ToVector2()), UiCanvas.ToLocalUnits(Vector2.One)));
         }
     }
-    
+
     public sealed class ControlKeyboardFocusManager : ControlFocusManager<IKeyboardDevice>
     {
         public ControlKeyboardFocusManager(IStaticContainerControl root, ControlFocusManagerContext context)
@@ -346,7 +344,7 @@ namespace Fracture.Engine.Ui.Components
         {
             // Return the container being queried.
             yield return container;
-            
+
             for (var i = 0; i < container.ControlsCount; i++)
             {
                 if (container[i] is IStaticContainerControl inner)
@@ -371,7 +369,7 @@ namespace Fracture.Engine.Ui.Components
             var controls = Controls(container).Where(c => c.VisibleFromParent).ToList();
 
             if (controls.Count == 0) return;
-            
+
             var next = -1;
 
             if (index == controls.Max(c => c.TabIndex) || index == -1)
@@ -389,7 +387,7 @@ namespace Fracture.Engine.Ui.Components
                 {
                     candidates = controls.Where(c => c.TabIndex >= 0).ToList();
 
-                    if (candidates.Count() != 0) 
+                    if (candidates.Count() != 0)
                         next = candidates.Min(c => c.TabIndex);
                 }
                 else
@@ -397,12 +395,12 @@ namespace Fracture.Engine.Ui.Components
                     next = candidates.Min(c => c.TabIndex);
                 }
             }
-            
+
             var control = controls.FirstOrDefault(c => next == c.TabIndex);
-            
+
             if (control == null)
                 throw new FatalRuntimeException("could not focus on any control");
-            
+
             control.Focus();
         }
 
@@ -428,15 +426,13 @@ namespace Fracture.Engine.Ui.Components
 
             if (Context.Keyboard?.HasFocus ?? false)
                 Context.Keyboard.Defocus();
-            
+
             Context.Keyboard = control;
         }
 
-        protected override void HookCustomEvents(IControl control)
-            => control.KeyboardInputEnabledChanged += Control_KeyboardInputEnabledChanged;
-        
-        protected override void UnhookCustomEvents(IControl control)
-            => control.KeyboardInputEnabledChanged -= Control_KeyboardInputEnabledChanged;
+        protected override void HookCustomEvents(IControl control) => control.KeyboardInputEnabledChanged += Control_KeyboardInputEnabledChanged;
+
+        protected override void UnhookCustomEvents(IControl control) => control.KeyboardInputEnabledChanged -= Control_KeyboardInputEnabledChanged;
 
         protected override void InternalUpdate(IGameEngineTime time, IKeyboardDevice device)
         {

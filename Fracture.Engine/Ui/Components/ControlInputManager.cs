@@ -23,28 +23,29 @@ namespace Fracture.Engine.Ui.Components
             get;
             protected set;
         }
+
         public abstract IEnumerable<TTrigger> Down
         {
             get;
             protected set;
         }
+
         public abstract IEnumerable<TTrigger> Released
         {
             get;
             protected set;
         }
+
         public abstract IEnumerable<TTrigger> Up
         {
             get;
             protected set;
         }
         #endregion
-        
-        protected ControlInputManager()
-            => watcher = new StateWatcher<TTrigger>();
-        
-        public virtual void Update(IGameEngineTime time, TDevice device)
-            => watcher.Update(time, Up, Down);
+
+        protected ControlInputManager() => watcher = new StateWatcher<TTrigger>();
+
+        public virtual void Update(IGameEngineTime time, TDevice device) => watcher.Update(time, Up, Down);
 
         public void Update(IGameEngineTime time)
         {
@@ -55,26 +56,20 @@ namespace Fracture.Engine.Ui.Components
 
             watcher.Update(time, Up, Down);
         }
-        
-        public bool IsReleased(TTrigger trigger)
-            => Released.Contains(trigger);
 
-        public bool IsDown(TTrigger trigger)
-            => Down.Contains(trigger);
+        public bool IsReleased(TTrigger trigger) => Released.Contains(trigger);
 
-        public bool IsPressed(TTrigger trigger)
-            => Pressed.Contains(trigger);
+        public bool IsDown(TTrigger trigger) => Down.Contains(trigger);
 
-        public bool IsUp(TTrigger trigger)
-            => Up.Contains(trigger);
+        public bool IsPressed(TTrigger trigger) => Pressed.Contains(trigger);
 
-        public TimeSpan TimeDown(TTrigger trigger)
-            => watcher.TimeActive(trigger);
+        public bool IsUp(TTrigger trigger) => Up.Contains(trigger);
 
-        public TimeSpan TimeUp(TTrigger trigger)
-            => watcher.TimeInactive(trigger);
+        public TimeSpan TimeDown(TTrigger trigger) => watcher.TimeActive(trigger);
+
+        public TimeSpan TimeUp(TTrigger trigger) => watcher.TimeInactive(trigger);
     }
-    
+
     /// <summary>
     /// Input manager for controls that handle mouse input. Handles button states
     /// and mouse positions.
@@ -93,7 +88,7 @@ namespace Fracture.Engine.Ui.Components
         public Vector2 LastScreenPosition => UiCanvas.ToScreenUnits(LastLocalPosition);
 
         public Vector2 ScreenPositionDelta => CurrentScreenPosition - LastScreenPosition;
-        
+
         /// <summary>
         /// Current position in local units.
         /// </summary>
@@ -111,7 +106,7 @@ namespace Fracture.Engine.Ui.Components
             get;
             private set;
         }
-        
+
         public Vector2 LocalPositionDelta => CurrentLocalPosition - LastLocalPosition;
 
         public bool PositionChanged => CurrentLocalPosition != LastLocalPosition;
@@ -127,7 +122,7 @@ namespace Fracture.Engine.Ui.Components
             get;
             private set;
         }
-        
+
         public int ScrollDelta => CurrentScrollValue - LastScrollValue;
 
         public bool ScrollValueChanged => CurrentScrollValue != LastScrollValue;
@@ -137,16 +132,19 @@ namespace Fracture.Engine.Ui.Components
             get;
             protected set;
         }
+
         public override IEnumerable<MouseButton> Down
         {
             get;
             protected set;
         }
+
         public override IEnumerable<MouseButton> Released
         {
             get;
             protected set;
         }
+
         public override IEnumerable<MouseButton> Up
         {
             get;
@@ -189,20 +187,18 @@ namespace Fracture.Engine.Ui.Components
             return CurrentLocalPosition;
         }
 
-        public bool IsHovering(Rectangle area)
-            => area.Intersects(new Rectangle(
-                (int)Math.Floor(UiCanvas.ToHorizontalScreenUnits(CurrentLocalPosition.X)), 
-                (int)Math.Floor(UiCanvas.ToVerticalScreenUnits(CurrentLocalPosition.Y)), 
-                1,
-                1));
+        public bool IsHovering(Rectangle area) =>
+            area.Intersects(new Rectangle(
+                                (int)Math.Floor(UiCanvas.ToHorizontalScreenUnits(CurrentLocalPosition.X)),
+                                (int)Math.Floor(UiCanvas.ToVerticalScreenUnits(CurrentLocalPosition.Y)),
+                                1,
+                                1));
 
-        public bool IsHovering(Rectf area)
-            => Rectf.Intersects(area, new Rectf(CurrentLocalPosition, UiCanvas.ToLocalUnits(Vector2.One)));
+        public bool IsHovering(Rectf area) => Rectf.Intersects(area, new Rectf(CurrentLocalPosition, UiCanvas.ToLocalUnits(Vector2.One)));
 
-        public bool IsHovering(IControl control)
-            => IsHovering(control.CollisionBoundingBox);    
+        public bool IsHovering(IControl control) => IsHovering(control.CollisionBoundingBox);
     }
-        
+
     public sealed class ControlKeyboardInputManager : ControlInputManager<Keys, IKeyboardDevice>
     {
         #region Properties
@@ -211,16 +207,19 @@ namespace Fracture.Engine.Ui.Components
             get;
             protected set;
         }
+
         public override IEnumerable<Keys> Down
         {
             get;
             protected set;
         }
+
         public override IEnumerable<Keys> Released
         {
             get;
             protected set;
         }
+
         public override IEnumerable<Keys> Up
         {
             get;

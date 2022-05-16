@@ -10,13 +10,13 @@ namespace Fracture.Net.Tests.Serialization
     {
         static ListSerializerTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(List<int>), typeof(List<int?>), });    
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(List<int>), typeof(List<int?>), });
         }
 
         public ListSerializerTests()
         {
         }
-        
+
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
@@ -31,19 +31,19 @@ namespace Fracture.Net.Tests.Serialization
                 6,
                 7
             };
-            
+
             var buffer = new byte[128];
-            
+
             ListSerializer.Serialize(numbersIn, buffer, 0);
-            
+
             var numbersOut = ListSerializer.Deserialize<int?>(buffer, 0);
-            
+
             Assert.Equal(numbersIn.Count, numbersOut.Count);
-            
+
             for (var i = 0; i < numbersIn.Count; i++)
                 Assert.Equal(numbersIn[i], numbersOut[i]);
         }
-        
+
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
@@ -58,15 +58,15 @@ namespace Fracture.Net.Tests.Serialization
                 null,
                 7
             };
-            
+
             var buffer = new byte[128];
-            
+
             ListSerializer.Serialize(numbersIn, buffer, 0);
-            
+
             var numbersOut = ListSerializer.Deserialize<int?>(buffer, 0);
-            
+
             Assert.Equal(numbersIn.Count, numbersOut.Count);
-            
+
             for (var i = 0; i < numbersIn.Count; i++)
                 Assert.Equal(numbersIn[i], numbersOut[i]);
         }

@@ -13,16 +13,16 @@ namespace Fracture.Net.Hosting.Services
     }
 
     public delegate void ScheduledCallbackDelegate(ScheduledEventArgs args);
-    
+
     public delegate PulseEventResult ScheduledPulseCallbackDelegate(ScheduledEventArgs args);
 
     public interface IEventSchedulerService : IApplicationService
     {
         void Signal(ScheduledCallbackDelegate callback, TimeSpan delay, object state = null);
-        
+
         void Pulse(ScheduledPulseCallbackDelegate callback, TimeSpan interval, object state = null);
     }
-    
+
     public sealed class EventSchedulerService : ActiveApplicationService, IEventSchedulerService
     {
         #region Fields
@@ -30,20 +30,20 @@ namespace Fracture.Net.Hosting.Services
         #endregion
 
         [BindingConstructor]
-        public EventSchedulerService(IApplicationServiceHost application) 
+        public EventSchedulerService(IApplicationServiceHost application)
             : base(application)
         {
             scheduler = new EventScheduler();
         }
-        
+
         public void Signal(ScheduledCallbackDelegate callback, TimeSpan delay, object state = null)
         {
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
-            
+
             var pulse = new SyncScheduledEvent(ScheduledEventType.Signal, state);
-            
-            pulse.Invoke += (s, args) => 
+
+            pulse.Invoke += (s, args) =>
             {
                 try
                 {
@@ -54,9 +54,9 @@ namespace Fracture.Net.Hosting.Services
                     Log.Error(e, "unhandled error when executing scheduled signal event");
                 }
             };
-            
+
             pulse.Wait(delay);
-            
+
             scheduler.Add(pulse);
         }
 
@@ -64,15 +64,15 @@ namespace Fracture.Net.Hosting.Services
         {
             if (callback == null)
                 throw new ArgumentNullException(nameof(callback));
-            
+
             var pulse = new SyncScheduledEvent(ScheduledEventType.Pulse, state);
-            
+
             pulse.Invoke += (s, args) =>
             {
                 try
                 {
                     var result = callback(args);
-                    
+
                     switch (result)
                     {
                         case PulseEventResult.Continue:
@@ -87,17 +87,16 @@ namespace Fracture.Net.Hosting.Services
                 catch (Exception e)
                 {
                     Log.Error(e, "unhandled error when executing scheduled pulse event");
-                    
+
                     scheduler.Remove(pulse);
                 }
             };
-            
+
             pulse.Wait(interval);
-            
+
             scheduler.Add(pulse);
         }
-        
-        public override void Tick()
-            => scheduler.Tick(Application.Clock.Elapsed);
+
+        public override void Tick() => scheduler.Tick(Application.Clock.Elapsed);
     }
 }

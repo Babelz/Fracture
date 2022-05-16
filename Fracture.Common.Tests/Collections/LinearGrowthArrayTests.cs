@@ -5,15 +5,13 @@ using Xunit;
 namespace Fracture.Common.Tests.Collections
 {
     [Trait("Category", "Collections")]
-    
     public class LinearGrowthArrayTests
     {
         #region Fields
         private readonly LinearGrowthArray<int> array;
         #endregion
 
-        public LinearGrowthArrayTests()
-            => array = new LinearGrowthArray<int>(4);
+        public LinearGrowthArrayTests() => array = new LinearGrowthArray<int>(4);
 
         [Fact]
         public void LinearGrowthArray_Ctor_Test()
@@ -25,7 +23,7 @@ namespace Fracture.Common.Tests.Collections
             {
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthArray<int>(8);
-                
+
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthArray<int>(8);
             }
@@ -34,7 +32,7 @@ namespace Fracture.Common.Tests.Collections
                 Assert.True(false);
             }
         }
-        
+
         [Fact]
         public void Grow_Creates_New_Buckets()
         {
@@ -84,7 +82,7 @@ namespace Fracture.Common.Tests.Collections
 
             Assert.Throws<IndexOutOfRangeException>(() => array.Insert(6, 1));
             Assert.Throws<IndexOutOfRangeException>(() => array.Insert(7, 1));
-                                                               
+
             Assert.Throws<IndexOutOfRangeException>(() => array.AtIndex(6));
             Assert.Throws<IndexOutOfRangeException>(() => array.AtIndex(7));
 
@@ -103,7 +101,7 @@ namespace Fracture.Common.Tests.Collections
                 Assert.Equal(1, array.AtIndex(6));
                 Assert.Equal(1, array.AtIndex(7));
             }
-            catch 
+            catch
             {
                 Assert.True(false);
             }

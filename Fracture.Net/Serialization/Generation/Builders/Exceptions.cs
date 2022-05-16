@@ -15,14 +15,14 @@ namespace Fracture.Net.Serialization.Generation.Builders
             Data["Value"]             = value;
         }
     }
-    
+
     /// <summary>
     /// Exception thrown when dynamic object deserialization throws an exception.
     /// </summary>
     [Serializable]
     public sealed class DynamicDeserializeException : Exception
     {
-        public DynamicDeserializeException(Type serializationType, Exception innerException, byte[] buffer, int offset)
+        public DynamicDeserializeException(Type serializationType, Exception innerException, byte [] buffer, int offset)
             : base($"exception occurred while deserializing object {serializationType.FullName}", innerException)
         {
             Data["SerializationType"] = serializationType;
@@ -30,7 +30,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             Data["Offset"]            = offset;
         }
     }
-    
+
     /// <summary>
     /// Exception thrown when dynamic get size from value throws an exception.
     /// </summary>

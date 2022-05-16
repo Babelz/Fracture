@@ -9,7 +9,7 @@ namespace Fracture.Net.Messages
     /// Delegate for creating message match delegates. Message matchers are used in routing the messages in type based routing setup.
     /// </summary>
     public delegate bool MessageMatchDelegate(in IMessage message);
-    
+
     /// <summary>
     /// Static utility class containing message type matching utilities. 
     /// </summary>
@@ -19,26 +19,29 @@ namespace Fracture.Net.Messages
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Any() => delegate { return true; };
-        
+        public static MessageMatchDelegate Any() =>
+            delegate
+            {
+                return true;
+            };
+
         /// <summary>
         /// Matcher that only accepts one specific message type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Exact<T>() where T : IMessage
-            => (in IMessage message) => message is T;
-        
+        public static MessageMatchDelegate Exact<T>() where T : IMessage => (in IMessage message) => message is T;
+
         /// <summary>
         /// Matcher that allows many message types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Many(params Type[] messageTypes)
+        public static MessageMatchDelegate Many(params Type [] messageTypes)
         {
             if (messageTypes.Any(t => typeof(IMessage).IsAssignableFrom(t)))
                 throw new ArgumentException($"every type must be assignable to {nameof(IMessage)}", nameof(messageTypes));
-            
+
             var messageTypesHash = new HashSet<Type>(messageTypes);
-            
+
             return (in IMessage message) => messageTypesHash.Contains(message.GetType());
         }
 
@@ -49,18 +52,18 @@ namespace Fracture.Net.Messages
         public static MessageMatchDelegate Exclude<T>() where T : IMessage
         {
             var exact = Exact<T>();
-            
+
             return (in IMessage message) => !exact(message);
         }
-        
+
         /// <summary>
         /// Match that accepts all message types expect the ones specified.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate ExcludeMany(params Type[] messageTypes)
+        public static MessageMatchDelegate ExcludeMany(params Type [] messageTypes)
         {
             var many = Many(messageTypes);
-            
+
             return (in IMessage message) => many(message);
         }
     }

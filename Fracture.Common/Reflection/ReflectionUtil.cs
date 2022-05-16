@@ -16,15 +16,15 @@ namespace Fracture.Common.Reflection
         /// Creates <see cref="Delegate"/> from given method info with correct signature. Underlying delegate type is selected by Expression.GetDelegateType.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Delegate CreateDelegate(MethodInfo methodInfo)
-            => methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters().Select(p => p.ParameterType)
-                                                                              .Concat(new[] { methodInfo.ReturnType })
-                                                                              .ToArray()));
+        public static Delegate CreateDelegate(MethodInfo methodInfo) =>
+            methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters()
+                                                                           .Select(p => p.ParameterType)
+                                                                           .Concat(new [] { methodInfo.ReturnType })
+                                                                           .ToArray()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType)
-            => methodInfo.CreateDelegate(delegateType);
-        
+        public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType) => methodInfo.CreateDelegate(delegateType);
+
         /// <summary>
         /// Creates delegate from given method info using given delegate type.
         ///
@@ -43,19 +43,19 @@ namespace Fracture.Common.Reflection
         public static Delegate CreateCrossGenericDelegate(MethodInfo methodInfo, Type delegateType)
         {
             var delegateParameters   = delegateType.GetMethod("Invoke")!.GetParameters();
-            var methodInfoParameters = methodInfo.GetParameters(); 
-            
+            var methodInfoParameters = methodInfo.GetParameters();
+
             if (delegateParameters.Length != methodInfoParameters.Length)
                 throw new InvalidOperationException("expecting method info and delegate type to have same length parameter list")
                 {
                     Data =
                     {
-                        { nameof(delegateType), delegateType }, 
-                        { "delegate parameters", delegateParameters }, 
+                        { nameof(delegateType), delegateType },
+                        { "delegate parameters", delegateParameters },
                         { "method info parameters", methodInfoParameters }
                     }
                 };
-            
+
             var genericTypeArguments = new List<Type>();
 
             for (var i = 0; i < delegateParameters.Length; i++)
@@ -63,10 +63,10 @@ namespace Fracture.Common.Reflection
                 if (delegateParameters[i].ParameterType.ContainsGenericParameters)
                     genericTypeArguments.Add(methodInfoParameters[i].ParameterType);
             }
-                
+
             if (delegateType.GetMethod("Invoke")!.ReturnType.ContainsGenericParameters)
                 genericTypeArguments.Add(methodInfo.ReturnType);
-            
+
             return methodInfo.CreateDelegate(delegateType.MakeGenericType(genericTypeArguments.ToArray()));
         }
     }

@@ -20,7 +20,7 @@ namespace Fracture.Engine.Ui.Controls
         private readonly StringBuilder lineBuffer;
 
         private readonly List<string> lines;
-        
+
         private string text;
 
         private bool keepInTextBounds;
@@ -155,7 +155,7 @@ namespace Fracture.Engine.Ui.Controls
                     WrapText();
             }
         }
-        
+
         /// <summary>
         /// Override color for enabled texts.
         /// </summary>
@@ -176,7 +176,7 @@ namespace Fracture.Engine.Ui.Controls
 
             Font = UiStyleKeys.Font.Normal;
             Size = new Vector2(0.5f, 0.25f);
-            
+
             StyleChanged += Paragraph_StyleChanged;
         }
 
@@ -190,13 +190,13 @@ namespace Fracture.Engine.Ui.Controls
 
             if (wrap)
                 WrapText();
-        } 
+        }
         #endregion
 
         private void WrapText()
         {
             if (string.IsNullOrEmpty(text)) return;
-            if (Style == null)              return;
+            if (Style == null) return;
 
             lineBuffer.Clear();
             wrapBuffer.Clear();
@@ -218,7 +218,7 @@ namespace Fracture.Engine.Ui.Controls
             if (WrapAround)
             {
                 var destinationCenter = destination.Width / 2;
-                
+
                 foreach (var word in words)
                 {
                     var oldContents = lineBuffer.ToString();
@@ -229,12 +229,12 @@ namespace Fracture.Engine.Ui.Controls
 
                     var size   = (int)font.MeasureString(newContents).X;
                     var center = size / 2;
-                    
+
                     if (destinationCenter + center > destination.Width || destinationCenter - center < 0)
                     {
                         wrapBuffer.Append(oldContents);
                         wrapBuffer.Append("\n");
-                        
+
                         lineBuffer.Clear();
 
                         lineBuffer.Append(word);
@@ -263,8 +263,8 @@ namespace Fracture.Engine.Ui.Controls
                         if (size.X > destination.Width)
                         {
                             wrapBuffer.Append(string.IsNullOrEmpty(wrapBuffer.ToString())
-                                ? WrapText(font, word.Insert(word.Length / 2, " ") + " ", destination)
-                                : $"\n{WrapText(font, word.Insert(word.Length / 2, " "), destination)} ");
+                                                  ? WrapText(font, word.Insert(word.Length / 2, " ") + " ", destination)
+                                                  : $"\n{WrapText(font, word.Insert(word.Length / 2, " "), destination)} ");
                         }
                         else
                         {
@@ -278,10 +278,11 @@ namespace Fracture.Engine.Ui.Controls
 
             return wrapBuffer.ToString();
         }
+
         private void BoundToText()
         {
             if (Style == null) return;
-            
+
             var font = Style.Get<SpriteFont>(Font);
 
             if (string.IsNullOrEmpty(text) || font == null)
@@ -289,11 +290,11 @@ namespace Fracture.Engine.Ui.Controls
             else
                 ActualSize = UiCanvas.ToLocalUnits(font.MeasureString(text));
         }
-        
+
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             if (string.IsNullOrEmpty(text)) return;
-            
+
             var font = Style.Get<SpriteFont>(Font);
 
             if (font == null) return;
@@ -322,15 +323,15 @@ namespace Fracture.Engine.Ui.Controls
 
                         position.X += (float)Math.Floor(space * 0.5f);
                     }
-                    
+
                     fragment.DrawSpriteText(position,
                                             Vector2.One,
                                             0.0f,
-                                            Vector2.Zero, 
+                                            Vector2.Zero,
                                             line,
                                             font,
                                             color);
-                    
+
                     linePosition += size.Y;
                 }
             }
@@ -342,7 +343,7 @@ namespace Fracture.Engine.Ui.Controls
                 {
                     var i  = 0;
                     var sb = new StringBuilder();
-                    
+
                     while (true)
                     {
                         var token = text.Substring(i++, 1);
@@ -357,11 +358,11 @@ namespace Fracture.Engine.Ui.Controls
                 }
                 else
                     displayText = text;
-                
+
                 fragment.DrawSpriteText(new Vector2(destination.X, destination.Y),
                                         Vector2.One,
                                         0.0f,
-                                        Vector2.Zero, 
+                                        Vector2.Zero,
                                         displayText,
                                         font,
                                         color);

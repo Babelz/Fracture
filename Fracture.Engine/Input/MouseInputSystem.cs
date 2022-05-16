@@ -14,7 +14,7 @@ namespace Fracture.Engine.Input
         }
         #endregion
     }
-    
+
     public sealed class MouseInputSystem : GameEngineSystem, IMouseInputSystem
     {
         #region Fields
@@ -29,32 +29,27 @@ namespace Fracture.Engine.Input
         #endregion
 
         [BindingConstructor]
-        public MouseInputSystem(IInputDeviceSystem devices) 
+        public MouseInputSystem(IInputDeviceSystem devices)
         {
             Device = devices.First(d => d is IMouseDevice) as IMouseDevice;
 
             manager = new MouseInputManager(Device);
         }
 
-        public override void Update(IGameEngineTime time)
-            => manager.Update(time);
-        
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton[] combination)
-            => manager.Bind(name, callback, state, combination);
+        public override void Update(IGameEngineTime time) => manager.Update(time);
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, MouseButton trigger)
-            => manager.Bind(name, callback, state, trigger);
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton [] combination) =>
+            manager.Bind(name, callback, state, combination);
 
-        public void Clear()
-            => manager.Clear();
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, MouseButton trigger) =>
+            manager.Bind(name, callback, state, trigger);
 
-        public void Rebind(string name, InputTriggerState state, params MouseButton[] combination)
-            => manager.Rebind(name, state, combination);
+        public void Clear() => manager.Clear();
 
-        public void Rebind(string name, InputTriggerState state, MouseButton trigger)
-            => manager.Rebind(name, state, trigger);
+        public void Rebind(string name, InputTriggerState state, params MouseButton [] combination) => manager.Rebind(name, state, combination);
 
-        public void Unbind(string name)
-            => manager.Unbind(name);
+        public void Rebind(string name, InputTriggerState state, MouseButton trigger) => manager.Rebind(name, state, trigger);
+
+        public void Unbind(string name) => manager.Unbind(name);
     }
 }

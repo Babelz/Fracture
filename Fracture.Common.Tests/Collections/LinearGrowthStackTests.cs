@@ -11,8 +11,7 @@ namespace Fracture.Common.Tests.Collections
         private readonly LinearGrowthStack<int> stack;
         #endregion
 
-        public LinearGrowthStackTests()
-            => stack = new LinearGrowthStack<int>(new LinearGrowthArray<int>(2));
+        public LinearGrowthStackTests() => stack = new LinearGrowthStack<int>(new LinearGrowthArray<int>(2));
 
         [Fact]
         public void LinearGrowthStack_Ctor_Test()
@@ -23,7 +22,7 @@ namespace Fracture.Common.Tests.Collections
             {
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthStack<int>();
-                
+
                 // ReSharper disable once ObjectCreationAsStatement - disabled for testing constructor.
                 new LinearGrowthStack<int>(new LinearGrowthArray<int>(8));
             }

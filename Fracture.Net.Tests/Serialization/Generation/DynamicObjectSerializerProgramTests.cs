@@ -23,17 +23,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public DynamicObjectSerializerProgramTests()
         {
         }
-        
+
         [Fact]
         public void Constructor_Should_Throw_If_Program_Serializer_Counts_Differ()
         {
             var exception = Record.Exception(() => new ObjectSerializerProgram(
-                    typeof(int),
-                    new List<ISerializationOp> { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X")), typeof(IntSerializer)) }.AsReadOnly(),
-                    new List<ISerializationOp>().AsReadOnly(),
-                    new List<Type>())
+                                                 typeof(int),
+                                                 new List<ISerializationOp>
+                                                         { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X")), typeof(IntSerializer)) }
+                                                    .AsReadOnly(),
+                                                 new List<ISerializationOp>().AsReadOnly(),
+                                                 new List<Type>())
             );
-            
+
             Assert.NotNull(exception);
             Assert.Contains("different count of value serializers", exception.Message);
         }

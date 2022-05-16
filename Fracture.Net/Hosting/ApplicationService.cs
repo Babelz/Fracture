@@ -14,11 +14,11 @@ namespace Fracture.Net.Hosting
     {
         // Marker interface, nothing to implement. Each service should provide its functionality via public interface declaration.
     }
-    
+
     /// <summary>
     /// Interface for implementing active services that are updated during each application tick. 
     /// </summary>
-    public interface IActiveApplicationService : IApplicationService 
+    public interface IActiveApplicationService : IApplicationService
     {
         /// <summary>
         /// Allows the service to run updates.
@@ -41,10 +41,9 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.
         /// </summary>
-        protected ApplicationService(IApplicationServiceHost application)
-            => Application = application ?? throw new ArgumentNullException(nameof(application));
+        protected ApplicationService(IApplicationServiceHost application) => Application = application ?? throw new ArgumentNullException(nameof(application));
     }
-    
+
     /// <summary>
     /// Abstract base class for implementing active services that are updated during each application tick. 
     /// </summary>
@@ -53,11 +52,11 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.
         /// </summary>
-        protected ActiveApplicationService(IApplicationServiceHost application) 
+        protected ActiveApplicationService(IApplicationServiceHost application)
             : base(application)
         {
         }
-        
+
         /// <summary>
         /// Allows the service to run updates.
         /// </summary>

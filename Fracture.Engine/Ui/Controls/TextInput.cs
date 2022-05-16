@@ -51,7 +51,7 @@ namespace Fracture.Engine.Ui.Controls
             set
             {
                 var old = text;
-                text    = value;
+                text = value;
 
                 if (text != old)
                     TextChanged?.Invoke(this, EventArgs.Empty);
@@ -102,9 +102,9 @@ namespace Fracture.Engine.Ui.Controls
             var oldLength = Text.Length;
 
             Text = Text.Insert(MathHelper.Clamp(CaretPosition, 0, Text.Length), text);
-            
+
             if (CaretPosition == oldLength) CaretPosition = Text.Length;
-            else                            CaretPosition++;
+            else CaretPosition++;
         }
 
         protected override void InternalReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard)
@@ -125,7 +125,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (CaretPosition == 0)
                 return;
-            
+
             if (Keyboard.IsPressed(Keys.Left) || (Keyboard.IsDown(Keys.Left) &&
                                                   Keyboard.TimeDown(Keys.Left) >= TimeSpan.FromMilliseconds(250) &&
                                                   caretMove >= TimeSpan.FromMilliseconds(100)))
@@ -141,7 +141,7 @@ namespace Fracture.Engine.Ui.Controls
         private void UpdateCaretRight(IGameEngineTime time)
         {
             if (CaretPosition == Text.Length) return;
-            
+
             if (Keyboard.IsPressed(Keys.Right) || (Keyboard.IsDown(Keys.Right) &&
                                                    Keyboard.TimeDown(Keys.Right) >= TimeSpan.FromMilliseconds(250) &&
                                                    caretMove >= TimeSpan.FromMilliseconds(100)))
@@ -157,7 +157,7 @@ namespace Fracture.Engine.Ui.Controls
         private void UpdateCaretErase(IGameEngineTime time)
         {
             if (Text.Length == 0 || CaretPosition == 0) return;
-            
+
             if (Keyboard.IsPressed(Keys.Back) || (Keyboard.IsDown(Keys.Back) &&
                                                   Keyboard.TimeDown(Keys.Back) >= TimeSpan.FromMilliseconds(250) &&
                                                   caretErase >= TimeSpan.FromMilliseconds(100)))
@@ -183,7 +183,7 @@ namespace Fracture.Engine.Ui.Controls
 
                 // Show caret.
                 caretVisible  = HasFocus && caretBlink != TimeSpan.Zero && caretBlink <= TimeSpan.FromMilliseconds(250);
-                CaretPosition = MathHelper.Clamp(CaretPosition, 0, displayText.Length); 
+                CaretPosition = MathHelper.Clamp(CaretPosition, 0, displayText.Length);
 
                 if (caretVisible)
                     displayText = displayText.Insert(CaretPosition, "|");
@@ -193,7 +193,7 @@ namespace Fracture.Engine.Ui.Controls
                 caretBlink += time.Elapsed;
             }
         }
-        
+
         private void UpdateDisplayText()
         {
             if (string.IsNullOrEmpty(displayText)) return;
@@ -204,20 +204,20 @@ namespace Fracture.Engine.Ui.Controls
             var source = Style.Get<Rectangle>($"{UiStyleKeys.Target.TextInput}\\{UiStyleKeys.Source.Text}");
 
             var destination = GetRenderDestinationRectangle();
-            
-            var scale = GraphicsUtils.ScaleToTarget(new Vector2(destination.Width, destination.Height), 
-                                                           new Vector2(target.Width, target.Height));
+
+            var scale = GraphicsUtils.ScaleToTarget(new Vector2(destination.Width, destination.Height),
+                                                    new Vector2(target.Width, target.Height));
 
             var area  = UiUtils.ScaleTextArea(new Vector2(destination.X, destination.Y), scale, source);
             var local = new Rectangle(0, 0, area.Width, area.Height);
 
             if (!(font.MeasureString(displayText).X >= area.Width)) return;
-            
+
             // TODO: fix to work like HTML text input fields.
             var head       = string.Empty;
             var headLength = 0;
             var i          = CaretPosition - (caretVisible ? 0 : 1);
-                
+
             while (i >= 0)
             {
                 var sub  = displayText.Substring(i, 1);
@@ -227,7 +227,7 @@ namespace Fracture.Engine.Ui.Controls
                     break;
 
                 headLength += size;
-                head       = sub + head;
+                head       =  sub + head;
 
                 i--;
             }
@@ -247,7 +247,7 @@ namespace Fracture.Engine.Ui.Controls
 
                 i++;
             }
-                
+
             displayText = head + sb;
         }
 
@@ -257,29 +257,29 @@ namespace Fracture.Engine.Ui.Controls
 
             UpdateDisplayText();
         }
-        
+
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             var texture = Style.Get<Texture2D>($"{UiStyleKeys.Target.TextInput}\\{UiStyleKeys.Texture.Normal}");
             var color   = Style.Get<Color>($"{UiStyleKeys.Target.TextInput}\\{(Enabled ? UiStyleKeys.Color.Enabled : UiStyleKeys.Color.Disabled)}");
             var font    = Style.Get<SpriteFont>($"{UiStyleKeys.Target.TextInput}\\{UiStyleKeys.Font.Normal}");
             var source  = Style.Get<Rectangle>($"{UiStyleKeys.Target.TextInput}\\{UiStyleKeys.Source.Text}");
-            
+
             var destination = GetRenderDestinationRectangle();
-            
-            fragment.DrawSprite(new Vector2(destination.X, destination.Y), 
-                                Vector2.One, 
-                                0.0f, 
-                                Vector2.Zero, 
+
+            fragment.DrawSprite(new Vector2(destination.X, destination.Y),
+                                Vector2.One,
+                                0.0f,
+                                Vector2.Zero,
                                 new Vector2(destination.Width, destination.Height),
-                                texture, 
+                                texture,
                                 color);
 
             if (string.IsNullOrEmpty(displayText)) return;
-            
-            var scale = GraphicsUtils.ScaleToTarget(new Vector2(destination.Width, destination.Height), 
-                                                           new Vector2(texture.Width, texture.Height));
-            
+
+            var scale = GraphicsUtils.ScaleToTarget(new Vector2(destination.Width, destination.Height),
+                                                    new Vector2(texture.Width, texture.Height));
+
             var textArea     = UiUtils.ScaleTextArea(new Vector2(destination.X, destination.Y), scale, source);
             var textCenter   = destination.Height / 2.0f - font.MeasureString(displayText).Y * 0.5f;
             var textPosition = new Vector2(textArea.X, destination.Y);

@@ -9,13 +9,13 @@ namespace Fracture.Net.Messages
         /// Ping phase, pong is to be expected after this phase.
         /// </summary>
         Ping = 0,
-        
+
         /// <summary>
         /// Pong phase, expected to happen after ping phase.
         /// </summary>
         Pong
     }
-    
+
     /// <summary>
     /// Simple message that is used for testing connection status.
     /// </summary>
@@ -30,7 +30,7 @@ namespace Fracture.Net.Messages
             get;
             set;
         }
-        
+
         /// <summary>
         /// Gets or sets the phase.
         /// </summary>

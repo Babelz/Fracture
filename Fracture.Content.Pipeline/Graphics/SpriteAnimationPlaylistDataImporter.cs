@@ -14,7 +14,7 @@ namespace Fracture.Content.Pipeline.Graphics
         public override SpriteAnimationPlaylistData Import(string filename, ContentImporterContext context)
         {
             using var sr = new StreamReader(filename);
-            
+
             return new SpriteAnimationPlaylistData(filename, XDocument.Load(sr).ToString());
         }
     }

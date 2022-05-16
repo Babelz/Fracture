@@ -21,6 +21,7 @@ namespace Fracture.Engine.Ui
             get;
             private set;
         }
+
         public static int Height
         {
             get;
@@ -53,38 +54,30 @@ namespace Fracture.Engine.Ui
         /// Converts from screen units to local units.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToLocalUnits(Vector2 screenUnits)
-            => screenUnits * factor;
+        public static Vector2 ToLocalUnits(Vector2 screenUnits) => screenUnits * factor;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToLocalUnits(float x, float y)
-            => new Vector2(x * factor.X, y * factor.Y);
+        public static Vector2 ToLocalUnits(float x, float y) => new Vector2(x * factor.X, y * factor.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToVerticalLocalUnits(float value)
-            => value * factor.Y;
+        public static float ToVerticalLocalUnits(float value) => value * factor.Y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToHorizontalLocalUnits(float value)
-            => value * factor.X;
+        public static float ToHorizontalLocalUnits(float value) => value * factor.X;
 
         /// <summary>
         /// Converts from local units to screen units.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToScreenUnits(Vector2 localUnits)
-            => new Vector2(localUnits.X * Width, localUnits.Y * Height);
+        public static Vector2 ToScreenUnits(Vector2 localUnits) => new Vector2(localUnits.X * Width, localUnits.Y * Height);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToScreenUnits(float x, float y)
-            => new Vector2(x * Width, y * Height);
+        public static Vector2 ToScreenUnits(float x, float y) => new Vector2(x * Width, y * Height);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToVerticalScreenUnits(float value)
-            => value * Height;
+        public static float ToVerticalScreenUnits(float value) => value * Height;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToHorizontalScreenUnits(float value)
-            => value * Width;
+        public static float ToHorizontalScreenUnits(float value) => value * Width;
     }
 }

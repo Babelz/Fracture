@@ -17,13 +17,13 @@ namespace Fracture.Net.Hosting.Servers
         /// Runtime id of the peer.
         /// </summary>
         public readonly int PeerId;
-        
+
         /// <summary>
         /// Remote end point of the peer.
         /// </summary>
         public readonly IPEndPoint EndPoint;
         #endregion
-        
+
         public PeerConnection(int peerId, IPEndPoint endPoint)
         {
             PeerId   = peerId;
@@ -33,19 +33,19 @@ namespace Fracture.Net.Hosting.Servers
         public override string ToString()
         {
             var sb = new StringBuilder();
-            
+
             sb.Append($"{{ \"{nameof(PeerId)}\": {PeerId}, \"{nameof(EndPoint)}\": \"{EndPoint.Address}:{EndPoint.Port}\" }}");
-            
+
             return sb.ToString();
         }
 
-        public override int GetHashCode()
-            => HashUtils.Create()
-                        .Append(PeerId)
-                        .Append(EndPoint)
-                        .Append(EndPoint.Port);
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(PeerId)
+                     .Append(EndPoint)
+                     .Append(EndPoint.Port);
     }
-    
+
     /// <summary>
     /// Enumeration defining all possible internal states of a peer.
     /// </summary>
@@ -55,13 +55,13 @@ namespace Fracture.Net.Hosting.Servers
         /// Peer is connected and active. Peer can receive and send messages.
         /// </summary>
         Connected = 0,
-        
+
         /// <summary>
         /// Peer is disconnecting. Peer can still receive and send messages but these operations are not guaranteed to complete before the internal connection
         /// is completely closed.
         /// </summary>
         Disconnecting,
-        
+
         /// <summary>
         /// Peer is in disconnected state and should be disposed.
         /// </summary>
@@ -78,12 +78,12 @@ namespace Fracture.Net.Hosting.Servers
         /// Event invoked when the peer connection has been reset.
         /// </summary>
         event StructEventHandler<PeerResetEventArgs> Reset;
-        
+
         /// <summary>
         /// Event invoked when the peer has incoming messages.
         /// </summary>
         event StructEventHandler<PeerMessageEventArgs> Incoming;
-        
+
         /// <summary>
         /// Event invoked when the peer has outgoing messages.
         /// </summary>
@@ -98,7 +98,7 @@ namespace Fracture.Net.Hosting.Servers
         {
             get;
         }
-        
+
         /// <summary>
         /// Returns the remote endpoint of the peer.
         /// </summary>
@@ -107,26 +107,26 @@ namespace Fracture.Net.Hosting.Servers
             get;
         }
         #endregion
-        
+
         /// <summary>
         /// Disconnects the peer from the server.
         /// </summary>
         void Disconnect();
-        
+
         /// <summary>
         /// Sends message to the peer.
         /// </summary>
         /// <param name="data">message data to be send</param>
         /// <param name="offset">offset from where the sending begins</param>
         /// <param name="length">length of the message to be send starting from the offset</param>
-        void Send(byte[] data, int offset, int length);
-        
+        void Send(byte [] data, int offset, int length);
+
         /// <summary>
         /// Polls the peer once allowing it to update its internal state and invoke any events in queue. 
         /// </summary>
         void Poll();
     }
-    
+
     /// <summary>
     /// Interface for implementing peer factories.
     /// </summary>

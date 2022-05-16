@@ -7,7 +7,7 @@ namespace Fracture.Net.Hosting.Messaging
     /// </summary>
     /// <param name="notification"></param>
     public delegate void NotificationDecoratorDelegate(INotification notification);
-    
+
     /// <summary>
     /// Interface for implementing notification queues.
     /// </summary>
@@ -17,18 +17,18 @@ namespace Fracture.Net.Hosting.Messaging
         /// Enqueues notification to the queue and decorates it using given decorator.
         /// </summary>
         void Enqueue(NotificationDecoratorDelegate decorator);
-        
+
         /// <summary>
         /// Enqueues notification to the queue and returns it to the caller.
         /// </summary>
         INotification Enqueue();
     }
-    
+
     /// <summary>
     /// Delegate for creating handlers that are invoked for each notification.
     /// </summary>
     public delegate void NotificationHandlerDelegate(Notification notification);
-    
+
     /// <summary>
     /// Interface that provides full notification center implementation by functioning as queue and handler.
     /// </summary>
@@ -40,7 +40,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         void Handle(NotificationHandlerDelegate handler);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="INotificationCenter"/>.  
     /// </summary>
@@ -49,30 +49,30 @@ namespace Fracture.Net.Hosting.Messaging
         #region Fields
         private readonly Queue<Notification> notifications;
         #endregion
-        
+
         public NotificationCenter()
         {
             notifications = new Queue<Notification>();
         }
-            
+
         public void Enqueue(NotificationDecoratorDelegate decorator)
         {
             var notification = Notification.Take();
-            
+
             notifications.Enqueue(notification);
-            
+
             decorator(notification);
         }
-        
+
         public INotification Enqueue()
         {
             var notification = Notification.Take();
-            
+
             notifications.Enqueue(notification);
-            
+
             return notification;
         }
-        
+
         public void Handle(NotificationHandlerDelegate handler)
         {
             while (notifications.Count != 0)

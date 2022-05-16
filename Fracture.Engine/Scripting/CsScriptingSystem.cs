@@ -13,7 +13,7 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public interface ICsScriptingSystem : IGameEngineSystem
     {
-        T Load<T>(params IBindingValue[] bindings) where T : CsScript;
+        T Load<T>(params IBindingValue [] bindings) where T : CsScript;
     }
 
     /// <summary>
@@ -32,7 +32,7 @@ namespace Fracture.Engine.Scripting
         /// </summary>
         void Update(IGameEngineTime time);
     }
-    
+
     public class CsScriptActor<T> : ICsScriptActor where T : CsScript
     {
         #region Fields
@@ -53,18 +53,16 @@ namespace Fracture.Engine.Scripting
         }
 
         #region Event handlers
-        private void Script_Unloading(object sender, EventArgs e)
-            => unloaded.Add((T)sender);
-        
-        private void Script_Loading(object sender, EventArgs e)
-            => active.Add((T)sender);
+        private void Script_Unloading(object sender, EventArgs e) => unloaded.Add((T)sender);
+
+        private void Script_Loading(object sender, EventArgs e) => active.Add((T)sender);
         #endregion
-        
+
         public bool Accept(CsScript script)
         {
-            if (!(script is T actual)) 
+            if (!(script is T actual))
                 return false;
-            
+
             accepted.Add(actual);
 
             script.Unloading += Script_Unloading;
@@ -77,16 +75,16 @@ namespace Fracture.Engine.Scripting
         {
             foreach (var script in accepted)
                 script.Load();
-            
+
             accepted.Clear();
 
             foreach (var script in unloaded)
                 active.Remove(script);
-            
+
             unloaded.Clear();
         }
     }
-    
+
     public sealed class ActiveCsScriptActor : CsScriptActor<ActiveCsScript>
     {
         public ActiveCsScriptActor()
@@ -96,18 +94,18 @@ namespace Fracture.Engine.Scripting
         public override void Update(IGameEngineTime time)
         {
             base.Update(time);
-            
+
             foreach (var script in Active)
                 script.Update(time);
         }
     }
-    
+
     public sealed class CommandCsScriptActor : CsScriptActor<CommandCsScript>
     {
         public CommandCsScriptActor()
         {
         }
-        
+
         public override void Update(IGameEngineTime time)
         {
             base.Update(time);
@@ -115,7 +113,7 @@ namespace Fracture.Engine.Scripting
             foreach (var script in Active)
             {
                 script.Execute(time);
-                
+
                 script.Unload();
             }
         }
@@ -125,10 +123,10 @@ namespace Fracture.Engine.Scripting
     {
         #region Fields
         private readonly List<ICsScriptActor> actors;
-        
+
         private readonly IGameObjectActivatorSystem activator;
         #endregion
-        
+
         [BindingConstructor]
         public CsScriptingSystem(IGameObjectActivatorSystem activator)
         {
@@ -141,8 +139,8 @@ namespace Fracture.Engine.Scripting
                 new CsScriptActor<CsScript>()
             };
         }
-        
-        public T Load<T>(params IBindingValue[] bindings) where T : CsScript
+
+        public T Load<T>(params IBindingValue [] bindings) where T : CsScript
         {
             var script = activator.Activate<T>(bindings);
 

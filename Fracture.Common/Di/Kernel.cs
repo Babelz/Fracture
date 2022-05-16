@@ -14,7 +14,7 @@ namespace Fracture.Common.Di
     {
         IEnumerable<object> All(Func<object, bool> predicate);
         IEnumerable<object> All();
-        
+
         IEnumerable<T> All<T>(Func<T, bool> predicate);
         IEnumerable<T> All<T>();
 
@@ -48,19 +48,19 @@ namespace Fracture.Common.Di
         /// <summary>
         /// Gets the optional binding values for this context.
         /// </summary>
-        public IBindingValue[] Args
+        public IBindingValue [] Args
         {
             get;
         }
         #endregion
 
-        public BindingContext(Type type, params IBindingValue[] args)
+        public BindingContext(Type type, params IBindingValue [] args)
         {
             Type = type ?? throw new ArgumentException(nameof(type));
             Args = args;
         }
     }
-    
+
     /// <summary>
     /// Interface for implementing dependency binders. Binders provide dependency binding in various ways. Also
     /// supports proxy bindings.
@@ -72,22 +72,22 @@ namespace Fracture.Common.Di
         void Unbind(object instance, Type proxy);
         void Unbind(Type type, Type proxy);
 
-        void Bind(Type type, params IBindingValue[] values);
-        void Bind<T>(params IBindingValue[] bindings);
-        void Bind(object instance, params IBindingValue[] values);
+        void Bind(Type type, params IBindingValue [] values);
+        void Bind<T>(params IBindingValue [] bindings);
+        void Bind(object instance, params IBindingValue [] values);
 
-        void Proxy(Type actual, Type proxy, params IBindingValue[] values);
-        void Proxy<T>(Type proxy, params IBindingValue[] values);
-        void Proxy(object instance, Type proxy, params IBindingValue[] values);
-        void Proxy<T>(object instance, params IBindingValue[] values);
-        
+        void Proxy(Type actual, Type proxy, params IBindingValue [] values);
+        void Proxy<T>(Type proxy, params IBindingValue [] values);
+        void Proxy(object instance, Type proxy, params IBindingValue [] values);
+        void Proxy<T>(object instance, params IBindingValue [] values);
+
         /// <summary>
         /// Runs verification for the bindings and raises exception if some of the dependencies can't be activated. This is to assure that no dependencies
         /// are left hanging.
         /// </summary>
         void Verify();
     }
-    
+
     /// <summary>
     /// Interface for implementing object generic object activators.
     /// </summary>
@@ -97,15 +97,15 @@ namespace Fracture.Common.Di
         /// Attempts to activate object of specified type. Dependencies for this object are retrieved from the kernel. The object will not be registered to the
         /// kernel after it has been activated.
         /// </summary>
-        object Activate(Type type, params IBindingValue[] values);
-        
+        object Activate(Type type, params IBindingValue [] values);
+
         /// <summary>
         /// Attempts to activate object of specified type. Dependencies for this object are retrieved from the kernel. The object will not be registered to the
         /// kernel after it has been activated.
         /// </summary>
-        T Activate<T>(params IBindingValue[] values);
+        T Activate<T>(params IBindingValue [] values);
     }
-    
+
     /// <summary>
     /// Class that provides simple dependency injection kernels. Kernels combine binding and locating
     /// dependencies under single interface.
@@ -115,60 +115,60 @@ namespace Fracture.Common.Di
         #region Fields
         private readonly DependencyBindingOptions bindingOptions;
         private readonly DependencyBindingOptions proxyOptions;
-        
+
         private readonly List<DependencyBinder> binders;
         private readonly List<Dependency> dependencies;
         #endregion
-        
-        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces, 
+
+        public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces,
                       DependencyBindingOptions proxyOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces)
         {
             this.bindingOptions = bindingOptions;
             this.proxyOptions   = proxyOptions;
-            
+
             binders      = new List<DependencyBinder>();
             dependencies = new List<Dependency>();
         }
-        
+
         public Kernel(DependencyBindingOptions bindingOptions)
             : this(bindingOptions, bindingOptions)
         {
         }
-        
+
         private static bool ConstructDependency(DependencyBinder binder, out Dependency dependency)
         {
             dependency = null;
 
             try
             {
-                binder.Bind();    
+                binder.Bind();
             }
             catch
             {
                 return false;
             }
-            
+
             var options = binder.Options;
             var strict  = (options & DependencyBindingOptions.Strict) == DependencyBindingOptions.Strict;
 
-            dependency = binder.Proxy != null ? 
-                new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Proxy, options), strict) : 
-                new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Type, options), strict);
+            dependency = binder.Proxy != null
+                             ? new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Proxy, options), strict)
+                             : new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Type, options), strict);
 
             return true;
         }
 
-        private DependencyBinder ConstructBinder(Type type, Type proxy, object instance, DependencyBindingOptions options, IBindingValue[] values)
+        private DependencyBinder ConstructBinder(Type type, Type proxy, object instance, DependencyBindingOptions options, IBindingValue [] values)
         {
             if (type != null && instance != null)
                 throw new InvalidOperationException("both type and instance can't have a value");
 
             DependencyBinder binder;
-            
-            if      (instance != null) binder = new DependencyBinder(options, instance);
-            else if (type != null)     binder = new DependencyBinder(options, type);
-            else                       throw new InvalidOperationException("construction requires type of instance to continue");
-            
+
+            if (instance != null) binder  = new DependencyBinder(options, instance);
+            else if (type != null) binder = new DependencyBinder(options, type);
+            else throw new InvalidOperationException("construction requires type of instance to continue");
+
             var resolver = new DependencyBindingResolver(this);
 
             if (proxy != null) binder.AsProxy(proxy);
@@ -182,13 +182,13 @@ namespace Fracture.Common.Di
                                                         $"check that the type has a public parameterless default " +
                                                         $"constructor or binding constructor available");
                 }
-                
+
                 binder.BindWith(activator);
             }
 
-            if (!resolver.ResolveBindings(type ?? instance?.GetType(), values, out var bindings)) 
+            if (!resolver.ResolveBindings(type ?? instance?.GetType(), values, out var bindings))
                 return binder;
-            
+
             binder.BindWith(bindings);
 
             return binder;
@@ -205,7 +205,7 @@ namespace Fracture.Common.Di
                     binders.RemoveAt(i);
 
                     dependencies.Add(dependency);
-                    
+
                     i = 0;
 
                     continue;
@@ -215,38 +215,35 @@ namespace Fracture.Common.Di
             }
         }
 
-        public object Activate(Type type, params IBindingValue[] values)
+        public object Activate(Type type, params IBindingValue [] values)
         {
             var binder = ConstructBinder(type, null, null, DependencyBindingOptions.BaseType, values);
-            
+
             binder.Bind();
-            
+
             return binder.Instance;
         }
-        
-        public T Activate<T>(params IBindingValue[] values)
-            => (T)Activate(typeof(T), values);
 
-        public IEnumerable<object> All(Func<object, bool> predicate)
-            => dependencies.Where(d => predicate(d.Cast<object>()));
+        public T Activate<T>(params IBindingValue [] values) => (T)Activate(typeof(T), values);
 
-        public IEnumerable<object> All()
-            => dependencies.Select(d => d.Cast<object>());
+        public IEnumerable<object> All(Func<object, bool> predicate) => dependencies.Where(d => predicate(d.Cast<object>()));
 
-        public IEnumerable<T> All<T>(Func<T, bool> predicate)
-            => dependencies.Where(d => d.Castable<T>())
-                           .Select(d => d.Cast<T>())
-                           .Where(predicate);
+        public IEnumerable<object> All() => dependencies.Select(d => d.Cast<object>());
 
-        public IEnumerable<T> All<T>()
-            => dependencies.Where(d => d.Castable<T>())
-                           .Select(d => d.Cast<T>());
+        public IEnumerable<T> All<T>(Func<T, bool> predicate) =>
+            dependencies.Where(d => d.Castable<T>())
+                        .Select(d => d.Cast<T>())
+                        .Where(predicate);
+
+        public IEnumerable<T> All<T>() =>
+            dependencies.Where(d => d.Castable<T>())
+                        .Select(d => d.Cast<T>());
 
         public void Unbind(Type type)
         {
             var binder = binders.FirstOrDefault(b => b.Type == type);
 
-            if (binder != null) 
+            if (binder != null)
                 binders.Remove(binder);
             else
             {
@@ -274,7 +271,7 @@ namespace Fracture.Common.Di
             var binder = binders.FirstOrDefault(b => b.Type == instance.GetType() &&
                                                      b.Proxy == proxy);
 
-            if (binder != null) 
+            if (binder != null)
                 binders.Remove(binder);
             else
             {
@@ -286,6 +283,7 @@ namespace Fracture.Common.Di
                 dependencies.Remove(dependency);
             }
         }
+
         public void Unbind(Type type, Type proxy)
         {
             var binder = binders.FirstOrDefault(b => b.Type == type && b.Proxy == proxy);
@@ -303,7 +301,7 @@ namespace Fracture.Common.Di
             }
         }
 
-        public void Bind(Type type, params IBindingValue[] values)
+        public void Bind(Type type, params IBindingValue [] values)
         {
             var binder = ConstructBinder(type, null, null, bindingOptions, values);
 
@@ -314,11 +312,10 @@ namespace Fracture.Common.Di
 
             UpdateBinders();
         }
-        
-        public void Bind<T>(params IBindingValue[] bindings)
-            => Bind(typeof(T), bindings);
 
-        public void Bind(object instance, params IBindingValue[] values)
+        public void Bind<T>(params IBindingValue [] bindings) => Bind(typeof(T), bindings);
+
+        public void Bind(object instance, params IBindingValue [] values)
         {
             var binder = ConstructBinder(null, null, instance, bindingOptions, values);
 
@@ -330,7 +327,7 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy(Type actual, Type proxy, params IBindingValue[] values)
+        public void Proxy(Type actual, Type proxy, params IBindingValue [] values)
         {
             var binder = ConstructBinder(actual, proxy, null, proxyOptions, values);
 
@@ -342,10 +339,9 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(Type proxy, params IBindingValue[] values)
-            => Proxy(proxy, typeof(T), values);
+        public void Proxy<T>(Type proxy, params IBindingValue [] values) => Proxy(proxy, typeof(T), values);
 
-        public void Proxy(object instance, Type proxy, params IBindingValue[] values)
+        public void Proxy(object instance, Type proxy, params IBindingValue [] values)
         {
             var binder = ConstructBinder(null, proxy, instance, proxyOptions, values);
 
@@ -357,13 +353,12 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(object instance, params IBindingValue[] values)
-            => Proxy(instance, typeof(T));
+        public void Proxy<T>(object instance, params IBindingValue [] values) => Proxy(instance, typeof(T));
 
         public void Verify()
         {
             var sb = new StringBuilder();
-            
+
             foreach (var binder in binders)
             {
                 try
@@ -373,16 +368,16 @@ namespace Fracture.Common.Di
                 catch (Exception e)
                 {
                     sb.Append($"failed to bind type: {binder.Type.FullName}");
-                
+
                     if (binder.Proxy != null)
                         sb.Append($", proxy: {binder.Proxy.FullName}");
-                
+
                     sb.Append("\n");
-                    
+
                     sb.Append($"exception occurred during activation: {e}\n");
                 }
             }
-            
+
             if (sb.Length != 0)
                 throw new DependencyBinderVerificationException($"failed to activate following dependencies:\n{sb}");
         }
@@ -395,9 +390,8 @@ namespace Fracture.Common.Di
             return dependencies.Any(d => d.Castable(type) && predicate(d.Cast<object>()));
         }
 
-        public bool Exists(Type type)
-            => dependencies.Any(d => d.Castable(type));
-        
+        public bool Exists(Type type) => dependencies.Any(d => d.Castable(type));
+
         public bool Exists<T>(Func<T, bool> predicate)
         {
             if (predicate == null)
@@ -406,8 +400,7 @@ namespace Fracture.Common.Di
             return dependencies.Any(d => d.Castable<T>() && predicate(d.Cast<T>()));
         }
 
-        public bool Exists<T>()
-            => dependencies.Any(d => d.Castable<T>());
+        public bool Exists<T>() => dependencies.Any(d => d.Castable<T>());
 
         public object First(Type type, Func<object, bool> predicate)
         {

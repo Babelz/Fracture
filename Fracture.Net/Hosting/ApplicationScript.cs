@@ -18,10 +18,10 @@ namespace Fracture.Net.Hosting
         /// </summary>
         event EventHandler Unloading;
         #endregion
-        
+
         void Unload();
     }
-    
+
     /// <summary>
     /// Interface for implementing command scripts. Command scripts are executed once and then unloaded.
     /// </summary>
@@ -32,7 +32,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         void Invoke();
     }
-    
+
     /// <summary>
     /// Interface for implementing active scripts. Active scripts are allowed to run application logic on each application event loop cycle.
     /// </summary>
@@ -41,9 +41,9 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Invoked once each time application loop is being executed. Allows the script to run application logic.
         /// </summary>
-        void Tick(); 
+        void Tick();
     }
-    
+
     /// <summary>
     /// Abstract base class for implementing various scripts. 
     /// </summary>
@@ -52,14 +52,14 @@ namespace Fracture.Net.Hosting
         #region Fields
         private bool unloaded;
         #endregion
-        
+
         #region Events
         /// <summary>
         /// Event invoked when the script is being unloaded.
         /// </summary>
         public event EventHandler Unloading;
         #endregion
-        
+
         #region Properties
         protected IApplicationScriptingHost Application
         {
@@ -79,13 +79,13 @@ namespace Fracture.Net.Hosting
         {
             if (unloaded)
                 throw new InvalidOperationException("script is already unloaded");
-            
+
             unloaded = true;
-            
+
             Unloading?.Invoke(this, EventArgs.Empty);
         }
     }
-    
+
     /// <summary>
     /// Abstract base class for creating command scripts.
     /// </summary>
@@ -94,13 +94,13 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Creates new instance of this script. Mark the constructor with <see cref="BindingConstructorAttribute"/> and use it to locate any dependencies.
         /// </summary>
-        protected ApplicationCommandScript(IApplicationScriptingHost application) 
+        protected ApplicationCommandScript(IApplicationScriptingHost application)
             : base(application)
         {
         }
 
         protected abstract void Execute();
-        
+
         public void Invoke()
         {
             try
@@ -109,13 +109,13 @@ namespace Fracture.Net.Hosting
             }
             catch (Exception e)
             {
-                Log.Warning(e, "unhandled exception occurred while running command script");   
+                Log.Warning(e, "unhandled exception occurred while running command script");
             }
-            
+
             Unload();
         }
     }
-    
+
     /// <summary>
     /// Abstract base class for creating active scripts.
     /// </summary>
@@ -124,11 +124,11 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Creates new instance of this script. Mark the constructor with <see cref="BindingConstructorAttribute"/> and use it to locate any dependencies.
         /// </summary>
-        protected ActiveApplicationScript(IApplicationScriptingHost application) 
+        protected ActiveApplicationScript(IApplicationScriptingHost application)
             : base(application)
         {
         }
-        
+
         public abstract void Tick();
     }
 }

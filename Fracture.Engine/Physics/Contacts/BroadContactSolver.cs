@@ -40,25 +40,22 @@ namespace Fracture.Engine.Physics.Contacts
             SecondBodyId = secondBodyId;
         }
 
-        public bool Equals(in ContactPair other)
-            => FirstBodyId == other.FirstBodyId &&
-               SecondBodyId == other.SecondBodyId;
+        public bool Equals(in ContactPair other) =>
+            FirstBodyId == other.FirstBodyId &&
+            SecondBodyId == other.SecondBodyId;
 
-        public override bool Equals(object obj)
-            => obj is ContactPair other && Equals(other);
-            
-        public override int GetHashCode()
-            => HashUtils.Create()
-                        .Append(FirstBodyId)
-                        .Append(SecondBodyId);
-        
-        public static bool operator ==(in ContactPair lhs, in ContactPair rhs)
-            => lhs.Equals(rhs);
+        public override bool Equals(object obj) => obj is ContactPair other && Equals(other);
 
-        public static bool operator !=(in ContactPair lhs, in ContactPair rhs)
-            => !lhs.Equals(rhs);
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(FirstBodyId)
+                     .Append(SecondBodyId);
+
+        public static bool operator ==(in ContactPair lhs, in ContactPair rhs) => lhs.Equals(rhs);
+
+        public static bool operator !=(in ContactPair lhs, in ContactPair rhs) => !lhs.Equals(rhs);
     }
-    
+
     /// <summary>
     /// Class that handles broad phase contact solving between
     /// bodies based on their current translation and transformation.
@@ -73,7 +70,7 @@ namespace Fracture.Engine.Physics.Contacts
         #region Fields
         private readonly HashSet<ContactPair> lookup;
 
-        private ContactPair[] pairs;
+        private ContactPair [] pairs;
         #endregion
 
         #region Properties
@@ -95,8 +92,7 @@ namespace Fracture.Engine.Physics.Contacts
             pairs  = new ContactPair[Capacity];
         }
 
-        private bool PairExists(int firstBodyId, int secondBodyId)
-            => lookup.Contains(new ContactPair(firstBodyId, secondBodyId));
+        private bool PairExists(int firstBodyId, int secondBodyId) => lookup.Contains(new ContactPair(firstBodyId, secondBodyId));
 
         private void EnqueuePair(int firstBodyId, int secondBodyId)
         {
@@ -104,7 +100,7 @@ namespace Fracture.Engine.Physics.Contacts
                 Array.Resize(ref pairs, pairs.Length * 2);
 
             pairs[Count++] = new ContactPair(firstBodyId, secondBodyId);
-            
+
             lookup.Add(new ContactPair(firstBodyId, secondBodyId));
         }
 
@@ -143,7 +139,7 @@ namespace Fracture.Engine.Physics.Contacts
 
                     if (!dynamicBody.IsActive())
                         continue;
-                    
+
                     foreach (var staticBodyId in node.Statics)
                     {
                         // Does the pair already exist.
@@ -153,7 +149,7 @@ namespace Fracture.Engine.Physics.Contacts
                         // If bounding volumes do not intersect, we can skip
                         // rest of the checks.
                         ref var staticBody = ref bodies.WithId(staticBodyId);
-                        
+
                         if (!Aabb.Intersects(dynamicBody.BoundingBox, staticBody.BoundingBox))
                             continue;
 
@@ -171,12 +167,12 @@ namespace Fracture.Engine.Physics.Contacts
                 {
                     // For sensors, we need to check each time.
                     ref var sensorBody = ref bodies.WithId(sensorBodyId);
-                        
+
                     foreach (var dynamicBodyId in node.Dynamics)
                     {
                         // Does the pair already exist.
                         ref var dynamicBody = ref bodies.WithId(dynamicBodyId);
-                        
+
                         if (PairExists(sensorBodyId, dynamicBodyId))
                             continue;
 
@@ -191,7 +187,7 @@ namespace Fracture.Engine.Physics.Contacts
                     }
                 }
             }
-            
+
             // Pair all sensors.
             if (!node.Sensors.Any())
                 return;
@@ -202,21 +198,21 @@ namespace Fracture.Engine.Physics.Contacts
                 {
                     if (firstSensorId == secondSensorId)
                         continue;
-                    
+
                     if (PairExists(firstSensorId, secondSensorId))
                         continue;
-                    
+
                     ref var firstSensorBody  = ref bodies.WithId(firstSensorId);
                     ref var secondSensorBody = ref bodies.WithId(secondSensorId);
-                    
+
                     if (!Aabb.Intersects(firstSensorBody.BoundingBox, secondSensorBody.BoundingBox))
                         continue;
-                    
+
                     EnqueuePair(firstSensorId, secondSensorId);
                 }
             }
         }
-        
+
         /// <summary>
         /// Does full broad phase contact solving based on 
         /// the configuration of the solver and generates
@@ -224,7 +220,6 @@ namespace Fracture.Engine.Physics.Contacts
         /// 
         /// TODO: add threading.
         /// </summary>
-        public void Solve(QuadTree tree, BodyList bodies)
-            => Solve(tree.Root, bodies);
+        public void Solve(QuadTree tree, BodyList bodies) => Solve(tree.Root, bodies);
     }
 }

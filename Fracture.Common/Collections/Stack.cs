@@ -18,6 +18,7 @@ namespace Fracture.Common.Collections
         {
             get;
         }
+
         /// <summary>
         /// Returns the current stack pointer position. This 
         /// always points to the position of next element of the stack.
@@ -43,7 +44,7 @@ namespace Fracture.Common.Collections
         /// </summary>
         void Push(T value);
     }
-    
+
     /// <summary>
     /// Generic stack that grows in linear manner using linear growth arrays for storage. 
     /// </summary>
@@ -66,14 +67,13 @@ namespace Fracture.Common.Collections
         }
         #endregion
 
-        public LinearGrowthStack(LinearGrowthArray<T> storage) 
-            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public LinearGrowthStack(LinearGrowthArray<T> storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         /// <summary>
         /// Creates new instance of <see cref="LinearGrowthStack{T}"/> using default storage
         /// that has bucket (page) size of 8 elements and bucket (page) count of 1.
         /// </summary>
-        public LinearGrowthStack() 
+        public LinearGrowthStack()
             : this(new LinearGrowthArray<T>(8))
         {
         }
@@ -92,7 +92,7 @@ namespace Fracture.Common.Collections
 
             return element;
         }
-        
+
         public void Push(T value)
         {
             if (Top >= storage.Length) storage.Grow();
@@ -100,7 +100,7 @@ namespace Fracture.Common.Collections
             storage.Insert(Top++, value);
         }
     }
-    
+
     /// <summary>
     /// Generic stack that grows in linear manner and keeps track of elements added  and removed. Adding duplicated
     /// element causes and exception to be throw. Useful for debugging but has a hefty performance penalty when using.
@@ -110,10 +110,10 @@ namespace Fracture.Common.Collections
         #region Fields
         // Stack trace of items that were pushed on the stack.
         private readonly Dictionary<T, StackFrame> pushers;
-        
+
         // Stack trace of items that were popped from the stack.
         private readonly Dictionary<T, StackFrame> poppers;
-        
+
         // Lookup containing all on the stack.
         private readonly HashSet<T> lookup;
 
@@ -122,7 +122,7 @@ namespace Fracture.Common.Collections
 
         #region Properties
         public bool Empty => stack.Empty;
-        public int Top    => stack.Top;
+        public int Top => stack.Top;
         #endregion
 
         public UniqueLinearGrowthStack(IStack<T> stack)
@@ -133,11 +133,12 @@ namespace Fracture.Common.Collections
             pushers = new Dictionary<T, StackFrame>();
             poppers = new Dictionary<T, StackFrame>();
         }
+
         public UniqueLinearGrowthStack()
             : this(new LinearGrowthStack<T>())
         {
         }
-        
+
         public T Peek() => stack.Peek();
 
         /// <summary>
@@ -165,7 +166,7 @@ namespace Fracture.Common.Collections
 
             return item;
         }
-        
+
         /// <summary>
         /// Pushes given value to the stack. Throws an exception in case the 
         /// value already exists on the stack.
@@ -180,7 +181,7 @@ namespace Fracture.Common.Collections
 
                 pushers.TryGetValue(value, out var pusher);
                 poppers.TryGetValue(value, out var popper);
-                
+
                 sb.Append("can't add element to the stack, adding the element would break the uniqueness of elements\n\n");
                 sb.Append($"first push calls stack trace: {pusher}\n\n");
                 sb.Append($"first pop calls stack trace: {popper}\n");
@@ -193,7 +194,7 @@ namespace Fracture.Common.Collections
                 poppers.Remove(value);
 
             pushers[value] = new StackFrame();
-            
+
             stack.Push(value);
         }
     }

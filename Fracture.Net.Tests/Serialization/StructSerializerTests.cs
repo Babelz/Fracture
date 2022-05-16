@@ -16,6 +16,7 @@ namespace Fracture.Net.Tests.Serialization
             #region Fields
             // ReSharper disable once MemberCanBePrivate.Local - disabled for testing.
             public readonly float X;
+
             // ReSharper disable once MemberCanBePrivate.Local - disabled for testing.
             public readonly float Y;
             #endregion
@@ -35,42 +36,42 @@ namespace Fracture.Net.Tests.Serialization
             public Vec2? Z;
             #endregion
         }
-        
+
         private struct Inner
         {
             #region Fields
             public Inner1 Value;
             #endregion
         }
-        
+
         private struct Inner1
         {
             #region Fields
             public Inner2 Inner;
             #endregion
         }
-        
+
         private struct Inner2
         {
             #region Fields
             public Inner3 Inner;
             #endregion
         }
-        
+
         private struct Inner3
         {
             #region Fields
             public Inner4 Inner;
             #endregion
         }
-        
+
         private struct Inner4
         {
             #region Fields
             public Vec2 Value;
             #endregion
         }
-        
+
         private sealed class IndirectlyActivatedTestClass
         {
             #region Fields
@@ -90,31 +91,31 @@ namespace Fracture.Net.Tests.Serialization
                                                           .PublicFields()
                                                           .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
                                                           .Map());
-            
+
             StructSerializer.Map(ObjectSerializationMapper.ForType<ClassComposedOfStructs>().PublicFields().Map());
-            
+
             StructSerializer.Map(ObjectSerializationMapper.ForType<Inner4>().PublicFields().Map());
             StructSerializer.Map(ObjectSerializationMapper.ForType<Inner3>().PublicFields().Map());
             StructSerializer.Map(ObjectSerializationMapper.ForType<Inner2>().PublicFields().Map());
             StructSerializer.Map(ObjectSerializationMapper.ForType<Inner1>().PublicFields().Map());
             StructSerializer.Map(ObjectSerializationMapper.ForType<Inner>().PublicFields().Map());
         }
-        
+
         public StructSerializerTests()
         {
         }
 
         [Fact]
-        public void Register_Throws_If_Type_Is_Already_Registered()
-            => Assert.IsType<InvalidOperationException>(
+        public void Register_Throws_If_Type_Is_Already_Registered() =>
+            Assert.IsType<InvalidOperationException>(
                 Record.Exception(() => StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>().Map()))
             );
-        
+
         [Fact]
         public void Serializes_Objects_With_Indirect_Activation_Correctly_Back_And_Forth()
         {
             var testValueIn = new IndirectlyActivatedTestClass();
-            
+
             StructSerializer.Map(ObjectSerializationMapper.ForType<IndirectlyActivatedTestClass>()
                                                           .PublicFields()
                                                           .IndirectActivation(() =>
@@ -122,19 +123,19 @@ namespace Fracture.Net.Tests.Serialization
                                                                return testValueIn;
                                                            })
                                                           .Map());
-            
+
             testValueIn.X = testValueIn.Y = 256;
-            
+
             var buffer = new byte[128];
-            
+
             StructSerializer.Serialize(testValueIn, buffer, 0);
-            
+
             var testValueOut = StructSerializer.Deserialize<IndirectlyActivatedTestClass>(buffer, 0);
-            
+
             Assert.Same(testValueIn, testValueOut);
             Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
         }
-        
+
         [Fact]
         public void Serializes_Structures_Composed_Of_Structures_Back_And_Forth()
         {
@@ -143,13 +144,13 @@ namespace Fracture.Net.Tests.Serialization
                 X = new Vec2(1.0f, 2.0f),
                 Z = new Vec2(3.0f, 4.0f)
             };
-            
+
             var buffer = new byte[128];
-            
+
             StructSerializer.Serialize(testValueIn, buffer, 0);
-            
+
             var testValueOut = StructSerializer.Deserialize<ClassComposedOfStructs>(buffer, 0);
-            
+
             Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
         }
 
@@ -172,13 +173,13 @@ namespace Fracture.Net.Tests.Serialization
                     }
                 }
             };
-            
+
             var buffer = new byte[128];
-            
+
             StructSerializer.Serialize(testValueIn, buffer, 0);
-            
+
             var testValueOut = StructSerializer.Deserialize<Inner>(buffer, 0);
-            
+
             Assert.Equal(JsonConvert.SerializeObject(testValueIn), JsonConvert.SerializeObject(testValueOut));
         }
     }

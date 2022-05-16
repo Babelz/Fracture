@@ -18,7 +18,7 @@ namespace Fracture.Engine.Ecs
         #region Events
         public event EventHandler Detaching;
         #endregion
-        
+
         #region Properties
         /// <summary>
         /// Gets the id of the entity that this behaviour is attached to.
@@ -28,7 +28,7 @@ namespace Fracture.Engine.Ecs
             get;
             private set;
         }
-        
+
         /// <summary>
         /// Gets boolean declaring whether the behaviour is attached.
         /// </summary>
@@ -38,14 +38,14 @@ namespace Fracture.Engine.Ecs
             private set;
         }
         #endregion
-        
+
         /// <summary>
         /// Creates new instance of behaviour. Use <see cref="BindingConstructorAttribute"/> to parametrize behaviour activation.
         /// </summary>
         protected Behavior()
         {
         }
-        
+
         /// <summary>
         /// Attaches the behaviour to given entity. When overriding call the base method.
         /// </summary>
@@ -53,11 +53,11 @@ namespace Fracture.Engine.Ecs
         {
             if (Attached)
                 throw new InvalidOperationException("already attached");
-            
+
             EntityId = entityId;
             Attached = true;
         }
-        
+
         /// <summary>
         /// Detaches the behaviour from the current entity. When overriding call the base method.
         /// </summary>
@@ -65,11 +65,11 @@ namespace Fracture.Engine.Ecs
         {
             if (!Attached)
                 throw new InvalidOperationException("already detached");
-            
+
             Attached = false;
 
             Detaching?.Invoke(this, EventArgs.Empty);
-            
+
             EntityId = 0;
         }
 
@@ -87,8 +87,8 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Attaches behaviour of given type to given entity.
         /// </summary>
-        void Attach<T>(int entityId, params IBindingValue[] bindings) where T : Behavior;
-        
+        void Attach<T>(int entityId, params IBindingValue [] bindings) where T : Behavior;
+
         /// <summary>
         /// Returns first behaviour of specified type to the caller that is attached to given entity. Throws exception if no behaviour exists. 
         /// </summary>
@@ -103,13 +103,13 @@ namespace Fracture.Engine.Ecs
         /// Returns boolean declaring whether given entity has behaviour of given type attached to it.
         /// </summary>
         bool Attached<T>(int entityId) where T : Behavior;
-        
+
         /// <summary>
         /// Gets all behaviours currently attached to given entity.
         /// </summary>
         IEnumerable<Behavior> BehaviorsOf(int entityId);
     }
-    
+
     public sealed class BehaviorSystem : GameEngineSystem, IBehaviorSystem
     {
         #region Static fields
@@ -117,63 +117,61 @@ namespace Fracture.Engine.Ecs
             new Pool<List<Behavior>>(
                 new LinearStorageObject<List<Behavior>>(
                     new LinearGrowthArray<List<Behavior>>()))
-            );
+        );
         #endregion
-        
+
         #region Fields
         private readonly ICsScriptingSystem scripts;
-        
+
         private readonly Dictionary<int, List<Behavior>> entityBehaviourLists;
-        
+
         private readonly IEventHandler<int, EntityEventArgs> entityDeletedEvents;
         #endregion
-        
+
         [BindingConstructor]
         public BehaviorSystem(ICsScriptingSystem scripts, IEventQueueSystem events)
         {
             this.scripts = scripts;
-        
+
             entityDeletedEvents = events.GetEventHandler<int, EntityEventArgs>();
-            
+
             entityBehaviourLists = new Dictionary<int, List<Behavior>>();
         }
-        
-        public void Attach<T>(int entityId, params IBindingValue[] bindings) where T : Behavior
+
+        public void Attach<T>(int entityId, params IBindingValue [] bindings) where T : Behavior
         {
             var behaviour = scripts.Load<T>(bindings);
-            
+
             if (!entityBehaviourLists.TryGetValue(entityId, out var behaviors))
             {
                 behaviors = ListPool.Take();
-                
+
                 entityBehaviourLists.Add(entityId, behaviors);
             }
-            
+
             behaviors.Add(behaviour);
-            
+
             behaviour.Attach(entityId);
         }
-        
-        public T FirstOfType<T>(int entityId) where T : Behavior
-            => (T)entityBehaviourLists[entityId].First(b => b is T);
-        
+
+        public T FirstOfType<T>(int entityId) where T : Behavior => (T)entityBehaviourLists[entityId].First(b => b is T);
+
         public bool TryGetFirstOfType<T>(int entityId, out T behavior) where T : Behavior
         {
             behavior = null;
-            
+
             if (!entityBehaviourLists.ContainsKey(entityId))
                 return false;
-            
+
             behavior = (T)entityBehaviourLists[entityId].FirstOrDefault(b => b is T);
-            
+
             return behavior != null;
         }
 
-        public bool Attached<T>(int entityId) where T : Behavior
-            => entityBehaviourLists.ContainsKey(entityId) && entityBehaviourLists[entityId].Any(b => b is T);
-        
-        public IEnumerable<Behavior> BehaviorsOf(int entityId)
-            => entityBehaviourLists[entityId];
+        public bool Attached<T>(int entityId) where T : Behavior =>
+            entityBehaviourLists.ContainsKey(entityId) && entityBehaviourLists[entityId].Any(b => b is T);
+
+        public IEnumerable<Behavior> BehaviorsOf(int entityId) => entityBehaviourLists[entityId];
 
         public override void Update(IGameEngineTime time)
         {
@@ -181,13 +179,13 @@ namespace Fracture.Engine.Ecs
             {
                 if (!entityBehaviourLists.TryGetValue(letter.Args.EntityId, out var behaviors))
                     return LetterHandlingResult.Retain;
-                
+
                 foreach (var behavior in behaviors.Where(behavior => behavior.Attached))
                     behavior.Detach();
-                
+
                 entityBehaviourLists.Remove(letter.Args.EntityId);
                 ListPool.Return(behaviors);
-                
+
                 return LetterHandlingResult.Retain;
             });
         }

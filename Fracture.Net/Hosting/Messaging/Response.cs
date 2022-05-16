@@ -22,61 +22,58 @@ namespace Fracture.Net.Hosting.Messaging
             /// Request did not return any response. 
             /// </summary>
             Empty = 0,
-        
+
             /// <summary>
             /// Request has handled successfully.
             /// </summary>
             Ok,
-        
+
             /// <summary>
             /// Error occurred inside the handler while handling the message.
             /// </summary>
             ServerError,
-        
+
             /// <summary>
             /// Request received from the peer was badly formatted or invalid.
             /// </summary>
             BadRequest,
-        
+
             /// <summary>
             /// Request received from the peer had no route.
             /// </summary>
             NoRoute,
-        
+
             /// <summary>
             /// Peer connection should be reset. 
             /// </summary>
             Reset
         }
-        
+
         #region Static fields
         private static readonly HashSet<Code> SuccessfulStatusCodes = new HashSet<Code>
         {
             Code.Ok,
             Code.Reset
         };
-        
+
         private static readonly HashSet<Code> UnsuccessfulStatusCodes = new HashSet<Code>
         {
             Code.ServerError,
             Code.BadRequest,
             Code.NoRoute
         };
-        #endregion    
-        
+        #endregion
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Empty(Code code)
-            => code == Code.Empty;
-        
+        public static bool Empty(Code code) => code == Code.Empty;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IndicatesSuccess(Code code)
-            => SuccessfulStatusCodes.Contains(code);
-        
+        public static bool IndicatesSuccess(Code code) => SuccessfulStatusCodes.Contains(code);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IndicatesFailure(Code code)
-            => UnsuccessfulStatusCodes.Contains(code);
+        public static bool IndicatesFailure(Code code) => UnsuccessfulStatusCodes.Contains(code);
     }
-    
+
     /// <summary>
     /// Interface representing response object returned by request handlers.
     /// </summary>
@@ -90,7 +87,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the response message.
         /// </summary>
@@ -98,7 +95,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets exception that occurred during request handling.
         /// </summary>
@@ -106,7 +103,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Returns boolean declaring whether this response contains exception.
         /// </summary>
@@ -114,7 +111,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Returns boolean declaring whether this response contains reply.
         /// </summary>
@@ -123,20 +120,20 @@ namespace Fracture.Net.Hosting.Messaging
             get;
         }
         #endregion
-        
+
         /// <summary>
         /// Decorates the response object to contain successful response.
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
         void Ok(in IMessage message = null);
-        
+
         /// <summary>
         /// Decorates the response object to contain server error response.
         /// </summary>
         /// <param name="message">optional message associated with the response</param>
         /// <param name="exception">optional exception associated with the response</param>
         void ServerError(in IMessage message = null, Exception exception = null);
-        
+
         /// <summary>
         /// Decorates the response object to contain bad request error response.
         /// </summary>
@@ -150,13 +147,13 @@ namespace Fracture.Net.Hosting.Messaging
         /// <param name="message">optional message associated with the response</param>
         /// <param name="exception">optional exception associated with the response</param>
         void Reset(in IMessage message = null, Exception exception = null);
-        
+
         /// <summary>
         /// Decorates the response object to contain no route response.
         /// </summary>
         void NoRoute();
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IResponse"/>. This implementation can be pooled and thus is mutable.
     /// </summary>
@@ -175,38 +172,38 @@ namespace Fracture.Net.Hosting.Messaging
             get;
             private set;
         }
-        
+
         public IMessage Message
         {
             get;
             private set;
         }
-        
+
         public Exception Exception
         {
             get;
             private set;
         }
-        
+
         public bool ContainsException => Exception != null;
-        
+
         public bool ContainsReply => Message != null;
         #endregion
 
         public Response()
         {
         }
-        
+
         private void AssertEmpty()
         {
             if (!ResponseStatus.Empty(StatusCode))
                 throw new InvalidOperationException("response is not empty");
         }
-        
+
         public void Ok(in IMessage message = null)
         {
             AssertEmpty();
-               
+
             Message    = message;
             StatusCode = ResponseStatus.Code.Ok;
         }
@@ -228,7 +225,7 @@ namespace Fracture.Net.Hosting.Messaging
             Exception  = exception;
             StatusCode = ResponseStatus.Code.BadRequest;
         }
-        
+
         public void Reset(in IMessage message = null, Exception exception = null)
         {
             AssertEmpty();
@@ -237,33 +234,32 @@ namespace Fracture.Net.Hosting.Messaging
             Exception  = exception;
             StatusCode = ResponseStatus.Code.Reset;
         }
-        
+
         public void NoRoute()
         {
             AssertEmpty();
-            
+
             StatusCode = ResponseStatus.Code.NoRoute;
         }
-            
+
         public void Clear()
         {
             StatusCode = default;
             Message    = default;
             Exception  = default;
         }
-        
-        public override string ToString()
-            => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode()
-            => HashUtils.Create()
-                        .Append(StatusCode)
-                        .Append(Message)
-                        .Append(Exception);
-        
+        public override string ToString() => JsonConvert.SerializeObject(this);
+
+        public override int GetHashCode() =>
+            HashUtils.Create()
+                     .Append(StatusCode)
+                     .Append(Message)
+                     .Append(Exception);
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Response Take() => Pool.Take();
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Return(Response response) => Pool.Return(response);
     }

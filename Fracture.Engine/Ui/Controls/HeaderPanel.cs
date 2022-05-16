@@ -53,8 +53,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void Header_StyleChanged(object sender, EventArgs e)
-            => CenterHeaderParagraph();
+        private void Header_StyleChanged(object sender, EventArgs e) => CenterHeaderParagraph();
         #endregion
 
         private void CenterHeaderParagraph()
@@ -69,10 +68,8 @@ namespace Fracture.Engine.Ui.Controls
             var headerActualHeight  = header.ActualSize.Y;
 
             var headerX = 0.5f - header.Size.X * 0.5f;
-            var headerY = totalHeight > headerActualHeight ? 
-                          totalHeight - header.ActualSize.Y * 0.5f :
-                          totalHeight;
-            
+            var headerY = totalHeight > headerActualHeight ? totalHeight - header.ActualSize.Y * 0.5f : totalHeight;
+
             header.Position = new Vector2(headerX, headerY);
         }
 
@@ -90,7 +87,7 @@ namespace Fracture.Engine.Ui.Controls
 
             Add(header);
         }
-        
+
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
             var texture     = Style.Get<Texture2D>($"{UiStyleKeys.Target.HeaderPanel}\\{UiStyleKeys.Texture.Normal}");
@@ -99,7 +96,7 @@ namespace Fracture.Engine.Ui.Controls
             var destination = GetRenderDestinationRectangle();
 
             fragment.DrawSurface(texture, center, destination, color);
-            
+
             base.InternalDraw(fragment, time);
         }
     }

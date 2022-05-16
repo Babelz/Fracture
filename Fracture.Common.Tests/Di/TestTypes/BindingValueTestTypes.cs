@@ -15,7 +15,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
             get;
         }
         #endregion
-        
+
         [BindingConstructor]
         public BindingValueCtorTestClass(Dep0 a, Dep1 b)
         {
@@ -23,7 +23,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
             B = b;
         }
     }
-    
+
     public sealed class BindingValuePropertyTestClass
     {
         #region Properties
@@ -46,7 +46,7 @@ namespace Fracture.Common.Tests.Di.TestTypes
         {
         }
     }
-    
+
     public sealed class BindingValueMethodTestClass
     {
         #region Properties
@@ -66,10 +66,10 @@ namespace Fracture.Common.Tests.Di.TestTypes
         public BindingValueMethodTestClass()
         {
         }
-        
+
         [BindingMethod]
         private void SetA(Dep0 a) => A = a;
-        
+
         [BindingMethod]
         private void SetB(Dep1 b) => B = b;
     }

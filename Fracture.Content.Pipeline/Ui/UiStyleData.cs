@@ -11,7 +11,6 @@ namespace Fracture.Content.Pipeline.Ui
         }
         #endregion
 
-        public UiStyleData(string contents)
-            => Contents = !string.IsNullOrEmpty(contents) ? contents : throw new ArgumentNullException(nameof(contents));
+        public UiStyleData(string contents) => Contents = !string.IsNullOrEmpty(contents) ? contents : throw new ArgumentNullException(nameof(contents));
     }
 }

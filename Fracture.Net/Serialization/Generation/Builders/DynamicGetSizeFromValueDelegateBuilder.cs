@@ -11,11 +11,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// Delegate for wrapping functions for determining objects sizes from run types.
     /// </summary>
     public delegate ushort DynamicGetSizeFromValueDelegate(object value);
-    
+
     public sealed class DynamicGetSizeFromValueDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Static fields
-        private static readonly Predicate<SerializationValue>[] NonConstRunTypePredicates = 
+        private static readonly Predicate<SerializationValue> [] NonConstRunTypePredicates =
         {
             (t) => t.Type.IsGenericType && t.Type.GetGenericTypeDefinition() == typeof(List<>),
             (t) => t.Type.IsGenericType && t.Type.GetGenericTypeDefinition() == typeof(Dictionary<,>),
@@ -24,19 +24,19 @@ namespace Fracture.Net.Serialization.Generation.Builders
             (t) => t.IsNullAssignable
         };
         #endregion
-        
+
         #region Fields
         private LocalBuilder localSize;
-        
+
         private bool valuesSizeIsConst;
         #endregion
-        
+
         public DynamicGetSizeFromValueDelegateBuilder(in ObjectSerializationValueRanges valueRanges, Type serializationType)
             : base(valueRanges,
                    serializationType,
                    new DynamicMethodBuilder(
-                       $"GetSizeFromValue", 
-                       typeof(ushort), 
+                       $"GetSizeFromValue",
+                       typeof(ushort),
                        new []
                        {
                            typeof(object) // Argument 0.
@@ -45,11 +45,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             valuesSizeIsConst = true;
         }
-        
+
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
         {
             return value =>
-            {    
+            {
                 try
                 {
                     return method(value);
@@ -64,11 +64,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueAsConstClosure(DynamicGetSizeFromValueDelegate method)
         {
             ushort size = 0;
-            
+
             return value =>
             {
                 if (size != 0u) return size;
-                
+
                 try
                 {
                     size = method(value);
@@ -81,11 +81,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 return size;
             };
         }
-        
+
         private void UpdateValuesSizeIsConstFlag(SerializationValue value)
         {
             if (!valuesSizeIsConst) return;
-            
+
             if (NonConstRunTypePredicates.Any(p => p(value)))
                 valuesSizeIsConst = false;
         }
@@ -100,7 +100,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             if (ValueRanges.NullableValuesCount == 0)
                 return;
-            
+
             // Load bit field size to stack.
             DynamicMethodBuilder.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount) + Protocol.ContentLength.Size);
             // Load local size to stack.
@@ -124,7 +124,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             // Push serialization value to stack.
             EmitLoadSerializationValue(value);
-            
+
             // Push null to stack.
             DynamicMethodBuilder.Emit(OpCodes.Ldnull);
             // Check if serialization value is null.
@@ -133,10 +133,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
             var notNull = DynamicMethodBuilder.DefineLabel();
             DynamicMethodBuilder.Emit(OpCodes.Brfalse_S, notNull);
-            
+
             // Push value of the field to stack boxed.
             EmitLoadSerializationValue(value);
-            
+
             DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             DynamicMethodBuilder.Emit(OpCodes.Add);
@@ -156,16 +156,16 @@ namespace Fracture.Net.Serialization.Generation.Builders
             UpdateValuesSizeIsConstFlag(value);
 
             EmitLoadSerializationValueAddressToStack(value);
-            
+
             // Get boolean declaring if the nullable is null.
             DynamicMethodBuilder.Emit(OpCodes.Call, value.Type.GetProperty("HasValue")!.GetMethod);
 
             // Branch based on the value, if it is not null proceed to serialize, else branch to mask it as null.
             var notNull = DynamicMethodBuilder.DefineLabel();
             DynamicMethodBuilder.Emit(OpCodes.Brfalse_S, notNull);
-            
+
             EmitLoadSerializationValue(value);
-            
+
             DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
             DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             DynamicMethodBuilder.Emit(OpCodes.Add);
@@ -182,10 +182,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
         public void EmitGetSizeOfValue(in SerializationValue value, Type valueSerializerType)
         {
             EmitLoadSerializationValue(value);
-            
+
             // Call get size from value.
             DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType, value.Type));
-            
+
             // Push local size to stack.
             DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             // Add local + value size.
@@ -193,35 +193,35 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Store results to local size.
             DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localSize);
         }
-        
+
         public new void EmitLocals()
         {
             base.EmitLocals();
-            
+
             EmitStoreArgumentValueToLocal();
-            
+
             // Local 0: total size of the value.
             localSize = DynamicMethodBuilder.DeclareLocal(typeof(ushort));
         }
 
         public DynamicGetSizeFromValueDelegate Build()
-        {   
+        {
             DynamicMethodBuilder.Emit(OpCodes.Ldloc_S, localSize);
             DynamicMethodBuilder.Emit(OpCodes.Ret);
-            
+
             try
             {
                 var method = (DynamicGetSizeFromValueDelegate)DynamicMethodBuilder.CreateDelegate(typeof(DynamicGetSizeFromValueDelegate));
-                
+
                 if (ValueRanges.NullableValuesCount == 0 && valuesSizeIsConst)
                     return CreateGetSizeFromValueAsConstClosure(method);
-                
+
                 return CreateGetSizeFromValueDelegate(method);
-            } 
+            }
             catch (Exception e)
             {
                 Log.Error(e, $"error occurred while building {nameof(DynamicSerializeDelegate)}");
-                
+
                 throw;
             }
         }

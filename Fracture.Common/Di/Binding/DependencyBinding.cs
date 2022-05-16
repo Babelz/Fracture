@@ -15,7 +15,7 @@ namespace Fracture.Common.Di.Binding
         /// </summary>
         void Bind(object instance);
     }
-    
+
     /// <summary>
     /// Dependency binding that binds to method bindings of objects.
     /// </summary>
@@ -34,11 +34,11 @@ namespace Fracture.Common.Di.Binding
         private static void AssertTypeHasBindingMethods(Type type)
         {
             if (!DependencyTypeMapper.HasBindingMethods(type))
-                throw new DependencyBinderException(type, 
+                throw new DependencyBinderException(type,
                                                     $"type {type.Name} does not contain any methods " +
                                                     $"annotated with {nameof(BindingMethodAttribute)}");
         }
-        
+
         private void InternalBind(object instance)
         {
             var methods = DependencyTypeMapper.GetBindingMethods(instance.GetType()).ToArray();
@@ -49,11 +49,11 @@ namespace Fracture.Common.Di.Binding
             foreach (var method in methods)
                 method.Invoke(instance, locator.GetMethodBindingValues(method));
         }
-        
+
         public void Bind(object instance)
         {
             AssertTypeHasBindingMethods(instance.GetType());
-            
+
             InternalBind(instance);
         }
     }
@@ -71,7 +71,7 @@ namespace Fracture.Common.Di.Binding
         {
             this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingProperties(Type type)
         {
@@ -80,7 +80,7 @@ namespace Fracture.Common.Di.Binding
                                                     $"type {type.Name} does not contain any properties " +
                                                     $"annotated with {nameof(BindingPropertyAttribute)}");
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ValidateBindingProperties(Type type)
         {
@@ -92,19 +92,19 @@ namespace Fracture.Common.Di.Binding
         {
             var properties = DependencyTypeMapper.GetBindingProperties(instance.GetType()).ToArray();
 
-            if (!properties.All(locator.BindingExist)) 
+            if (!properties.All(locator.BindingExist))
                 throw new DependencyBinderException(instance.GetType(), "unable to bind to property, missing binding value");
-            
+
             foreach (var property in properties)
                 property.SetValue(instance, locator.GetPropertyBindingValue(property));
         }
-        
+
         public void Bind(object instance)
-        {    
+        {
             AssertTypeHasBindingProperties(instance.GetType());
-            
+
             ValidateBindingProperties(instance.GetType());
-            
+
             InternalBind(instance);
         }
     }

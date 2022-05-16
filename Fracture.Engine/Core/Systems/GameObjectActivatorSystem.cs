@@ -13,14 +13,14 @@ namespace Fracture.Engine.Core.Systems
         /// <summary>
         /// Attempts to active given type using optional bindings. If object of type can't be activated and exception is thrown.
         /// </summary>
-        T Activate<T>(params IBindingValue[] bindings);
-        
+        T Activate<T>(params IBindingValue [] bindings);
+
         /// <summary>
         /// Attempts to active given type using optional bindings. If object of type can't be activated and exception is thrown.
         /// </summary>
-        object Activate(Type type, params IBindingValue[] bindings);
+        object Activate(Type type, params IBindingValue [] bindings);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IGameObjectActivatorSystem"/>.
     /// </summary>
@@ -29,14 +29,11 @@ namespace Fracture.Engine.Core.Systems
         #region Fields
         private readonly IObjectActivator activator;
         #endregion
-        
-        public GameObjectActivatorSystem(IObjectActivator activator)
-            => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
-        
-        public T Activate<T>(params IBindingValue[] bindings)
-            => activator.Activate<T>(bindings);
 
-        public object Activate(Type type, params IBindingValue[] bindings)
-            => activator.Activate(type, bindings);
+        public GameObjectActivatorSystem(IObjectActivator activator) => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+
+        public T Activate<T>(params IBindingValue [] bindings) => activator.Activate<T>(bindings);
+
+        public object Activate(Type type, params IBindingValue [] bindings) => activator.Activate(type, bindings);
     }
 }

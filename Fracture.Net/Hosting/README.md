@@ -1,11 +1,14 @@
 ### Hosting
-Fracture hosting provides two application models for creating net based applications using different communication protocols. Currently only TCP protocol is 
+
+Fracture hosting provides two application models for creating net based applications using different communication protocols. Currently only TCP protocol is
 supported but UDP is planned when my personal needs require this.
 
 ## Application loop
+
 ![alt text](https://github.com/babelz/Fracture/blob/master/Documents/Images/application-loop.png?raw=true)
 
 ## Configuring the message schema using Fracture.Net.Serialization
+
 ```csharp
 // You can build the schema directly using the functionality provided by the Fracture.Net.Serialization
 // but the static MessageSchema class contains some helpers for making the schema configuration 
@@ -36,6 +39,7 @@ MessageSchema.ForMessage<PlayerInput.AuthorizePosition>(s => s.PublicProperties(
 ```
 
 ## Standalone application model and setup
+
 ```csharp
 private static void Main(string[] args)
 {
@@ -61,6 +65,7 @@ private static void Main(string[] args)
 ```
 
 ## Service and scripting application model
+
 ```csharp
 private static void Main(string[] args)
 {

@@ -16,13 +16,13 @@ namespace Fracture.Common.Reflection
         {
             // Validate the delegate return type.
             var delegateMethod = delegateType.GetMethod("Invoke");
-            
+
             if (delegateMethod == null)
                 throw new InvalidOperationException("invalid delegate type");
 
             if (delegateMethod.ReturnType != constructor.DeclaringType)
                 throw new InvalidOperationException("the return type of the delegate must match the constructors declaring type");
-            
+
             // Validate the signatures.
             var delParams        = delegateMethod.GetParameters();
             var constructorParam = constructor.GetParameters();

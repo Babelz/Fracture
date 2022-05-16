@@ -10,7 +10,7 @@ namespace Fracture.Engine.Ui.Controls
     {
         new void Clear();
     }
-    
+
     public abstract class DynamicContainerControl : StaticContainerControl, IDynamicContainerControl
     {
         protected DynamicContainerControl()
@@ -22,10 +22,8 @@ namespace Fracture.Engine.Ui.Controls
         {
         }
 
-        public virtual void Add(IControl control)
-            => Children.Add(control);
+        public virtual void Add(IControl control) => Children.Add(control);
 
-        public virtual void Remove(IControl control)
-            => Children.Remove(control);
+        public virtual void Remove(IControl control) => Children.Remove(control);
     }
 }

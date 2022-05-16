@@ -17,23 +17,22 @@ namespace Fracture.Net.Hosting
         #region Fields
         private readonly Kernel binder;
         #endregion
-        
+
         private ApplicationBuilder(IServer server)
         {
             binder = new Kernel(DependencyBindingOptions.BaseType | DependencyBindingOptions.Interfaces);
-         
+
             LogBinding(server);
-            
+
             binder.Bind(server ?? throw new ArgumentNullException(nameof(server)));
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(Type type, string asWhat = "")
-            => Log.Information($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(object value, string asWhat = "")
-            => LogBinding(value.GetType(), asWhat);
+        private static void LogBinding(Type type, string asWhat = "") =>
+            Log.Information($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void LogBinding(object value, string asWhat = "") => LogBinding(value.GetType(), asWhat);
 
         /// <summary>
         /// Registers custom request router for application.
@@ -41,12 +40,12 @@ namespace Fracture.Net.Hosting
         public ApplicationBuilder Router(IRequestRouter router)
         {
             LogBinding(router);
-            
+
             binder.Bind(router ?? throw new ArgumentNullException(nameof(router)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Registers custom notification center for application.
         /// </summary>
@@ -55,10 +54,10 @@ namespace Fracture.Net.Hosting
             LogBinding(notifications);
 
             binder.Bind(notifications ?? throw new ArgumentNullException(nameof(notifications)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Registers custom request middleware for application.
         /// </summary>
@@ -67,31 +66,31 @@ namespace Fracture.Net.Hosting
             LogBinding(requestMiddleware, "as request middleware");
 
             binder.Bind(requestMiddleware ?? throw new ArgumentNullException(nameof(requestMiddleware)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Registers custom response middleware for application. 
         /// </summary>
         public ApplicationBuilder ResponseMiddleware(IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware)
         {
             LogBinding(responseMiddleware, "as response middleware");
-            
+
             binder.Bind(responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Registers custom notification middleware for application. 
         /// </summary>
         public ApplicationBuilder NotificationMiddleware(IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware)
         {
             LogBinding(notificationMiddleware, "as notification middleware");
-            
+
             binder.Bind(notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware)));
-            
+
             return this;
         }
 
@@ -101,12 +100,12 @@ namespace Fracture.Net.Hosting
         public ApplicationBuilder Timer(IApplicationTimer timer)
         {
             LogBinding(timer);
-            
+
             binder.Bind(timer ?? throw new ArgumentNullException(nameof(timer)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Register custom message serializer for the application to use.
         /// </summary>
@@ -115,19 +114,19 @@ namespace Fracture.Net.Hosting
             LogBinding(serializer);
 
             binder.Bind(serializer ?? throw new ArgumentNullException(nameof(serializer)));
-            
+
             return this;
         }
-        
+
         /// <summary>
         /// Set application peer pipeline fidelity level. If left un set this value defaults to <see cref="PeerPipelineFidelity.Loose"/>.
         /// </summary>
         public ApplicationBuilder Fidelity(PeerPipelineFidelity fidelity)
         {
             LogBinding(fidelity, "as peer pipeline configuration variable");
-            
+
             binder.Bind(fidelity);
-            
+
             return this;
         }
 
@@ -138,41 +137,40 @@ namespace Fracture.Net.Hosting
         public Application Build()
         {
             Log.Information("building application");
-            
+
             // Check application bindings and bind default values if any are missing.
-            if (!binder.Exists<IRequestRouter>()) 
+            if (!binder.Exists<IRequestRouter>())
                 binder.Bind<RequestRouter>();
-            
-            if (!binder.Exists<INotificationCenter>()) 
+
+            if (!binder.Exists<INotificationCenter>())
                 binder.Bind<NotificationCenter>();
-            
-            if (!binder.Exists<IMiddlewarePipeline<RequestMiddlewareContext>>()) 
+
+            if (!binder.Exists<IMiddlewarePipeline<RequestMiddlewareContext>>())
                 binder.Bind<MiddlewarePipeline<RequestMiddlewareContext>>();
-            
-            if (!binder.Exists<IMiddlewarePipeline<NotificationMiddlewareContext>>()) 
+
+            if (!binder.Exists<IMiddlewarePipeline<NotificationMiddlewareContext>>())
                 binder.Bind<MiddlewarePipeline<NotificationMiddlewareContext>>();
-            
-            if (!binder.Exists<IMiddlewarePipeline<RequestResponseMiddlewareContext>>()) 
+
+            if (!binder.Exists<IMiddlewarePipeline<RequestResponseMiddlewareContext>>())
                 binder.Bind<MiddlewarePipeline<RequestResponseMiddlewareContext>>();
-            
-            if (!binder.Exists<IMessageSerializer>()) 
+
+            if (!binder.Exists<IMessageSerializer>())
                 binder.Bind<MessageSerializer>();
-            
-            if (!binder.Exists<IApplicationTimer>()) 
+
+            if (!binder.Exists<IApplicationTimer>())
                 binder.Bind<ApplicationTimer>();
-            
-            if (!binder.Exists<PeerPipelineFidelity>()) 
+
+            if (!binder.Exists<PeerPipelineFidelity>())
                 binder.Bind(PeerPipelineFidelity.Receive);
-            
+
             // Initialize application.
             return binder.Activate<Application>();
         }
-        
+
         /// <summary>
         /// Register the server for use by the application. 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ApplicationBuilder FromServer(IServer server)
-            => new ApplicationBuilder(server);
+        public static ApplicationBuilder FromServer(IServer server) => new ApplicationBuilder(server);
     }
 }

@@ -18,49 +18,55 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 get;
                 set;
             }
+
             public int? MaybeX
             {
                 get;
                 set;
             }
-            
+
             public string S
             {
                 get;
                 set;
             }
+
             public string? MaybeS
             {
                 get;
                 set;
             }
-            
-            public int[] Numbers
+
+            public int [] Numbers
             {
                 get;
                 set;
             }
-            public int?[] NullableNumbers
+
+            public int? [] NullableNumbers
             {
                 get;
                 set;
             }
-            public int[]? MaybeNumbers
+
+            public int []? MaybeNumbers
             {
                 get;
                 set;
             }
-            
+
             public Dictionary<string, float> Map
             {
                 get;
                 set;
             }
+
             public Dictionary<int, string?> NullableMap
             {
                 get;
                 set;
             }
+
             public Dictionary<int, int>? MaybeMap
             {
                 get;
@@ -69,16 +75,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
             #endregion
         }
         #endregion
-        
+
         static DynamicSerializationTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int?[]), typeof(int[]), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>) });    
+            ObjectSerializerAnalyzer.Analyze(new []
+            {
+                typeof(int? []), typeof(int []), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>)
+            });
         }
-        
+
         public DynamicSerializationTests()
         {
         }
-        
+
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_All_Field_Types()
         {
@@ -86,37 +95,39 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                    .PublicFields()
                                                    .PublicProperties()
                                                    .Map();
-            
+
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             var serializationOps   = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
-            var deserializationValueRanges = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), deserializationOps);
-            var serializationValueRanges   = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), serializationOps);
+            var deserializationValueRanges =
+                ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), deserializationOps);
+            var serializationValueRanges =
+                ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), serializationOps);
 
             var deserializeDelegate = ObjectSerializerInterpreter.InterpretDynamicDeserializeDelegate(
                 deserializationValueRanges,
-                typeof(AllFieldTypesTestClass), 
+                typeof(AllFieldTypesTestClass),
                 deserializationOps
             );
-            
+
             var serializeDelegate = ObjectSerializerInterpreter.InterpretDynamicSerializeDelegate(
                 serializationValueRanges,
                 typeof(AllFieldTypesTestClass),
                 serializationOps
             );
-            
+
             var testObjectIn = new AllFieldTypesTestClass
             {
                 X      = 200,
                 MaybeX = null,
-                
+
                 S      = "hello world!",
                 MaybeS = "this should not be null",
 
                 Numbers         = new [] { 200, 300, 400, 500 },
-                NullableNumbers = new int?[] { null, null, 200, null, null },
+                NullableNumbers = new int? [] { null, null, 200, null, null },
                 MaybeNumbers    = null,
-                
+
                 Map = new Dictionary<string, float>
                 {
                     { "x", 200.0f },
@@ -138,13 +149,13 @@ namespace Fracture.Net.Tests.Serialization.Generation
             };
 
             var buffer = new byte[256];
-            
+
             serializeDelegate(testObjectIn, buffer, 0);
-            
+
             var testObjectOut = (AllFieldTypesTestClass)deserializeDelegate(buffer, 0);
-            
+
             // This is bit hacky but least painful way i came up quickly to check for object equality without writing custom comparer. 
-            Assert.Equal(JsonConvert.SerializeObject(testObjectIn), JsonConvert.SerializeObject(testObjectOut)); 
+            Assert.Equal(JsonConvert.SerializeObject(testObjectIn), JsonConvert.SerializeObject(testObjectOut));
         }
     }
 }

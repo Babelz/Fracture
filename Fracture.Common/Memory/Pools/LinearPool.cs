@@ -47,9 +47,9 @@ namespace Fracture.Common.Memory.Pools
 
         private void Allocate()
         {
-            if (storage.Count != 0) 
+            if (storage.Count != 0)
                 return;
-            
+
             var i = 0;
 
             while (i < allocations)
@@ -60,18 +60,17 @@ namespace Fracture.Common.Memory.Pools
             }
         }
 
-        public void Return(T element)
-            => storage.Return(element);
-        
+        public void Return(T element) => storage.Return(element);
+
         public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {
             if (storage.Count == 0)
                 Allocate();
 
             var element = storage.Take();
-            
+
             decorator?.Invoke(element);
-            
+
             return element;
         }
     }

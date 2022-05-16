@@ -14,10 +14,10 @@ namespace Fracture.Engine.Core.Systems
             get;
         }
         #endregion
-        
+
         IGameEngineTime Snapshot(int pastFrameIndex);
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IGameTimeSystem"/>.
     /// </summary>
@@ -50,18 +50,18 @@ namespace Fracture.Engine.Core.Systems
 
             public GameEngineTimeSnapshot(IGameEngineTime time)
             {
-                StartTime = time.StartTime;   
-                Elapsed   = time.Elapsed;   
-                Total     = time.Total;   
-                Tick      = time.Tick;   
+                StartTime = time.StartTime;
+                Elapsed   = time.Elapsed;
+                Total     = time.Total;
+                Tick      = time.Tick;
             }
         }
         #endregion
-        
+
         #region Fields
         private readonly CircularBuffer<GameEngineTimeSnapshot> snapshots;
         #endregion
-        
+
         #region Properties
         public IGameEngineTime Current
         {
@@ -74,11 +74,9 @@ namespace Fracture.Engine.Core.Systems
             Current   = time;
             snapshots = new CircularBuffer<GameEngineTimeSnapshot>(60);
         }
-        
-        public IGameEngineTime Snapshot(int pastFrameIndex)
-            => snapshots.AtOffset(pastFrameIndex);
 
-        public override void Update(IGameEngineTime time)
-            => snapshots.Push(new GameEngineTimeSnapshot(Current));
+        public IGameEngineTime Snapshot(int pastFrameIndex) => snapshots.AtOffset(pastFrameIndex);
+
+        public override void Update(IGameEngineTime time) => snapshots.Push(new GameEngineTimeSnapshot(Current));
     }
 }

@@ -13,7 +13,7 @@ namespace Fracture.Content.Pipeline.Ui
         public override UiStyleData Import(string filename, ContentImporterContext context)
         {
             using var sr = new StreamReader(filename);
-            
+
             return new UiStyleData(sr.ReadToEnd());
         }
     }

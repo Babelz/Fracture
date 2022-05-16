@@ -12,7 +12,7 @@ namespace Fracture.Common.Memory.Pools
         private readonly ICloneable<T> prototype;
         #endregion
 
-        public PrototypePool(IStorageObject<T> storage, ICloneable<T> prototype, int initialStoredObjectsCount, int capacity) 
+        public PrototypePool(IStorageObject<T> storage, ICloneable<T> prototype, int initialStoredObjectsCount, int capacity)
             : base(storage, initialStoredObjectsCount, capacity)
         {
             this.prototype = prototype ?? throw new ArgumentNullException(nameof(prototype));

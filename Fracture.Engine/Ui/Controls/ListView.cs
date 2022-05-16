@@ -19,8 +19,7 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ListViewColumnEventArgs(ListViewColumnDefinition column)
-            => Column = column;
+        public ListViewColumnEventArgs(ListViewColumnDefinition column) => Column = column;
     }
 
     public sealed class ListViewItemEventArgs : EventArgs
@@ -32,10 +31,9 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ListViewItemEventArgs(IListViewItem item)
-            => Item = item;
+        public ListViewItemEventArgs(IListViewItem item) => Item = item;
     }
-    
+
     public sealed class ListViewColumnDefinition
     {
         #region Properties
@@ -43,6 +41,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         public string Name
         {
             get;
@@ -55,7 +54,7 @@ namespace Fracture.Engine.Ui.Controls
             Name = name;
         }
     }
-    
+
     public interface IListViewItem
     {
         #region Events
@@ -67,6 +66,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             get;
         }
+
         IEnumerable<string> ColumnNames
         {
             get;
@@ -83,7 +83,7 @@ namespace Fracture.Engine.Ui.Controls
 
         void UpdateUserData();
     }
-    
+
     public class ListViewItem : IListViewItem
     {
         #region Fields
@@ -91,7 +91,7 @@ namespace Fracture.Engine.Ui.Controls
 
         private object userData;
         #endregion
-        
+
         #region Events
         public event EventHandler UserDataChanged;
         #endregion
@@ -106,7 +106,7 @@ namespace Fracture.Engine.Ui.Controls
                     return;
 
                 userData = value;
-                
+
                 UserDataChanged?.Invoke(this, EventArgs.Empty);
             }
         }
@@ -116,19 +116,17 @@ namespace Fracture.Engine.Ui.Controls
         public IEnumerable<string> ColumnNames => columns.Keys;
         #endregion
 
-        public ListViewItem(IDictionary<string, IControl> columns)
-            => this.columns = columns ?? throw new ArgumentNullException(nameof(columns));
+        public ListViewItem(IDictionary<string, IControl> columns) => this.columns = columns ?? throw new ArgumentNullException(nameof(columns));
 
         public ListViewItem(IDictionary<string, IControl> columns, object userData)
-            : this(columns) => this.userData = userData;
-        
-        public IControl GetColumnControl(string column)
-            => columns[column];
-        
-        public void UpdateUserData()
-            => UserDataChanged?.Invoke(this, EventArgs.Empty);
+            : this(columns) =>
+            this.userData = userData;
+
+        public IControl GetColumnControl(string column) => columns[column];
+
+        public void UpdateUserData() => UserDataChanged?.Invoke(this, EventArgs.Empty);
     }
-    
+
     public sealed class ListView : StaticContainerControl
     {
         #region Fields
@@ -138,7 +136,7 @@ namespace Fracture.Engine.Ui.Controls
 
         private readonly List<Button> columnButtons;
         private readonly ContentRoot itemsContent;
-        
+
         private readonly ImageBox selectedImageBox;
         private readonly ImageBox hoverImageBox;
 
@@ -153,7 +151,7 @@ namespace Fracture.Engine.Ui.Controls
 
         #region Properties
         public int ColumnsCount => columns.Count;
-        public int RowsCount    => items.Count;
+        public int RowsCount => items.Count;
 
         public IEnumerable<IListViewItem> Items => items;
 
@@ -163,7 +161,7 @@ namespace Fracture.Engine.Ui.Controls
             private set
             {
                 selectedItem = value;
-                
+
                 SelectedItemChanged?.Invoke(this, new ListViewItemEventArgs(SelectedItem));
             }
         }
@@ -237,7 +235,7 @@ namespace Fracture.Engine.Ui.Controls
 
             hoverImageBox.Hide();
             selectedImageBox.Hide();
-            
+
             Children.Add(itemsContent);
 
             UpdateLayout();
@@ -246,7 +244,7 @@ namespace Fracture.Engine.Ui.Controls
 
             SelectedIndex = -1;
         }
-        
+
         #region Event handlers
         private void ListView_MouseInputReceived(object sender, ControlMouseInputEventArgs e)
         {
@@ -256,20 +254,20 @@ namespace Fracture.Engine.Ui.Controls
             if (Mouse.IsHovering(itemsContent))
             {
                 // Compute actual item area used by the content.
-                var itemsArea = UiCanvas.ToVerticalScreenUnits(itemsContent.Controls.Max(c => c.ActualBoundingBox.Bottom) - 
-                                                                          itemsContent.Controls.Min(c => c.ActualBoundingBox.Top));
-                
+                var itemsArea = UiCanvas.ToVerticalScreenUnits(itemsContent.Controls.Max(c => c.ActualBoundingBox.Bottom) -
+                                                               itemsContent.Controls.Min(c => c.ActualBoundingBox.Top));
+
                 // Get rows and item size in the content.
-                var rows      = items.Count;
-                var itemSize  = itemsArea / rows;
+                var rows     = items.Count;
+                var itemSize = itemsArea / rows;
 
                 // Compute the actual index where the mouse is pointing.
-                var index = (int)(((e.MouseInputManager.CurrentScreenPosition - UiCanvas.ToScreenUnits(itemsContent.ActualPosition)).Y + 
-                                  UiCanvas.ToVerticalScreenUnits(ItemsContentViewOffset.Y)) / itemSize);
-                
+                var index = (int)(((e.MouseInputManager.CurrentScreenPosition - UiCanvas.ToScreenUnits(itemsContent.ActualPosition)).Y +
+                                   UiCanvas.ToVerticalScreenUnits(ItemsContentViewOffset.Y)) / itemSize);
+
                 // If index is valid, transform index to control index in the items content.
                 if (index < 0 || index >= RowsCount) return;
-                
+
                 var controlIndex = index * ColumnsCount;
                 var control      = itemsContent.Controls.ElementAt(controlIndex);
 
@@ -280,15 +278,15 @@ namespace Fracture.Engine.Ui.Controls
 
                     UpdateSelectedPosition(control);
                 }
-                    
+
                 UpdateHoverPosition(control);
             }
             else
                 UpdateHoverPosition(null);
         }
 
-        private void Button_Click(object sender, EventArgs e)
-            => ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl)!.UserData));
+        private void Button_Click(object sender, EventArgs e) =>
+            ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl)!.UserData));
         #endregion
 
         private void UpdateSelectedPosition(IControl control)
@@ -297,9 +295,9 @@ namespace Fracture.Engine.Ui.Controls
             {
                 selectedImageBox.Hide();
 
-                return;   
+                return;
             }
-            
+
             // Update position based on control position.
             selectedImageBox.ActualPosition = new Vector2(ActualPosition.X, control.ActualPosition.Y);
 
@@ -370,7 +368,7 @@ namespace Fracture.Engine.Ui.Controls
                 columnButtons.Add(button);
                 Children.Add(button);
 
-                if (button.ActualBoundingBox.Left < minX)   minX = button.BoundingBox.Left;
+                if (button.ActualBoundingBox.Left < minX) minX   = button.BoundingBox.Left;
                 if (button.ActualBoundingBox.Bottom > maxY) maxY = button.BoundingBox.Bottom;
             }
 
@@ -385,7 +383,7 @@ namespace Fracture.Engine.Ui.Controls
 
             UpdateColumnButtonPositions();
         }
-        
+
         private void ReconstructItemsView()
         {
             // Clear current contents from items content.
@@ -402,19 +400,19 @@ namespace Fracture.Engine.Ui.Controls
                 foreach (var column in columns)
                 {
                     var control = item.GetColumnControl(column.Name);
-                    
+
                     if (control == null)
                         throw new InvalidOperationException($"item does not contain control for column {column.Name}");
-                    
+
                     control.Id          = "dynamic-view-content";
                     control.Positioning = Positioning.Relative;
                     control.Position    = new Vector2(offsetX, offsetY);
                     control.Size        = column.Size;
                     control.UserData    = item;
-                    
+
                     itemsContent.Add(control);
                     itemsContent.UpdateLayout();
-                    
+
                     offsetX += column.Size.X;
 
                     if (column.Size.Y > maxY)
@@ -437,7 +435,7 @@ namespace Fracture.Engine.Ui.Controls
                 SelectedIndex = -1;
                 SelectedItem  = null;
             }
-            
+
             UpdateHoverPosition(null);
             UpdateSelectedPosition(null);
         }
@@ -450,7 +448,7 @@ namespace Fracture.Engine.Ui.Controls
             var destination = GetRenderDestinationRectangle();
 
             fragment.DrawSurface(texture, center, destination, color);
-            
+
             base.InternalDraw(fragment, time);
         }
 
@@ -470,18 +468,18 @@ namespace Fracture.Engine.Ui.Controls
 
             ReconstructColumnsView();
         }
+
         public bool RemoveColumn(ListViewColumnDefinition column)
         {
             var removed = columns.Remove(column);
-            
+
             if (removed) ReconstructColumnsView();
 
             return removed;
         }
 
-        public ListViewColumnDefinition ColumnAtIndex(int index)
-            => columns[index];
-        
+        public ListViewColumnDefinition ColumnAtIndex(int index) => columns[index];
+
         public void AddItem(IListViewItem item)
         {
             if (item == null)
@@ -501,8 +499,7 @@ namespace Fracture.Engine.Ui.Controls
             return removed;
         }
 
-        public IListViewItem ItemAtIndex(int index)
-            => items[index];
+        public IListViewItem ItemAtIndex(int index) => items[index];
 
         public void SortItems(Comparison<IListViewItem> comparison)
         {
@@ -512,11 +509,11 @@ namespace Fracture.Engine.Ui.Controls
 
             SelectedIndex = -1;
         }
-        
+
         public override void Clear()
         {
             base.Clear();
-            
+
             ReconstructItemsView();
         }
     }

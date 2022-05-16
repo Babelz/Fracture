@@ -7,16 +7,16 @@ namespace Fracture.Net.Tests.Serialization
 {
     [Trait("Category", "Serialization")]
     public class DictionarySerializerTests
-    {        
+    {
         static DictionarySerializerTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });    
+            ObjectSerializerAnalyzer.Analyze(new [] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });
         }
-        
+
         public DictionarySerializerTests()
         {
         }
-        
+
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
@@ -26,22 +26,22 @@ namespace Fracture.Net.Tests.Serialization
                 { "b", 400 },
                 { "c", 800 }
             };
-            
+
             var buffer = new byte[128];
-            
+
             DictionarySerializer.Serialize(lookupIn, buffer, 0);
-            
+
             var lookupOut = DictionarySerializer.Deserialize<string, int>(buffer, 0);
-            
+
             Assert.Equal(lookupIn.Count, lookupOut.Count);
-            
+
             foreach (var key in lookupIn.Keys)
             {
                 Assert.True(lookupOut.ContainsKey(key));
                 Assert.Equal(lookupIn[key], lookupOut[key]);
             }
         }
-        
+
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
@@ -52,15 +52,15 @@ namespace Fracture.Net.Tests.Serialization
                 { "c", null },
                 { "d", 1600 }
             };
-            
+
             var buffer = new byte[128];
-            
+
             DictionarySerializer.Serialize(lookupIn, buffer, 0);
-            
+
             var lookupOut = DictionarySerializer.Deserialize<string, int?>(buffer, 0);
-            
+
             Assert.Equal(lookupIn.Count, lookupOut.Count);
-            
+
             foreach (var key in lookupIn.Keys)
             {
                 Assert.True(lookupOut.ContainsKey(key));

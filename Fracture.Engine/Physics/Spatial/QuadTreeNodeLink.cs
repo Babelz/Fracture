@@ -31,7 +31,7 @@ namespace Fracture.Engine.Physics.Spatial
         private QuadTreeNodeLink previous;
 
         // Current nodes body lists.
-        private List<int>[] bodyLists;
+        private List<int> [] bodyLists;
 
         // Does this link own body lists.
         private bool owner;
@@ -47,24 +47,19 @@ namespace Fracture.Engine.Physics.Spatial
             private set;
         }
 
-        public IEnumerable<int> Sensors
-            => bodyLists[(int)BodyType.Sensor - 1];
+        public IEnumerable<int> Sensors => bodyLists[(int)BodyType.Sensor - 1];
 
-        public IEnumerable<int> Statics
-            => bodyLists[(int)BodyType.Static - 1];
+        public IEnumerable<int> Statics => bodyLists[(int)BodyType.Static - 1];
 
-        public IEnumerable<int> Dynamics
-            => bodyLists[(int)BodyType.Dynamic - 1];
+        public IEnumerable<int> Dynamics => bodyLists[(int)BodyType.Dynamic - 1];
 
-        public IEnumerable<int> Bodies
-            => Sensors.Concat(Statics).Concat(Dynamics);
+        public IEnumerable<int> Bodies => Sensors.Concat(Statics).Concat(Dynamics);
 
         /// <summary>
         /// Returns boolean declaring whether this is the 
         /// last node in this link.
         /// </summary>
-        public bool End
-            => Next == null || bodyLists == null;
+        public bool End => Next == null || bodyLists == null;
         #endregion
 
         public QuadTreeNodeLink()
@@ -80,10 +75,10 @@ namespace Fracture.Engine.Physics.Spatial
                         new LinearGrowthArray<List<int>>()), () => new List<int>()));
 
             arrayPool = new ArrayPool<List<int>>(
-                () => new LinearStorageObject<List<int>[]>(new LinearGrowthArray<List<int>[]>()), 8);
+                () => new LinearStorageObject<List<int> []>(new LinearGrowthArray<List<int> []>()), 8);
         }
 
-        private QuadTreeNodeLink(DelegatePool<QuadTreeNodeLink> linkPool, 
+        private QuadTreeNodeLink(DelegatePool<QuadTreeNodeLink> linkPool,
                                  CollectionPool<List<int>> listPool,
                                  ArrayPool<List<int>> arrayPool)
         {
@@ -91,14 +86,14 @@ namespace Fracture.Engine.Physics.Spatial
             this.listPool  = listPool;
             this.arrayPool = arrayPool;
         }
-        
+
         /// <summary>
         /// Creates and links new node to this link.
         /// </summary>
-        public QuadTreeNodeLink Link(List<int>[] bodies)
+        public QuadTreeNodeLink Link(List<int> [] bodies)
         {
             bodyLists = bodies;
-            
+
             // Create next link.
             Next = linkPool.Take();
 
@@ -106,14 +101,14 @@ namespace Fracture.Engine.Physics.Spatial
 
             return Next;
         }
-        
+
         /// <summary>
         /// Creates and links new node to this and allocates
         /// body list for this node and returns it to the caller.
         /// </summary>
-        public QuadTreeNodeLink Link(out List<int>[] bodies)
+        public QuadTreeNodeLink Link(out List<int> [] bodies)
         {
-            owner     = true;
+            owner  = true;
             bodies = arrayPool.Take(ListsCount);
 
             for (var i = 0; i < bodies.Length; i++)
@@ -159,7 +154,7 @@ namespace Fracture.Engine.Physics.Spatial
             if (owner)
             {
                 Array.ForEach(bodyLists, listPool.Return);
-                
+
                 arrayPool.Return(bodyLists);
 
                 owner = false;
@@ -174,7 +169,6 @@ namespace Fracture.Engine.Physics.Spatial
         /// <summary>
         /// Returns deep copy of this link.
         /// </summary>
-        public QuadTreeNodeLink Clone()
-            => new QuadTreeNodeLink(linkPool, listPool, arrayPool);
+        public QuadTreeNodeLink Clone() => new QuadTreeNodeLink(linkPool, listPool, arrayPool);
     }
 }

@@ -20,7 +20,7 @@ namespace Fracture.Engine.Ui.Controls
         /// </summary>
         Vertical = 1
     }
-    
+
     /// <summary>
     /// Invisible container that automatically positions children in vertical or horizontal manner.
     /// Does not support layout for elements of varying size.
@@ -68,8 +68,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void Control_LayoutChanged(object sender, EventArgs e)
-            => dirty = true;
+        private void Control_LayoutChanged(object sender, EventArgs e) => dirty = true;
         #endregion
 
         private void WrapChildrenHorizontal()
@@ -86,9 +85,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f + (offset * Children[i].Size.X) + offset * SpaceBetween,
                                                    0.5f - Children[i].Size.Y * 0.5f);
-                
-                Children[i].Margin = i % 2 == 0 ? UiOffset.ToLeft((origin + SpaceBetween) * i / 2) : 
-                                                  UiOffset.ToLeft((-origin + -SpaceBetween) * (i + 1) / 2);
+
+                Children[i].Margin = i % 2 == 0 ? UiOffset.ToLeft((origin + SpaceBetween) * i / 2) : UiOffset.ToLeft((-origin + -SpaceBetween) * (i + 1) / 2);
             }
         }
 
@@ -99,17 +97,16 @@ namespace Fracture.Engine.Ui.Controls
             // If children count is odd, we center the children around a center children element.
             var offset = Children.ControlsCount % 2 == 0 ? 0.5f : 0.0f;
             var origin = Children[0].Size.Y;
-            
+
             for (var i = 0; i < Children.ControlsCount; i++)
             {
                 Children[i].Positioning = Positioning.Relative;
 
-                Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f, 
+                Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f,
                                                    0.5f - Children[i].Size.Y * 0.5f +
                                                    (offset * Children[i].Size.Y) + offset * SpaceBetween);
 
-                Children[i].Margin = i % 2 == 0 ? UiOffset.ToTop((origin + SpaceBetween) * i / 2) : 
-                                                  UiOffset.ToTop((-origin + -SpaceBetween) * (i + 1) / 2);
+                Children[i].Margin = i % 2 == 0 ? UiOffset.ToTop((origin + SpaceBetween) * i / 2) : UiOffset.ToTop((-origin + -SpaceBetween) * (i + 1) / 2);
             }
         }
 
@@ -117,7 +114,7 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (ControlsCount == 0)
                 return;
-            
+
             switch (mode)
             {
                 case WrapMode.Horizontal:
@@ -153,7 +150,7 @@ namespace Fracture.Engine.Ui.Controls
 
             dirty = true;
         }
-        
+
         public override void Remove(IControl control)
         {
             base.Remove(control);

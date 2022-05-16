@@ -18,7 +18,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the response part of the request response pair.
         /// </summary>
@@ -34,7 +34,7 @@ namespace Fracture.Net.Hosting.Messaging
             Response = response ?? throw new ArgumentNullException(nameof(response));
         }
     }
-    
+
     /// <summary>
     /// Structure containing middleware request context for single request response pair object.
     /// </summary>
@@ -48,7 +48,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the response part of the request response pair associated with the middleware request.
         /// </summary>
@@ -64,7 +64,7 @@ namespace Fracture.Net.Hosting.Messaging
             Response = response ?? throw new ArgumentNullException(nameof(response));
         }
     }
-    
+
     /// <summary>
     /// Static utility class containing request response middleware context matching utilities. 
     /// </summary>
@@ -74,23 +74,27 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Any() => delegate { return true; };
-        
+        public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Any() =>
+            delegate
+            {
+                return true;
+            };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Request(Predicate<IRequest> predicate)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in RequestResponseMiddlewareContext context) => predicate(context.Request);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Response(Predicate<IResponse> predicate)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in RequestResponseMiddlewareContext context) => predicate(context.Response);
         }
 
@@ -99,26 +103,25 @@ namespace Fracture.Net.Hosting.Messaging
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in RequestResponseMiddlewareContext context) => predicate(context.Request.Connection);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> RequestMessage(MessageMatchDelegate match)
         {
             if (match == null)
                 throw new ArgumentNullException(nameof(match));
-            
+
             return (in RequestResponseMiddlewareContext context) => match(context.Request.Message);
         }
-        
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> ResponseMessage(MessageMatchDelegate match)
         {
             if (match == null)
                 throw new ArgumentNullException(nameof(match));
-            
+
             return (in RequestResponseMiddlewareContext context) => match(context.Response.Message);
         }
     }

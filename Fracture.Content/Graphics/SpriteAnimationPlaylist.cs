@@ -10,7 +10,7 @@ namespace Shattered.Content.Graphics
         private readonly Dictionary<string, Texture2D> textures;
         private readonly Dictionary<string, SpriteAnimationFrames> animations;
         #endregion
-        
+
         #region Properties
         public string Name
         {
@@ -21,15 +21,13 @@ namespace Shattered.Content.Graphics
         public SpriteAnimationPlaylist(string name, Dictionary<string, Texture2D> textures, Dictionary<string, SpriteAnimationFrames> animations)
         {
             Name = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
-            
+
             this.textures   = textures ?? throw new ArgumentNullException(nameof(textures));
             this.animations = animations ?? throw new ArgumentNullException(nameof(animations));
         }
-        
-        public Texture2D GetTexture(string animationName)
-            => textures[animationName];
-        
-        public SpriteAnimationFrames GetAnimation(string animationName)
-            => animations[animationName];
+
+        public Texture2D GetTexture(string animationName) => textures[animationName];
+
+        public SpriteAnimationFrames GetAnimation(string animationName) => animations[animationName];
     }
 }

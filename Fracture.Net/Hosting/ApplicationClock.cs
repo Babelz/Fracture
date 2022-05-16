@@ -16,7 +16,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the current time that has passed since the start of the tick frame.
         /// </summary>
@@ -24,7 +24,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the total time elapsed since application was started.
         /// </summary>
@@ -32,7 +32,7 @@ namespace Fracture.Net.Hosting
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the total count of application ticks that have passed since start.
         /// </summary>
@@ -42,7 +42,7 @@ namespace Fracture.Net.Hosting
         }
         #endregion
     }
-    
+
     /// <summary>
     /// Interface that provides timing services for tracking the application clock.
     /// </summary>
@@ -53,7 +53,7 @@ namespace Fracture.Net.Hosting
         /// </summary>
         void Tick();
     }
-    
+
     /// <summary>
     /// Default implementation of <see cref="IApplicationTimer"/>.
     /// </summary>
@@ -61,20 +61,17 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Stopwatch timer;
-        
+
         private TimeSpan elapsed;
         private TimeSpan total;
         #endregion
 
         #region Properties
-        public TimeSpan Elapsed
-            => elapsed;
+        public TimeSpan Elapsed => elapsed;
 
-        public TimeSpan Current
-            => timer.Elapsed;
+        public TimeSpan Current => timer.Elapsed;
 
-        public TimeSpan Total
-            => total;
+        public TimeSpan Total => total;
 
         public ulong Ticks
         {
@@ -83,16 +80,15 @@ namespace Fracture.Net.Hosting
         }
         #endregion
 
-        public ApplicationTimer()
-            => timer = Stopwatch.StartNew();
-        
+        public ApplicationTimer() => timer = Stopwatch.StartNew();
+
         public void Tick()
         {
             Ticks++;
-            
+
             total   += timer.Elapsed;
-            elapsed = timer.Elapsed;
-            
+            elapsed =  timer.Elapsed;
+
             timer.Restart();
         }
     }

@@ -17,17 +17,17 @@ namespace Fracture.Net.Clients
         /// Client is disconnected and is ready to start connecting.
         /// </summary>
         Disconnected = 0,
-        
+
         /// <summary>
         /// Client is currently establishing connection to the remote host.
         /// </summary>
         Connecting,
-        
+
         /// <summary>
         /// Client is connected to the remote host and is ready for messaging operations.
         /// </summary>
         Connected,
-        
+
         /// <summary>
         /// Client is disconnecting from remote host.
         /// </summary>
@@ -43,17 +43,17 @@ namespace Fracture.Net.Clients
         #region Fields
         private long state;
         #endregion
-        
+
         #region Properties
         /// <summary>
         /// Gets the current state of the client.
         /// </summary>
         protected ClientState State
         {
-            get         => (ClientState)Interlocked.Read(ref state);
+            get => (ClientState)Interlocked.Read(ref state);
             private set => Interlocked.Exchange(ref state, (long)value);
         }
-        
+
         /// <summary>
         /// Gets the buffer that is used for buffering the client events.
         /// </summary>
@@ -61,7 +61,7 @@ namespace Fracture.Net.Clients
         {
             get;
         }
-        
+
         /// <summary>
         /// Gets the message serializer used for message serialization.
         /// </summary>
@@ -77,24 +77,24 @@ namespace Fracture.Net.Clients
         {
             get;
         }
-        
+
         public abstract bool IsConnected
         {
             get;
         }
         #endregion
-        
+
         protected Client(IMessageSerializer serializer, TimeSpan gracePeriod)
         {
             GracePeriod = gracePeriod;
             Serializer  = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            
+
             Updates = new LockedDoubleBuffer<ClientUpdate>();
         }
-        
-        private static void ThrowIllegalStateTransition(ClientState current, ClientState next)
-            => throw new InvalidOperationException($"illegal state transition from {current} to {next}");
-        
+
+        private static void ThrowIllegalStateTransition(ClientState current, ClientState next) =>
+            throw new InvalidOperationException($"illegal state transition from {current} to {next}");
+
         /// <summary>
         /// Defines following state machine for client:
         /// 
@@ -110,7 +110,7 @@ namespace Fracture.Net.Clients
         protected void UpdateState(ClientState next)
         {
             var current = State;
-            
+
             switch (next)
             {
                 case ClientState.Disconnected:
@@ -132,7 +132,7 @@ namespace Fracture.Net.Clients
                 default:
                     throw new InvalidOrUnsupportedException(nameof(next), next);
             }
-            
+
             State = next;
         }
 
@@ -142,8 +142,7 @@ namespace Fracture.Net.Clients
 
         public abstract void Connect(IPEndPoint endPoint);
 
-        public virtual IEnumerable<ClientUpdate> Poll()
-            => Updates.Read();
+        public virtual IEnumerable<ClientUpdate> Poll() => Updates.Read();
 
         public virtual void Dispose()
         {
