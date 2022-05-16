@@ -327,7 +327,7 @@ namespace Fracture.Net.Hosting
         private readonly Application application;
 
         private readonly ApplicationScriptingHost scripts;
-        private readonly ApplicationServiceHost services;
+        private readonly ApplicationServiceHost   services;
         #endregion
 
         public ApplicationHost(Application application, ApplicationServiceHost services, ApplicationScriptingHost scripts)

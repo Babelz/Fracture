@@ -31,7 +31,7 @@ namespace Fracture.Net.Tests.Serialization
         private sealed class ClassComposedOfStructs
         {
             #region Properties
-            public Vec2 X;
+            public Vec2  X;
             public Vec2? Y;
             public Vec2? Z;
             #endregion

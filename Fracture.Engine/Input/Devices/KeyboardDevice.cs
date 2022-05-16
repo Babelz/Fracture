@@ -67,7 +67,7 @@ namespace Fracture.Engine.Input.Devices
         private readonly StateWatcher<Keys> keyWatcher;
 
         private readonly CircularBuffer<KeyboardState> keyboardStateBuffer;
-        private readonly CircularBuffer<string> keyboardCharacterBuffer;
+        private readonly CircularBuffer<string>        keyboardCharacterBuffer;
 
         private readonly StringBuilder keyboardCharacterFrameBuffer;
         #endregion

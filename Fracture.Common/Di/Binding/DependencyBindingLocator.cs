@@ -96,7 +96,7 @@ namespace Fracture.Common.Di.Binding
     {
         #region Fields
         private readonly IDependencyLocator locator;
-        private readonly IBindingValue [] values;
+        private readonly IBindingValue []   values;
         #endregion
 
         public DependencyBindingValueLocator(IDependencyLocator locator, IBindingValue [] values)

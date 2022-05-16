@@ -22,30 +22,30 @@ namespace Fracture.Engine.Ui.Controls
     [Flags]
     public enum MessageBoxButtons : ushort
     {
-        None = (1 << 0),
-        Accept = (1 << 1),
-        Ok = (1 << 2),
-        Cancel = (1 << 3),
-        Return = (1 << 4),
+        None    = (1 << 0),
+        Accept  = (1 << 1),
+        Ok      = (1 << 2),
+        Cancel  = (1 << 3),
+        Return  = (1 << 4),
         Decline = (1 << 5),
-        Close = (1 << 6),
-        Retry = (1 << 7),
-        Yes = (1 << 8),
-        No = (1 << 9)
+        Close   = (1 << 6),
+        Retry   = (1 << 7),
+        Yes     = (1 << 8),
+        No      = (1 << 9)
     }
 
     public enum MessageBoxResult : ushort
     {
-        None = 0,
-        Accept = 1,
-        Ok = 2,
-        Cancel = 3,
-        Return = 4,
+        None    = 0,
+        Accept  = 1,
+        Ok      = 2,
+        Cancel  = 3,
+        Return  = 4,
         Decline = 5,
-        Close = 6,
-        Retry = 7,
-        Yes = 8,
-        No = 9
+        Close   = 6,
+        Retry   = 7,
+        Yes     = 8,
+        No      = 9
     }
 
     public sealed class MessageBox : StaticContainerControl

@@ -43,8 +43,8 @@ namespace Fracture.Net.Serialization.Generation
     public sealed class ObjectSerializer
     {
         #region Fields
-        private readonly DynamicSerializeDelegate serialize;
-        private readonly DynamicDeserializeDelegate deserialize;
+        private readonly DynamicSerializeDelegate        serialize;
+        private readonly DynamicDeserializeDelegate      deserialize;
         private readonly DynamicGetSizeFromValueDelegate getSizeFromValue;
         #endregion
 

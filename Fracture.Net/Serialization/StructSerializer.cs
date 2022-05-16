@@ -43,7 +43,7 @@ namespace Fracture.Net.Serialization
     {
         #region Static fields
         private static readonly Dictionary<Type, ushort> SerializationTypeIdMappings = new Dictionary<Type, ushort>();
-        private static readonly Dictionary<ushort, Type> RunTypeMappings = new Dictionary<ushort, Type>();
+        private static readonly Dictionary<ushort, Type> RunTypeMappings             = new Dictionary<ushort, Type>();
 
         private static readonly Dictionary<Type, ObjectSerializer> Serializers = new Dictionary<Type, ObjectSerializer>();
 

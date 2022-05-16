@@ -112,11 +112,11 @@ namespace Fracture.Net.Hosting
     public sealed class Application
     {
         #region Fields
-        private readonly IRequestRouter requestRouter;
+        private readonly IRequestRouter      requestRouter;
         private readonly INotificationCenter notificationCenter;
 
-        private readonly IMiddlewarePipeline<RequestMiddlewareContext> requestMiddleware;
-        private readonly IMiddlewarePipeline<NotificationMiddlewareContext> notificationMiddleware;
+        private readonly IMiddlewarePipeline<RequestMiddlewareContext>         requestMiddleware;
+        private readonly IMiddlewarePipeline<NotificationMiddlewareContext>    notificationMiddleware;
         private readonly IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware;
 
         private readonly IMessageSerializer serializer;
@@ -128,8 +128,8 @@ namespace Fracture.Net.Hosting
         private readonly PeerPipelineFidelity fidelity;
 
         private readonly Queue<PeerMessageEventArgs> incomingEvents;
-        private readonly Queue<PeerResetEventArgs> resetsEvents;
-        private readonly Queue<PeerJoinEventArgs> joinEvents;
+        private readonly Queue<PeerResetEventArgs>   resetsEvents;
+        private readonly Queue<PeerJoinEventArgs>    joinEvents;
 
         // Queue holding all incoming requests whose contents could we deserialized successfully.
         private readonly Queue<Request> incomingRequests;

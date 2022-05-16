@@ -113,8 +113,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public string S1;
             public string S2;
             public string S3;
-            public int I;
-            public int J;
+            public int    I;
+            public int    J;
             #endregion
         }
 
@@ -158,10 +158,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             #region Fields
             public int? X;
-            public int Y;
+            public int  Y;
 
             public string? S1;
-            public string S2;
+            public string  S2;
             #endregion
 
             #region Properties

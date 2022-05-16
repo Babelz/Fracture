@@ -7,7 +7,7 @@ namespace Shattered.Content.Graphics
     public sealed class SpriteAnimationPlaylist
     {
         #region Fields
-        private readonly Dictionary<string, Texture2D> textures;
+        private readonly Dictionary<string, Texture2D>             textures;
         private readonly Dictionary<string, SpriteAnimationFrames> animations;
         #endregion
 

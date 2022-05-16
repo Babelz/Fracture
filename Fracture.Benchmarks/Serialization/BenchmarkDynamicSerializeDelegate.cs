@@ -120,8 +120,8 @@ namespace Fracture.Benchmarks.Serialization
         private readonly TestClass testObject;
 
         private readonly ObjectSerializationValueRanges valueRanges;
-        private readonly DynamicSerializeDelegate serializeDelegate;
-        private readonly byte [] buffer;
+        private readonly DynamicSerializeDelegate       serializeDelegate;
+        private readonly byte []                        buffer;
 
         private readonly TestClassSerializer serializer;
         #endregion

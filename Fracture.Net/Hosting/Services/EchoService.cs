@@ -133,7 +133,7 @@ namespace Fracture.Net.Hosting.Services
     public sealed class EchoControlScript : ApplicationScript
     {
         #region Fields
-        private readonly ILatencyService latency;
+        private readonly ILatencyService        latency;
         private readonly IEventSchedulerService scheduler;
         #endregion
 

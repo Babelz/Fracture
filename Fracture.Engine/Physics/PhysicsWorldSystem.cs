@@ -162,7 +162,7 @@ namespace Fracture.Engine.Physics
 
         #region Fields
         private readonly Dictionary<int, ContactList> contactListLookup;
-        private readonly List<ContactList> contactLists;
+        private readonly List<ContactList>            contactLists;
 
         private readonly QuadTreeNodeLink rootLink;
         private readonly QuadTreeNodeLink rayCastBroadLink;
@@ -171,7 +171,7 @@ namespace Fracture.Engine.Physics
         private readonly QuadTreeNodeLink aabbQueryNarrowLink;
 
         private readonly BroadPhaseContactSolver broad;
-        private readonly BodyList bodies;
+        private readonly BodyList                bodies;
 
         private QuadTree tree;
 

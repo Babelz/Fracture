@@ -39,7 +39,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class NullableFieldTestClass
         {
             #region Fields
-            public int X;
+            public int  X;
             public int? Y;
             public int? Z;
             #endregion

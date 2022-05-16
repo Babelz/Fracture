@@ -306,7 +306,7 @@ namespace Fracture.Net.Serialization.Generation
         private readonly HashSet<string> excludedFields;
 
         private readonly List<SerializationValueHint> serializationValueHints;
-        private readonly List<ObjectActivationHint> objectActivationHints;
+        private readonly List<ObjectActivationHint>   objectActivationHints;
 
         private ObjectActivationDelegate activator;
 

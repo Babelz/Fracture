@@ -450,7 +450,7 @@ namespace Fracture.Engine.Ui.Controls
         private Vector2 actualSize;
 
         private Positioning positioning;
-        private Anchor anchor;
+        private Anchor      anchor;
 
         private UiOffset margin;
         private UiOffset padding;

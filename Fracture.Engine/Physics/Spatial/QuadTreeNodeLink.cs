@@ -21,9 +21,9 @@ namespace Fracture.Engine.Physics.Spatial
         #endregion
 
         #region Fields
-        private readonly CollectionPool<List<int>> listPool;
+        private readonly CollectionPool<List<int>>      listPool;
         private readonly DelegatePool<QuadTreeNodeLink> linkPool;
-        private readonly ArrayPool<List<int>> arrayPool;
+        private readonly ArrayPool<List<int>>           arrayPool;
 
         /// <summary>
         /// Last node linked.

@@ -140,7 +140,7 @@ namespace Fracture.Engine.Ui.Controls
         private readonly List<ListViewColumnDefinition> columns;
 
         private readonly List<Button> columnButtons;
-        private readonly ContentRoot itemsContent;
+        private readonly ContentRoot  itemsContent;
 
         private readonly ImageBox selectedImageBox;
         private readonly ImageBox hoverImageBox;

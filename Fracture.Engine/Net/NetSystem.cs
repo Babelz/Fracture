@@ -122,11 +122,11 @@ namespace Fracture.Engine.Net
 
         #region Fields
         private readonly TimeSpan queryGracePeriod;
-        private readonly Client client;
+        private readonly Client   client;
 
-        private NetSystemConnectedCallback connectedCallback;
+        private NetSystemConnectedCallback     connectedCallback;
         private NetSystemConnectFailedCallback connectFailedCallback;
-        private NetSystemDisconnectedCallback disconnectedCallback;
+        private NetSystemDisconnectedCallback  disconnectedCallback;
 
         private readonly NetPacketHandler packetHandler;
 

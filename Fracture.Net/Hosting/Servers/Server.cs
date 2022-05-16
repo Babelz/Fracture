@@ -129,10 +129,10 @@ namespace Fracture.Net.Hosting.Servers
 
         #region Fields
         private readonly Dictionary<int, IPeer> lookup;
-        private readonly List<IPeer> peerIds;
+        private readonly List<IPeer>            peerIds;
 
         private readonly IPeerFactory factory;
-        private readonly IListener listener;
+        private readonly IListener    listener;
         #endregion
 
         #region Properties

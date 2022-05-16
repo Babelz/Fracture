@@ -162,7 +162,7 @@ namespace Fracture.Engine.Ecs
         // Free (dead/unused) entities and alive entities. Get id from the free list to create new entity. This is required as some internal structures are 
         // linear and grow with the entity count.
         private readonly FreeList<int> freeEntityIds;
-        private readonly HashSet<int> aliveEntityIds;
+        private readonly HashSet<int>  aliveEntityIds;
 
         private readonly Dictionary<int, int> remoteEntityIdMap;
 

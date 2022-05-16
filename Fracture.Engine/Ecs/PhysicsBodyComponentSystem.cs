@@ -184,7 +184,7 @@ namespace Fracture.Engine.Ecs
         private readonly LinearGrowthList<PhysicsBodyComponent> components;
 
         private readonly ITransformComponentSystem transforms;
-        private readonly IPhysicsWorldSystem world;
+        private readonly IPhysicsWorldSystem       world;
 
         private readonly List<int> dirtyComponentIds;
         #endregion

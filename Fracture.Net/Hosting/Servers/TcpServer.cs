@@ -34,9 +34,9 @@ namespace Fracture.Net.Hosting.Servers
         private readonly TimeSpan gracePeriod;
 
         private readonly byte [] receiveBuffer;
-        private readonly Socket socket;
+        private readonly Socket  socket;
 
-        private readonly LockedDoubleBuffer<PeerMessageEventArgs> incomingMessageBuffer;
+        private readonly LockedDoubleBuffer<PeerMessageEventArgs>   incomingMessageBuffer;
         private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
 
         private IAsyncResult receiveResult;
@@ -45,7 +45,7 @@ namespace Fracture.Net.Hosting.Servers
         private DateTime lastReceiveTime;
 
         private ResetReason reason;
-        private PeerState state;
+        private PeerState   state;
         #endregion
 
         #region Events
@@ -317,7 +317,7 @@ namespace Fracture.Net.Hosting.Servers
         private readonly int backlog;
 
         private readonly LockedDoubleBuffer<Socket> newConnections;
-        private readonly Socket listener;
+        private readonly Socket                     listener;
 
         private IAsyncResult listenResult;
 

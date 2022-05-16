@@ -16,12 +16,12 @@ namespace Fracture.Engine.Input.Devices
     [Flags]
     public enum MouseButton : byte
     {
-        None = 0,
-        Left = (1 << 0),
+        None   = 0,
+        Left   = (1 << 0),
         Middle = (1 << 1),
-        Right = (1 << 2),
-        X1 = (1 << 3),
-        X2 = (1 << 4)
+        Right  = (1 << 2),
+        X1     = (1 << 3),
+        X2     = (1 << 4)
     }
 
     /// <summary>

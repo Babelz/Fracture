@@ -183,9 +183,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         private sealed class MixedNullableTestClass
         {
             #region Fields
-            public int X1;
+            public int  X1;
             public int? X2;
-            public int X3;
+            public int  X3;
             public int? X4;
             #endregion
         }

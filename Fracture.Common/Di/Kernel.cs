@@ -117,7 +117,7 @@ namespace Fracture.Common.Di
         private readonly DependencyBindingOptions proxyOptions;
 
         private readonly List<DependencyBinder> binders;
-        private readonly List<Dependency> dependencies;
+        private readonly List<Dependency>       dependencies;
         #endregion
 
         public Kernel(DependencyBindingOptions bindingOptions = DependencyBindingOptions.SubTypes | DependencyBindingOptions.Interfaces,

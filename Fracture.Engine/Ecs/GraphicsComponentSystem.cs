@@ -438,10 +438,10 @@ namespace Fracture.Engine.Ecs
     public static class GraphicsComponentTypeId
     {
         #region Constant fields
-        public const int Sprite = 0;
-        public const int Quad = 1;
+        public const int Sprite          = 0;
+        public const int Quad            = 1;
         public const int SpriteAnimation = 2;
-        public const int SpriteText = 3;
+        public const int SpriteText      = 3;
         #endregion
     }
 

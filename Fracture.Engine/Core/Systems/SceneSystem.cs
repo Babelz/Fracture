@@ -50,7 +50,7 @@ namespace Fracture.Engine.Core.Systems
         private readonly SceneInitializeCallback initialize;
 
         private readonly SceneDeinitializeCallback deinitialize;
-        private readonly SceneUpdateCallback update;
+        private readonly SceneUpdateCallback       update;
         #endregion
 
         public DelegateScene(SceneInitializeCallback initialize,

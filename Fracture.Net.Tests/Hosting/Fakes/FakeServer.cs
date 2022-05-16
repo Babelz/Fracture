@@ -13,8 +13,8 @@ namespace Fracture.Net.Tests.Hosting.Fakes
     public sealed class FakeServerFrame
     {
         #region Fields
-        private readonly Queue<PeerResetEventArgs> leaves;
-        private readonly Queue<PeerJoinEventArgs> joins;
+        private readonly Queue<PeerResetEventArgs>   leaves;
+        private readonly Queue<PeerJoinEventArgs>    joins;
         private readonly Queue<PeerMessageEventArgs> messages;
         #endregion
 
@@ -85,7 +85,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
 
         private readonly Dictionary<int, IPEndPoint> endpoints;
 
-        private readonly HashSet<PeerResetEventArgs> leaves;
+        private readonly HashSet<PeerResetEventArgs>   leaves;
         private readonly Queue<ServerMessageEventArgs> outgoing;
 
         private readonly Queue<FakeServerFrame> frames;

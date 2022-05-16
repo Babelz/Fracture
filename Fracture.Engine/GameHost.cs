@@ -90,7 +90,7 @@ namespace Fracture.Engine
         private readonly Game game;
 
         private readonly GameEngineSystemHost systems;
-        private readonly Kernel kernel;
+        private readonly Kernel               kernel;
         #endregion
 
         #region Properties

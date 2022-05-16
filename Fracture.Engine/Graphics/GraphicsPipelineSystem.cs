@@ -337,10 +337,10 @@ namespace Fracture.Engine.Graphics
     {
         #region Fields
         private readonly MissingTexture2D missingTexture;
-        private readonly EmptyTexture2D emptyTexture;
+        private readonly EmptyTexture2D   emptyTexture;
 
         private readonly GraphicsFragmentSettings settings;
-        private readonly IGraphicsDeviceSystem graphics;
+        private readonly IGraphicsDeviceSystem    graphics;
 
         private readonly SpriteBatch spriteBatch;
 

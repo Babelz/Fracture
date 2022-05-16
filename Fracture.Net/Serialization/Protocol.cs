@@ -21,7 +21,7 @@ namespace Fracture.Net.Serialization
     public sealed class Header<T>
     {
         #region Fields
-        private readonly HeaderReadDelegate<T> read;
+        private readonly HeaderReadDelegate<T>  read;
         private readonly HeaderWriteDelegate<T> write;
         #endregion
 

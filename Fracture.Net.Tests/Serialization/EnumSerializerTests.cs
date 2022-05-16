@@ -26,9 +26,9 @@ namespace Fracture.Net.Tests.Serialization
 
         private enum EnumWithImplicitIntType
         {
-            Foo = 0,
-            Bar = 1,
-            Baz = 2,
+            Foo    = 0,
+            Bar    = 1,
+            Baz    = 2,
             FooBar = 3
         }
         #endregion

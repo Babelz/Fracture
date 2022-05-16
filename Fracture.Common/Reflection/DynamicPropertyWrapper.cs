@@ -9,7 +9,7 @@ namespace Fracture.Common.Reflection
     {
         #region Fields
         private readonly Action<object, object> set;
-        private readonly Func<object, object> get;
+        private readonly Func<object, object>   get;
         #endregion
 
         #region Properties

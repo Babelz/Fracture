@@ -73,9 +73,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         {
             #region Fields
             public int? X;
-            public int I;
+            public int  I;
             public int? Y;
-            public int J;
+            public int  J;
             #endregion
         }
 

@@ -186,7 +186,7 @@ namespace Fracture.Engine.Graphics
 
         #region Fields
         private readonly LinearGrowthArray<GraphicsElementLocation> locations;
-        private readonly LinearGrowthArray<GraphicsElement> elements;
+        private readonly LinearGrowthArray<GraphicsElement>         elements;
 
         private GraphicsElementCell [] [] grid;
         #endregion
@@ -564,7 +564,7 @@ namespace Fracture.Engine.Graphics
         private readonly IViewSystem views;
 
         private readonly IGraphicsComponentSystem [] lookup;
-        private readonly HashSet<GraphicsElement> results;
+        private readonly HashSet<GraphicsElement>    results;
         #endregion
 
         public GraphicsLayerPipelinePhase(IGameHost host,

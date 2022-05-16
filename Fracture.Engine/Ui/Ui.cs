@@ -14,10 +14,10 @@ namespace Fracture.Engine.Ui
     {
         #region Fields
         private readonly ControlKeyboardFocusManager keyboardFocusManager;
-        private readonly ControlMouseFocusManager mouseFocusManager;
+        private readonly ControlMouseFocusManager    mouseFocusManager;
 
         private readonly IKeyboardDevice keyboard;
-        private readonly IMouseDevice mouse;
+        private readonly IMouseDevice    mouse;
         #endregion
 
         #region Properties

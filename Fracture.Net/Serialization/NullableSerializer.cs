@@ -116,10 +116,10 @@ namespace Fracture.Net.Serialization
     public class NullableSerializer
     {
         #region Static fields
-        private static readonly Dictionary<Type, Delegate> SerializeDelegates = new Dictionary<Type, Delegate>();
-        private static readonly Dictionary<Type, Delegate> DeserializeDelegates = new Dictionary<Type, Delegate>();
+        private static readonly Dictionary<Type, Delegate> SerializeDelegates         = new Dictionary<Type, Delegate>();
+        private static readonly Dictionary<Type, Delegate> DeserializeDelegates       = new Dictionary<Type, Delegate>();
         private static readonly Dictionary<Type, Delegate> GetSizeFromBufferDelegates = new Dictionary<Type, Delegate>();
-        private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates = new Dictionary<Type, Delegate>();
+        private static readonly Dictionary<Type, Delegate> GetSizeFromValueDelegates  = new Dictionary<Type, Delegate>();
         #endregion
 
         [ValueSerializer.SupportsType]
