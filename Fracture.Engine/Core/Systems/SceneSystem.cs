@@ -62,11 +62,14 @@ namespace Fracture.Engine.Core.Systems
             this.update       = update;
         }
 
-        public override void Initialize(Scene last) => initialize?.Invoke(last);
+        public override void Initialize(Scene last)
+            => initialize?.Invoke(last);
 
-        public override void Deinitialize(Scene next) => deinitialize?.Invoke(next);
+        public override void Deinitialize(Scene next)
+            => deinitialize?.Invoke(next);
 
-        public override void Update(IGameEngineTime time) => update?.Invoke(time);
+        public override void Update(IGameEngineTime time)
+            => update?.Invoke(time);
     }
 
     public delegate void SceneChangedCallback(Scene last, Scene next);
@@ -213,6 +216,7 @@ namespace Fracture.Engine.Core.Systems
             throw new InvalidOperationException("no scene matches predicate");
         }
 
-        public override void Update(IGameEngineTime time) => Current?.Update(time);
+        public override void Update(IGameEngineTime time)
+            => Current?.Update(time);
     }
 }

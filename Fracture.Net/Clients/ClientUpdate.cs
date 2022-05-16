@@ -18,9 +18,11 @@ namespace Fracture.Net.Clients
         }
         #endregion
 
-        protected ClientUpdate() => Timestamp = DateTime.UtcNow.TimeOfDay;
+        protected ClientUpdate()
+            => Timestamp = DateTime.UtcNow.TimeOfDay;
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
         /// <summary>
         /// Event generated when the client has connected.

@@ -79,6 +79,7 @@ namespace Fracture.Net.Hosting.Services
                             break;
                         case PulseEventResult.Break:
                             scheduler.Remove(pulse);
+
                             break;
                         default:
                             throw new InvalidOrUnsupportedException(nameof(ScheduledEventType), result);
@@ -97,6 +98,7 @@ namespace Fracture.Net.Hosting.Services
             scheduler.Add(pulse);
         }
 
-        public override void Tick() => scheduler.Tick(Application.Clock.Elapsed);
+        public override void Tick()
+            => scheduler.Tick(Application.Clock.Elapsed);
     }
 }

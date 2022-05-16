@@ -60,7 +60,8 @@ namespace Fracture.Common.Memory.Pools
             }
         }
 
-        public void Return(T element) => storage.Return(element);
+        public void Return(T element)
+            => storage.Return(element);
 
         public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {

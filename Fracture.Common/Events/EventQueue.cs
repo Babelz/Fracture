@@ -163,9 +163,11 @@ namespace Fracture.Common.Events
             consumedLetters = new HashSet<int>();
         }
 
-        protected bool TopicExists(in TTopic topic) => activeTopics.Contains(topic);
+        protected bool TopicExists(in TTopic topic)
+            => activeTopics.Contains(topic);
 
-        protected bool TopicActive(in TTopic topic) => !deletedTopics.Contains(topic);
+        protected bool TopicActive(in TTopic topic)
+            => !deletedTopics.Contains(topic);
 
         protected int EnqueueLetter(in TTopic topic, in TArgs args)
         {
@@ -283,8 +285,8 @@ namespace Fracture.Common.Events
         #endregion
 
         public UniqueEvent(int capacity, LetterRetentionPolicy retentionPolicy = LetterRetentionPolicy.PublishDeletedTopics)
-            : base(capacity, retentionPolicy) =>
-            topicLetterIndices = new Dictionary<TTopic, int>(capacity);
+            : base(capacity, retentionPolicy)
+            => topicLetterIndices = new Dictionary<TTopic, int>(capacity);
 
         public void Publish(in TTopic topic, in TArgs args, UniqueEventLetterAggregatorDelegate<TArgs> aggregator = null)
         {

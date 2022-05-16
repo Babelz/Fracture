@@ -41,7 +41,8 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Creates new instance of this service. Use this constructor for locating any dependencies by annotating it with <see cref="BindingConstructorAttribute"/>.
         /// </summary>
-        protected ApplicationService(IApplicationServiceHost application) => Application = application ?? throw new ArgumentNullException(nameof(application));
+        protected ApplicationService(IApplicationServiceHost application)
+            => Application = application ?? throw new ArgumentNullException(nameof(application));
     }
 
     /// <summary>

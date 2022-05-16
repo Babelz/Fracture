@@ -156,15 +156,17 @@ namespace Fracture.Engine.Core.Primitives
             HalfBounds = aabb.HalfBounds;
         }
 
-        public override bool Equals(object obj) => obj is Aabb other && this == other;
+        public override bool Equals(object obj)
+            => obj is Aabb other && this == other;
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(Position)
-                     .Append(Bounds)
-                     .Append(Rotation);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Position)
+                        .Append(Bounds)
+                        .Append(Rotation);
 
-        public override string ToString() => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";
+        public override string ToString()
+            => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";
 
         /// <summary>
         /// Rotates box vertices around given position and bounds.
@@ -205,31 +207,35 @@ namespace Fracture.Engine.Core.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Intersects(in Aabb a, in Aabb b) =>
-            (a.Position.X - a.HalfBounds.X) < (b.Position.X + b.HalfBounds.X) &&
-            (a.Position.X + a.HalfBounds.X) > (b.Position.X - b.HalfBounds.X) &&
-            (a.Position.Y - a.HalfBounds.Y) < (b.Position.Y + b.HalfBounds.Y) &&
-            (a.Position.Y + a.HalfBounds.Y) > (b.Position.Y - b.HalfBounds.Y);
+        public static bool Intersects(in Aabb a, in Aabb b)
+            => (a.Position.X - a.HalfBounds.X) < (b.Position.X + b.HalfBounds.X) &&
+               (a.Position.X + a.HalfBounds.X) > (b.Position.X - b.HalfBounds.X) &&
+               (a.Position.Y - a.HalfBounds.Y) < (b.Position.Y + b.HalfBounds.Y) &&
+               (a.Position.Y + a.HalfBounds.Y) > (b.Position.Y - b.HalfBounds.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Aabb TranslatePosition(in Aabb aabb, in Vector2 translation) => new Aabb(aabb, aabb.Position + translation);
+        public static Aabb TranslatePosition(in Aabb aabb, in Vector2 translation)
+            => new Aabb(aabb, aabb.Position + translation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Aabb TransformPosition(in Aabb aabb, in Vector2 transformation) => new Aabb(aabb, in transformation);
+        public static Aabb TransformPosition(in Aabb aabb, in Vector2 transformation)
+            => new Aabb(aabb, in transformation);
 
-        public static bool operator ==(in Aabb lhs, in Aabb rhs) =>
-            lhs.Bounds == rhs.Bounds &&
-            lhs.Position == rhs.Position &&
-            Math.Abs(lhs.Rotation - rhs.Rotation) <= 0.01f;
+        public static bool operator ==(in Aabb lhs, in Aabb rhs)
+            => lhs.Bounds == rhs.Bounds &&
+               lhs.Position == rhs.Position &&
+               Math.Abs(lhs.Rotation - rhs.Rotation) <= 0.01f;
 
-        public static bool operator !=(in Aabb lhs, in Aabb rhs) => !(lhs == rhs);
+        public static bool operator !=(in Aabb lhs, in Aabb rhs)
+            => !(lhs == rhs);
 
-        public static explicit operator Rectangle(in Aabb aabb) =>
-            new Rectangle((int)(aabb.Position.X - aabb.Bounds.X * 0.5f),
-                          (int)(aabb.Position.Y - aabb.Bounds.Y * 0.5f),
-                          (int)aabb.Bounds.X,
-                          (int)aabb.Bounds.Y);
+        public static explicit operator Rectangle(in Aabb aabb)
+            => new Rectangle((int)(aabb.Position.X - aabb.Bounds.X * 0.5f),
+                             (int)(aabb.Position.Y - aabb.Bounds.Y * 0.5f),
+                             (int)aabb.Bounds.X,
+                             (int)aabb.Bounds.Y);
 
-        public static explicit operator Rectf(in Aabb aabb) => new Rectf(aabb.Position - aabb.Bounds * 0.5f, aabb.Bounds);
+        public static explicit operator Rectf(in Aabb aabb)
+            => new Rectf(aabb.Position - aabb.Bounds * 0.5f, aabb.Bounds);
     }
 }

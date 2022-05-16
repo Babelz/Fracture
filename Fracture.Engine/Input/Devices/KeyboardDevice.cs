@@ -203,9 +203,11 @@ namespace Fracture.Engine.Input.Devices
             return keyboardStateBuffer.AtOffset(-frame).CapsLock;
         }
 
-        public TimeSpan GetKeyTimeDown(Keys key) => keyWatcher.TimeActive(key);
+        public TimeSpan GetKeyTimeDown(Keys key)
+            => keyWatcher.TimeActive(key);
 
-        public TimeSpan GetKeyTimeUp(Keys key) => keyWatcher.TimeInactive(key);
+        public TimeSpan GetKeyTimeUp(Keys key)
+            => keyWatcher.TimeInactive(key);
 
         public void Poll(IGameEngineTime time)
         {

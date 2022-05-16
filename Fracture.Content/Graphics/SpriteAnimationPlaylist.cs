@@ -26,8 +26,10 @@ namespace Shattered.Content.Graphics
             this.animations = animations ?? throw new ArgumentNullException(nameof(animations));
         }
 
-        public Texture2D GetTexture(string animationName) => textures[animationName];
+        public Texture2D GetTexture(string animationName)
+            => textures[animationName];
 
-        public SpriteAnimationFrames GetAnimation(string animationName) => animations[animationName];
+        public SpriteAnimationFrames GetAnimation(string animationName)
+            => animations[animationName];
     }
 }

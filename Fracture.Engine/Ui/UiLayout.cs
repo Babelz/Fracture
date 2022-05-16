@@ -103,52 +103,58 @@ namespace Fracture.Engine.Ui
         {
         }
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(Top)
-                     .Append(Left)
-                     .Append(Bottom)
-                     .Append(Right);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Top)
+                        .Append(Left)
+                        .Append(Bottom)
+                        .Append(Right);
 
-        public override bool Equals(object obj) => obj is UiOffset other && this == other;
+        public override bool Equals(object obj)
+            => obj is UiOffset other && this == other;
 
-        public static bool operator ==(in UiOffset lhs, in UiOffset rhs) =>
-            Math.Abs(lhs.Left - rhs.Left) < 0.1f &&
-            Math.Abs(lhs.Right - rhs.Right) < 0.1f &&
-            Math.Abs(lhs.Top - rhs.Top) < 0.1f &&
-            Math.Abs(lhs.Bottom - rhs.Bottom) < 0.1f;
+        public static bool operator ==(in UiOffset lhs, in UiOffset rhs)
+            => Math.Abs(lhs.Left - rhs.Left) < 0.1f &&
+               Math.Abs(lhs.Right - rhs.Right) < 0.1f &&
+               Math.Abs(lhs.Top - rhs.Top) < 0.1f &&
+               Math.Abs(lhs.Bottom - rhs.Bottom) < 0.1f;
 
-        public static bool operator !=(in UiOffset lhs, in UiOffset rhs) => !(lhs == rhs);
+        public static bool operator !=(in UiOffset lhs, in UiOffset rhs)
+            => !(lhs == rhs);
 
-        public static UiOffset operator +(in UiOffset lhs, in UiOffset rhs) =>
-            new UiOffset(lhs.Top + rhs.Top,
-                         lhs.Left + rhs.Left,
-                         lhs.Bottom + rhs.Bottom,
-                         lhs.Right + rhs.Right);
+        public static UiOffset operator +(in UiOffset lhs, in UiOffset rhs)
+            => new UiOffset(lhs.Top + rhs.Top,
+                            lhs.Left + rhs.Left,
+                            lhs.Bottom + rhs.Bottom,
+                            lhs.Right + rhs.Right);
 
-        public static UiOffset operator -(in UiOffset lhs, in UiOffset rhs) =>
-            new UiOffset(lhs.Top - rhs.Top,
-                         lhs.Left - rhs.Left,
-                         lhs.Bottom - rhs.Bottom,
-                         lhs.Right - rhs.Right);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset ToTop(float value) => new UiOffset(value, 0.0f, 0.0f, 0.0f);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset ToLeft(float value) => new UiOffset(0.0f, value, 0.0f, 0.0f);
+        public static UiOffset operator -(in UiOffset lhs, in UiOffset rhs)
+            => new UiOffset(lhs.Top - rhs.Top,
+                            lhs.Left - rhs.Left,
+                            lhs.Bottom - rhs.Bottom,
+                            lhs.Right - rhs.Right);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset ToBottom(float value) => new UiOffset(0.0f, 0.0f, value, 0.0f);
+        public static UiOffset ToTop(float value)
+            => new UiOffset(value, 0.0f, 0.0f, 0.0f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset ToRight(float value) => new UiOffset(0.0f, 0.0f, 0.0f, value);
+        public static UiOffset ToLeft(float value)
+            => new UiOffset(0.0f, value, 0.0f, 0.0f);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static UiOffset Transform(in UiOffset uiOffset, in Vector2 scale) =>
-            new UiOffset(uiOffset.Top * scale.Y,
-                         uiOffset.Left * scale.X,
-                         uiOffset.Bottom * scale.Y,
-                         uiOffset.Right * scale.X);
+        public static UiOffset ToBottom(float value)
+            => new UiOffset(0.0f, 0.0f, value, 0.0f);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UiOffset ToRight(float value)
+            => new UiOffset(0.0f, 0.0f, 0.0f, value);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static UiOffset Transform(in UiOffset uiOffset, in Vector2 scale)
+            => new UiOffset(uiOffset.Top * scale.Y,
+                            uiOffset.Left * scale.X,
+                            uiOffset.Bottom * scale.Y,
+                            uiOffset.Right * scale.X);
     }
 }

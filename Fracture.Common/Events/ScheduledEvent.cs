@@ -251,7 +251,8 @@ namespace Fracture.Common.Events
             ElapsedTime = TimeSpan.Zero;
         }
 
-        public void Wait() => Wait(DueTime);
+        public void Wait()
+            => Wait(DueTime);
 
         public void Suspend()
         {

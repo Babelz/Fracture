@@ -43,15 +43,17 @@ namespace Fracture.Engine.Core.Primitives
             var ac = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
             var bc = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ((y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1));
 
-            return ac >= 0.0f && ac <= 1.0f &&
-                   bc >= 0.0f && bc <= 1.0f;
+            return ac >= 0.0f &&
+                   ac <= 1.0f &&
+                   bc >= 0.0f &&
+                   bc <= 1.0f;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Intersects(in Line line, in Aabb aabb) =>
-            Intersects(line, new Line(new Vector2(aabb.Left, aabb.Top), new Vector2(aabb.Right, aabb.Top))) ||
-            Intersects(line, new Line(new Vector2(aabb.Right, aabb.Top), new Vector2(aabb.Right, aabb.Bottom))) ||
-            Intersects(line, new Line(new Vector2(aabb.Right, aabb.Bottom), new Vector2(aabb.Left, aabb.Bottom))) ||
-            Intersects(line, new Line(new Vector2(aabb.Left, aabb.Bottom), new Vector2(aabb.Left, aabb.Top)));
+        public static bool Intersects(in Line line, in Aabb aabb)
+            => Intersects(line, new Line(new Vector2(aabb.Left, aabb.Top), new Vector2(aabb.Right, aabb.Top))) ||
+               Intersects(line, new Line(new Vector2(aabb.Right, aabb.Top), new Vector2(aabb.Right, aabb.Bottom))) ||
+               Intersects(line, new Line(new Vector2(aabb.Right, aabb.Bottom), new Vector2(aabb.Left, aabb.Bottom))) ||
+               Intersects(line, new Line(new Vector2(aabb.Left, aabb.Bottom), new Vector2(aabb.Left, aabb.Top)));
     }
 }

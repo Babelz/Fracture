@@ -24,9 +24,11 @@ namespace Fracture.Common.Events
         private readonly List<IScheduledEvent> scheduledEvents;
         #endregion
 
-        public EventScheduler() => scheduledEvents = new List<IScheduledEvent>();
+        public EventScheduler()
+            => scheduledEvents = new List<IScheduledEvent>();
 
-        public bool Exists(IScheduledEvent scheduledEvent) => scheduledEvents.Contains(scheduledEvent);
+        public bool Exists(IScheduledEvent scheduledEvent)
+            => scheduledEvents.Contains(scheduledEvent);
 
         public void Add(IScheduledEvent scheduledEvent)
         {
@@ -45,7 +47,8 @@ namespace Fracture.Common.Events
                 throw new InvalidOperationException("could not remove scheduler");
         }
 
-        public void Clear() => scheduledEvents.Clear();
+        public void Clear()
+            => scheduledEvents.Clear();
 
         public void Tick(TimeSpan elapsed)
         {

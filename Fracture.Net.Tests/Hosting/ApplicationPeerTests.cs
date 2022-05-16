@@ -31,7 +31,8 @@ namespace Fracture.Net.Tests.Hosting
             {
             }
 
-            public void Clear() => Value = default;
+            public void Clear()
+                => Value = default;
         }
         #endregion
 
@@ -64,6 +65,7 @@ namespace Fracture.Net.Tests.Hosting
             {
                 handledConnections.Enqueue(e.Connection);
             };
+
             application.Reset += (object s, in PeerResetEventArgs e) =>
             {
                 handledConnections.Enqueue(e.Connection);

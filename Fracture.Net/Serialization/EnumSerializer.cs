@@ -49,34 +49,36 @@ namespace Fracture.Net.Serialization
         #endregion
 
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsEnum;
+        public static bool SupportsType(Type type)
+            => type.IsEnum;
 
         /// <summary>
         /// Writes given enumeration value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T value, byte [] buffer, int offset) where T : struct, Enum =>
-            SerializeDelegates[typeof(T).GetEnumUnderlyingType()](value, buffer, offset);
+        public static void Serialize<T>(T value, byte [] buffer, int offset) where T : struct, Enum
+            => SerializeDelegates[typeof(T).GetEnumUnderlyingType()](value, buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as enum type
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T Deserialize<T>(byte [] buffer, int offset) where T : struct, Enum =>
-            (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
+        public static T Deserialize<T>(byte [] buffer, int offset) where T : struct, Enum
+            => (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
 
         /// <summary>
         /// Returns size of enum, can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer<T>(byte [] buffer, int offset) where T : struct, Enum =>
-            SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
+        public static ushort GetSizeFromBuffer<T>(byte [] buffer, int offset) where T : struct, Enum
+            => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
 
         /// <summary>
         /// Returns size of enumeration value, size can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue<T>(T value) where T : struct, Enum => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
+        public static ushort GetSizeFromValue<T>(T value) where T : struct, Enum
+            => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
     }
 }

@@ -39,11 +39,11 @@ namespace Fracture.Net.Hosting.Servers
             return sb.ToString();
         }
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(PeerId)
-                     .Append(EndPoint)
-                     .Append(EndPoint.Port);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(PeerId)
+                        .Append(EndPoint)
+                        .Append(EndPoint.Port);
     }
 
     /// <summary>

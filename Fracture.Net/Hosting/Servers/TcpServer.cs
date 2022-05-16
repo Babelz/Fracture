@@ -229,7 +229,8 @@ namespace Fracture.Net.Hosting.Servers
             Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(Id, EndPoint), reason, DateTime.UtcNow.TimeOfDay));
         }
 
-        public void Disconnect() => InternalDisconnect(ResetReason.LocalReset);
+        public void Disconnect()
+            => InternalDisconnect(ResetReason.LocalReset);
 
         public void Send(byte [] data, int offset, int length)
         {
@@ -268,7 +269,8 @@ namespace Fracture.Net.Hosting.Servers
             UpdateDisconnectingState();
         }
 
-        public void Dispose() => socket.Dispose();
+        public void Dispose()
+            => socket.Dispose();
     }
 
     /// <summary>
@@ -434,7 +436,8 @@ namespace Fracture.Net.Hosting.Servers
             HandleNewConnections();
         }
 
-        public void Dispose() => listener.Dispose();
+        public void Dispose()
+            => listener.Dispose();
     }
 
     /// <summary>

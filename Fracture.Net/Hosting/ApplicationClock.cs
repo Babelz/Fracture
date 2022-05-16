@@ -80,7 +80,8 @@ namespace Fracture.Net.Hosting
         }
         #endregion
 
-        public ApplicationTimer() => timer = Stopwatch.StartNew();
+        public ApplicationTimer()
+            => timer = Stopwatch.StartNew();
 
         public void Tick()
         {

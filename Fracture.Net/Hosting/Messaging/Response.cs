@@ -65,13 +65,16 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Empty(Code code) => code == Code.Empty;
+        public static bool Empty(Code code)
+            => code == Code.Empty;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IndicatesSuccess(Code code) => SuccessfulStatusCodes.Contains(code);
+        public static bool IndicatesSuccess(Code code)
+            => SuccessfulStatusCodes.Contains(code);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IndicatesFailure(Code code) => UnsuccessfulStatusCodes.Contains(code);
+        public static bool IndicatesFailure(Code code)
+            => UnsuccessfulStatusCodes.Contains(code);
     }
 
     /// <summary>
@@ -249,18 +252,21 @@ namespace Fracture.Net.Hosting.Messaging
             Exception  = default;
         }
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(StatusCode)
-                     .Append(Message)
-                     .Append(Exception);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Response Take() => Pool.Take();
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(StatusCode)
+                        .Append(Message)
+                        .Append(Exception);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(Response response) => Pool.Return(response);
+        public static Response Take()
+            => Pool.Take();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(Response response)
+            => Pool.Return(response);
     }
 }

@@ -101,6 +101,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
             var deserializationValueRanges =
                 ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), deserializationOps);
+
             var serializationValueRanges =
                 ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(AllFieldTypesTestClass), serializationOps);
 

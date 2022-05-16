@@ -15,16 +15,20 @@ namespace Fracture.Common.Tests.Events
         public delegate void TestEventHandler(object key, int value);
 
         [Fact]
-        public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Zero_Test() => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(0)));
+        public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
+            => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(0)));
 
         [Fact]
-        public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test() => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(-1)));
+        public void UniqueEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
+            => Assert.NotNull(Record.Exception(() => new UniqueEvent<object, int>(-1)));
 
         [Fact]
-        public void SharedEvent_Ctor_Throws_If_Capacity_Is_Zero_Test() => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(0)));
+        public void SharedEvent_Ctor_Throws_If_Capacity_Is_Zero_Test()
+            => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(0)));
 
         [Fact]
-        public void SharedEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test() => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(-1)));
+        public void SharedEvent_Ctor_Throws_If_Capacity_Is_Less_Than_Zero_Test()
+            => Assert.NotNull(Record.Exception(() => new SharedEvent<object, int>(-1)));
 
         [Fact]
         public void Shared_QueueAllows_Multiple_Letters()

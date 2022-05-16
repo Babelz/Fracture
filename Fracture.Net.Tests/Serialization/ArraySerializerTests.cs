@@ -19,16 +19,16 @@ namespace Fracture.Net.Tests.Serialization
         }
 
         [Fact]
-        public void Serialize_Throws_If_Array_Type_Is_Unsupported() =>
-            Assert.NotNull(Record.Exception(() => ArraySerializer.Serialize(new Assembly[1], new byte[1], 0)));
+        public void Serialize_Throws_If_Array_Type_Is_Unsupported()
+            => Assert.NotNull(Record.Exception(() => ArraySerializer.Serialize(new Assembly[1], new byte[1], 0)));
 
         [Fact]
-        public void Deserialize_Throws_If_Array_Type_Is_Unsupported() =>
-            Assert.NotNull(Record.Exception(() => ArraySerializer.Deserialize<Assembly>(new byte[1], 0)));
+        public void Deserialize_Throws_If_Array_Type_Is_Unsupported()
+            => Assert.NotNull(Record.Exception(() => ArraySerializer.Deserialize<Assembly>(new byte[1], 0)));
 
         [Fact]
-        public void Get_Size_From_Value_Throws_If_Array_Type_Is_Unsupported() =>
-            Assert.NotNull(Record.Exception(() => ArraySerializer.GetSizeFromValue(new Assembly[1])));
+        public void Get_Size_From_Value_Throws_If_Array_Type_Is_Unsupported()
+            => Assert.NotNull(Record.Exception(() => ArraySerializer.GetSizeFromValue(new Assembly[1])));
 
         [Fact]
         public void Serializes_Non_Nullable_Primitive_Types_To_Buffer_Correctly()

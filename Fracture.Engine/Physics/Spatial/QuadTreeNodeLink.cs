@@ -169,6 +169,7 @@ namespace Fracture.Engine.Physics.Spatial
         /// <summary>
         /// Returns deep copy of this link.
         /// </summary>
-        public QuadTreeNodeLink Clone() => new QuadTreeNodeLink(linkPool, listPool, arrayPool);
+        public QuadTreeNodeLink Clone()
+            => new QuadTreeNodeLink(linkPool, listPool, arrayPool);
     }
 }

@@ -238,9 +238,11 @@ namespace Fracture.Engine.Physics
         }
 
         #region Event handlers
-        private void Tree_Removed(object sender, BodyEventArgs e) => Removed?.Invoke(this, e);
+        private void Tree_Removed(object sender, BodyEventArgs e)
+            => Removed?.Invoke(this, e);
 
-        private void Tree_Added(object sender, BodyEventArgs e) => Added?.Invoke(this, e);
+        private void Tree_Added(object sender, BodyEventArgs e)
+            => Added?.Invoke(this, e);
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -400,9 +402,11 @@ namespace Fracture.Engine.Physics
             return bodyId;
         }
 
-        public int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null) => Create(type, position, 0.0f, shape, userData);
+        public int Create(BodyType type, in Vector2 position, in Shape shape, object userData = null)
+            => Create(type, position, 0.0f, shape, userData);
 
-        public int Create(BodyType type, in Shape shape, object userData = null) => Create(type, Vector2.Zero, 0.0f, shape, userData);
+        public int Create(BodyType type, in Shape shape, object userData = null)
+            => Create(type, Vector2.Zero, 0.0f, shape, userData);
 
         public void Delete(int bodyId)
         {
@@ -490,8 +494,8 @@ namespace Fracture.Engine.Physics
             return aabbQueryNarrowLink;
         }
 
-        public IEnumerable<int> ContactsOf(int bodyId) =>
-            contactListLookup.TryGetValue(bodyId, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
+        public IEnumerable<int> ContactsOf(int bodyId)
+            => contactListLookup.TryGetValue(bodyId, out var contactList) ? contactList.CurrentBodyIds : Enumerable.Empty<int>();
 
         public override void Update(IGameEngineTime time)
         {

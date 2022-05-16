@@ -36,20 +36,25 @@ namespace Fracture.Engine.Input
             manager = new MouseInputManager(Device);
         }
 
-        public override void Update(IGameEngineTime time) => manager.Update(time);
+        public override void Update(IGameEngineTime time)
+            => manager.Update(time);
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton [] combination) =>
-            manager.Bind(name, callback, state, combination);
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params MouseButton [] combination)
+            => manager.Bind(name, callback, state, combination);
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, MouseButton trigger) =>
-            manager.Bind(name, callback, state, trigger);
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, MouseButton trigger)
+            => manager.Bind(name, callback, state, trigger);
 
-        public void Clear() => manager.Clear();
+        public void Clear()
+            => manager.Clear();
 
-        public void Rebind(string name, InputTriggerState state, params MouseButton [] combination) => manager.Rebind(name, state, combination);
+        public void Rebind(string name, InputTriggerState state, params MouseButton [] combination)
+            => manager.Rebind(name, state, combination);
 
-        public void Rebind(string name, InputTriggerState state, MouseButton trigger) => manager.Rebind(name, state, trigger);
+        public void Rebind(string name, InputTriggerState state, MouseButton trigger)
+            => manager.Rebind(name, state, trigger);
 
-        public void Unbind(string name) => manager.Unbind(name);
+        public void Unbind(string name)
+            => manager.Unbind(name);
     }
 }

@@ -19,7 +19,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ListViewColumnEventArgs(ListViewColumnDefinition column) => Column = column;
+        public ListViewColumnEventArgs(ListViewColumnDefinition column)
+            => Column = column;
     }
 
     public sealed class ListViewItemEventArgs : EventArgs
@@ -31,7 +32,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ListViewItemEventArgs(IListViewItem item) => Item = item;
+        public ListViewItemEventArgs(IListViewItem item)
+            => Item = item;
     }
 
     public sealed class ListViewColumnDefinition
@@ -116,15 +118,18 @@ namespace Fracture.Engine.Ui.Controls
         public IEnumerable<string> ColumnNames => columns.Keys;
         #endregion
 
-        public ListViewItem(IDictionary<string, IControl> columns) => this.columns = columns ?? throw new ArgumentNullException(nameof(columns));
+        public ListViewItem(IDictionary<string, IControl> columns)
+            => this.columns = columns ?? throw new ArgumentNullException(nameof(columns));
 
         public ListViewItem(IDictionary<string, IControl> columns, object userData)
-            : this(columns) =>
-            this.userData = userData;
+            : this(columns)
+            => this.userData = userData;
 
-        public IControl GetColumnControl(string column) => columns[column];
+        public IControl GetColumnControl(string column)
+            => columns[column];
 
-        public void UpdateUserData() => UserDataChanged?.Invoke(this, EventArgs.Empty);
+        public void UpdateUserData()
+            => UserDataChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public sealed class ListView : StaticContainerControl
@@ -263,7 +268,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 // Compute the actual index where the mouse is pointing.
                 var index = (int)(((e.MouseInputManager.CurrentScreenPosition - UiCanvas.ToScreenUnits(itemsContent.ActualPosition)).Y +
-                                   UiCanvas.ToVerticalScreenUnits(ItemsContentViewOffset.Y)) / itemSize);
+                                   UiCanvas.ToVerticalScreenUnits(ItemsContentViewOffset.Y)) /
+                                  itemSize);
 
                 // If index is valid, transform index to control index in the items content.
                 if (index < 0 || index >= RowsCount) return;
@@ -285,8 +291,8 @@ namespace Fracture.Engine.Ui.Controls
                 UpdateHoverPosition(null);
         }
 
-        private void Button_Click(object sender, EventArgs e) =>
-            ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl)!.UserData));
+        private void Button_Click(object sender, EventArgs e)
+            => ColumnClicked?.Invoke(this, new ListViewColumnEventArgs((ListViewColumnDefinition)(sender as IControl)!.UserData));
         #endregion
 
         private void UpdateSelectedPosition(IControl control)
@@ -478,7 +484,8 @@ namespace Fracture.Engine.Ui.Controls
             return removed;
         }
 
-        public ListViewColumnDefinition ColumnAtIndex(int index) => columns[index];
+        public ListViewColumnDefinition ColumnAtIndex(int index)
+            => columns[index];
 
         public void AddItem(IListViewItem item)
         {
@@ -499,7 +506,8 @@ namespace Fracture.Engine.Ui.Controls
             return removed;
         }
 
-        public IListViewItem ItemAtIndex(int index) => items[index];
+        public IListViewItem ItemAtIndex(int index)
+            => items[index];
 
         public void SortItems(Comparison<IListViewItem> comparison)
         {

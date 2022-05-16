@@ -58,11 +58,11 @@ namespace Fracture.Engine.Ui
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Rectangle ScaleTextArea(in Vector2 position, in Vector2 scale, in Rectangle source) =>
-            new Rectangle((int)Math.Floor(source.X + position.X),
-                          (int)Math.Floor(source.Y + position.Y),
-                          (int)Math.Floor(source.Width * scale.X),
-                          (int)Math.Floor(source.Height * scale.Y));
+        public static Rectangle ScaleTextArea(in Vector2 position, in Vector2 scale, in Rectangle source)
+            => new Rectangle((int)Math.Floor(source.X + position.X),
+                             (int)Math.Floor(source.Y + position.Y),
+                             (int)Math.Floor(source.Width * scale.X),
+                             (int)Math.Floor(source.Height * scale.Y));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ClipText(string text, Rectangle area, SpriteFont font)

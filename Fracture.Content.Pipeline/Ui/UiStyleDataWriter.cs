@@ -11,7 +11,8 @@ namespace Fracture.Content.Pipeline.Ui
         {
         }
 
-        public override string GetRuntimeReader(TargetPlatform targetPlatform) => typeof(UiStyleReader).AssemblyQualifiedName;
+        public override string GetRuntimeReader(TargetPlatform targetPlatform)
+            => typeof(UiStyleReader).AssemblyQualifiedName;
 
         protected override void Write(ContentWriter output, UiStyleData value)
         {

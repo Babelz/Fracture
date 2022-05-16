@@ -191,10 +191,13 @@ namespace Fracture.Engine
         {
         }
 
-        public void Run() => game.Run();
+        public void Run()
+            => game.Run();
 
-        public void Exit() => game.Exit();
+        public void Exit()
+            => game.Exit();
 
-        public void Dispose() => game.Dispose();
+        public void Dispose()
+            => game.Dispose();
     }
 }

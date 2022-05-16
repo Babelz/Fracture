@@ -11,7 +11,8 @@ namespace Fracture.Common.Tests.Collections
         private readonly UniqueLinearGrowthStack<int> stack;
         #endregion
 
-        public UniqueLinearGrowthStackTests() => stack = new UniqueLinearGrowthStack<int>();
+        public UniqueLinearGrowthStackTests()
+            => stack = new UniqueLinearGrowthStack<int>();
 
         [Fact]
         public void UniqueLinearGrowthStack_Ctor_Test()

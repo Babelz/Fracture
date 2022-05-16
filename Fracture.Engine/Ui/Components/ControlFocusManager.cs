@@ -302,9 +302,11 @@ namespace Fracture.Engine.Ui.Components
             Context.Mouse = control;
         }
 
-        protected override void HookCustomEvents(IControl control) => control.MouseInputEnabledChanged += Control_MouseInputEnabledChanged;
+        protected override void HookCustomEvents(IControl control)
+            => control.MouseInputEnabledChanged += Control_MouseInputEnabledChanged;
 
-        protected override void UnhookCustomEvents(IControl control) => control.MouseInputEnabledChanged -= Control_MouseInputEnabledChanged;
+        protected override void UnhookCustomEvents(IControl control)
+            => control.MouseInputEnabledChanged -= Control_MouseInputEnabledChanged;
 
         protected override void InternalUpdate(IGameEngineTime time, IMouseDevice device)
         {
@@ -430,9 +432,11 @@ namespace Fracture.Engine.Ui.Components
             Context.Keyboard = control;
         }
 
-        protected override void HookCustomEvents(IControl control) => control.KeyboardInputEnabledChanged += Control_KeyboardInputEnabledChanged;
+        protected override void HookCustomEvents(IControl control)
+            => control.KeyboardInputEnabledChanged += Control_KeyboardInputEnabledChanged;
 
-        protected override void UnhookCustomEvents(IControl control) => control.KeyboardInputEnabledChanged -= Control_KeyboardInputEnabledChanged;
+        protected override void UnhookCustomEvents(IControl control)
+            => control.KeyboardInputEnabledChanged -= Control_KeyboardInputEnabledChanged;
 
         protected override void InternalUpdate(IGameEngineTime time, IKeyboardDevice device)
         {

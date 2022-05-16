@@ -252,8 +252,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// initialization or calls a constructor. 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DynamicDeserializeDelegateBuilder CreateWithDirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType) =>
-            new DynamicDeserializeDelegateBuilder(
+        public static DynamicDeserializeDelegateBuilder CreateWithDirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
+            => new DynamicDeserializeDelegateBuilder(
                 new DynamicMethodBuilder(
                     $"Deserialize",
                     typeof(object),
@@ -273,8 +273,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         /// avoided. Examples case is where the objects are being pooled. 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static DynamicDeserializeDelegateBuilder CreateWithIndirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType) =>
-            new DynamicDeserializeDelegateBuilder(
+        public static DynamicDeserializeDelegateBuilder CreateWithIndirectActivation(in ObjectSerializationValueRanges valueRanges, Type serializationType)
+            => new DynamicDeserializeDelegateBuilder(
                 new DynamicMethodBuilder(
                     $"Deserialize",
                     typeof(object),

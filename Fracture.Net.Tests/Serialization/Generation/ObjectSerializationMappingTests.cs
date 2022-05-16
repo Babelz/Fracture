@@ -22,7 +22,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
 
-            public NoDefaultConstructorTestClass(int foo) => Foo = foo;
+            public NoDefaultConstructorTestClass(int foo)
+                => Foo = foo;
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
@@ -115,7 +116,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             public readonly int X;
             #endregion
 
-            public ParametrizedReadOnlyFieldTestClass(int x) => X = x;
+            public ParametrizedReadOnlyFieldTestClass(int x)
+                => X = x;
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.
@@ -129,7 +131,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
             }
             #endregion
 
-            public ParametrizedReadOnlyPropertyTestClass(int x) => X = x;
+            public ParametrizedReadOnlyPropertyTestClass(int x)
+                => X = x;
         }
 
         // ReSharper disable once ClassNeverInstantiated.Local - only used in testing and the type is dynamically discovered.

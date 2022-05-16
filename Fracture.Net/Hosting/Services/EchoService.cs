@@ -117,11 +117,14 @@ namespace Fracture.Net.Hosting.Services
             return TimeSpan.FromMilliseconds(peerSamples.Where(s => s > min && s < max).Average(t => t.TotalMilliseconds));
         }
 
-        public TimeSpan GetMax(int peerId) => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Max();
+        public TimeSpan GetMax(int peerId)
+            => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Max();
 
-        public TimeSpan GetMin(int peerId) => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Min();
+        public TimeSpan GetMin(int peerId)
+            => !samples.ContainsKey(peerId) ? TimeSpan.Zero : samples[peerId].Min();
 
-        public void Reset(int peerId) => samples.Remove(peerId);
+        public void Reset(int peerId)
+            => samples.Remove(peerId);
     }
 
     /// <summary>
@@ -160,6 +163,7 @@ namespace Fracture.Net.Hosting.Services
                         m.Phase     = EchoPhase.Pong;
                         m.RequestId = message.RequestId;
                     }));
+
                     break;
                 case EchoPhase.Pong:
                     if (latency.RecordPong(request.Connection.PeerId, message.RequestId))
@@ -209,7 +213,8 @@ namespace Fracture.Net.Hosting.Services
         }
 
         #region Event handlers
-        private void Application_OnJoin(object sender, in PeerJoinEventArgs e) => CreatePeerLatencyTestScheduler(e.Connection.PeerId);
+        private void Application_OnJoin(object sender, in PeerJoinEventArgs e)
+            => CreatePeerLatencyTestScheduler(e.Connection.PeerId);
         #endregion
     }
 }

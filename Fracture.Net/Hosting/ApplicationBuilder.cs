@@ -28,11 +28,12 @@ namespace Fracture.Net.Hosting
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(Type type, string asWhat = "") =>
-            Log.Information($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
+        private static void LogBinding(Type type, string asWhat = "")
+            => Log.Information($"binding {type.FullName} to application builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(object value, string asWhat = "") => LogBinding(value.GetType(), asWhat);
+        private static void LogBinding(object value, string asWhat = "")
+            => LogBinding(value.GetType(), asWhat);
 
         /// <summary>
         /// Registers custom request router for application.
@@ -171,6 +172,7 @@ namespace Fracture.Net.Hosting
         /// Register the server for use by the application. 
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ApplicationBuilder FromServer(IServer server) => new ApplicationBuilder(server);
+        public static ApplicationBuilder FromServer(IServer server)
+            => new ApplicationBuilder(server);
     }
 }

@@ -160,9 +160,11 @@ namespace Fracture.Engine.Graphics
             Window = window != null ? new Window(window) : throw new ArgumentNullException(nameof(window));
         }
 
-        public void SetRenderTarget(RenderTarget2D renderTarget) => manager.GraphicsDevice.SetRenderTarget(renderTarget);
+        public void SetRenderTarget(RenderTarget2D renderTarget)
+            => manager.GraphicsDevice.SetRenderTarget(renderTarget);
 
-        public void Clear(Color color) => manager.GraphicsDevice.Clear(color);
+        public void Clear(Color color)
+            => manager.GraphicsDevice.Clear(color);
 
         public Texture2D CreateTexture2D(byte [] data)
         {
@@ -171,7 +173,8 @@ namespace Fracture.Engine.Graphics
             return Texture2D.FromStream(manager.GraphicsDevice, ms);
         }
 
-        public SpriteBatch CreateSpriteBatch(int capacity) => new SpriteBatch(manager.GraphicsDevice, capacity);
+        public SpriteBatch CreateSpriteBatch(int capacity)
+            => new SpriteBatch(manager.GraphicsDevice, capacity);
 
         public RenderTarget2D CreateRenderTarget2D(int width,
                                                    int height,
@@ -179,14 +182,14 @@ namespace Fracture.Engine.Graphics
                                                    bool mipmap,
                                                    SurfaceFormat surfaceFormat,
                                                    DepthFormat depthFormat,
-                                                   RenderTargetUsage usage) =>
-            new RenderTarget2D(manager.GraphicsDevice,
-                               width,
-                               height,
-                               mipmap,
-                               surfaceFormat,
-                               depthFormat,
-                               samples,
-                               usage);
+                                                   RenderTargetUsage usage)
+            => new RenderTarget2D(manager.GraphicsDevice,
+                                  width,
+                                  height,
+                                  mipmap,
+                                  surfaceFormat,
+                                  depthFormat,
+                                  samples,
+                                  usage);
     }
 }

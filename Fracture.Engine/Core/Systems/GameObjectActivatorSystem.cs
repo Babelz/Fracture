@@ -30,10 +30,13 @@ namespace Fracture.Engine.Core.Systems
         private readonly IObjectActivator activator;
         #endregion
 
-        public GameObjectActivatorSystem(IObjectActivator activator) => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+        public GameObjectActivatorSystem(IObjectActivator activator)
+            => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
 
-        public T Activate<T>(params IBindingValue [] bindings) => activator.Activate<T>(bindings);
+        public T Activate<T>(params IBindingValue [] bindings)
+            => activator.Activate<T>(bindings);
 
-        public object Activate(Type type, params IBindingValue [] bindings) => activator.Activate(type, bindings);
+        public object Activate(Type type, params IBindingValue [] bindings)
+            => activator.Activate(type, bindings);
     }
 }

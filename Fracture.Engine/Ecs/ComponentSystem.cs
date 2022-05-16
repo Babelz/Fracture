@@ -92,7 +92,8 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Gets the id of component at given index.
         /// </summary>
-        protected int IdAtIndex(int index) => aliveComponents[index];
+        protected int IdAtIndex(int index)
+            => aliveComponents[index];
 
         protected virtual int InitializeComponent(int entityId)
         {
@@ -108,7 +109,8 @@ namespace Fracture.Engine.Ecs
             return componentId;
         }
 
-        public int OwnerOf(int componentId) => componentToEntityMap[componentId];
+        public int OwnerOf(int componentId)
+            => componentToEntityMap[componentId];
 
         public virtual bool Delete(int componentId)
         {
@@ -123,7 +125,8 @@ namespace Fracture.Engine.Ecs
             return true;
         }
 
-        public bool IsAlive(int componentId) => componentToEntityMap.ContainsKey(componentId);
+        public bool IsAlive(int componentId)
+            => componentToEntityMap.ContainsKey(componentId);
 
         public abstract bool BoundTo(int entityId);
         public abstract int FirstFor(int entityId);
@@ -146,9 +149,11 @@ namespace Fracture.Engine.Ecs
                 Delete(aliveComponents[0]);
         }
 
-        public IEnumerator<int> GetEnumerator() => aliveComponents.GetEnumerator();
+        public IEnumerator<int> GetEnumerator()
+            => aliveComponents.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 
     /// <summary>
@@ -164,8 +169,8 @@ namespace Fracture.Engine.Ecs
         #endregion
 
         protected UniqueComponentSystem(IEventQueueSystem events)
-            : base(events) =>
-            entityToComponentMap = new Dictionary<int, int>();
+            : base(events)
+            => entityToComponentMap = new Dictionary<int, int>();
 
         protected override int InitializeComponent(int entityId)
         {
@@ -189,7 +194,8 @@ namespace Fracture.Engine.Ecs
             return success;
         }
 
-        public sealed override bool BoundTo(int entityId) => entityToComponentMap.ContainsKey(entityId);
+        public sealed override bool BoundTo(int entityId)
+            => entityToComponentMap.ContainsKey(entityId);
 
         public sealed override int FirstFor(int entityId)
         {
@@ -279,7 +285,8 @@ namespace Fracture.Engine.Ecs
             return true;
         }
 
-        public override bool BoundTo(int entityId) => entityToComponentsMap.Count != 0;
+        public override bool BoundTo(int entityId)
+            => entityToComponentsMap.Count != 0;
 
         public override int FirstFor(int entityId)
         {
@@ -289,7 +296,7 @@ namespace Fracture.Engine.Ecs
             throw new ComponentNotFoundException(entityId);
         }
 
-        public override IEnumerable<int> AllFor(int entityId) =>
-            entityToComponentsMap.TryGetValue(entityId, out var components) ? components.ToArray() : Array.Empty<int>();
+        public override IEnumerable<int> AllFor(int entityId)
+            => entityToComponentsMap.TryGetValue(entityId, out var components) ? components.ToArray() : Array.Empty<int>();
     }
 }

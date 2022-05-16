@@ -94,7 +94,8 @@ namespace Fracture.Net.Serialization
         }
 
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => Serializers.ContainsKey(type);
+        public static bool SupportsType(Type type)
+            => Serializers.ContainsKey(type);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Map(ObjectSerializationMapping mapping)
@@ -120,41 +121,48 @@ namespace Fracture.Net.Serialization
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T value, byte [] buffer, int offset) => InternalSerialize(value.GetType(), value, buffer, offset);
+        public static void Serialize<T>(T value, byte [] buffer, int offset)
+            => InternalSerialize(value.GetType(), value, buffer, offset);
 
         /// <summary>
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>
-        public static void Serialize(object value, byte [] buffer, int offset) => InternalSerialize(value.GetType(), value, buffer, offset);
+        public static void Serialize(object value, byte [] buffer, int offset)
+            => InternalSerialize(value.GetType(), value, buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as structure and returns that value to the caller. Type information is retrieved the
         /// buffer for the object.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T Deserialize<T>(byte [] buffer, int offset) => (T)InternalDeserialize(buffer, offset);
+        public static T Deserialize<T>(byte [] buffer, int offset)
+            => (T)InternalDeserialize(buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as structure and returns that value to the caller. Type information is retrieved the
         /// buffer for the object.
         /// </summary>
-        public static object Deserialize(byte [] buffer, int offset) => InternalDeserialize(buffer, offset);
+        public static object Deserialize(byte [] buffer, int offset)
+            => InternalDeserialize(buffer, offset);
 
         /// <summary>
         /// Returns size of structure, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => Protocol.ContentLength.Read(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
         /// Returns size of structure value, size will vary. Type information is retrieved from the proved generic type argument.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue<T>(T value) => InternalGetSizeFromValue(value.GetType(), value);
+        public static ushort GetSizeFromValue<T>(T value)
+            => InternalGetSizeFromValue(value.GetType(), value);
 
         /// <summary>
         /// Returns size of structure value, size will vary. Type information is retrieved from the provided object.
         /// </summary>
-        public static ushort GetSizeFromValue(object value) => InternalGetSizeFromValue(value.GetType(), value);
+        public static ushort GetSizeFromValue(object value)
+            => InternalGetSizeFromValue(value.GetType(), value);
     }
 }

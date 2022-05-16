@@ -47,12 +47,12 @@ namespace Fracture.Engine.Core.Primitives
             Bounds   = bounds;
         }
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(Position.X)
-                     .Append(Position.Y)
-                     .Append(Bounds.X)
-                     .Append(Bounds.Y);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Position.X)
+                        .Append(Position.Y)
+                        .Append(Bounds.X)
+                        .Append(Bounds.Y);
 
         public override bool Equals(object obj)
         {
@@ -70,14 +70,15 @@ namespace Fracture.Engine.Core.Primitives
             }
         }
 
-        public override string ToString() => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";
+        public override string ToString()
+            => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Intersects(in Rectf a, in Rectf b) =>
-            a.Left < b.Right &&
-            a.Right > b.Left &&
-            a.Top < b.Bottom &&
-            a.Bottom > b.Top;
+        public static bool Intersects(in Rectf a, in Rectf b)
+            => a.Left < b.Right &&
+               a.Right > b.Left &&
+               a.Top < b.Bottom &&
+               a.Bottom > b.Top;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Intersects(in Rectf rectf, in Vector2 vector)
@@ -111,20 +112,21 @@ namespace Fracture.Engine.Core.Primitives
             return new Rectf(new Vector2(x, y), new Vector2(w, h));
         }
 
-        public static bool operator ==(in Rectf lhs, in Rectf rhs) =>
-            lhs.Bounds == rhs.Bounds &&
-            lhs.Position == rhs.Position;
+        public static bool operator ==(in Rectf lhs, in Rectf rhs)
+            => lhs.Bounds == rhs.Bounds &&
+               lhs.Position == rhs.Position;
 
-        public static bool operator !=(in Rectf lhs, in Rectf rhs) => !(lhs == rhs);
+        public static bool operator !=(in Rectf lhs, in Rectf rhs)
+            => !(lhs == rhs);
 
-        public static explicit operator Rectangle(in Rectf rectf) =>
-            new Rectangle((int)rectf.X,
-                          (int)rectf.Y,
-                          (int)rectf.Width,
-                          (int)rectf.Height);
+        public static explicit operator Rectangle(in Rectf rectf)
+            => new Rectangle((int)rectf.X,
+                             (int)rectf.Y,
+                             (int)rectf.Width,
+                             (int)rectf.Height);
 
-        public static explicit operator Rectf(in Rectangle rectangle) =>
-            new Rectf(new Vector2(rectangle.X, rectangle.Y),
-                      new Vector2(rectangle.Width, rectangle.Height));
+        public static explicit operator Rectf(in Rectangle rectangle)
+            => new Rectf(new Vector2(rectangle.X, rectangle.Y),
+                         new Vector2(rectangle.Width, rectangle.Height));
     }
 }

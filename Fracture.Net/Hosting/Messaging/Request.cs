@@ -74,7 +74,8 @@ namespace Fracture.Net.Hosting.Messaging
         }
         #endregion
 
-        public RequestMiddlewareContext(IRequest request) => Request = request ?? throw new ArgumentNullException(nameof(request));
+        public RequestMiddlewareContext(IRequest request)
+            => Request = request ?? throw new ArgumentNullException(nameof(request));
     }
 
     /// <summary>
@@ -86,8 +87,8 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any() =>
-            delegate
+        public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any()
+            => delegate
             {
                 return true;
             };
@@ -177,19 +178,22 @@ namespace Fracture.Net.Hosting.Messaging
             Length     = default;
         }
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(Connection)
-                     .Append(Contents)
-                     .Append(Message)
-                     .Append(Timestamp);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Request Take() => Pool.Take();
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Connection)
+                        .Append(Contents)
+                        .Append(Message)
+                        .Append(Timestamp);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(Request request) => Pool.Return(request);
+        public static Request Take()
+            => Pool.Take();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(Request request)
+            => Pool.Return(request);
     }
 }

@@ -19,7 +19,8 @@ namespace Fracture.Common.Memory.Storages
         public int Count => storage.Top;
         #endregion
 
-        public StackStorageObject(IStack<T> storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public StackStorageObject(IStack<T> storage)
+            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         public void Return(T element)
         {
@@ -29,6 +30,7 @@ namespace Fracture.Common.Memory.Storages
             storage.Push(element);
         }
 
-        public T Take() => !Empty ? storage.Pop() : throw new InvalidOperationException("storage is empty");
+        public T Take()
+            => !Empty ? storage.Pop() : throw new InvalidOperationException("storage is empty");
     }
 }

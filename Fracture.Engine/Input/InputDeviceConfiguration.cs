@@ -24,8 +24,8 @@ namespace Fracture.Engine.Input
             this.statesCount = statesCount;
         }
 
-        public IInputDevice CreateDevice(IGameObjectActivatorSystem activator) =>
-            activator.Activate<KeyboardDevice>(BindingValue.Const(nameof(statesCount), statesCount));
+        public IInputDevice CreateDevice(IGameObjectActivatorSystem activator)
+            => activator.Activate<KeyboardDevice>(BindingValue.Const(nameof(statesCount), statesCount));
     }
 
     public sealed class DesktopMouseConfiguration : IPlatformDeviceConfiguration
@@ -42,7 +42,7 @@ namespace Fracture.Engine.Input
             this.statesCount = statesCount;
         }
 
-        public IInputDevice CreateDevice(IGameObjectActivatorSystem activator) =>
-            activator.Activate<MouseDevice>(BindingValue.Const(nameof(statesCount), statesCount));
+        public IInputDevice CreateDevice(IGameObjectActivatorSystem activator)
+            => activator.Activate<MouseDevice>(BindingValue.Const(nameof(statesCount), statesCount));
     }
 }

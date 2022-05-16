@@ -84,6 +84,7 @@ namespace Fracture.Common.Reflection
             il.MarkLabel(label);
         }
 
-        public Delegate CreateDelegate(Type type) => dynamicMethod.CreateDelegate(type);
+        public Delegate CreateDelegate(Type type)
+            => dynamicMethod.CreateDelegate(type);
     }
 }

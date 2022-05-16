@@ -86,8 +86,10 @@ namespace Fracture.Engine.Physics.Dynamics
             ids.Return(bodyId);
         }
 
-        public ref Body WithId(int bodyId) => ref bodies.AtIndex(bodyId);
+        public ref Body WithId(int bodyId)
+            => ref bodies.AtIndex(bodyId);
 
-        public ref Body AtIndex(int index) => ref bodies.AtIndex(indices[index]);
+        public ref Body AtIndex(int index)
+            => ref bodies.AtIndex(indices[index]);
     }
 }

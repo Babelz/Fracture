@@ -49,7 +49,8 @@ namespace Fracture.Engine.Events
             {
             }
 
-            public void Handle(EventHandlerDelegate<TTopic, TArgs> handler) => Value?.Handle(handler);
+            public void Handle(EventHandlerDelegate<TTopic, TArgs> handler)
+                => Value?.Handle(handler);
         }
         #endregion
 

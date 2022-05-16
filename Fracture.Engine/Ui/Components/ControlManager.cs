@@ -90,7 +90,8 @@ namespace Fracture.Engine.Ui.Components
         public IControl this[int index] => controls[index];
         #endregion
 
-        public ControlManager() => controls = new List<IControl>();
+        public ControlManager()
+            => controls = new List<IControl>();
 
         public void Add(IControl control)
         {

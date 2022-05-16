@@ -16,14 +16,15 @@ namespace Fracture.Common.Reflection
         /// Creates <see cref="Delegate"/> from given method info with correct signature. Underlying delegate type is selected by Expression.GetDelegateType.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Delegate CreateDelegate(MethodInfo methodInfo) =>
-            methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters()
-                                                                           .Select(p => p.ParameterType)
-                                                                           .Concat(new [] { methodInfo.ReturnType })
-                                                                           .ToArray()));
+        public static Delegate CreateDelegate(MethodInfo methodInfo)
+            => methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters()
+                                                                              .Select(p => p.ParameterType)
+                                                                              .Concat(new [] { methodInfo.ReturnType })
+                                                                              .ToArray()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType) => methodInfo.CreateDelegate(delegateType);
+        public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType)
+            => methodInfo.CreateDelegate(delegateType);
 
         /// <summary>
         /// Creates delegate from given method info using given delegate type.

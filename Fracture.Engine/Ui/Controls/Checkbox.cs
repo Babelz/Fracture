@@ -40,7 +40,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public Checkbox() => Size = new Vector2(0.2f);
+        public Checkbox()
+            => Size = new Vector2(0.2f);
 
         protected override void InternalClick()
         {

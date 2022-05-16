@@ -39,7 +39,8 @@ namespace Fracture.Engine.Graphics
         }
 
         #region Event handlers
-        private void Window_OnTextInput(object sender, TextInputEventArgs e) => TextInput?.Invoke(this, e);
+        private void Window_OnTextInput(object sender, TextInputEventArgs e)
+            => TextInput?.Invoke(this, e);
         #endregion
     }
 }

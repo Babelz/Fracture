@@ -72,8 +72,10 @@ namespace Fracture.Engine.Ecs
             }
         }
 
-        public void Register<T>() where T : IEntityPrefab => registry.Bind(activator.Activate<T>());
+        public void Register<T>() where T : IEntityPrefab
+            => registry.Bind(activator.Activate<T>());
 
-        public T Get<T>() where T : IEntityPrefab => registry.First<T>();
+        public T Get<T>() where T : IEntityPrefab
+            => registry.First<T>();
     }
 }

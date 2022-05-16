@@ -28,13 +28,16 @@ namespace Fracture.Net.Serialization
         /// Creates new instance of <see cref="BitField"/> with given length.
         /// </summary>
         /// <param name="bytesLength">how many bytes does the bit field consist of</param>
-        public BitField(int bytesLength) => bytes = new byte[bytesLength];
+        public BitField(int bytesLength)
+            => bytes = new byte[bytesLength];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int BitIndex(int index) => index % BitsInByte;
+        private static int BitIndex(int index)
+            => index % BitsInByte;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int ByteIndex(int index) => index / BitsInByte;
+        private static int ByteIndex(int index)
+            => index / BitsInByte;
 
         /// <summary>
         /// Gets bit value at given index.
@@ -61,17 +64,20 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Gets byte at given index.
         /// </summary>
-        public byte GetByteAtIndex(int index) => bytes[index];
+        public byte GetByteAtIndex(int index)
+            => bytes[index];
 
         /// <summary>
         /// Copies bit field bytes to given buffer at given offset.
         /// </summary>
-        public void CopyTo(byte [] buffer, int offset) => MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
+        public void CopyTo(byte [] buffer, int offset)
+            => MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
 
         /// <summary>
         /// Copies buffer values to bit field beginning from given offset.
         /// </summary>
-        public void CopyFrom(byte [] buffer, int offset) => MemoryMapper.VectorizedCopy(buffer, offset, bytes, 0, bytes.Length);
+        public void CopyFrom(byte [] buffer, int offset)
+            => MemoryMapper.VectorizedCopy(buffer, offset, bytes, 0, bytes.Length);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int LengthFromBits(int bits)
@@ -91,7 +97,8 @@ namespace Fracture.Net.Serialization
     public static class BitFieldSerializer
     {
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type == typeof(BitField);
+        public static bool SupportsType(Type type)
+            => type == typeof(BitField);
 
         [ValueSerializer.Serialize]
         public static void Serialize(BitField value, byte [] buffer, int offset)
@@ -114,9 +121,11 @@ namespace Fracture.Net.Serialization
         }
 
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => Protocol.ContentLength.Read(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => Protocol.ContentLength.Read(buffer, offset);
 
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue(BitField value) => checked((ushort)(value.BytesLength + Protocol.ContentLength.Size));
+        public static ushort GetSizeFromValue(BitField value)
+            => checked((ushort)(value.BytesLength + Protocol.ContentLength.Size));
     }
 }

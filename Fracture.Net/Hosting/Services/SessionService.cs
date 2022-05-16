@@ -59,11 +59,14 @@ namespace Fracture.Net.Hosting.Services
         /// <summary>
         /// Refresh the session and update refreshed timestamp.
         /// </summary>
-        public virtual void Refresh() => Refreshed = DateTime.UtcNow;
+        public virtual void Refresh()
+            => Refreshed = DateTime.UtcNow;
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode() => HashUtils.Create().Append(Created);
+        public override int GetHashCode()
+            => HashUtils.Create().Append(Created);
     }
 
     /// <summary>
@@ -99,8 +102,8 @@ namespace Fracture.Net.Hosting.Services
 
     public static class SessionServiceMiddleware<T> where T : SessionBase
     {
-        public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions) =>
-            (in RequestMiddlewareContext context) =>
+        public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions)
+            => (in RequestMiddlewareContext context) =>
             {
                 if (sessions.TryGet(context.Request.Connection.PeerId, out var session))
                     session.Refresh();
@@ -125,7 +128,8 @@ namespace Fracture.Net.Hosting.Services
             sessions = new Dictionary<int, T>();
         }
 
-        public bool Active(int peerId) => sessions.ContainsKey(peerId);
+        public bool Active(int peerId)
+            => sessions.ContainsKey(peerId);
 
         public void Update(int peerId, T session)
         {
@@ -150,15 +154,20 @@ namespace Fracture.Net.Hosting.Services
             return newSession;
         }
 
-        public void Clear(int peerId) => sessions.Remove(peerId);
+        public void Clear(int peerId)
+            => sessions.Remove(peerId);
 
-        public bool TryGet(int peerId, out T session) => sessions.TryGetValue(peerId, out session);
+        public bool TryGet(int peerId, out T session)
+            => sessions.TryGetValue(peerId, out session);
 
-        public T Get(int peerId) => sessions[peerId];
+        public T Get(int peerId)
+            => sessions[peerId];
 
-        public IEnumerator<T> GetEnumerator() => sessions.Values.GetEnumerator();
+        public IEnumerator<T> GetEnumerator()
+            => sessions.Values.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 
     /// <summary>

@@ -87,55 +87,72 @@ namespace Fracture.Common.Memory
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static double ReadDouble(byte [] bytes, int index) => Read<double>(bytes, index);
+        public static double ReadDouble(byte [] bytes, int index)
+            => Read<double>(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ReadFloat(byte [] bytes, int index) => Read<float>(bytes, index);
+        public static float ReadFloat(byte [] bytes, int index)
+            => Read<float>(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool ReadBool(byte [] bytes, int index) => bytes[index] != 0;
+        public static bool ReadBool(byte [] bytes, int index)
+            => bytes[index] != 0;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte ReadByte(byte [] bytes, int index) => bytes[index];
+        public static byte ReadByte(byte [] bytes, int index)
+            => bytes[index];
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static sbyte ReadSByte(byte [] bytes, int index) => (sbyte)(bytes[index]);
+        public static sbyte ReadSByte(byte [] bytes, int index)
+            => (sbyte)(bytes[index]);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static char ReadChar(byte [] bytes, int index) => (char)((bytes[index]) | (bytes[index + 1] << 8));
+        public static char ReadChar(byte [] bytes, int index)
+            => (char)((bytes[index]) | (bytes[index + 1] << 8));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static short ReadShort(byte [] bytes, int index) => (short)((bytes[index]) | (bytes[index + 1] << 8));
+        public static short ReadShort(byte [] bytes, int index)
+            => (short)((bytes[index]) | (bytes[index + 1] << 8));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ushort ReadUshort(byte [] bytes, int index) => (ushort)ReadShort(bytes, index);
+        public static ushort ReadUshort(byte [] bytes, int index)
+            => (ushort)ReadShort(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int ReadInt(byte [] bytes, int index) => (bytes[index]) | (bytes[index + 1] << 8) | (bytes[index + 2] << 16) | (bytes[index + 3] << 24);
+        public static int ReadInt(byte [] bytes, int index)
+            => (bytes[index]) | (bytes[index + 1] << 8) | (bytes[index + 2] << 16) | (bytes[index + 3] << 24);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static uint ReadUint(byte [] bytes, int index) => (uint)ReadInt(bytes, index);
+        public static uint ReadUint(byte [] bytes, int index)
+            => (uint)ReadInt(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long ReadLong(byte [] bytes, int index) => Read<long>(bytes, index);
+        public static long ReadLong(byte [] bytes, int index)
+            => Read<long>(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ulong ReadUlong(byte [] bytes, int index) => (ulong)ReadLong(bytes, index);
+        public static ulong ReadUlong(byte [] bytes, int index)
+            => (ulong)ReadLong(bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteDouble(double value, byte [] bytes, int index) => Write(value, bytes, index);
+        public static void WriteDouble(double value, byte [] bytes, int index)
+            => Write(value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteFloat(float value, byte [] bytes, int index) => Write(value, bytes, index);
+        public static void WriteFloat(float value, byte [] bytes, int index)
+            => Write(value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteBool(bool value, byte [] bytes, int index) => bytes[index] = (byte)(value ? 1 : 0);
+        public static void WriteBool(bool value, byte [] bytes, int index)
+            => bytes[index] = (byte)(value ? 1 : 0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteByte(byte value, byte [] bytes, int index) => bytes[index] = value;
+        public static void WriteByte(byte value, byte [] bytes, int index)
+            => bytes[index] = value;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteSByte(sbyte value, byte [] bytes, int index) => WriteByte((byte)value, bytes, index);
+        public static void WriteSByte(sbyte value, byte [] bytes, int index)
+            => WriteByte((byte)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteChar(char value, byte [] bytes, int index)
@@ -152,7 +169,8 @@ namespace Fracture.Common.Memory
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteUshort(ushort value, byte [] bytes, int index) => WriteShort((short)value, bytes, index);
+        public static void WriteUshort(ushort value, byte [] bytes, int index)
+            => WriteShort((short)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteInt(int value, byte [] bytes, int index)
@@ -164,7 +182,8 @@ namespace Fracture.Common.Memory
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteUint(uint value, byte [] bytes, int index) => WriteInt((int)value, bytes, index);
+        public static void WriteUint(uint value, byte [] bytes, int index)
+            => WriteInt((int)value, bytes, index);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void WriteLong(long value, byte [] bytes, int index)
@@ -180,7 +199,8 @@ namespace Fracture.Common.Memory
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void WriteUlong(ulong value, byte [] bytes, int index) => WriteLong((long)value, bytes, index);
+        public static void WriteUlong(ulong value, byte [] bytes, int index)
+            => WriteLong((long)value, bytes, index);
 
         /// <summary>
         /// Performs optimized copying operation for byte based arrays using SIMD operations. This function is not suitable for doing array shifts, if you are

@@ -20,7 +20,8 @@ namespace Fracture.Common.Collections
         }
         #endregion
 
-        public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1) => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
+        public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1)
+            => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
 
         public void Add(in T value)
         {
@@ -42,7 +43,8 @@ namespace Fracture.Common.Collections
             return true;
         }
 
-        public ref T AtIndex(int index) => ref items.AtIndex(index);
+        public ref T AtIndex(int index)
+            => ref items.AtIndex(index);
 
         /// <summary>
         /// Inserts given item to given index. This insert function allows inserting past the collection. When inserting past
@@ -60,8 +62,10 @@ namespace Fracture.Common.Collections
             items.Insert(index, value);
         }
 
-        public IEnumerator<T> GetEnumerator() => items.GetEnumerator();
+        public IEnumerator<T> GetEnumerator()
+            => items.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => items.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => items.GetEnumerator();
     }
 }

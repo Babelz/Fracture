@@ -126,9 +126,10 @@ namespace Fracture.Engine.Ui.Controls
             if (CaretPosition == 0)
                 return;
 
-            if (Keyboard.IsPressed(Keys.Left) || (Keyboard.IsDown(Keys.Left) &&
-                                                  Keyboard.TimeDown(Keys.Left) >= TimeSpan.FromMilliseconds(250) &&
-                                                  caretMove >= TimeSpan.FromMilliseconds(100)))
+            if (Keyboard.IsPressed(Keys.Left) ||
+                (Keyboard.IsDown(Keys.Left) &&
+                 Keyboard.TimeDown(Keys.Left) >= TimeSpan.FromMilliseconds(250) &&
+                 caretMove >= TimeSpan.FromMilliseconds(100)))
             {
                 CaretPosition--;
 
@@ -142,9 +143,10 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (CaretPosition == Text.Length) return;
 
-            if (Keyboard.IsPressed(Keys.Right) || (Keyboard.IsDown(Keys.Right) &&
-                                                   Keyboard.TimeDown(Keys.Right) >= TimeSpan.FromMilliseconds(250) &&
-                                                   caretMove >= TimeSpan.FromMilliseconds(100)))
+            if (Keyboard.IsPressed(Keys.Right) ||
+                (Keyboard.IsDown(Keys.Right) &&
+                 Keyboard.TimeDown(Keys.Right) >= TimeSpan.FromMilliseconds(250) &&
+                 caretMove >= TimeSpan.FromMilliseconds(100)))
             {
                 CaretPosition++;
 
@@ -158,9 +160,10 @@ namespace Fracture.Engine.Ui.Controls
         {
             if (Text.Length == 0 || CaretPosition == 0) return;
 
-            if (Keyboard.IsPressed(Keys.Back) || (Keyboard.IsDown(Keys.Back) &&
-                                                  Keyboard.TimeDown(Keys.Back) >= TimeSpan.FromMilliseconds(250) &&
-                                                  caretErase >= TimeSpan.FromMilliseconds(100)))
+            if (Keyboard.IsPressed(Keys.Back) ||
+                (Keyboard.IsDown(Keys.Back) &&
+                 Keyboard.TimeDown(Keys.Back) >= TimeSpan.FromMilliseconds(250) &&
+                 caretErase >= TimeSpan.FromMilliseconds(100)))
             {
                 Text = Text.Remove(CaretPosition - 1, 1);
 

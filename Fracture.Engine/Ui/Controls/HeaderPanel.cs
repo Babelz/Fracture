@@ -53,7 +53,8 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void Header_StyleChanged(object sender, EventArgs e) => CenterHeaderParagraph();
+        private void Header_StyleChanged(object sender, EventArgs e)
+            => CenterHeaderParagraph();
         #endregion
 
         private void CenterHeaderParagraph()

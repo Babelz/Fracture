@@ -174,6 +174,7 @@ namespace Shattered.Content.Ui
             return default;
         }
 
-        public void Set<T>(string name, T value) => values[name] = value;
+        public void Set<T>(string name, T value)
+            => values[name] = value;
     }
 }

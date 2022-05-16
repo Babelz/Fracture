@@ -12,7 +12,8 @@ namespace Fracture.Common.Di.Binding
         private readonly IDependencyLocator locator;
         #endregion
 
-        public DependencyBindingResolver(IDependencyLocator locator) => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
+        public DependencyBindingResolver(IDependencyLocator locator)
+            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
         public bool ResolveActivator(Type type, IBindingValue [] values, out IDependencyActivator activator)
         {

@@ -82,16 +82,21 @@ namespace Fracture.Engine.Physics.Dynamics
             return true;
         }
 
-        public bool IsCircle() => Vertices.Length == 2;
+        public bool IsCircle()
+            => Vertices.Length == 2;
 
-        public bool IsPolygon() => Vertices.Length >= 3;
+        public bool IsPolygon()
+            => Vertices.Length >= 3;
 
-        public bool IsBox() => Vertices.Length == 4;
+        public bool IsBox()
+            => Vertices.Length == 4;
 
-        public float Radius() => Vertices[1].X - Vertices[0].X;
+        public float Radius()
+            => Vertices[1].X - Vertices[0].X;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Shape CreateCircle(float radius) => new Shape(new [] { Vector2.Zero, new Vector2(radius) }, null);
+        public static Shape CreateCircle(float radius)
+            => new Shape(new [] { Vector2.Zero, new Vector2(radius) }, null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Shape CreateBox(Vector2 bounds)
@@ -157,9 +162,11 @@ namespace Fracture.Engine.Physics.Dynamics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Overlap(in Vector2 a, in Vector2 b) => (a.Y >= b.X) || (a.X >= b.Y);
+        public static bool Overlap(in Vector2 a, in Vector2 b)
+            => (a.Y >= b.X) || (a.X >= b.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float OverlapAmount(in Vector2 a, in Vector2 b) => Math.Min(a.Y, b.Y) - Math.Max(a.X, b.X);
+        public static float OverlapAmount(in Vector2 a, in Vector2 b)
+            => Math.Min(a.Y, b.Y) - Math.Max(a.X, b.X);
     }
 }

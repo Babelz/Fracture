@@ -167,9 +167,11 @@ namespace Fracture.Net.Hosting.Servers
             Reset?.Invoke(this, e);
         }
 
-        private void Peer_OnSending(object sender, in ServerMessageEventArgs e) => Outgoing?.Invoke(this, e);
+        private void Peer_OnSending(object sender, in ServerMessageEventArgs e)
+            => Outgoing?.Invoke(this, e);
 
-        private void Peer_OnReceived(object sender, in PeerMessageEventArgs e) => Incoming?.Invoke(this, e);
+        private void Peer_OnReceived(object sender, in PeerMessageEventArgs e)
+            => Incoming?.Invoke(this, e);
 
         private void Listener_OnConnected(object sender, in ListenerConnectedEventArgs e)
         {

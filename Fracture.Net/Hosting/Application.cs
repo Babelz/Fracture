@@ -279,13 +279,17 @@ namespace Fracture.Net.Hosting
         }
 
         #region Event handlers
-        private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e) => BufferPool.Return(e.Contents);
+        private static void Server_OnOutgoing(object sender, in ServerMessageEventArgs e)
+            => BufferPool.Return(e.Contents);
 
-        private void Server_OnIncoming(object sender, in PeerMessageEventArgs e) => incomingEvents.Enqueue(e);
+        private void Server_OnIncoming(object sender, in PeerMessageEventArgs e)
+            => incomingEvents.Enqueue(e);
 
-        private void Server_OnReset(object sender, in PeerResetEventArgs e) => resetsEvents.Enqueue(e);
+        private void Server_OnReset(object sender, in PeerResetEventArgs e)
+            => resetsEvents.Enqueue(e);
 
-        private void Server_OnJoin(object sender, in PeerJoinEventArgs e) => joinEvents.Enqueue(e);
+        private void Server_OnJoin(object sender, in PeerJoinEventArgs e)
+            => joinEvents.Enqueue(e);
         #endregion
 
         private void Initialize()
@@ -519,24 +523,30 @@ namespace Fracture.Net.Hosting
                     {
                         case ResponseStatus.Code.Empty:
                             Log.Warning("received empty response from handler, {@request}", request);
+
                             break;
                         case ResponseStatus.Code.Ok:
                             Log.Debug("request was handled successfully, {@response}, {@request}", response, request);
+
                             break;
                         case ResponseStatus.Code.Reset:
                             Log.Debug("request will reset the peer, {@response}, {@request}", response, request);
 
                             // Disallow handling of any remaining requests and mark the peer as leaving.
                             leavingPeerIds.Add(request.Connection.PeerId);
+
                             break;
                         case ResponseStatus.Code.ServerError:
                             Log.Debug("server error occurred while processing request, {@response}, {@request}", response, request);
+
                             break;
                         case ResponseStatus.Code.BadRequest:
                             Log.Debug("handler received bad request, {@response}, {@request}", response, request);
+
                             break;
                         case ResponseStatus.Code.NoRoute:
                             Log.Debug("no route accepted the request, {@response}, {@request}", response, request);
+
                             break;
                         default:
                             throw new InvalidOrUnsupportedException(nameof(ResponseStatus.Code), response.StatusCode);
@@ -728,21 +738,27 @@ namespace Fracture.Net.Hosting
 
                             if (!leavingPeerIds.Contains(peerId))
                                 Send(notification.Message, peerId);
+
                             break;
                         case NotificationCommand.BroadcastNarrow:
                             Broadcast(notification.Message, peerIds);
+
                             break;
                         case NotificationCommand.BroadcastWide:
                             Broadcast(notification.Message, peerIds);
+
                             break;
                         case NotificationCommand.Reset:
                             Reset(notification.Message, peerIds);
+
                             break;
                         case NotificationCommand.Shutdown:
                             Reset(notification.Message, peerIds);
+
                             break;
                         default:
                             Log.Error("notification command was unset or unsupported", notification);
+
                             break;
                     }
                 }

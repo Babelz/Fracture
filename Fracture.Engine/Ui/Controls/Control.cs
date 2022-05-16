@@ -19,7 +19,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlEventArgs(IControl control) => Control = control;
+        public ControlEventArgs(IControl control)
+            => Control = control;
     }
 
     public sealed class ControlParentEventArgs : EventArgs
@@ -52,7 +53,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlMouseInputEventArgs(ControlMouseInputManager mouseInputManager) => MouseInputManager = mouseInputManager;
+        public ControlMouseInputEventArgs(ControlMouseInputManager mouseInputManager)
+            => MouseInputManager = mouseInputManager;
     }
 
     public sealed class ControlKeyboardInputEventArgs : EventArgs
@@ -64,7 +66,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlKeyboardInputEventArgs(ControlKeyboardInputManager keyboardInputManager) => KeyboardInputManager = keyboardInputManager;
+        public ControlKeyboardInputEventArgs(ControlKeyboardInputManager keyboardInputManager)
+            => KeyboardInputManager = keyboardInputManager;
     }
 
     public sealed class ControlTextInputEventArgs : EventArgs
@@ -76,7 +79,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public ControlTextInputEventArgs(string input) => Input = input;
+        public ControlTextInputEventArgs(string input)
+            => Input = input;
     }
 
     /// <summary>
@@ -914,12 +918,14 @@ namespace Fracture.Engine.Ui.Controls
         /// <summary>
         /// Returns the current position of the parent or canvas position.
         /// </summary>
-        protected Vector2 GetParentActualPosition() => Parent == null ? Vector2.Zero : parent.ActualBoundingBox.Position;
+        protected Vector2 GetParentActualPosition()
+            => Parent == null ? Vector2.Zero : parent.ActualBoundingBox.Position;
 
         /// <summary>
         /// Returns the current size of the parent or canvas size.
         /// </summary>
-        protected Vector2 GetParentActualSize() => Parent == null ? Vector2.One : parent.ActualBoundingBox.Bounds;
+        protected Vector2 GetParentActualSize()
+            => Parent == null ? Vector2.One : parent.ActualBoundingBox.Bounds;
 
         /// <summary>
         /// Updates the layout of the control when anchor changes.
@@ -1014,6 +1020,7 @@ namespace Fracture.Engine.Ui.Controls
                 case Positioning.Anchor:
                     // Anchor control based on its anchor.
                     UpdateAnchor();
+
                     break;
                 case Positioning.Relative:
                     // Update relative position for control.
@@ -1022,11 +1029,13 @@ namespace Fracture.Engine.Ui.Controls
 
                     if (actual) position = parentActualPosition - position;
                     else actualPosition  = position * parentActualSize + parentActualPosition;
+
                     break;
                 case Positioning.Absolute:
                     // Update absolute position for control.
                     if (actual) position = actualPosition;
                     else actualPosition  = position;
+
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(Positioning), Positioning);
@@ -1184,9 +1193,11 @@ namespace Fracture.Engine.Ui.Controls
             VisibilityChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        public virtual void EnableDrag() => Draggable = true;
+        public virtual void EnableDrag()
+            => Draggable = true;
 
-        public virtual void DisableDrag() => Draggable = false;
+        public virtual void DisableDrag()
+            => Draggable = false;
 
         public virtual void ResumeKeyboardInputUpdate()
         {

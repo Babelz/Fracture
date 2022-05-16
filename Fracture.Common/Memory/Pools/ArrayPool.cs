@@ -112,7 +112,8 @@ namespace Fracture.Common.Memory.Pools
         private readonly IArrayPool<T> pool;
         #endregion
 
-        public ConcurrentArrayPool(IArrayPool<T> pool) => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
+        public ConcurrentArrayPool(IArrayPool<T> pool)
+            => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
 
         public void Return(T [] array)
         {
@@ -151,9 +152,11 @@ namespace Fracture.Common.Memory.Pools
             this.blockSize = blockSize;
         }
 
-        private bool FitsToBlockBoundaries(int size) => size < maxSize;
+        private bool FitsToBlockBoundaries(int size)
+            => size < maxSize;
 
-        private int GetBlocksCount(int size) => size / blockSize + (size % blockSize > 0 ? 1 : 0);
+        private int GetBlocksCount(int size)
+            => size / blockSize + (size % blockSize > 0 ? 1 : 0);
 
         public void Return(T [] array)
         {
@@ -163,6 +166,7 @@ namespace Fracture.Common.Memory.Pools
             pool.Return(array);
         }
 
-        public T [] Take(int size) => !FitsToBlockBoundaries(size) ? new T[size] : pool.Take(GetBlocksCount(size) * blockSize);
+        public T [] Take(int size)
+            => !FitsToBlockBoundaries(size) ? new T[size] : pool.Take(GetBlocksCount(size) * blockSize);
     }
 }

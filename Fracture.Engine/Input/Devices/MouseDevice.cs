@@ -63,7 +63,8 @@ namespace Fracture.Engine.Input.Devices
             ScrollWheelValue = scrollWheelValue;
         }
 
-        public void Transform(Point transform) => Position += transform;
+        public void Transform(Point transform)
+            => Position += transform;
     }
 
     /// <summary>
@@ -260,9 +261,11 @@ namespace Fracture.Engine.Input.Devices
             return (buttonsDown & button) == button && (buttonsUp & button) != button;
         }
 
-        public TimeSpan GetButtonTimeDown(MouseButton button) => buttonWatcher.TimeActive(button);
+        public TimeSpan GetButtonTimeDown(MouseButton button)
+            => buttonWatcher.TimeActive(button);
 
-        public TimeSpan GetButtonTimeUp(MouseButton button) => buttonWatcher.TimeInactive(button);
+        public TimeSpan GetButtonTimeUp(MouseButton button)
+            => buttonWatcher.TimeInactive(button);
 
         public void Poll(IGameEngineTime time)
         {

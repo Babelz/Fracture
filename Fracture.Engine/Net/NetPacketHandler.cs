@@ -62,10 +62,11 @@ namespace Fracture.Engine.Net
         private readonly List<NetMessageHandlerContext> contexts;
         #endregion
 
-        public NetPacketHandler() => contexts = new List<NetMessageHandlerContext>();
+        public NetPacketHandler()
+            => contexts = new List<NetMessageHandlerContext>();
 
-        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler) =>
-            contexts.Add(new NetMessageHandlerContext(name, match, handler));
+        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => contexts.Add(new NetMessageHandlerContext(name, match, handler));
 
         public void Revoke(string name)
         {

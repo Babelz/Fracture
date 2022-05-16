@@ -88,57 +88,61 @@ namespace Fracture.Engine.Core.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform ComponentPosition(in Vector2 position) => new Transform(position, Vector2.Zero);
+        public static Transform ComponentPosition(in Vector2 position)
+            => new Transform(position, Vector2.Zero);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform ComponentScale(in Vector2 scale) => new Transform(Vector2.Zero, scale);
+        public static Transform ComponentScale(in Vector2 scale)
+            => new Transform(Vector2.Zero, scale);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform ComponentRotation(float rotation) => new Transform(Vector2.Zero, Vector2.Zero, rotation);
+        public static Transform ComponentRotation(float rotation)
+            => new Transform(Vector2.Zero, Vector2.Zero, rotation);
 
         #region Translate methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TranslatePosition(in Transform transform, in Vector2 translation) =>
-            new Transform(transform.Position + translation, transform.Scale, transform.Rotation);
+        public static Transform TranslatePosition(in Transform transform, in Vector2 translation)
+            => new Transform(transform.Position + translation, transform.Scale, transform.Rotation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TranslateScale(in Transform transform, in Vector2 translation) =>
-            new Transform(transform.Position, transform.Scale + translation, transform.Rotation);
+        public static Transform TranslateScale(in Transform transform, in Vector2 translation)
+            => new Transform(transform.Position, transform.Scale + translation, transform.Rotation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TranslateRotation(in Transform transform, float translation) =>
-            new Transform(transform.Position, transform.Scale, transform.Rotation + translation);
+        public static Transform TranslateRotation(in Transform transform, float translation)
+            => new Transform(transform.Position, transform.Scale, transform.Rotation + translation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TranslateLocal(in Transform global, in Transform local) =>
-            new Transform(global.Position + local.Position, LocalScale(global, local), global.Rotation + local.Rotation);
+        public static Transform TranslateLocal(in Transform global, in Transform local)
+            => new Transform(global.Position + local.Position, LocalScale(global, local), global.Rotation + local.Rotation);
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 LocalScale(in Transform global, in Transform local) => global.Scale * local.Scale;
+        public static Vector2 LocalScale(in Transform global, in Transform local)
+            => global.Scale * local.Scale;
 
         #region Transform methods
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TransformPosition(in Transform transform, in Vector2 transformation) =>
-            new Transform(transformation, transform.Scale, transform.Rotation);
+        public static Transform TransformPosition(in Transform transform, in Vector2 transformation)
+            => new Transform(transformation, transform.Scale, transform.Rotation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TransformScale(in Transform transform, in Vector2 transformation) =>
-            new Transform(transform.Position, transformation, transform.Rotation);
+        public static Transform TransformScale(in Transform transform, in Vector2 transformation)
+            => new Transform(transform.Position, transformation, transform.Rotation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform TransformRotation(in Transform transform, float transformation) =>
-            new Transform(transform.Position, transform.Scale, transformation);
+        public static Transform TransformRotation(in Transform transform, float transformation)
+            => new Transform(transform.Position, transform.Scale, transformation);
         #endregion
 
         #region Operators
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform operator +(in Transform a, in Transform b) =>
-            new Transform(a.Position + b.Position, a.Scale + b.Scale, a.Rotation + b.Rotation);
+        public static Transform operator +(in Transform a, in Transform b)
+            => new Transform(a.Position + b.Position, a.Scale + b.Scale, a.Rotation + b.Rotation);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Transform operator -(in Transform a, in Transform b) =>
-            new Transform(a.Position - b.Position, a.Scale - b.Scale, a.Rotation - b.Rotation);
+        public static Transform operator -(in Transform a, in Transform b)
+            => new Transform(a.Position - b.Position, a.Scale - b.Scale, a.Rotation - b.Rotation);
         #endregion
 
         #region Unit conversion members
@@ -152,23 +156,28 @@ namespace Fracture.Engine.Core.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToScreenUnits(float worldUnits) => worldUnits * ScreenUnitsToWorldUnitsRatio;
+        public static float ToScreenUnits(float worldUnits)
+            => worldUnits * ScreenUnitsToWorldUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToScreenUnits(int worldUnits) => worldUnits * ScreenUnitsToWorldUnitsRatio;
+        public static float ToScreenUnits(int worldUnits)
+            => worldUnits * ScreenUnitsToWorldUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToScreenUnits(in Vector2 worldUnits) => worldUnits * ScreenUnitsToWorldUnitsRatio;
+        public static Vector2 ToScreenUnits(in Vector2 worldUnits)
+            => worldUnits * ScreenUnitsToWorldUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ToScreenUnits(ref Vector2 worldUnits, out Vector2 screenUnits) =>
-            Vector2.Multiply(ref worldUnits, ScreenUnitsToWorldUnitsRatio, out screenUnits);
+        public static void ToScreenUnits(ref Vector2 worldUnits, out Vector2 screenUnits)
+            => Vector2.Multiply(ref worldUnits, ScreenUnitsToWorldUnitsRatio, out screenUnits);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector3 ToScreenUnits(in Vector3 worldUnits) => worldUnits * ScreenUnitsToWorldUnitsRatio;
+        public static Vector3 ToScreenUnits(in Vector3 worldUnits)
+            => worldUnits * ScreenUnitsToWorldUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToScreenUnits(float x, float y) => new Vector2(x, y) * ScreenUnitsToWorldUnitsRatio;
+        public static Vector2 ToScreenUnits(float x, float y)
+            => new Vector2(x, y) * ScreenUnitsToWorldUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ToScreenUnits(float x, float y, out Vector2 screenUnits)
@@ -179,20 +188,24 @@ namespace Fracture.Engine.Core.Primitives
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToWorldUnits(float screenUnits) => screenUnits * WorldUnitsToScreenUnitsRatio;
+        public static float ToWorldUnits(float screenUnits)
+            => screenUnits * WorldUnitsToScreenUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ToWorldUnits(int screenUnits) => screenUnits * WorldUnitsToScreenUnitsRatio;
+        public static float ToWorldUnits(int screenUnits)
+            => screenUnits * WorldUnitsToScreenUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToWorldUnits(in Vector2 screenUnits) => screenUnits * WorldUnitsToScreenUnitsRatio;
+        public static Vector2 ToWorldUnits(in Vector2 screenUnits)
+            => screenUnits * WorldUnitsToScreenUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ToWorldUnits(ref Vector2 screenUnits, out Vector2 worldUnits) =>
-            Vector2.Multiply(ref screenUnits, WorldUnitsToScreenUnitsRatio, out worldUnits);
+        public static void ToWorldUnits(ref Vector2 screenUnits, out Vector2 worldUnits)
+            => Vector2.Multiply(ref screenUnits, WorldUnitsToScreenUnitsRatio, out worldUnits);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ToWorldUnits(float x, float y) => new Vector2(x, y) * WorldUnitsToScreenUnitsRatio;
+        public static Vector2 ToWorldUnits(float x, float y)
+            => new Vector2(x, y) * WorldUnitsToScreenUnitsRatio;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ToWorldUnits(float x, float y, out Vector2 worldUnits)

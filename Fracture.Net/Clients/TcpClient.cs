@@ -276,6 +276,7 @@ namespace Fracture.Net.Clients
             return base.Poll();
         }
 
-        public override void Dispose() => socket.Dispose();
+        public override void Dispose()
+            => socket.Dispose();
     }
 }

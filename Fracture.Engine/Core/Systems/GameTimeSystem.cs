@@ -75,8 +75,10 @@ namespace Fracture.Engine.Core.Systems
             snapshots = new CircularBuffer<GameEngineTimeSnapshot>(60);
         }
 
-        public IGameEngineTime Snapshot(int pastFrameIndex) => snapshots.AtOffset(pastFrameIndex);
+        public IGameEngineTime Snapshot(int pastFrameIndex)
+            => snapshots.AtOffset(pastFrameIndex);
 
-        public override void Update(IGameEngineTime time) => snapshots.Push(new GameEngineTimeSnapshot(Current));
+        public override void Update(IGameEngineTime time)
+            => snapshots.Push(new GameEngineTimeSnapshot(Current));
     }
 }

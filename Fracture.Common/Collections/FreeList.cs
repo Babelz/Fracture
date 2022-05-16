@@ -28,11 +28,13 @@ namespace Fracture.Common.Collections
         /// <summary>
         /// Takes next item from the free list.
         /// </summary>
-        public T Take() => free.Count != 0 ? free.Pop() : next();
+        public T Take()
+            => free.Count != 0 ? free.Pop() : next();
 
         /// <summary>
         /// Returns given item to the free list.
         /// </summary>
-        public void Return(T element) => free.Push(element);
+        public void Return(T element)
+            => free.Push(element);
     }
 }

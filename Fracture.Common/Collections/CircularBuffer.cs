@@ -54,7 +54,8 @@ namespace Fracture.Common.Collections
             return location;
         }
 
-        public ref T AtOffset(int offset) => ref items[Rotate(headIndex - 1, items.Length, offset)];
+        public ref T AtOffset(int offset)
+            => ref items[Rotate(headIndex - 1, items.Length, offset)];
 
         public void Push(T item)
         {
@@ -71,8 +72,10 @@ namespace Fracture.Common.Collections
             Array.Clear(items, 0, items.Length);
         }
 
-        public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)items).GetEnumerator();
+        public IEnumerator<T> GetEnumerator()
+            => ((IEnumerable<T>)items).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

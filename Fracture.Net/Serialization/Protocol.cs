@@ -43,21 +43,26 @@ namespace Fracture.Net.Serialization
             this.read  = read ?? throw new ArgumentNullException(nameof(read));
         }
 
-        public void Write(T value, byte [] buffer, int offset) => write(value, buffer, offset);
+        public void Write(T value, byte [] buffer, int offset)
+            => write(value, buffer, offset);
 
-        public T Read(byte [] buffer, int offset) => read(buffer, offset);
+        public T Read(byte [] buffer, int offset)
+            => read(buffer, offset);
     }
 
     public static class Header
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<byte> Byte() => new Header<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);
+        public static Header<byte> Byte()
+            => new Header<byte>(MemoryMapper.WriteByte, MemoryMapper.ReadByte);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<ushort> Ushort() => new Header<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
+        public static Header<ushort> Ushort()
+            => new Header<ushort>(MemoryMapper.WriteUshort, MemoryMapper.ReadUshort);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Header<uint> Uint() => new Header<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);
+        public static Header<uint> Uint()
+            => new Header<uint>(MemoryMapper.WriteUint, MemoryMapper.ReadUint);
     }
 
     /// <summary>

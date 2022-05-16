@@ -60,17 +60,20 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Serializers given object to given buffer using dynamically generated serializer.
         /// </summary>
-        public void Serialize(object value, byte [] buffer, int offset) => serialize(value, buffer, offset);
+        public void Serialize(object value, byte [] buffer, int offset)
+            => serialize(value, buffer, offset);
 
         /// <summary>
         /// Deserializes object from given buffer using dynamically generated deserializer.
         /// </summary>
-        public object Deserialize(byte [] buffer, int offset) => deserialize(buffer, offset);
+        public object Deserialize(byte [] buffer, int offset)
+            => deserialize(buffer, offset);
 
         /// <summary>
         /// Returns the size of the object using dynamically generated resolver.
         /// </summary>
-        public ushort GetSizeFromValue(object value) => getSizeFromValue(value);
+        public ushort GetSizeFromValue(object value)
+            => getSizeFromValue(value);
     }
 
     /// <summary>
@@ -110,7 +113,8 @@ namespace Fracture.Net.Serialization.Generation
             ParameterValueOps = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
-        public override string ToString() => $"{{ op: {nameof(ParametrizedActivationOp)}, ctor: parametrized, params: {ParameterValueOps.Count} }}";
+        public override string ToString()
+            => $"{{ op: {nameof(ParametrizedActivationOp)}, ctor: parametrized, params: {ParameterValueOps.Count} }}";
     }
 
     /// <summary>
@@ -128,9 +132,11 @@ namespace Fracture.Net.Serialization.Generation
         }
         #endregion
 
-        public DefaultActivationOp(ConstructorInfo constructor) => Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
+        public DefaultActivationOp(ConstructorInfo constructor)
+            => Constructor = constructor ?? throw new ArgumentNullException(nameof(constructor));
 
-        public override string ToString() => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
+        public override string ToString()
+            => $"{{ op: {nameof(DefaultActivationOp)}, ctor: default }}";
     }
 
     public readonly struct IndirectActivationOp : ISerializationOp
@@ -142,9 +148,11 @@ namespace Fracture.Net.Serialization.Generation
         }
         #endregion
 
-        public IndirectActivationOp(ObjectActivationDelegate activator) => Activator = activator ?? throw new ArgumentNullException(nameof(activator));
+        public IndirectActivationOp(ObjectActivationDelegate activator)
+            => Activator = activator ?? throw new ArgumentNullException(nameof(activator));
 
-        public override string ToString() => $"{{ op: {nameof(IndirectActivationOp)}, ctor: none, activator: {Activator} }}";
+        public override string ToString()
+            => $"{{ op: {nameof(IndirectActivationOp)}, ctor: none, activator: {Activator} }}";
     }
 
     /// <summary>
@@ -176,7 +184,8 @@ namespace Fracture.Net.Serialization.Generation
             ValueSerializerType = valueSerializerType ?? throw new ArgumentNullException(nameof(valueSerializerType));
         }
 
-        public override string ToString() => $"{{ op: {nameof(SerializeValueOp)}, value: {Value.Name}, path: {(Value.IsProperty ? "property" : "field")} }}";
+        public override string ToString()
+            => $"{{ op: {nameof(SerializeValueOp)}, value: {Value.Name}, path: {(Value.IsProperty ? "property" : "field")} }}";
     }
 
     /// <summary>
@@ -344,24 +353,24 @@ namespace Fracture.Net.Serialization.Generation
         /// Compiles serialization instructions from given mappings.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping) =>
-            (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer
-                 ? mapping.Values
-                 : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                                                                        v => (ISerializationOp)new SerializeValueOp(v,
-                                                                            ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-                                                                    )
-                                                                   .ToList();
+        public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
+            => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer
+                    ? mapping.Values
+                    : mapping.Activator.Values.Concat(mapping.Values)).Select(
+                                                                           v => (ISerializationOp)new SerializeValueOp(v,
+                                                                               ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
+                                                                       )
+                                                                      .ToList();
 
         /// <summary>
         /// Compiles both serialization and deserialization instructions from given mappings.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping) =>
-            new ObjectSerializerProgram(mapping.Type,
-                                        CompileSerializationOps(mapping),
-                                        CompileDeserializationOps(mapping),
-                                        mapping.Values.Select(v => v.Type).Distinct());
+        public static ObjectSerializerProgram CompileSerializerProgram(ObjectSerializationMapping mapping)
+            => new ObjectSerializerProgram(mapping.Type,
+                                           CompileSerializationOps(mapping),
+                                           CompileDeserializationOps(mapping),
+                                           mapping.Values.Select(v => v.Type).Distinct());
     }
 
     /// <summary>
@@ -415,9 +424,11 @@ namespace Fracture.Net.Serialization.Generation
                             builder.EmitDeserializeNullableValue(svop.Value, svop.ValueSerializerType, serializationValueIndex++);
                         else
                             builder.EmitDeserializeValue(svop.Value, svop.ValueSerializerType, serializationValueIndex++);
+
                         break;
                     case DefaultActivationOp daop:
                         builder.EmitActivation(daop.Constructor);
+
                         break;
                     case ParametrizedActivationOp paop:
                         foreach (var parameter in paop.ParameterValueOps)
@@ -429,9 +440,11 @@ namespace Fracture.Net.Serialization.Generation
                         }
 
                         builder.EmitActivation(paop.Constructor);
+
                         break;
                     case IndirectActivationOp iaop:
                         builder.EmitActivation(iaop.Activator);
+
                         break;
                 }
             }

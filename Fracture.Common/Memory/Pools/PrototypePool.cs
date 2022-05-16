@@ -30,6 +30,7 @@ namespace Fracture.Common.Memory.Pools
         {
         }
 
-        protected override T New() => prototype.Clone();
+        protected override T New()
+            => prototype.Clone();
     }
 }

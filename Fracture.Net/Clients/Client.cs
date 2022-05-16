@@ -92,8 +92,8 @@ namespace Fracture.Net.Clients
             Updates = new LockedDoubleBuffer<ClientUpdate>();
         }
 
-        private static void ThrowIllegalStateTransition(ClientState current, ClientState next) =>
-            throw new InvalidOperationException($"illegal state transition from {current} to {next}");
+        private static void ThrowIllegalStateTransition(ClientState current, ClientState next)
+            => throw new InvalidOperationException($"illegal state transition from {current} to {next}");
 
         /// <summary>
         /// Defines following state machine for client:
@@ -116,18 +116,22 @@ namespace Fracture.Net.Clients
                 case ClientState.Disconnected:
                     if (current != ClientState.Disconnecting && current != ClientState.Connecting)
                         ThrowIllegalStateTransition(current, next);
+
                     break;
                 case ClientState.Connecting:
                     if (current != ClientState.Disconnected)
                         ThrowIllegalStateTransition(current, next);
+
                     break;
                 case ClientState.Connected:
                     if (current != ClientState.Connecting)
                         ThrowIllegalStateTransition(current, next);
+
                     break;
                 case ClientState.Disconnecting:
                     if (current != ClientState.Connected && current != ClientState.Connecting)
                         ThrowIllegalStateTransition(current, next);
+
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(next), next);
@@ -142,7 +146,8 @@ namespace Fracture.Net.Clients
 
         public abstract void Connect(IPEndPoint endPoint);
 
-        public virtual IEnumerable<ClientUpdate> Poll() => Updates.Read();
+        public virtual IEnumerable<ClientUpdate> Poll()
+            => Updates.Read();
 
         public virtual void Dispose()
         {

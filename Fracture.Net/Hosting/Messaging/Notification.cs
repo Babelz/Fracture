@@ -210,19 +210,22 @@ namespace Fracture.Net.Hosting.Messaging
             Message = default;
         }
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(Command)
-                     .Append(PeerIds)
-                     .Append(Message);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Notification Take() => Pool.Take();
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(Command)
+                        .Append(PeerIds)
+                        .Append(Message);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(Notification notification) => Pool.Return(notification);
+        public static Notification Take()
+            => Pool.Take();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Return(Notification notification)
+            => Pool.Return(notification);
     }
 
     /// <summary>
@@ -261,8 +264,8 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Any() =>
-            delegate
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Any()
+            => delegate
             {
                 return true;
             };

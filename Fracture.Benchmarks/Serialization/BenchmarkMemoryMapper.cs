@@ -12,19 +12,24 @@ namespace Fracture.Benchmarks.Serialization
         private readonly byte [] buffer;
         #endregion
 
-        public MemoryMapper() => buffer = new byte[128];
+        public MemoryMapper()
+            => buffer = new byte[128];
 
         [Benchmark]
-        public void SerializeUsingMarshal() => Common.Memory.MemoryMapper.Write(TestValue, buffer, 0);
+        public void SerializeUsingMarshal()
+            => Common.Memory.MemoryMapper.Write(TestValue, buffer, 0);
 
         [Benchmark]
-        public void SerializeUsingBitOperations() => Common.Memory.MemoryMapper.WriteInt(TestValue, buffer, 0);
+        public void SerializeUsingBitOperations()
+            => Common.Memory.MemoryMapper.WriteInt(TestValue, buffer, 0);
 
         [Benchmark]
-        public void DeserializeUsingMarshal() => Common.Memory.MemoryMapper.Read<int>(buffer, 0);
+        public void DeserializeUsingMarshal()
+            => Common.Memory.MemoryMapper.Read<int>(buffer, 0);
 
         [Benchmark]
-        public void DeserializeUsingBitOperations() => Common.Memory.MemoryMapper.ReadInt(buffer, 0);
+        public void DeserializeUsingBitOperations()
+            => Common.Memory.MemoryMapper.ReadInt(buffer, 0);
     }
 
     public class BenchmarkMemoryMapperGenericTypes
@@ -37,27 +42,36 @@ namespace Fracture.Benchmarks.Serialization
         private readonly byte [] buffer;
         #endregion
 
-        public BenchmarkMemoryMapperGenericTypes() => buffer = new byte[128];
+        public BenchmarkMemoryMapperGenericTypes()
+            => buffer = new byte[128];
 
-        private void SerializeUsingMarshalWithGenerics<T>(T value) where T : struct => Common.Memory.MemoryMapper.Write(value, buffer, 0);
+        private void SerializeUsingMarshalWithGenerics<T>(T value) where T : struct
+            => Common.Memory.MemoryMapper.Write(value, buffer, 0);
 
-        private void SerializeUsingBitOperationsWithGenerics<T>(T value) where T : struct => Common.Memory.MemoryMapper.WriteInt((int)(object)value, buffer, 0);
+        private void SerializeUsingBitOperationsWithGenerics<T>(T value) where T : struct
+            => Common.Memory.MemoryMapper.WriteInt((int)(object)value, buffer, 0);
 
-        private T DeserializeUsingMarshalWithGenerics<T>() where T : struct => Common.Memory.MemoryMapper.Read<T>(buffer, 0);
+        private T DeserializeUsingMarshalWithGenerics<T>() where T : struct
+            => Common.Memory.MemoryMapper.Read<T>(buffer, 0);
 
-        private T DeserializeUsingBitOperationsWithGenerics<T>() where T : struct => (T)(object)Common.Memory.MemoryMapper.ReadInt(buffer, 0);
-
-        [Benchmark]
-        public void SerializeUsingMarshalWithGenerics() => SerializeUsingMarshalWithGenerics(TestValue);
-
-        [Benchmark]
-        public void SerializeUsingBitOperationsWithGenerics() => SerializeUsingBitOperationsWithGenerics(TestValue);
-
-        [Benchmark]
-        public void DeserializeUsingMarshalWithGenerics() => DeserializeUsingMarshalWithGenerics<int>();
+        private T DeserializeUsingBitOperationsWithGenerics<T>() where T : struct
+            => (T)(object)Common.Memory.MemoryMapper.ReadInt(buffer, 0);
 
         [Benchmark]
-        public void DeserializeUsingBitOperationsWithGenerics() => DeserializeUsingBitOperationsWithGenerics<int>();
+        public void SerializeUsingMarshalWithGenerics()
+            => SerializeUsingMarshalWithGenerics(TestValue);
+
+        [Benchmark]
+        public void SerializeUsingBitOperationsWithGenerics()
+            => SerializeUsingBitOperationsWithGenerics(TestValue);
+
+        [Benchmark]
+        public void DeserializeUsingMarshalWithGenerics()
+            => DeserializeUsingMarshalWithGenerics<int>();
+
+        [Benchmark]
+        public void DeserializeUsingBitOperationsWithGenerics()
+            => DeserializeUsingBitOperationsWithGenerics<int>();
     }
 
     public class BenchmarkMemoryMapperArrayTypes
@@ -106,7 +120,8 @@ namespace Fracture.Benchmarks.Serialization
         }
 
         [Benchmark]
-        public void Marshal_Serialize() => Common.Memory.MemoryMapper.WriteArray(buffer, 0, testArray, 0, ArraySize);
+        public void Marshal_Serialize()
+            => Common.Memory.MemoryMapper.WriteArray(buffer, 0, testArray, 0, ArraySize);
 
         [Benchmark]
         public void BitOperation_Serialize()
@@ -122,7 +137,8 @@ namespace Fracture.Benchmarks.Serialization
         }
 
         [Benchmark]
-        public void Marshal_Deserialize() => Common.Memory.MemoryMapper.ReadArray(testArray, 0, buffer, 0, ArraySize);
+        public void Marshal_Deserialize()
+            => Common.Memory.MemoryMapper.ReadArray(testArray, 0, buffer, 0, ArraySize);
 
         [Benchmark]
         public void BitOperation_Deserialize()

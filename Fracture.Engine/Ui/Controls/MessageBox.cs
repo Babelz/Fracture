@@ -15,7 +15,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public MessageBoxEventArgs(MessageBoxResult result) => Result = result;
+        public MessageBoxEventArgs(MessageBoxResult result)
+            => Result = result;
     }
 
     [Flags]
@@ -137,15 +138,18 @@ namespace Fracture.Engine.Ui.Controls
                     // Align buttons.
                     case 1:
                         messageBoxButtons[0].Margin = UiOffset.ToBottom(0.025f);
+
                         break;
                     case 2:
                         messageBoxButtons[0].Margin = UiOffset.ToRight(0.15f) + UiOffset.ToBottom(0.025f);
                         messageBoxButtons[1].Margin = UiOffset.ToLeft(0.15f) + UiOffset.ToBottom(0.025f);
+
                         break;
                     case 3:
                         messageBoxButtons[0].Margin = UiOffset.ToRight(0.30f) + UiOffset.ToBottom(0.025f);
                         messageBoxButtons[1].Margin = UiOffset.ToBottom(0.025f);
                         messageBoxButtons[2].Margin = UiOffset.ToLeft(0.30f) + UiOffset.ToBottom(0.025f);
+
                         break;
                     default:
                         throw new InvalidOperationException($"max {MaxMessageBoxButtons} buttons are supported");

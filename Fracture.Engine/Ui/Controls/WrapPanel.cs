@@ -68,7 +68,8 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void Control_LayoutChanged(object sender, EventArgs e) => dirty = true;
+        private void Control_LayoutChanged(object sender, EventArgs e)
+            => dirty = true;
         #endregion
 
         private void WrapChildrenHorizontal()
@@ -103,8 +104,10 @@ namespace Fracture.Engine.Ui.Controls
                 Children[i].Positioning = Positioning.Relative;
 
                 Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f,
-                                                   0.5f - Children[i].Size.Y * 0.5f +
-                                                   (offset * Children[i].Size.Y) + offset * SpaceBetween);
+                                                   0.5f -
+                                                   Children[i].Size.Y * 0.5f +
+                                                   (offset * Children[i].Size.Y) +
+                                                   offset * SpaceBetween);
 
                 Children[i].Margin = i % 2 == 0 ? UiOffset.ToTop((origin + SpaceBetween) * i / 2) : UiOffset.ToTop((-origin + -SpaceBetween) * (i + 1) / 2);
             }
@@ -119,9 +122,11 @@ namespace Fracture.Engine.Ui.Controls
             {
                 case WrapMode.Horizontal:
                     WrapChildrenHorizontal();
+
                     break;
                 case WrapMode.Vertical:
                     WrapChildrenVertical();
+
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(WrapMode), mode);

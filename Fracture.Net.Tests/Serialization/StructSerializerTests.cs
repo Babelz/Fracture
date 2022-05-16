@@ -106,8 +106,8 @@ namespace Fracture.Net.Tests.Serialization
         }
 
         [Fact]
-        public void Register_Throws_If_Type_Is_Already_Registered() =>
-            Assert.IsType<InvalidOperationException>(
+        public void Register_Throws_If_Type_Is_Already_Registered()
+            => Assert.IsType<InvalidOperationException>(
                 Record.Exception(() => StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>().Map()))
             );
 

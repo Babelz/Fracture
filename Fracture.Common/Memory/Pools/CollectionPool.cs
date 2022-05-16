@@ -38,7 +38,8 @@ namespace Fracture.Common.Memory.Pools
             clear = (Action<T>)Delegate.CreateDelegate(typeof(Action<T>), clearMethod);
         }
 
-        public T Take(PoolElementDecoratorDelegate<T> decorator = null) => pool.Take(decorator);
+        public T Take(PoolElementDecoratorDelegate<T> decorator = null)
+            => pool.Take(decorator);
 
         public void Return(T element)
         {

@@ -142,6 +142,7 @@ namespace Fracture.Net.Hosting
             {
                 ShuttingDown?.Invoke(this, EventArgs.Empty);
             };
+
             application.Starting += delegate
             {
                 Starting?.Invoke(this, EventArgs.Empty);
@@ -168,7 +169,8 @@ namespace Fracture.Net.Hosting
             }
         }
 
-        public void Shutdown() => application.Shutdown();
+        public void Shutdown()
+            => application.Shutdown();
     }
 
     /// <summary>
@@ -259,12 +261,15 @@ namespace Fracture.Net.Hosting
             {
                 case IApplicationCommandScript ics:
                     Log.Information($"loaded command script: {type.Name}...");
+
                     break;
                 case IActiveApplicationScript ias:
                     Log.Information($"loaded active script: {type.Name}...");
+
                     break;
                 default:
                     Log.Information($"loaded script: {type.Name}...");
+
                     break;
             }
 
@@ -289,7 +294,7 @@ namespace Fracture.Net.Hosting
                         }
                         catch (Exception e)
                         {
-                            Log.Warning(e, "unahdled error occurred while invoking command script", script);
+                            Log.Warning(e, "unhandled error occurred while invoking command script", script);
                         }
 
                         break;
@@ -300,7 +305,7 @@ namespace Fracture.Net.Hosting
                         }
                         catch (Exception e)
                         {
-                            Log.Warning(e, "unahdled error occurred while executing active script", script);
+                            Log.Warning(e, "unhandled error occurred while executing active script", script);
                         }
 
                         break;
@@ -308,7 +313,8 @@ namespace Fracture.Net.Hosting
             }
         }
 
-        public void Shutdown() => application.Shutdown();
+        public void Shutdown()
+            => application.Shutdown();
     }
 
     /// <summary>
@@ -334,7 +340,8 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Signals the application to shutdown.
         /// </summary>
-        public void Shutdown() => application.Shutdown();
+        public void Shutdown()
+            => application.Shutdown();
 
         /// <summary>
         /// Starts running the application.

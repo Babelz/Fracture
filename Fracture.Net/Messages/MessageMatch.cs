@@ -19,8 +19,8 @@ namespace Fracture.Net.Messages
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Any() =>
-            delegate
+        public static MessageMatchDelegate Any()
+            => delegate
             {
                 return true;
             };
@@ -29,7 +29,8 @@ namespace Fracture.Net.Messages
         /// Matcher that only accepts one specific message type.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Exact<T>() where T : IMessage => (in IMessage message) => message is T;
+        public static MessageMatchDelegate Exact<T>() where T : IMessage
+            => (in IMessage message) => message is T;
 
         /// <summary>
         /// Matcher that allows many message types.

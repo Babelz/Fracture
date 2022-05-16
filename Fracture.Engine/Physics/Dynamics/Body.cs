@@ -16,7 +16,8 @@ namespace Fracture.Engine.Physics.Dynamics
         }
         #endregion
 
-        public BodyEventArgs(int bodyId) => BodyId = bodyId;
+        public BodyEventArgs(int bodyId)
+            => BodyId = bodyId;
     }
 
     /// <summary>
@@ -273,6 +274,7 @@ namespace Fracture.Engine.Physics.Dynamics
             AngularVelocity += Math.Max(BoundingBox.HalfBounds.X, BoundingBox.HalfBounds.Y) * magnitude;
         }
 
-        public bool IsActive() => LinearVelocity != Vector2.Zero || AngularVelocity != 0.0f;
+        public bool IsActive()
+            => LinearVelocity != Vector2.Zero || AngularVelocity != 0.0f;
     }
 }

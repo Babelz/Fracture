@@ -21,7 +21,8 @@ namespace Fracture.Common.Memory.Storages
         }
         #endregion
 
-        public FixedStorageObject(T [] storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public FixedStorageObject(T [] storage)
+            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         public void Return(T element)
         {

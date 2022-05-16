@@ -26,9 +26,11 @@ namespace Fracture.Engine.Graphics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 ScaleToTarget(in Vector2 target, in Vector2 actual) => new Vector2(target.X / actual.X, target.Y / actual.Y);
+        public static Vector2 ScaleToTarget(in Vector2 target, in Vector2 actual)
+            => new Vector2(target.X / actual.X, target.Y / actual.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Vector2 OriginInActualScale(in Vector2 origin, in Vector2 actualScale) => new Vector2(origin.X / actualScale.X, origin.Y / actualScale.Y);
+        public static Vector2 OriginInActualScale(in Vector2 origin, in Vector2 actualScale)
+            => new Vector2(origin.X / actualScale.X, origin.Y / actualScale.Y);
     }
 }

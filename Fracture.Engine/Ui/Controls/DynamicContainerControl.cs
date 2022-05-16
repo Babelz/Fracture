@@ -22,8 +22,10 @@ namespace Fracture.Engine.Ui.Controls
         {
         }
 
-        public virtual void Add(IControl control) => Children.Add(control);
+        public virtual void Add(IControl control)
+            => Children.Add(control);
 
-        public virtual void Remove(IControl control) => Children.Remove(control);
+        public virtual void Remove(IControl control)
+            => Children.Remove(control);
     }
 }

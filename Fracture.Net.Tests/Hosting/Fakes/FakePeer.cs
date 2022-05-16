@@ -21,6 +21,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         /// Creates new peer with unique ID and IP address.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static PeerConnection Create() => new PeerConnection(id++, new IPEndPoint(ip++, FakeServer.Port));
+        public static PeerConnection Create()
+            => new PeerConnection(id++, new IPEndPoint(ip++, FakeServer.Port));
     }
 }

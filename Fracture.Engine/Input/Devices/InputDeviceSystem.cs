@@ -99,8 +99,10 @@ namespace Fracture.Engine.Input.Devices
                 throw new InvalidOperationException($"could not remove device {device}");
         }
 
-        public IEnumerator<IInputDevice> GetEnumerator() => devices.GetEnumerator();
+        public IEnumerator<IInputDevice> GetEnumerator()
+            => devices.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

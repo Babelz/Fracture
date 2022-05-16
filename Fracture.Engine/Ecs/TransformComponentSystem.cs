@@ -113,8 +113,8 @@ namespace Fracture.Engine.Ecs
             components = new LinearGrowthList<TransformComponent>(ComponentsCapacity);
         }
 
-        private static TransformChangedEventArgs AggregateTransformChanges(in TransformChangedEventArgs current, in TransformChangedEventArgs next) =>
-            new TransformChangedEventArgs(current.EntityId, current.Translation + next.Translation, next.Transform);
+        private static TransformChangedEventArgs AggregateTransformChanges(in TransformChangedEventArgs current, in TransformChangedEventArgs next)
+            => new TransformChangedEventArgs(current.EntityId, current.Translation + next.Translation, next.Transform);
 
         public int Create(int entityId, in Transform transform)
         {
@@ -137,7 +137,8 @@ namespace Fracture.Engine.Ecs
             return componentId;
         }
 
-        public int Create(int entityId) => Create(entityId, Transform.Default);
+        public int Create(int entityId)
+            => Create(entityId, Transform.Default);
 
         public override bool Delete(int componentId)
         {

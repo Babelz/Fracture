@@ -22,7 +22,8 @@ namespace Fracture.Common.Memory.Storages
         }
         #endregion
 
-        public LinearStorageObject(LinearGrowthArray<T> storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public LinearStorageObject(LinearGrowthArray<T> storage)
+            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         public void Return(T element)
         {

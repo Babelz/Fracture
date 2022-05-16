@@ -112,7 +112,8 @@ namespace Fracture.Engine.Input
             bindings.Add(new InputBinding<T>(name, combination, callback, state));
         }
 
-        public void Clear() => bindings.Clear();
+        public void Clear()
+            => bindings.Clear();
 
         public void Rebind(string name, InputTriggerState state, T trigger)
         {
@@ -137,7 +138,8 @@ namespace Fracture.Engine.Input
             binding.State    = state;
         }
 
-        public void Unbind(string name) => bindings.Remove(bindings.First(b => b.Name == name));
+        public void Unbind(string name)
+            => bindings.Remove(bindings.First(b => b.Name == name));
 
         public void Update(IGameEngineTime time)
         {
@@ -167,16 +169,20 @@ namespace Fracture.Engine.Input
         #endregion
 
         public KeyboardInputManager(IKeyboardDevice device, int combinationAccuracy = DefaultCombinationAccuracy)
-            : base(combinationAccuracy) =>
-            this.device = device ?? throw new ArgumentNullException(nameof(device));
+            : base(combinationAccuracy)
+            => this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyDown(k, i));
+        protected override bool IsTriggerDown(Keys [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsKeyDown(k, i));
 
-        protected override bool IsTriggerPressed(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyPressed(k, i));
+        protected override bool IsTriggerPressed(Keys [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsKeyPressed(k, i));
 
-        protected override bool IsTriggerReleased(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyReleased(k, i));
+        protected override bool IsTriggerReleased(Keys [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsKeyReleased(k, i));
 
-        protected override bool IsTriggerUp(Keys [] triggers) => TestTriggers(triggers, (i, k) => device.IsKeyUp(k, i));
+        protected override bool IsTriggerUp(Keys [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsKeyUp(k, i));
     }
 
     public sealed class MouseInputManager : InputManager<MouseButton>
@@ -186,15 +192,19 @@ namespace Fracture.Engine.Input
         #endregion
 
         public MouseInputManager(IMouseDevice device, int combinationAccuracy = DefaultCombinationAccuracy)
-            : base(combinationAccuracy) =>
-            this.device = device ?? throw new ArgumentNullException(nameof(device));
+            : base(combinationAccuracy)
+            => this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonDown(k, i));
+        protected override bool IsTriggerDown(MouseButton [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsButtonDown(k, i));
 
-        protected override bool IsTriggerPressed(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonPressed(k, i));
+        protected override bool IsTriggerPressed(MouseButton [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsButtonPressed(k, i));
 
-        protected override bool IsTriggerReleased(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonReleased(k, i));
+        protected override bool IsTriggerReleased(MouseButton [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsButtonReleased(k, i));
 
-        protected override bool IsTriggerUp(MouseButton [] triggers) => TestTriggers(triggers, (i, k) => device.IsButtonUp(k, i));
+        protected override bool IsTriggerUp(MouseButton [] triggers)
+            => TestTriggers(triggers, (i, k) => device.IsButtonUp(k, i));
     }
 }

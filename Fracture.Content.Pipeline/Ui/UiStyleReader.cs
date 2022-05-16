@@ -18,7 +18,8 @@ namespace Fracture.Content.Pipeline.Ui
         {
         }
 
-        private static void InsertString(IUiStyle uiStyle, string target, string name, string value) => uiStyle.Set($"{target}\\{name}", value);
+        private static void InsertString(IUiStyle uiStyle, string target, string name, string value)
+            => uiStyle.Set($"{target}\\{name}", value);
 
         private static bool InsertTexture(IUiStyle uiStyle, ContentReader input, string target, string name, string value)
         {

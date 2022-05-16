@@ -111,7 +111,8 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        public Slider() => Size = new Vector2(0.25f, 0.1f);
+        public Slider()
+            => Size = new Vector2(0.25f, 0.1f);
 
         private (Rectangle Left, Rectangle Center, Rectangle Right, Rectangle Slider) GetActualRenderDestinationRectangles()
         {
@@ -323,8 +324,10 @@ namespace Fracture.Engine.Ui.Controls
                                 color);
         }
 
-        public void Forward(uint amount) => CurrentValue = currentValue == maxValue ? maxValue : currentValue + amount;
+        public void Forward(uint amount)
+            => CurrentValue = currentValue == maxValue ? maxValue : currentValue + amount;
 
-        public void Rewind(uint amount) => CurrentValue = currentValue == 0u ? 0u : currentValue - amount;
+        public void Rewind(uint amount)
+            => CurrentValue = currentValue == 0u ? 0u : currentValue - amount;
     }
 }

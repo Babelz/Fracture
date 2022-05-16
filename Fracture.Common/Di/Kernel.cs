@@ -224,20 +224,23 @@ namespace Fracture.Common.Di
             return binder.Instance;
         }
 
-        public T Activate<T>(params IBindingValue [] values) => (T)Activate(typeof(T), values);
+        public T Activate<T>(params IBindingValue [] values)
+            => (T)Activate(typeof(T), values);
 
-        public IEnumerable<object> All(Func<object, bool> predicate) => dependencies.Where(d => predicate(d.Cast<object>()));
+        public IEnumerable<object> All(Func<object, bool> predicate)
+            => dependencies.Where(d => predicate(d.Cast<object>()));
 
-        public IEnumerable<object> All() => dependencies.Select(d => d.Cast<object>());
+        public IEnumerable<object> All()
+            => dependencies.Select(d => d.Cast<object>());
 
-        public IEnumerable<T> All<T>(Func<T, bool> predicate) =>
-            dependencies.Where(d => d.Castable<T>())
-                        .Select(d => d.Cast<T>())
-                        .Where(predicate);
+        public IEnumerable<T> All<T>(Func<T, bool> predicate)
+            => dependencies.Where(d => d.Castable<T>())
+                           .Select(d => d.Cast<T>())
+                           .Where(predicate);
 
-        public IEnumerable<T> All<T>() =>
-            dependencies.Where(d => d.Castable<T>())
-                        .Select(d => d.Cast<T>());
+        public IEnumerable<T> All<T>()
+            => dependencies.Where(d => d.Castable<T>())
+                           .Select(d => d.Cast<T>());
 
         public void Unbind(Type type)
         {
@@ -313,7 +316,8 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Bind<T>(params IBindingValue [] bindings) => Bind(typeof(T), bindings);
+        public void Bind<T>(params IBindingValue [] bindings)
+            => Bind(typeof(T), bindings);
 
         public void Bind(object instance, params IBindingValue [] values)
         {
@@ -339,7 +343,8 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(Type proxy, params IBindingValue [] values) => Proxy(proxy, typeof(T), values);
+        public void Proxy<T>(Type proxy, params IBindingValue [] values)
+            => Proxy(proxy, typeof(T), values);
 
         public void Proxy(object instance, Type proxy, params IBindingValue [] values)
         {
@@ -353,7 +358,8 @@ namespace Fracture.Common.Di
             UpdateBinders();
         }
 
-        public void Proxy<T>(object instance, params IBindingValue [] values) => Proxy(instance, typeof(T));
+        public void Proxy<T>(object instance, params IBindingValue [] values)
+            => Proxy(instance, typeof(T));
 
         public void Verify()
         {
@@ -390,7 +396,8 @@ namespace Fracture.Common.Di
             return dependencies.Any(d => d.Castable(type) && predicate(d.Cast<object>()));
         }
 
-        public bool Exists(Type type) => dependencies.Any(d => d.Castable(type));
+        public bool Exists(Type type)
+            => dependencies.Any(d => d.Castable(type));
 
         public bool Exists<T>(Func<T, bool> predicate)
         {
@@ -400,7 +407,8 @@ namespace Fracture.Common.Di
             return dependencies.Any(d => d.Castable<T>() && predicate(d.Cast<T>()));
         }
 
-        public bool Exists<T>() => dependencies.Any(d => d.Castable<T>());
+        public bool Exists<T>()
+            => dependencies.Any(d => d.Castable<T>());
 
         public object First(Type type, Func<object, bool> predicate)
         {

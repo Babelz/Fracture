@@ -40,20 +40,23 @@ namespace Fracture.Engine.Physics.Contacts
             SecondBodyId = secondBodyId;
         }
 
-        public bool Equals(in ContactPair other) =>
-            FirstBodyId == other.FirstBodyId &&
-            SecondBodyId == other.SecondBodyId;
+        public bool Equals(in ContactPair other)
+            => FirstBodyId == other.FirstBodyId &&
+               SecondBodyId == other.SecondBodyId;
 
-        public override bool Equals(object obj) => obj is ContactPair other && Equals(other);
+        public override bool Equals(object obj)
+            => obj is ContactPair other && Equals(other);
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(FirstBodyId)
-                     .Append(SecondBodyId);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(FirstBodyId)
+                        .Append(SecondBodyId);
 
-        public static bool operator ==(in ContactPair lhs, in ContactPair rhs) => lhs.Equals(rhs);
+        public static bool operator ==(in ContactPair lhs, in ContactPair rhs)
+            => lhs.Equals(rhs);
 
-        public static bool operator !=(in ContactPair lhs, in ContactPair rhs) => !lhs.Equals(rhs);
+        public static bool operator !=(in ContactPair lhs, in ContactPair rhs)
+            => !lhs.Equals(rhs);
     }
 
     /// <summary>
@@ -92,7 +95,8 @@ namespace Fracture.Engine.Physics.Contacts
             pairs  = new ContactPair[Capacity];
         }
 
-        private bool PairExists(int firstBodyId, int secondBodyId) => lookup.Contains(new ContactPair(firstBodyId, secondBodyId));
+        private bool PairExists(int firstBodyId, int secondBodyId)
+            => lookup.Contains(new ContactPair(firstBodyId, secondBodyId));
 
         private void EnqueuePair(int firstBodyId, int secondBodyId)
         {
@@ -220,6 +224,7 @@ namespace Fracture.Engine.Physics.Contacts
         /// 
         /// TODO: add threading.
         /// </summary>
-        public void Solve(QuadTree tree, BodyList bodies) => Solve(tree.Root, bodies);
+        public void Solve(QuadTree tree, BodyList bodies)
+            => Solve(tree.Root, bodies);
     }
 }

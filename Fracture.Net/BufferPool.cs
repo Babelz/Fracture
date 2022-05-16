@@ -15,9 +15,11 @@ namespace Fracture.Net
         #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte [] Take(int size) => Buffers.Take(size);
+        public static byte [] Take(int size)
+            => Buffers.Take(size);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Return(byte [] buffer) => Buffers.Return(buffer);
+        public static void Return(byte [] buffer)
+            => Buffers.Return(buffer);
     }
 }

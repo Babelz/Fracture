@@ -154,7 +154,8 @@ namespace Fracture.Engine.Ecs
             behaviour.Attach(entityId);
         }
 
-        public T FirstOfType<T>(int entityId) where T : Behavior => (T)entityBehaviourLists[entityId].First(b => b is T);
+        public T FirstOfType<T>(int entityId) where T : Behavior
+            => (T)entityBehaviourLists[entityId].First(b => b is T);
 
         public bool TryGetFirstOfType<T>(int entityId, out T behavior) where T : Behavior
         {
@@ -168,10 +169,11 @@ namespace Fracture.Engine.Ecs
             return behavior != null;
         }
 
-        public bool Attached<T>(int entityId) where T : Behavior =>
-            entityBehaviourLists.ContainsKey(entityId) && entityBehaviourLists[entityId].Any(b => b is T);
+        public bool Attached<T>(int entityId) where T : Behavior
+            => entityBehaviourLists.ContainsKey(entityId) && entityBehaviourLists[entityId].Any(b => b is T);
 
-        public IEnumerable<Behavior> BehaviorsOf(int entityId) => entityBehaviourLists[entityId];
+        public IEnumerable<Behavior> BehaviorsOf(int entityId)
+            => entityBehaviourLists[entityId];
 
         public override void Update(IGameEngineTime time)
         {

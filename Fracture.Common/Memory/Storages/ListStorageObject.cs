@@ -18,7 +18,8 @@ namespace Fracture.Common.Memory.Storages
         public int Count => storage.Count;
         #endregion
 
-        public ListStorageObject(IList<T> storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public ListStorageObject(IList<T> storage)
+            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         public void Return(T element)
         {

@@ -67,7 +67,8 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeServerFrame Create() => new FakeServerFrame();
+        public static FakeServerFrame Create()
+            => new FakeServerFrame();
     }
 
     public sealed class FakeServer : IServer
@@ -112,15 +113,17 @@ namespace Fracture.Net.Tests.Hosting.Fakes
             endpoints = new Dictionary<int, IPEndPoint>();
         }
 
-        public void EnqueueFrame(FakeServerFrame frame) => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
+        public void EnqueueFrame(FakeServerFrame frame)
+            => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
 
-        public void Disconnect(int peerId) =>
-            leaves.Add(new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
+        public void Disconnect(int peerId)
+            => leaves.Add(new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
 
-        public bool Connected(int peerId) => peerIds.Contains(peerId);
+        public bool Connected(int peerId)
+            => peerIds.Contains(peerId);
 
-        public void Send(int peerId, byte [] data, int offset, int length) =>
-            outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(peerId, endpoints[peerId]), data, offset, length, DateTime.UtcNow.TimeOfDay));
+        public void Send(int peerId, byte [] data, int offset, int length)
+            => outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(peerId, endpoints[peerId]), data, offset, length, DateTime.UtcNow.TimeOfDay));
 
         public void Start()
         {
@@ -179,6 +182,7 @@ namespace Fracture.Net.Tests.Hosting.Fakes
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeServer FromFrames(params FakeServerFrame [] frames) => new FakeServer(frames);
+        public static FakeServer FromFrames(params FakeServerFrame [] frames)
+            => new FakeServer(frames);
     }
 }

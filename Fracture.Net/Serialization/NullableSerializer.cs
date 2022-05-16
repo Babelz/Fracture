@@ -35,7 +35,8 @@ namespace Fracture.Net.Serialization
             {
                 var deserializeDelegate = (DeserializeDelegate<T>)serializationDelegate;
 
-                T? Deserialize(byte [] buffer, int offset) => deserializeDelegate(buffer, offset);
+                T? Deserialize(byte [] buffer, int offset)
+                    => deserializeDelegate(buffer, offset);
 
                 return Deserialize;
             }
@@ -50,7 +51,8 @@ namespace Fracture.Net.Serialization
             {
                 var getSizeFromValueDelegate = (GetSizeFromValueDelegate<T>)serializationDelegate;
 
-                ushort GetSizeFromValue(T? value) => value.HasValue ? getSizeFromValueDelegate(value.Value) : (ushort)0;
+                ushort GetSizeFromValue(T? value)
+                    => value.HasValue ? getSizeFromValueDelegate(value.Value) : (ushort)0;
 
                 return GetSizeFromValue;
             }
@@ -59,8 +61,8 @@ namespace Fracture.Net.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Delegate UnwindNullableSerializationDelegate(MethodInfo createDelegateMethod, Delegate serializationDelegate, Type nullableType) =>
-            (Delegate)createDelegateMethod.MakeGenericMethod(nullableType.GetGenericArguments()[0]).Invoke(null, new object [] { serializationDelegate });
+        private static Delegate UnwindNullableSerializationDelegate(MethodInfo createDelegateMethod, Delegate serializationDelegate, Type nullableType)
+            => (Delegate)createDelegateMethod.MakeGenericMethod(nullableType.GetGenericArguments()[0]).Invoke(null, new object [] { serializationDelegate });
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertNullableTypeParameter(Type nullableType)
@@ -121,11 +123,13 @@ namespace Fracture.Net.Serialization
         #endregion
 
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
 
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CanExtendType(Type type) => SupportsType(type) && !SerializeDelegates.ContainsKey(type);
+        public static bool CanExtendType(Type type)
+            => SupportsType(type) && !SerializeDelegates.ContainsKey(type);
 
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

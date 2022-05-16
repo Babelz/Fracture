@@ -84,10 +84,12 @@ namespace Fracture.Common.Di.Binding
     public static class BindingValue
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IBindingValue Var(string name, Func<object> locator) => new VariableBinding(name, locator);
+        public static IBindingValue Var(string name, Func<object> locator)
+            => new VariableBinding(name, locator);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IBindingValue Const(string name, object value) => new ConstantBinding(name, value);
+        public static IBindingValue Const(string name, object value)
+            => new ConstantBinding(name, value);
     }
 
     public class DependencyBindingValueLocator
@@ -103,25 +105,30 @@ namespace Fracture.Common.Di.Binding
             this.values  = values ?? Array.Empty<IBindingValue>();
         }
 
-        private bool ParameterBindingsExist(IEnumerable<ParameterInfo> parameters) =>
-            parameters.All(p => values.Any(v => v.Name == p.Name) || locator.Exists(p.ParameterType) || p.HasDefaultValue);
+        private bool ParameterBindingsExist(IEnumerable<ParameterInfo> parameters)
+            => parameters.All(p => values.Any(v => v.Name == p.Name) || locator.Exists(p.ParameterType) || p.HasDefaultValue);
 
-        private object [] GetParameterBindingValues(IEnumerable<ParameterInfo> parameters) =>
-            parameters.Select(p => values.FirstOrDefault(v => v.Name == p.Name)?.Value ??
-                                   (locator.Exists(p.ParameterType) ? locator.First(p.ParameterType) : p.DefaultValue))
-                      .ToArray();
+        private object [] GetParameterBindingValues(IEnumerable<ParameterInfo> parameters)
+            => parameters.Select(p => values.FirstOrDefault(v => v.Name == p.Name)?.Value ??
+                                      (locator.Exists(p.ParameterType) ? locator.First(p.ParameterType) : p.DefaultValue))
+                         .ToArray();
 
-        public bool BindingExist(PropertyInfo property) => values.Any(v => v.Name == property.Name) || locator.Exists(property.PropertyType);
+        public bool BindingExist(PropertyInfo property)
+            => values.Any(v => v.Name == property.Name) || locator.Exists(property.PropertyType);
 
-        public bool BindingsExist(ConstructorInfo constructor) => ParameterBindingsExist(constructor.GetParameters());
+        public bool BindingsExist(ConstructorInfo constructor)
+            => ParameterBindingsExist(constructor.GetParameters());
 
-        public bool BindingsExist(MethodInfo method) => ParameterBindingsExist(method.GetParameters());
+        public bool BindingsExist(MethodInfo method)
+            => ParameterBindingsExist(method.GetParameters());
 
-        public object GetPropertyBindingValue(PropertyInfo property) =>
-            values.FirstOrDefault(v => v.Name == property.Name)?.Value ?? locator.First(property.PropertyType);
+        public object GetPropertyBindingValue(PropertyInfo property)
+            => values.FirstOrDefault(v => v.Name == property.Name)?.Value ?? locator.First(property.PropertyType);
 
-        public object [] GetConstructorBindingValues(ConstructorInfo constructor) => GetParameterBindingValues(constructor.GetParameters());
+        public object [] GetConstructorBindingValues(ConstructorInfo constructor)
+            => GetParameterBindingValues(constructor.GetParameters());
 
-        public object [] GetMethodBindingValues(MethodInfo method) => GetParameterBindingValues(method.GetParameters());
+        public object [] GetMethodBindingValues(MethodInfo method)
+            => GetParameterBindingValues(method.GetParameters());
     }
 }

@@ -61,13 +61,17 @@ namespace Fracture.Engine
             kernel.Bind(system);
         }
 
-        public IEnumerable<T> All<T>() where T : IGameEngineSystem => kernel.All<T>();
+        public IEnumerable<T> All<T>() where T : IGameEngineSystem
+            => kernel.All<T>();
 
-        public T First<T>() where T : IGameEngineSystem => kernel.First<T>();
+        public T First<T>() where T : IGameEngineSystem
+            => kernel.First<T>();
 
-        public IEnumerable<IGameEngineSystem> GetInOrder() => context.Select(c => kernel.First(c.Value)).Cast<IGameEngineSystem>();
+        public IEnumerable<IGameEngineSystem> GetInOrder()
+            => context.Select(c => kernel.First(c.Value)).Cast<IGameEngineSystem>();
 
-        public void Verify() => kernel.Verify();
+        public void Verify()
+            => kernel.Verify();
     }
 
     /// <summary>

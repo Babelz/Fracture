@@ -11,7 +11,8 @@ namespace Fracture.Content.Pipeline.Graphics
         {
         }
 
-        public override string GetRuntimeReader(TargetPlatform targetPlatform) => typeof(SpriteAnimationPlaylistReader).AssemblyQualifiedName;
+        public override string GetRuntimeReader(TargetPlatform targetPlatform)
+            => typeof(SpriteAnimationPlaylistReader).AssemblyQualifiedName;
 
         protected override void Write(ContentWriter output, SpriteAnimationPlaylistData value)
         {

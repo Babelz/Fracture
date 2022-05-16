@@ -48,7 +48,8 @@ namespace Fracture.Common.Tests.Memory
                 X = 500;
             }
 
-            public void MutateC() => C = 200.0f;
+            public void MutateC()
+                => C = 200.0f;
         }
         #endregion
 

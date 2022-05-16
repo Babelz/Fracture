@@ -26,7 +26,8 @@ namespace Fracture.Engine.Graphics
         }
         #endregion
 
-        public GraphicsElementLayerEventArgs(GraphicsElementLayer layer) => Layer = layer;
+        public GraphicsElementLayerEventArgs(GraphicsElementLayer layer)
+            => Layer = layer;
     }
 
     /// <summary>
@@ -81,9 +82,9 @@ namespace Fracture.Engine.Graphics
         /// Returns boolean whether this location occupies
         /// single unique location.
         /// </summary>
-        public bool Unique() =>
-            Begin.Row == End.Row &&
-            Begin.Column == End.Column;
+        public bool Unique()
+            => Begin.Row == End.Row &&
+               Begin.Column == End.Column;
     }
 
     /// <summary>
@@ -129,7 +130,8 @@ namespace Fracture.Engine.Graphics
                             .Append(typeId);
         }
 
-        public override int GetHashCode() => hash;
+        public override int GetHashCode()
+            => hash;
     }
 
     /// <summary>
@@ -141,15 +143,20 @@ namespace Fracture.Engine.Graphics
         private readonly HashSet<int> elements;
         #endregion
 
-        public GraphicsElementCell() => elements = new HashSet<int>();
+        public GraphicsElementCell()
+            => elements = new HashSet<int>();
 
-        public void Add(int elementId) => elements.Add(elementId);
+        public void Add(int elementId)
+            => elements.Add(elementId);
 
-        public void Remove(int elementId) => elements.Remove(elementId);
+        public void Remove(int elementId)
+            => elements.Remove(elementId);
 
-        public IEnumerator<int> GetEnumerator() => elements.GetEnumerator();
+        public IEnumerator<int> GetEnumerator()
+            => elements.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 
     /// <summary>
@@ -491,7 +498,8 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         [BindingConstructor]
-        public GraphicsLayerSystem() => layers = new List<GraphicsElementLayer>();
+        public GraphicsLayerSystem()
+            => layers = new List<GraphicsElementLayer>();
 
         public GraphicsElementLayer Create(string name, int order)
         {
@@ -538,9 +546,11 @@ namespace Fracture.Engine.Graphics
                 Delete(layers[0]);
         }
 
-        public IEnumerator<GraphicsElementLayer> GetEnumerator() => layers.GetEnumerator();
+        public IEnumerator<GraphicsElementLayer> GetEnumerator()
+            => layers.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 
     /// <summary>

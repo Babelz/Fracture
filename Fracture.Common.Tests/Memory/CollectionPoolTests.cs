@@ -32,10 +32,10 @@ namespace Fracture.Common.Tests.Memory
         }
 
         [Fact]
-        public void Ctor_Throws_If_Element_Does_Not_Implement_Generic_Collection_Interface() =>
-            Assert.Throws<ArgumentException>(() => new CollectionPool<InvalidTestClass>(
-                                                 new Pool<InvalidTestClass>(
-                                                     new LinearStorageObject<InvalidTestClass>(new LinearGrowthArray<InvalidTestClass>())))
+        public void Ctor_Throws_If_Element_Does_Not_Implement_Generic_Collection_Interface()
+            => Assert.Throws<ArgumentException>(() => new CollectionPool<InvalidTestClass>(
+                                                    new Pool<InvalidTestClass>(
+                                                        new LinearStorageObject<InvalidTestClass>(new LinearGrowthArray<InvalidTestClass>())))
             );
 
         [Fact]

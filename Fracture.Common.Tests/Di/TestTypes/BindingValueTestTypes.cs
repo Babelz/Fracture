@@ -68,9 +68,11 @@ namespace Fracture.Common.Tests.Di.TestTypes
         }
 
         [BindingMethod]
-        private void SetA(Dep0 a) => A = a;
+        private void SetA(Dep0 a)
+            => A = a;
 
         [BindingMethod]
-        private void SetB(Dep1 b) => B = b;
+        private void SetB(Dep1 b)
+            => B = b;
     }
 }

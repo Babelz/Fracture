@@ -53,9 +53,11 @@ namespace Fracture.Engine.Scripting
         }
 
         #region Event handlers
-        private void Script_Unloading(object sender, EventArgs e) => unloaded.Add((T)sender);
+        private void Script_Unloading(object sender, EventArgs e)
+            => unloaded.Add((T)sender);
 
-        private void Script_Loading(object sender, EventArgs e) => active.Add((T)sender);
+        private void Script_Loading(object sender, EventArgs e)
+            => active.Add((T)sender);
         #endregion
 
         public bool Accept(CsScript script)

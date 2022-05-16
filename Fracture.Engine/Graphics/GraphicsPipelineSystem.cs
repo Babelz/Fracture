@@ -107,9 +107,11 @@ namespace Fracture.Engine.Graphics
             disposed = true;
         }
 
-        public void Dispose() => Dispose(true);
+        public void Dispose()
+            => Dispose(true);
 
-        public static implicit operator Texture2D(MissingTexture2D missingTexture2D) => missingTexture2D.Value;
+        public static implicit operator Texture2D(MissingTexture2D missingTexture2D)
+            => missingTexture2D.Value;
     }
 
     public sealed class EmptyTexture2D : IDisposable
@@ -159,9 +161,11 @@ namespace Fracture.Engine.Graphics
             disposed = true;
         }
 
-        public void Dispose() => Dispose(true);
+        public void Dispose()
+            => Dispose(true);
 
-        public static implicit operator Texture2D(EmptyTexture2D emptyTexture2D) => emptyTexture2D.Value;
+        public static implicit operator Texture2D(EmptyTexture2D emptyTexture2D)
+            => emptyTexture2D.Value;
     }
 
     /// <summary>
@@ -514,6 +518,7 @@ namespace Fracture.Engine.Graphics
                     DrawLine(bl, br, horizontalThickness, color);
                     DrawLine(tl, bl, verticalThickness, color);
                     DrawLine(tr, br, verticalThickness, color);
+
                     break;
                 case QuadDrawMode.Vertices:
                     Aabb.Rotate(position,
@@ -537,6 +542,7 @@ namespace Fracture.Engine.Graphics
                     DrawQuad(tr, scale, rotation, actualOrigin, vertexBounds, QuadDrawMode.Fill, color);
                     DrawQuad(bl, scale, rotation, actualOrigin, vertexBounds, QuadDrawMode.Fill, color);
                     DrawQuad(br, scale, rotation, actualOrigin, vertexBounds, QuadDrawMode.Fill, color);
+
                     break;
                 case QuadDrawMode.Fill:
                     spriteBatch.Draw(emptyTexture,
@@ -551,6 +557,7 @@ namespace Fracture.Engine.Graphics
                                      bounds * scale,
                                      SpriteEffects.None,
                                      0.0f);
+
                     break;
                 default:
                     throw new NotImplementedException();
@@ -727,9 +734,11 @@ namespace Fracture.Engine.Graphics
             drawing    = true;
         }
 
-        public void Begin(IView view) => Begin(view, null);
+        public void Begin(IView view)
+            => Begin(view, null);
 
-        public void Begin() => Begin(null, null);
+        public void Begin()
+            => Begin(null, null);
 
         public void Clear()
         {
@@ -949,7 +958,8 @@ namespace Fracture.Engine.Graphics
             fragments.Register(index, new GraphicsFragment(index, graphics, settings));
         }
 
-        public void AddPhase(IGraphicsPipelinePhase phase) => phases.Add(phase);
+        public void AddPhase(IGraphicsPipelinePhase phase)
+            => phases.Add(phase);
 
         public void RemovePhase(IGraphicsPipelinePhase phase)
         {
@@ -968,7 +978,8 @@ namespace Fracture.Engine.Graphics
             fragments.Register(index, default);
         }
 
-        public IGraphicsFragment FragmentAtIndex(int index) => fragments.AtLocation(index);
+        public IGraphicsFragment FragmentAtIndex(int index)
+            => fragments.AtLocation(index);
 
         public override void Update(IGameEngineTime time)
         {

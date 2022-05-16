@@ -17,7 +17,8 @@ namespace Fracture.Engine.Ecs
     {
         public ComponentDependencyException(int entityId, Type dependingSystem, Type dependencySystem, string message = "")
             : base($"{dependingSystem.Name} expecting entity {entityId} to have component in system {dependencySystem.Name} " +
-                   $"present" + (!string.IsNullOrEmpty(message) ? $": {message}" : ""))
+                   $"present" +
+                   (!string.IsNullOrEmpty(message) ? $": {message}" : ""))
         {
             Data["DependingSystem"]  = dependingSystem;
             Data["DependencySystem"] = dependencySystem;

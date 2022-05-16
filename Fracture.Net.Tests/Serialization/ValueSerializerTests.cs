@@ -13,8 +13,8 @@ namespace Fracture.Net.Tests.Serialization
         private static class DataSource
         {
             #region Properties
-            public static IEnumerable<object []> SerializesToBufferCorrectlyDataSource =>
-                new []
+            public static IEnumerable<object []> SerializesToBufferCorrectlyDataSource
+                => new []
                 {
                     new object []
                     {
@@ -140,8 +140,8 @@ namespace Fracture.Net.Tests.Serialization
                     }
                 };
 
-            public static IEnumerable<object []> DeserializesToValueCorrectlyDataSource =>
-                new []
+            public static IEnumerable<object []> DeserializesToValueCorrectlyDataSource
+                => new []
                 {
                     new object []
                     {
@@ -213,8 +213,8 @@ namespace Fracture.Net.Tests.Serialization
                     }
                 };
 
-            public static IEnumerable<object []> TestSizeFromValueDataSource =>
-                new []
+            public static IEnumerable<object []> TestSizeFromValueDataSource
+                => new []
                 {
                     new object []
                     {
@@ -290,8 +290,8 @@ namespace Fracture.Net.Tests.Serialization
                     }
                 };
 
-            public static IEnumerable<object []> TestSizeFromBufferDataSource =>
-                new []
+            public static IEnumerable<object []> TestSizeFromBufferDataSource
+                => new []
                 {
                     new object []
                     {

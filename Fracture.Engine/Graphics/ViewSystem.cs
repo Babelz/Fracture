@@ -203,12 +203,14 @@ namespace Fracture.Engine.Graphics
         /// <summary>
         /// Translates given point on screen space to camera space.
         /// </summary>
-        public Vector2 ScreenToWorld(in Vector2 point) => Transform.ToWorldUnits(Vector2.Transform(point, Matrix.Invert(Matrix)));
+        public Vector2 ScreenToWorld(in Vector2 point)
+            => Transform.ToWorldUnits(Vector2.Transform(point, Matrix.Invert(Matrix)));
 
         /// <summary>
         /// Translates given point on screen space to camera space.
         /// </summary>
-        public Vector2 ScreenToWorld(in Point point) => ScreenToWorld(new Vector2(point.X, point.Y));
+        public Vector2 ScreenToWorld(in Point point)
+            => ScreenToWorld(new Vector2(point.X, point.Y));
 
         public void Update()
         {
@@ -219,11 +221,11 @@ namespace Fracture.Engine.Graphics
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Matrix CreateViewMatrix(in Vector2 position, in Vector2 bounds, float rotation, float zoom) =>
-            Matrix.CreateTranslation(new Vector3(-position.X, -position.Y, 0.0f)) *
-            Matrix.CreateRotationZ(rotation) *
-            Matrix.CreateScale(new Vector3(zoom, zoom, 1.0f)) *
-            Matrix.CreateTranslation(new Vector3(bounds.X * 0.5f, bounds.Y * 0.5f, 0.0f));
+        public static Matrix CreateViewMatrix(in Vector2 position, in Vector2 bounds, float rotation, float zoom)
+            => Matrix.CreateTranslation(new Vector3(-position.X, -position.Y, 0.0f)) *
+               Matrix.CreateRotationZ(rotation) *
+               Matrix.CreateScale(new Vector3(zoom, zoom, 1.0f)) *
+               Matrix.CreateTranslation(new Vector3(bounds.X * 0.5f, bounds.Y * 0.5f, 0.0f));
     }
 
     /// <summary>
@@ -283,8 +285,10 @@ namespace Fracture.Engine.Graphics
                 Delete(views[0]);
         }
 
-        public IEnumerator<IView> GetEnumerator() => views.GetEnumerator();
+        public IEnumerator<IView> GetEnumerator()
+            => views.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

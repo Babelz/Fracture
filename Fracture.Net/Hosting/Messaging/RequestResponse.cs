@@ -74,8 +74,8 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Any() =>
-            delegate
+        public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Any()
+            => delegate
             {
                 return true;
             };

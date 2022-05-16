@@ -460,9 +460,11 @@ namespace Fracture.Engine.Ecs
             this.sources = new List<Rectangle>(sources ?? throw new ArgumentNullException(nameof(sources)));
         }
 
-        public Rectangle GetSource(int index) => sources[index];
+        public Rectangle GetSource(int index)
+            => sources[index];
 
-        public static implicit operator Texture2D(SpriteSet spriteSet) => spriteSet.texture;
+        public static implicit operator Texture2D(SpriteSet spriteSet)
+            => spriteSet.texture;
     }
 
     /// <summary>
@@ -864,7 +866,8 @@ namespace Fracture.Engine.Ecs
         }
         #endregion
 
-        public SpriteAnimationFinishedEventArgs(int componentId) => ComponentId = componentId;
+        public SpriteAnimationFinishedEventArgs(int componentId)
+            => ComponentId = componentId;
     }
 
     public sealed class SpriteAnimationComponentSystem : GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>,
@@ -1056,15 +1059,17 @@ namespace Fracture.Engine.Ecs
             return componentId;
         }
 
-        public void Play(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f) =>
-            ChangeAnimation(componentId, animationName, SpriteAnimationMode.Play, frameDurationModifier, frameDurationScale);
+        public void Play(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f)
+            => ChangeAnimation(componentId, animationName, SpriteAnimationMode.Play, frameDurationModifier, frameDurationScale);
 
-        public void Loop(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f) =>
-            ChangeAnimation(componentId, animationName, SpriteAnimationMode.Loop, frameDurationModifier, frameDurationScale);
+        public void Loop(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f)
+            => ChangeAnimation(componentId, animationName, SpriteAnimationMode.Loop, frameDurationModifier, frameDurationScale);
 
-        public void Stop(int componentId) => ChangeState(componentId, false);
+        public void Stop(int componentId)
+            => ChangeState(componentId, false);
 
-        public void Resume(int componentId) => ChangeState(componentId, true);
+        public void Resume(int componentId)
+            => ChangeState(componentId, true);
 
         public SpriteAnimationPlaylist GetPlaylist(int componentId)
         {
@@ -1367,6 +1372,7 @@ namespace Fracture.Engine.Ecs
                                             component.Text,
                                             component.Font,
                                             component.Color);
+
                     break;
                 case TextDrawMode.Fit:
                     fragment.DrawSpriteText(Transform.ToScreenUnits(transform.Position),
@@ -1377,6 +1383,7 @@ namespace Fracture.Engine.Ecs
                                             component.Text,
                                             component.Font,
                                             component.Color);
+
                     break;
                 default:
                     throw new NotImplementedException();

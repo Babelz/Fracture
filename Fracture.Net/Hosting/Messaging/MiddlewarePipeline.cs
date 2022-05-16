@@ -26,8 +26,8 @@ namespace Fracture.Net.Hosting.Messaging
         /// Matcher that accepts any message type and kind.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<T> Any() =>
-            delegate
+        public static MiddlewareMatchDelegate<T> Any()
+            => delegate
             {
                 return true;
             };
@@ -120,9 +120,11 @@ namespace Fracture.Net.Hosting.Messaging
         private readonly List<Middleware> middlewares;
         #endregion
 
-        public MiddlewarePipeline() => middlewares = new List<Middleware>();
+        public MiddlewarePipeline()
+            => middlewares = new List<Middleware>();
 
-        public void Use(MiddlewareMatchDelegate<T> match, MiddlewareHandlerDelegate<T> handler) => middlewares.Add(new Middleware(match, handler));
+        public void Use(MiddlewareMatchDelegate<T> match, MiddlewareHandlerDelegate<T> handler)
+            => middlewares.Add(new Middleware(match, handler));
 
         public bool Invoke(in T context)
         {

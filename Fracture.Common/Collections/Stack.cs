@@ -67,7 +67,8 @@ namespace Fracture.Common.Collections
         }
         #endregion
 
-        public LinearGrowthStack(LinearGrowthArray<T> storage) => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
+        public LinearGrowthStack(LinearGrowthArray<T> storage)
+            => this.storage = storage ?? throw new ArgumentNullException(nameof(storage));
 
         /// <summary>
         /// Creates new instance of <see cref="LinearGrowthStack{T}"/> using default storage
@@ -78,7 +79,8 @@ namespace Fracture.Common.Collections
         {
         }
 
-        public T Peek() => !Empty ? storage.AtIndex(Top - 1) : throw new InvalidOperationException("stack is empty");
+        public T Peek()
+            => !Empty ? storage.AtIndex(Top - 1) : throw new InvalidOperationException("stack is empty");
 
         public T Pop()
         {
@@ -139,7 +141,8 @@ namespace Fracture.Common.Collections
         {
         }
 
-        public T Peek() => stack.Peek();
+        public T Peek()
+            => stack.Peek();
 
         /// <summary>
         /// Pops top value from the stack. If the value being popped

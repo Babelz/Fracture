@@ -207,7 +207,8 @@ namespace Fracture.Engine.Ecs
         }
 
         #region Event handlers
-        private void World_Relocated(object sender, BodyEventArgs e) => UpdateBodyDirtyState((int)world.Bodies.WithId(e.BodyId).UserData);
+        private void World_Relocated(object sender, BodyEventArgs e)
+            => UpdateBodyDirtyState((int)world.Bodies.WithId(e.BodyId).UserData);
 
         private void World_EndContact(object sender, BodyContactEventArgs e)
         {

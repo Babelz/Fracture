@@ -18,16 +18,22 @@ namespace Fracture.Engine.Events
         private readonly EventScheduler scheduler;
         #endregion
 
-        public EventSchedulerSystem() => scheduler = new EventScheduler();
+        public EventSchedulerSystem()
+            => scheduler = new EventScheduler();
 
-        public void Add(IScheduledEvent scheduledEvent) => scheduler.Add(scheduledEvent);
+        public void Add(IScheduledEvent scheduledEvent)
+            => scheduler.Add(scheduledEvent);
 
-        public void Remove(IScheduledEvent scheduledEvent) => scheduler.Remove(scheduledEvent);
+        public void Remove(IScheduledEvent scheduledEvent)
+            => scheduler.Remove(scheduledEvent);
 
-        public bool Exists(IScheduledEvent scheduledEvent) => scheduler.Exists(scheduledEvent);
+        public bool Exists(IScheduledEvent scheduledEvent)
+            => scheduler.Exists(scheduledEvent);
 
-        public void Clear() => scheduler.Clear();
+        public void Clear()
+            => scheduler.Clear();
 
-        public override void Update(IGameEngineTime time) => scheduler.Tick(time.Elapsed);
+        public override void Update(IGameEngineTime time)
+            => scheduler.Tick(time.Elapsed);
     }
 }

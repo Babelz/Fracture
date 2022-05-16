@@ -173,18 +173,22 @@ namespace Fracture.Engine.Net
                 {
                     case ClientUpdate.Connected cu:
                         connectedCallback?.Invoke(cu.RemoteEndPoint);
+
                         break;
                     case ClientUpdate.Disconnected du:
                         disconnectedCallback?.Invoke(du.Exception, du.Reason);
+
                         break;
                     case ClientUpdate.ConnectFailed cf:
                         connectFailedCallback?.Invoke(cf.Exception, cf.Error);
+
                         break;
                     case ClientUpdate.Packet packet:
                         if (packet.Origin == ClientUpdate.PacketOrigin.Remote)
                             HandlePacket(packet);
                         else
                             ReleasePacket(packet);
+
                         break;
                 }
             }
@@ -247,13 +251,17 @@ namespace Fracture.Engine.Net
             client.Connect(endPoint);
         }
 
-        public void Disconnect() => client.Disconnect();
+        public void Disconnect()
+            => client.Disconnect();
 
-        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler) => packetHandler.Use(name, match, handler);
+        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => packetHandler.Use(name, match, handler);
 
-        public void Revoke(string name) => packetHandler.Revoke(name);
+        public void Revoke(string name)
+            => packetHandler.Revoke(name);
 
-        public void Send<T>(in T message) where T : IMessage => client.Send(message);
+        public void Send<T>(in T message) where T : IMessage
+            => client.Send(message);
 
         public void Send<T>(in T message,
                             NetMessageQueryResponseCallback responseCallback,
@@ -262,6 +270,7 @@ namespace Fracture.Engine.Net
             var context = new QueryMessageContext(message,
                                                   responseCallback,
                                                   timeoutCallback);
+
             queries.Add(context);
 
             client.Send(message);

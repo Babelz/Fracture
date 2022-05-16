@@ -79,6 +79,7 @@ namespace Fracture.Engine.Ui.Controls
                                         new Vector2(destination.Width, destination.Height),
                                         Image,
                                         ImageColor);
+
                     break;
                 case ImageMode.Source:
 
@@ -90,6 +91,7 @@ namespace Fracture.Engine.Ui.Controls
                                         ImageSource == Rectangle.Empty ? Image.Bounds : ImageSource,
                                         Image,
                                         ImageColor);
+
                     break;
                 default:
                     throw new InvalidOrUnsupportedException(nameof(ImageMode), ImageMode);

@@ -153,9 +153,11 @@ namespace Fracture.Benchmarks.Serialization
         }
 
         [Benchmark]
-        public void Delegate_Serialize() => serializeDelegate(testObject, buffer, 0);
+        public void Delegate_Serialize()
+            => serializeDelegate(testObject, buffer, 0);
 
         [Benchmark]
-        public void InstanceCall_Serialize() => serializer.Serialize(valueRanges, testObject, buffer, 0);
+        public void InstanceCall_Serialize()
+            => serializer.Serialize(valueRanges, testObject, buffer, 0);
     }
 }

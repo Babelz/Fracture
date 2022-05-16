@@ -63,7 +63,8 @@ namespace Fracture.Common.Di.Binding
             this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
         }
 
-        public void BindWith(IEnumerable<IDependencyBinding> bindings) => binders.AddRange(bindings);
+        public void BindWith(IEnumerable<IDependencyBinding> bindings)
+            => binders.AddRange(bindings);
 
         public void AsProxy(Type proxy)
         {

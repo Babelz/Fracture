@@ -38,9 +38,11 @@ namespace Fracture.Common.Di
             this.strict = strict;
         }
 
-        public T Cast<T>() => (T)value;
+        public T Cast<T>()
+            => (T)value;
 
-        public bool Castable<T>() => Castable(typeof(T));
+        public bool Castable<T>()
+            => Castable(typeof(T));
 
         public bool Castable(Type type)
         {
@@ -55,16 +57,20 @@ namespace Fracture.Common.Di
             return containedInTypes || types.Any(type.IsAssignableFrom);
         }
 
-        public bool ReferenceEquals(object other) => ReferenceEquals(value, other);
+        public bool ReferenceEquals(object other)
+            => ReferenceEquals(value, other);
 
-        public bool Equals(Dependency other) => other != null && ReferenceEquals(other.value);
+        public bool Equals(Dependency other)
+            => other != null && ReferenceEquals(other.value);
 
-        public override bool Equals(object obj) => Equals(obj as Dependency);
+        public override bool Equals(object obj)
+            => Equals(obj as Dependency);
 
-        public override string ToString() => $"{value.GetType().Name}";
+        public override string ToString()
+            => $"{value.GetType().Name}";
 
-        public override int GetHashCode() =>
-            HashUtils.Create()
-                     .Append(types);
+        public override int GetHashCode()
+            => HashUtils.Create()
+                        .Append(types);
     }
 }

@@ -27,11 +27,14 @@ namespace Fracture.Common.Events
         private readonly Dictionary<object, IScheduledEvent> pairs;
         #endregion
 
-        public KeyEventScheduler() => pairs = new Dictionary<object, IScheduledEvent>();
+        public KeyEventScheduler()
+            => pairs = new Dictionary<object, IScheduledEvent>();
 
-        public IScheduledEvent GetEvent(object key) => pairs[key];
+        public IScheduledEvent GetEvent(object key)
+            => pairs[key];
 
-        public bool Exists(object key) => pairs.ContainsKey(key);
+        public bool Exists(object key)
+            => pairs.ContainsKey(key);
 
         public void Add(IScheduledEvent scheduledEvent, object key)
         {
@@ -50,7 +53,8 @@ namespace Fracture.Common.Events
                 throw new InvalidOperationException("could not remove scheduler");
         }
 
-        public void Clear() => pairs.Clear();
+        public void Clear()
+            => pairs.Clear();
 
         public void Tick(TimeSpan elapsed)
         {

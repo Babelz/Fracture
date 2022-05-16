@@ -23,7 +23,8 @@ namespace Fracture.Common.Collections
         public IEnumerable<T> Values => items.Where(i => i != null);
         #endregion
 
-        public LinearRegistry() => items = new T[InitialCapacity];
+        public LinearRegistry()
+            => items = new T[InitialCapacity];
 
         /// <summary>
         /// Registers item to given location. If the location
@@ -41,8 +42,10 @@ namespace Fracture.Common.Collections
             items[location] = item;
         }
 
-        public bool IsReserved(int index) => index >= 0 && index < items.Length && !items[index].Equals(default(T));
+        public bool IsReserved(int index)
+            => index >= 0 && index < items.Length && !items[index].Equals(default(T));
 
-        public ref T AtLocation(int location) => ref items[location];
+        public ref T AtLocation(int location)
+            => ref items[location];
     }
 }

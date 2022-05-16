@@ -122,7 +122,8 @@ namespace Fracture.Engine.Ui
             return ui;
         }
 
-        public Ui Create(IStaticContainerControl root, IView view, string name) => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
+        public Ui Create(IStaticContainerControl root, IView view, string name)
+            => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
 
         public void Delete(Ui ui)
         {
@@ -147,8 +148,10 @@ namespace Fracture.Engine.Ui
                 uis[i].Update(time);
         }
 
-        IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator() => uis.GetEnumerator();
+        IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator()
+            => uis.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => uis.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => uis.GetEnumerator();
     }
 }

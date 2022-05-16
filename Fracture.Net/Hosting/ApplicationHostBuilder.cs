@@ -27,11 +27,12 @@ namespace Fracture.Net.Hosting
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(Type type, string asWhat = "") =>
-            Log.Information($"binding {type.FullName} to application host builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
+        private static void LogBinding(Type type, string asWhat = "")
+            => Log.Information($"binding {type.FullName} to application host builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void LogBinding(object value, string asWhat = "") => LogBinding(value.GetType(), asWhat);
+        private static void LogBinding(object value, string asWhat = "")
+            => LogBinding(value.GetType(), asWhat);
 
         /// <summary>
         /// Register service to be used by the application.
@@ -84,7 +85,8 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Registers custom dependency for both scripts and services to use.
         /// </summary>
-        public ApplicationHostBuilder SharedDependency(object dependency) => ScriptDependency(dependency).ServiceDependency(dependency);
+        public ApplicationHostBuilder SharedDependency(object dependency)
+            => ScriptDependency(dependency).ServiceDependency(dependency);
 
         public ApplicationHost Build()
         {
@@ -96,6 +98,7 @@ namespace Fracture.Net.Hosting
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ApplicationHostBuilder FromApplication(Application application) => new ApplicationHostBuilder(application);
+        public static ApplicationHostBuilder FromApplication(Application application)
+            => new ApplicationHostBuilder(application);
     }
 }

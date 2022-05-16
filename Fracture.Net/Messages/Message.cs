@@ -72,7 +72,8 @@ namespace Fracture.Net.Messages
         {
         }
 
-        public override string ToString() => JsonConvert.SerializeObject(this);
+        public override string ToString()
+            => JsonConvert.SerializeObject(this);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(in IClockMessage from, Func<T> result) where T : IClockMessage

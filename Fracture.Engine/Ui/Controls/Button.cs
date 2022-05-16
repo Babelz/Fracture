@@ -49,11 +49,14 @@ namespace Fracture.Engine.Ui.Controls
         }
         #endregion
 
-        protected virtual void InternalClick() => Click?.Invoke(this, EventArgs.Empty);
+        protected virtual void InternalClick()
+            => Click?.Invoke(this, EventArgs.Empty);
 
-        protected virtual void InternalDown() => Down?.Invoke(this, EventArgs.Empty);
+        protected virtual void InternalDown()
+            => Down?.Invoke(this, EventArgs.Empty);
 
-        protected virtual void InternalReleased() => Released?.Invoke(this, EventArgs.Empty);
+        protected virtual void InternalReleased()
+            => Released?.Invoke(this, EventArgs.Empty);
 
         protected sealed override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
@@ -81,8 +84,8 @@ namespace Fracture.Engine.Ui.Controls
             }
         }
 
-        protected virtual Texture2D GetStyleStateTexture() =>
-            Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{(Mouse.IsHovering(this) ? UiStyleKeys.Texture.Hover : UiStyleKeys.Texture.Normal)}");
+        protected virtual Texture2D GetStyleStateTexture()
+            => Style.Get<Texture2D>($"{UiStyleKeys.Target.Button}\\{(Mouse.IsHovering(this) ? UiStyleKeys.Texture.Hover : UiStyleKeys.Texture.Normal)}");
 
         protected virtual Point GetStyleStateOffset()
         {

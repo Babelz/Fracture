@@ -197,7 +197,8 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         #region Event handlers
-        private void ContainerControl_LayoutChanged(object sender, EventArgs e) => UpdateChildrenLayout();
+        private void ContainerControl_LayoutChanged(object sender, EventArgs e)
+            => UpdateChildrenLayout();
 
         private void Controls_ControlRemoved(object sender, ControlEventArgs e)
         {
@@ -441,7 +442,8 @@ namespace Fracture.Engine.Ui.Controls
             for (var i = 0; i < Children.ControlsCount; i++) Children[i].UpdateLayout();
         }
 
-        public virtual void Clear() => Children.Clear();
+        public virtual void Clear()
+            => Children.Clear();
 
         public void Dispose()
         {

@@ -59,11 +59,12 @@ namespace Fracture.Engine.Physics.Contacts
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NarrowContactSolverResult Collision(int firstBodyId, int secondBodyId, Vector2 translation) =>
-            new NarrowContactSolverResult(firstBodyId, secondBodyId, translation, true);
+        public static NarrowContactSolverResult Collision(int firstBodyId, int secondBodyId, Vector2 translation)
+            => new NarrowContactSolverResult(firstBodyId, secondBodyId, translation, true);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static NarrowContactSolverResult Separation() => new NarrowContactSolverResult(0, 0, Vector2.Zero, false);
+        public static NarrowContactSolverResult Separation()
+            => new NarrowContactSolverResult(0, 0, Vector2.Zero, false);
     }
 
     public static unsafe class NarrowContactSolver
@@ -365,7 +366,8 @@ namespace Fracture.Engine.Physics.Contacts
         /// <summary>
         /// Gets translation for this collision pair.
         /// </summary>
-        public Vector2 GetTranslation(int bodyId) => translations.TryGetValue(bodyId, out var translation) ? translation : Vector2.Zero;
+        public Vector2 GetTranslation(int bodyId)
+            => translations.TryGetValue(bodyId, out var translation) ? translation : Vector2.Zero;
 
         /// <summary>
         /// Adds new body to contact list.

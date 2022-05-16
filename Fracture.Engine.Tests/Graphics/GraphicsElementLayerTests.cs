@@ -18,7 +18,8 @@ namespace Fracture.Engine.Tests.Graphics
         private readonly GraphicsElementLayer layer;
         #endregion
 
-        public GraphicsElementLayerTests() => layer = new GraphicsElementLayer("graphics-layer", 0);
+        public GraphicsElementLayerTests()
+            => layer = new GraphicsElementLayer("graphics-layer", 0);
 
         [Fact]
         public void GraphicsElementLayer_Ctor_Test()

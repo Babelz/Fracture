@@ -30,11 +30,13 @@ namespace Fracture.Net.Serialization
         #endregion
 
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsArray;
+        public static bool SupportsType(Type type)
+            => type.IsArray;
 
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CanExtendType(Type type) => SupportsType(type) && !SerializeDelegates.ContainsKey(type.GetElementType()!);
+        public static bool CanExtendType(Type type)
+            => SupportsType(type) && !SerializeDelegates.ContainsKey(type.GetElementType()!);
 
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -167,7 +169,8 @@ namespace Fracture.Net.Serialization
         /// Returns size of array, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => Protocol.ContentLength.Read(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
         /// Returns size of array value, size will vary.
@@ -204,15 +207,18 @@ namespace Fracture.Net.Serialization
     public static class ListSerializer
     {
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(List<>);
 
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CanExtendType(Type type) => ArraySerializer.CanExtendType(type.GetGenericArguments()[0].MakeArrayType());
+        public static bool CanExtendType(Type type)
+            => ArraySerializer.CanExtendType(type.GetGenericArguments()[0].MakeArrayType());
 
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ExtendType(Type type) => ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
+        public static void ExtendType(Type type)
+            => ArraySerializer.ExtendType(type.GetGenericArguments()[0].MakeArrayType());
 
         /// <summary>
         /// Writes given list to given buffer beginning at given offset. This function allocates new array because it uses the array serializer and will
@@ -221,20 +227,23 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(List<T> value, byte [] buffer, int offset) => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
+        public static void Serialize<T>(List<T> value, byte [] buffer, int offset)
+            => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as list
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static List<T> Deserialize<T>(byte [] buffer, int offset) => new List<T>(ArraySerializer.Deserialize<T>(buffer, offset));
+        public static List<T> Deserialize<T>(byte [] buffer, int offset)
+            => new List<T>(ArraySerializer.Deserialize<T>(buffer, offset));
 
         /// <summary>
         /// Returns size of list, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => ArraySerializer.GetSizeFromBuffer(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => ArraySerializer.GetSizeFromBuffer(buffer, offset);
 
         /// <summary>
         /// Returns size of list value, size will vary. This function allocates new array because it uses the array serializer and will include some
@@ -243,7 +252,8 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue<T>(List<T> value) => ArraySerializer.GetSizeFromValue(value.ToArray());
+        public static ushort GetSizeFromValue<T>(List<T> value)
+            => ArraySerializer.GetSizeFromValue(value.ToArray());
     }
 
     [GenericValueSerializer]
@@ -257,11 +267,13 @@ namespace Fracture.Net.Serialization
         #endregion
 
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(KeyValuePair<,>);
 
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CanExtendType(Type type) => SupportsType(type) && type.GetGenericArguments().Any(t => !SerializeDelegates.ContainsKey(t));
+        public static bool CanExtendType(Type type)
+            => SupportsType(type) && type.GetGenericArguments().Any(t => !SerializeDelegates.ContainsKey(t));
 
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -343,7 +355,8 @@ namespace Fracture.Net.Serialization
         /// Returns size of key value pair value, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => Protocol.ContentLength.Read(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
         /// Returns size of key value pair value, size will vary.
@@ -363,12 +376,13 @@ namespace Fracture.Net.Serialization
     public static class DictionarySerializer
     {
         [ValueSerializer.SupportsType]
-        public static bool SupportsType(Type type) => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
+        public static bool SupportsType(Type type)
+            => type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>);
 
         [ValueSerializer.CanExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool CanExtendType(Type type) =>
-            ArraySerializer.CanExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()).MakeArrayType());
+        public static bool CanExtendType(Type type)
+            => ArraySerializer.CanExtendType(typeof(KeyValuePair<,>).MakeGenericType(type.GetGenericArguments()).MakeArrayType());
 
         [ValueSerializer.ExtendType]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -389,8 +403,8 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<TKey, TValue>(Dictionary<TKey, TValue> value, byte [] buffer, int offset) =>
-            ArraySerializer.Serialize(value.ToArray(), buffer, offset);
+        public static void Serialize<TKey, TValue>(Dictionary<TKey, TValue> value, byte [] buffer, int offset)
+            => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as dictionary and returns that value to the caller. This function allocates new
@@ -399,14 +413,15 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static Dictionary<TKey, TValue> Deserialize<TKey, TValue>(byte [] buffer, int offset) =>
-            ArraySerializer.Deserialize<KeyValuePair<TKey, TValue>>(buffer, offset).ToDictionary(k => k.Key, v => v.Value);
+        public static Dictionary<TKey, TValue> Deserialize<TKey, TValue>(byte [] buffer, int offset)
+            => ArraySerializer.Deserialize<KeyValuePair<TKey, TValue>>(buffer, offset).ToDictionary(k => k.Key, v => v.Value);
 
         /// <summary>
         /// Returns size of dictionary, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset) => ArraySerializer.GetSizeFromBuffer(buffer, offset);
+        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+            => ArraySerializer.GetSizeFromBuffer(buffer, offset);
 
         /// <summary>
         /// Returns size of dictionary value, size will vary. This function allocates new array because it uses the array serializer and will include some
@@ -415,6 +430,7 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue<TValue, TKey>(Dictionary<TValue, TKey> value) => ArraySerializer.GetSizeFromValue(value.ToArray());
+        public static ushort GetSizeFromValue<TValue, TKey>(Dictionary<TValue, TKey> value)
+            => ArraySerializer.GetSizeFromValue(value.ToArray());
     }
 }

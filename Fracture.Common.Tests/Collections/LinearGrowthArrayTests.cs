@@ -11,7 +11,8 @@ namespace Fracture.Common.Tests.Collections
         private readonly LinearGrowthArray<int> array;
         #endregion
 
-        public LinearGrowthArrayTests() => array = new LinearGrowthArray<int>(4);
+        public LinearGrowthArrayTests()
+            => array = new LinearGrowthArray<int>(4);
 
         [Fact]
         public void LinearGrowthArray_Ctor_Test()

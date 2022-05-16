@@ -27,8 +27,10 @@ namespace Fracture.Common.Reflection
             get = DynamicPropertyBinder.BindGet(type, name);
         }
 
-        public object Get(object target) => get?.Invoke(target);
+        public object Get(object target)
+            => get?.Invoke(target);
 
-        public void Set(object target, object value) => set?.Invoke(target, value);
+        public void Set(object target, object value)
+            => set?.Invoke(target, value);
     }
 }

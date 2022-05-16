@@ -19,7 +19,8 @@ namespace Fracture.Engine.Ecs
         }
         #endregion
 
-        public EntityEventArgs(int entityId) => EntityId = entityId;
+        public EntityEventArgs(int entityId)
+            => EntityId = entityId;
     }
 
     public enum EntityPairEventAction : byte
@@ -267,7 +268,8 @@ namespace Fracture.Engine.Ecs
             aliveEntityIds.Remove(entityId);
         }
 
-        public bool Alive(int entityId) => entityId < entities.Length && entities.AtIndex(entityId).Alive;
+        public bool Alive(int entityId)
+            => entityId < entities.Length && entities.AtIndex(entityId).Alive;
 
         public bool IsAnnotated(int entityId)
         {
@@ -347,9 +349,11 @@ namespace Fracture.Engine.Ecs
             return entities.AtIndex(entityId).ParentId!.Value;
         }
 
-        public bool LocalExists(int remoteId) => remoteEntityIdMap.ContainsKey(remoteId);
+        public bool LocalExists(int remoteId)
+            => remoteEntityIdMap.ContainsKey(remoteId);
 
-        public int LocalIdOf(int remoteId) => remoteEntityIdMap[remoteId];
+        public int LocalIdOf(int remoteId)
+            => remoteEntityIdMap[remoteId];
 
         public IEnumerable<int> ChildrenOf(int parentId)
         {
@@ -364,8 +368,10 @@ namespace Fracture.Engine.Ecs
                 Delete(entityId);
         }
 
-        public IEnumerator<int> GetEnumerator() => aliveEntityIds.GetEnumerator();
+        public IEnumerator<int> GetEnumerator()
+            => aliveEntityIds.GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

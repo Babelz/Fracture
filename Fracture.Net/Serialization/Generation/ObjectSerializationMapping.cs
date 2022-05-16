@@ -63,12 +63,12 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectActivationHint Field(string parameterName, string fieldName, Type type = null) =>
-            new ObjectActivationHint(parameterName, SerializationValueHint.Field(fieldName), type);
+        public static ObjectActivationHint Field(string parameterName, string fieldName, Type type = null)
+            => new ObjectActivationHint(parameterName, SerializationValueHint.Field(fieldName), type);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectActivationHint Property(string parameterName, string propertyName, Type type = null) =>
-            new ObjectActivationHint(parameterName, SerializationValueHint.Property(propertyName), type);
+        public static ObjectActivationHint Property(string parameterName, string propertyName, Type type = null)
+            => new ObjectActivationHint(parameterName, SerializationValueHint.Property(propertyName), type);
     }
 
     /// <summary>
@@ -101,10 +101,12 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SerializationValueHint Field(string name) => new SerializationValueHint(name, SerializationValueLocation.Field);
+        public static SerializationValueHint Field(string name)
+            => new SerializationValueHint(name, SerializationValueLocation.Field);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SerializationValueHint Property(string name) => new SerializationValueHint(name, SerializationValueLocation.Property);
+        public static SerializationValueHint Property(string name)
+            => new SerializationValueHint(name, SerializationValueLocation.Property);
     }
 
     /// <summary>
@@ -179,8 +181,8 @@ namespace Fracture.Net.Serialization.Generation
                 throw new InvalidOperationException($"expecting only one of {nameof(field)} or {nameof(property)} to have value");
         }
 
-        public override string ToString() =>
-            IsProperty ? $"property: {Property.PropertyType.Name} {Property.Name}" : $"field: {Field.FieldType.Name} {Field.Name}";
+        public override string ToString()
+            => IsProperty ? $"property: {Property.PropertyType.Name} {Property.Name}" : $"field: {Field.FieldType.Name} {Field.Name}";
     }
 
     /// <summary>
@@ -420,8 +422,8 @@ namespace Fracture.Net.Serialization.Generation
                 {
                     // Make sure the serialization field is valid.
                     var serializationTypeField = serializationType.GetField(objectActivationHint.Value.Name, BindingFlags.Public |
-                                                                                BindingFlags.NonPublic |
-                                                                                BindingFlags.Instance);
+                                                                                                             BindingFlags.NonPublic |
+                                                                                                             BindingFlags.Instance);
 
                     AssertFieldIsValidForSerialization(serializationTypeField, objectActivationHint.Value.Name, true);
 
@@ -497,18 +499,19 @@ namespace Fracture.Net.Serialization.Generation
 
             var serializationTypeProperties = serializationType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                                                                .Where(p => !serializationValueHints.Any(h => h.Name == p.Name &&
-                                                                                                            h.Path == SerializationValueLocation.Property));
+                                                                                                             h.Path == SerializationValueLocation.Property));
 
             serializationValueHints.AddRange(serializationTypeProperties.Where(p => !excludedProperties.Contains(p.Name))
                                                                         .Select(p => SerializationValueHint.Property(p.Name)));
         }
 
-        private void RemoveActivationValueHints() => serializationValueHints.RemoveAll(h => objectActivationHints.Any(a => a.Value.Name == h.Name));
+        private void RemoveActivationValueHints()
+            => serializationValueHints.RemoveAll(h => objectActivationHints.Any(a => a.Value.Name == h.Name));
 
-        private ObjectActivator GetObjectActivator() =>
-            activator != null
-                ? new ObjectActivator(activator)
-                : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
+        private ObjectActivator GetObjectActivator()
+            => activator != null
+                   ? new ObjectActivator(activator)
+                   : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
 
         /// <summary>
         /// Directs the builder to map the types constructor that matches given hints.
@@ -605,9 +608,11 @@ namespace Fracture.Net.Serialization.Generation
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationMapper ForType(Type type) => new ObjectSerializationMapper(type);
+        public static ObjectSerializationMapper ForType(Type type)
+            => new ObjectSerializationMapper(type);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ObjectSerializationMapper ForType<T>() => new ObjectSerializationMapper(typeof(T));
+        public static ObjectSerializationMapper ForType<T>()
+            => new ObjectSerializationMapper(typeof(T));
     }
 }

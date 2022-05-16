@@ -35,6 +35,7 @@ namespace Fracture.Common.Memory.Pools
         {
         }
 
-        protected override T New() => instantiate();
+        protected override T New()
+            => instantiate();
     }
 }

@@ -46,10 +46,12 @@ namespace Fracture.Common.Memory
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ClearOption Property(string name) => new ClearOption(name, ClearTarget.Property);
+        public static ClearOption Property(string name)
+            => new ClearOption(name, ClearTarget.Property);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ClearOption Field(string name) => new ClearOption(name, ClearTarget.Field);
+        public static ClearOption Field(string name)
+            => new ClearOption(name, ClearTarget.Field);
     }
 
     public delegate void ClearDelegate<T>(ref T value);
@@ -111,6 +113,7 @@ namespace Fracture.Common.Memory
                         EmitLoadDefaultValue(methodBuilder, field.FieldType);
 
                         methodBuilder.Emit(OpCodes.Stfld, field);
+
                         break;
                     case ClearTarget.Property:
                         var property = typeof(T).GetProperty(option.Name, Flags);
@@ -129,6 +132,7 @@ namespace Fracture.Common.Memory
                         EmitLoadDefaultValue(methodBuilder, property.PropertyType);
 
                         methodBuilder.Emit(property.SetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, property.SetMethod);
+
                         break;
                     default:
                         throw new InvalidOrUnsupportedException(nameof(ClearTarget), option);
@@ -140,9 +144,11 @@ namespace Fracture.Common.Memory
             return (ClearDelegate<T>)methodBuilder.CreateDelegate(typeof(ClearDelegate<T>));
         }
 
-        private static List<FieldInfo> GetFields<T>() => typeof(T).GetFields(Flags).Where(f => !f.IsInitOnly).ToList();
+        private static List<FieldInfo> GetFields<T>()
+            => typeof(T).GetFields(Flags).Where(f => !f.IsInitOnly).ToList();
 
-        private static List<PropertyInfo> GetProperties<T>() => typeof(T).GetProperties(Flags).Where(p => p.CanWrite).ToList();
+        private static List<PropertyInfo> GetProperties<T>()
+            => typeof(T).GetProperties(Flags).Where(p => p.CanWrite).ToList();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ClearDelegate<T> CreateClearDelegate<T>()
