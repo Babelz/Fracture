@@ -119,11 +119,10 @@ namespace Fracture.Content.Pipeline.Ui
 
             using var ms = new MemoryStream(bytes);
             
-            var xDocument = XDocument.Load(ms);
+            var document = XDocument.Load(ms);
+            var style    = new UiStyle(document.Root!.Attribute("name")!.Value);
 
-            var style = new UiStyle(xDocument.Root!.Attribute("name")!.Value);
-
-            foreach (var target in xDocument.Root.Elements())
+            foreach (var target in document.Root.Elements())
             {
                 var targetName = target.Name.LocalName;
 

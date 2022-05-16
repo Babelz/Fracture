@@ -835,17 +835,16 @@ namespace Fracture.Engine.Ecs
    /// </summary>
    public interface ISpriteAnimationComponentSystem : IGraphicsComponentSystem
    {
-      int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color);
+      int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, SpriteAnimationPlaylist playlist);
       
-      int AddPlaylist(SpriteAnimationPlaylist playlist);
-      void RemovePlaylist(int playlistId);
-      
-      void Play(int componentId, int playlistId, string animationName);
-      void Loop(int componentId, int playlistId, string animationName);
+      void Play(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f);
+      void Loop(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f);
       void Stop(int componentId);
       void Resume(int componentId);
       
-      int GetCurrentPlaylistId(int componentId);
+      SpriteAnimationPlaylist GetPlaylist(int componentId);
+      void SetPlaylist(int componentId, SpriteAnimationPlaylist playlist);
+
       string GetCurrentAnimationName(int componentId);
       SpriteEffects GetEffects(int componentId);
       void SetEffects(int componentId, SpriteEffects effects);
@@ -864,22 +863,12 @@ namespace Fracture.Engine.Ecs
          => ComponentId = componentId;
    }
    
-   public sealed class SpriteAnimationComponentSystem : 
-      GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>,
-      ISpriteAnimationComponentSystem
+   public sealed class SpriteAnimationComponentSystem : GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>, 
+                                                        ISpriteAnimationComponentSystem
    {
       #region Sprite animation structure
       public struct SpriteAnimationComponent : IGraphicsComponent
       {
-         #region Constant fields
-         /// <summary>
-         /// Const animation index indicating the component
-         /// is not animating and has no animation if this
-         /// index is active.
-         /// </summary>
-         public const int NoAnimation = 0;
-         #endregion
-         
          #region Sprite animation component member properties
          public TimeSpan Elapsed
          {
@@ -888,10 +877,9 @@ namespace Fracture.Engine.Ecs
          }
          
          /// <summary>
-         /// Gets or sets the animation index of this component.
-         /// 0 indicates no animation is being played.
+         /// Gets or sets the last active playlist of the component.
          /// </summary>
-         public int PlaylistId
+         public SpriteAnimationPlaylist Playlist
          {
             get;
             set;
@@ -929,6 +917,18 @@ namespace Fracture.Engine.Ecs
          }
          
          public SpriteEffects Effects
+         {
+            get;
+            set;
+         }
+         
+         public float FrameDuractionScale
+         {
+            get;
+            set;
+         }
+         
+         public TimeSpan FrameDurationModifier
          {
             get;
             set;
@@ -1016,22 +1016,27 @@ namespace Fracture.Engine.Ecs
          Components.AtIndex(componentId).Playing = playing;
       }
       
-      private void ChangeAnimation(int componentId, int animationId, string animationName, SpriteAnimationMode mode)
+      private void ChangeAnimation(int componentId,
+                                   string animationName,
+                                   SpriteAnimationMode mode,
+                                   in TimeSpan frameDurationModifier = default,
+                                   float frameDurationScale = 1.0f)
       {
          AssertAlive(componentId);
          
          ref var component = ref Components.AtIndex(componentId);
          
-         component.PlaylistId    = animationId;
-         component.AnimationName = animationName;
-         component.Mode          = mode;
-         component.Elapsed       = TimeSpan.Zero;
-         component.FrameId       = 0;
+         component.AnimationName         = animationName;
+         component.Mode                  = mode;
+         component.Elapsed               = TimeSpan.Zero;
+         component.FrameId               = 0;
+         component.FrameDuractionScale   = frameDurationScale;
+         component.FrameDurationModifier = frameDurationModifier;
          
          ChangeState(componentId, true);
       }
       
-      public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color)
+      public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, SpriteAnimationPlaylist playlist)
       {
          var componentId = InitializeComponent(entityId);
          
@@ -1039,59 +1044,44 @@ namespace Fracture.Engine.Ecs
          SetBounds(componentId, bounds);
          SetColor(componentId, color);
          SetLayer(componentId, layer);
+         SetPlaylist(componentId, playlist);
          
          finishedEvents.Create(componentId);
          
          return componentId;
       }
 
-      public int AddPlaylist(SpriteAnimationPlaylist playlist)
-      {
-         var playlistId = indices.Take();
-         
-         playlists.Add(playlistId, playlist);
-         
-         return playlistId;
-      }
-
-      public void RemovePlaylist(int playlistId)
-      {
-         indices.Return(playlistId);
-         
-         foreach (var componentId in Alive)
-         {
-            ref var component = ref Components.AtIndex(componentId);
-            
-            if (component.PlaylistId == playlistId)
-               component.PlaylistId = SpriteAnimationComponent.NoAnimation;
-         }
-      }
+      public void Play(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f)
+         => ChangeAnimation(componentId, animationName, SpriteAnimationMode.Play, frameDurationModifier, frameDurationScale);
       
-      public void Play(int componentId, int animationId, string animationName)
-         => ChangeAnimation(componentId, animationId, animationName, SpriteAnimationMode.Play);
-      
-      public void Loop(int componentId, int animationId, string animationName)
-         => ChangeAnimation(componentId, animationId, animationName, SpriteAnimationMode.Loop);
+      public void Loop(int componentId, string animationName, in TimeSpan frameDurationModifier = default, float frameDurationScale = 1.0f)
+         => ChangeAnimation(componentId, animationName, SpriteAnimationMode.Loop, frameDurationModifier, frameDurationScale);
 
       public void Stop(int componentId)
          => ChangeState(componentId, false);
       
       public void Resume(int componentId)
          => ChangeState(componentId, true);
-      
-      public int GetCurrentPlaylistId(int componentId)
+
+      public SpriteAnimationPlaylist GetPlaylist(int componentId)
       {
          AssertAlive(componentId);
          
-         return Components.AtIndex(componentId).PlaylistId;
+         return Components.AtIndex(componentId).Playlist;
       }
+
+      public void SetPlaylist(int componentId, SpriteAnimationPlaylist playlist)
+      {
+         AssertAlive(componentId);
+         
+         Components.AtIndex(componentId).Playlist = playlist;
+      }
+
       public string GetCurrentAnimationName(int componentId)
       {
          AssertAlive(componentId);
          
-         ref var component = ref Components.AtIndex(componentId);
-         
-         return component.PlaylistId == SpriteAnimationComponent.NoAnimation ? string.Empty : component.AnimationName;
+         return Components.AtIndex(componentId).AnimationName;
       }
       
       public SpriteEffects GetEffects(int componentId)
@@ -1118,12 +1108,16 @@ namespace Fracture.Engine.Ecs
             
             if (!component.Playing)
                continue;
+            
+            if (component.Playlist == null)
+               continue;
 
             component.Elapsed += time.Elapsed;
-
-            var animation = playlists[component.PlaylistId].Animations[component.AnimationName];
             
-            ref var duration = ref animation.Durations[component.FrameId];
+            var animation = component.Playlist.GetAnimation(component.AnimationName);
+            var duration  = TimeSpan.FromTicks((long)(animation.Durations[component.FrameId].Ticks + 
+                                                      component.FrameDurationModifier.Ticks * 
+                                                      component.FrameDuractionScale));
 
             if (component.Elapsed >= duration)
             {
@@ -1135,14 +1129,10 @@ namespace Fracture.Engine.Ecs
             if (component.FrameId < animation.Frames.Length)
                continue;
                
-            component.FrameId = 0;
-
             finishedEvents.Publish(componentId, new SpriteAnimationFinishedEventArgs(componentId));
-                  
-            if (component.Mode != SpriteAnimationMode.Play)
-               continue;
-            
-            component.PlaylistId = SpriteAnimationComponent.NoAnimation;
+               
+            component.FrameId = 0;
+            component.Playing = component.Mode == SpriteAnimationMode.Loop;
          }
       }
 
@@ -1152,8 +1142,8 @@ namespace Fracture.Engine.Ecs
          
          ref var component = ref Components.AtIndex(componentId);
          
-         var playlist  = playlists[component.PlaylistId];
-         var animation = playlist.Animations[component.AnimationName];
+         var animation = component.Playlist.GetAnimation(component.AnimationName);
+         var texture   = component.Playlist.GetTexture(component.AnimationName);
          var transform = Transform.TranslateLocal(component.GlobalTransform, component.LocalTransform);
 
          fragment.DrawSprite(Transform.ToScreenUnits(transform.Position),
@@ -1162,7 +1152,7 @@ namespace Fracture.Engine.Ecs
                              Transform.ToScreenUnits(component.Origin),
                              Transform.ToScreenUnits(component.Bounds),
                              animation.Frames[component.FrameId],
-                             playlist.Texture,
+                             texture,
                              component.Color,
                              component.Effects);         
       }

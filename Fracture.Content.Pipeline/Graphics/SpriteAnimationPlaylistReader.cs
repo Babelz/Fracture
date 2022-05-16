@@ -23,22 +23,25 @@ namespace Fracture.Content.Pipeline.Graphics
 
             using var ms = new MemoryStream(bytes);
             
-            var xDoc = XDocument.Load(ms);
-
-            var xAnimation   = xDoc.Element("Playlist");
-            var texturePath  = xAnimation!.Attribute("texture")!.Value;
-            var animations   = new Dictionary<string, SpriteAnimationFrames>();
+            var document   = XDocument.Load(ms);
+            var playlists  = document.Element("Playlist");
+            var animations = new Dictionary<string, SpriteAnimationFrames>();
+            var textures   = new Dictionary<string, Texture2D>();
                 
-            foreach (var animation in xAnimation.Elements("Animation"))
+            foreach (var animation in playlists.Elements("Animation"))
             {
-                var name         = animation.Attribute("name")!.Value;
-                var baseDuration = TimeSpan.Zero;
+                var animationName = animation.Attribute("name")!.Value;
+                var baseDuration  = TimeSpan.Zero;
+                var texturePath   = playlists.Attribute("texture")?.Value ?? playlists!.Attribute("texture")!.Value;
 
+                if (string.IsNullOrEmpty(texturePath))
+                    throw new InvalidOperationException($"missing texture path for animation in file {input.AssetName}");
+                
                 if (animation.Attribute("duration") != null)
                     baseDuration = TimeSpan.ParseExact(animation.Attribute("duration")!.Value, @"mm\:ss\:FFFF", CultureInfo.InvariantCulture);
 
-                var frames    = new List<Rectangle>();
-                var durations = new List<TimeSpan>();
+                var frameSources   = new List<Rectangle>();
+                var frameDurations = new List<TimeSpan>();
 
                 foreach (var frame in animation.Elements("Frame"))
                 {
@@ -52,15 +55,16 @@ namespace Fracture.Content.Pipeline.Graphics
                     var w = int.Parse(frame.Attribute("w")!.Value);
                     var h = int.Parse(frame.Attribute("h")!.Value);
                         
-                    frames.Add(new Rectangle(x, y, w, h));
+                    frameSources.Add(new Rectangle(x, y, w, h));
 
-                    durations.Add(frameDuration);
+                    frameDurations.Add(frameDuration);
                 }
 
-                animations.Add(name, new SpriteAnimationFrames(frames.ToArray(), durations.ToArray()));
+                animations[animationName] = new SpriteAnimationFrames(frameSources.ToArray(), frameDurations.ToArray());
+                textures[animationName]   = input.ContentManager.Load<Texture2D>(texturePath);
             }
 
-            return new SpriteAnimationPlaylist(input.ContentManager.Load<Texture2D>(texturePath), animations);
+            return new SpriteAnimationPlaylist(input.AssetName, textures, animations);
         }
     }
 }
