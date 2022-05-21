@@ -112,12 +112,15 @@ namespace Fracture.Engine.Core.Systems
     }
 
     /// <summary>
-    /// System responsible of scene management.
+    /// Default implementation of <see cref="ISceneSystem"/>. Pushing and popping of the scenes is handled in one frame delayed manner. This is to enforce the scene
+    /// changes not to happen mid frame but at the beginning. 
     /// </summary>
     public sealed class SceneSystem : GameEngineSystem, ISceneSystem
     {
         #region Fields
         private readonly IGameObjectActivatorSystem activator;
+
+        private readonly Queue<Action> actions;
 
         private readonly Stack<Scene> scenes;
         #endregion
@@ -140,83 +143,98 @@ namespace Fracture.Engine.Core.Systems
         public SceneSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator;
-
-            scenes = new Stack<Scene>();
+            
+            actions = new Queue<Action>();
+            scenes  = new Stack<Scene>();
         }
 
         public void Push<T>(SceneChangedCallback callback = null, params IBindingValue [] bindings) where T : Scene
         {
-            var last  = scenes.Count == 0 ? null : scenes.Peek();
-            var scene = activator.Activate<T>(bindings);
+            actions.Enqueue(() =>
+            {
+                var last  = scenes.Count == 0 ? null : scenes.Peek();
+                var scene = activator.Activate<T>(bindings);
 
-            last?.Deinitialize(scene);
+                last?.Deinitialize(scene);
 
-            Last    = Current;
-            Current = scene;
+                Last    = Current;
+                Current = scene;
 
-            scenes.Push(scene);
+                scenes.Push(scene);
 
-            scene.Initialize(last);
+                scene.Initialize(last);
 
-            callback?.Invoke(last, scene);
+                callback?.Invoke(last, scene);
 
-            Current = scene;
+                Current = scene;   
+            });
         }
 
         public void Pop(SceneChangedCallback callback = null)
         {
-            if (scenes.Count == 0)
-                throw new InvalidOperationException("no scenes in the stack");
+            actions.Enqueue(() =>
+            {
+                if (scenes.Count == 0)
+                    throw new InvalidOperationException("no scenes in the stack");
 
-            var last = scenes.Pop();
-            var next = scenes.Count == 0 ? null : scenes.Peek();
+                var last = scenes.Pop();
+                var next = scenes.Count == 0 ? null : scenes.Peek();
 
-            last.Deinitialize(next);
+                last.Deinitialize(next);
 
-            Current = next;
-            Last    = last;
+                Current = next;
+                Last    = last;
 
-            next?.Initialize(last);
+                next?.Initialize(last);
 
-            callback?.Invoke(last, next);
+                callback?.Invoke(last, next);
 
-            Current = next;
+                Current = next;   
+            });
         }
 
         public void PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null)
         {
-            var last = scenes.Pop();
-
-            Last = last;
-
-            while (scenes.Count > 0)
+            actions.Enqueue(() =>
             {
-                var next = scenes.Peek();
+                var last = scenes.Pop();
 
-                if (!predicate(next))
+                Last = last;
+
+                while (scenes.Count > 0)
                 {
-                    scenes.Pop();
+                    var next = scenes.Peek();
 
-                    Last = next;
+                    if (!predicate(next))
+                    {
+                        scenes.Pop();
+
+                        Last = next;
+                    }
+                    else
+                    {
+                        last.Deinitialize(next);
+
+                        next.Initialize(last);
+
+                        callback?.Invoke(last, next);
+
+                        Current = next;
+
+                        return;
+                    }
                 }
-                else
-                {
-                    last.Deinitialize(next);
 
-                    next.Initialize(last);
-
-                    callback?.Invoke(last, next);
-
-                    Current = next;
-
-                    return;
-                }
-            }
-
-            throw new InvalidOperationException("no scene matches predicate");
+                throw new InvalidOperationException("no scene matches predicate");
+            });
         }
 
         public override void Update(IGameEngineTime time)
-            => Current?.Update(time);
+        {
+            while (actions.Count != 0)
+                actions.Dequeue()();
+            
+            Current?.Update(time);
+        }
     }
 }

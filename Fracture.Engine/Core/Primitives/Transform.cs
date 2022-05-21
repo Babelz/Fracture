@@ -20,6 +20,11 @@ namespace Fracture.Engine.Core.Primitives
         /// </summary>
         public static Transform Default => new Transform(Vector2.Zero, Vector2.One, 0.0f);
 
+        /// <summary>
+        /// Gets empty transform that has all of it's components set to zero.
+        /// </summary>
+        public static Transform Empty => new Transform(Vector2.Zero, Vector2.Zero, 0.0f);
+        
         public static float ScreenUnitsPerWorldUnit
         {
             get;

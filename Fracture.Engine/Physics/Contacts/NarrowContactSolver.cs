@@ -377,10 +377,7 @@ namespace Fracture.Engine.Physics.Contacts
             if (lastFrame < frame)
             {
                 // Swap and clear.
-                var temp = oldBodyIds;
-
-                oldBodyIds = newBodyIds;
-                newBodyIds = temp;
+                (oldBodyIds, newBodyIds) = (newBodyIds, oldBodyIds);
 
                 foreach (var oldBodyId in oldBodyIds)
                     translations.Remove(oldBodyId);

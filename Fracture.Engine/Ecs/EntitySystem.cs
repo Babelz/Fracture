@@ -99,6 +99,16 @@ namespace Fracture.Engine.Ecs
 
         void Clear();
     }
+    
+    public static class Entity
+    {
+        #region Constant fields
+        /// <summary>
+        /// Constant to denote null entity.
+        /// </summary>
+        public const int Null = -1;
+        #endregion
+    }
 
     /// <summary>
     /// Default implementation of <see cref="IEntitySystem"/>.

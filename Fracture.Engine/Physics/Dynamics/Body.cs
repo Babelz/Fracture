@@ -164,6 +164,8 @@ namespace Fracture.Engine.Physics.Dynamics
         {
             for (var i = 0; i < Vertices.Length; i++)
                 Vertices[i] = Shape.Vertices[i] + Position;
+            
+            BoundingBox = new Aabb(BoundingBox, Position);
         }
 
         /// <summary>
@@ -183,6 +185,8 @@ namespace Fracture.Engine.Physics.Dynamics
 
                 Vertices[i] = Position + transform;
             }
+            
+            BoundingBox = new Aabb(Position, Rotation, BoundingBox.HalfBounds);
         }
 
         /// <summary>

@@ -148,16 +148,16 @@ namespace Fracture.Engine
 
             systems.Bind(new GameTimeSystem(game.Time));
 
-            systems.Bind<EventQueueSystem>();
-            systems.Bind<EventSchedulerSystem>();
-
             systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager, game.Window));
             systems.Bind(new ContentSystem(game.Content));
             systems.Bind(new GameObjectActivatorSystem(kernel));
 
+            systems.Bind<EventQueueSystem>();
+            systems.Bind<EventSchedulerSystem>();
+
             systems.Bind<EntitySystem>();
             systems.Bind<EntityPrefabSystem>();
-
+            
             // Allow game to bind game specific bindings.
             Log.Info($"binding game specific systems...");
 

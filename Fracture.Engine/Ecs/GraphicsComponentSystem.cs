@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
@@ -135,8 +136,7 @@ namespace Fracture.Engine.Ecs
         void DrawElement(int componentId, IGraphicsFragment fragment);
     }
 
-    public abstract class GraphicsComponentSystem<T> : SharedComponentSystem, IGraphicsComponentSystem
-        where T : struct, IGraphicsComponent
+    public abstract class GraphicsComponentSystem<T> : SharedComponentSystem, IGraphicsComponentSystem where T : struct, IGraphicsComponent
     {
         #region Constant fields
         /// <summary>
@@ -191,7 +191,7 @@ namespace Fracture.Engine.Ecs
             scrubbedComponentIds = new HashSet<int>(ComponentsCapacity);
             dirtyComponentIds    = new HashSet<int>(ComponentsCapacity);
         }
-
+        
         public override bool Delete(int componentId)
         {
             var deleted = base.Delete(componentId);
@@ -245,7 +245,7 @@ namespace Fracture.Engine.Ecs
             AssertAlive(componentId);
 
             Components.AtIndex(componentId).LocalTransform = transform;
-
+            
             dirtyComponentIds.Add(componentId);
         }
 
@@ -929,7 +929,7 @@ namespace Fracture.Engine.Ecs
                 set;
             }
 
-            public float FrameDuractionScale
+            public float FrameDurationScale
             {
                 get;
                 set;
@@ -995,10 +995,6 @@ namespace Fracture.Engine.Ecs
         #endregion
 
         #region Fields
-        private readonly FreeList<int> indices;
-
-        private readonly Dictionary<int, SpriteAnimationPlaylist> playlists;
-
         private readonly IUniqueEvent<int, SpriteAnimationFinishedEventArgs> finishedEvents;
         #endregion
 
@@ -1010,14 +1006,9 @@ namespace Fracture.Engine.Ecs
             : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
         {
             finishedEvents = events.CreateUnique<int, SpriteAnimationFinishedEventArgs>();
-
-            var idc = 1;
-
-            indices   = new FreeList<int>(() => idc++);
-            playlists = new Dictionary<int, SpriteAnimationPlaylist>();
         }
 
-        private void ChangeState(int componentId, bool playing)
+        private void SetPlaying(int componentId, bool playing)
         {
             AssertAlive(componentId);
 
@@ -1038,12 +1029,22 @@ namespace Fracture.Engine.Ecs
             component.Mode                  = mode;
             component.Elapsed               = TimeSpan.Zero;
             component.FrameId               = 0;
-            component.FrameDuractionScale   = frameDurationScale;
+            component.FrameDurationScale   = frameDurationScale;
             component.FrameDurationModifier = frameDurationModifier;
 
-            ChangeState(componentId, true);
+            SetPlaying(componentId, true);
         }
 
+        public override bool Delete(int componentId)
+        {
+            var deleted = base.Delete(componentId);
+            
+            if (deleted)
+                finishedEvents.Delete(componentId);
+            
+            return deleted;
+        }
+        
         public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, SpriteAnimationPlaylist playlist)
         {
             var componentId = InitializeComponent(entityId);
@@ -1066,10 +1067,10 @@ namespace Fracture.Engine.Ecs
             => ChangeAnimation(componentId, animationName, SpriteAnimationMode.Loop, frameDurationModifier, frameDurationScale);
 
         public void Stop(int componentId)
-            => ChangeState(componentId, false);
+            => SetPlaying(componentId, false);
 
         public void Resume(int componentId)
-            => ChangeState(componentId, true);
+            => SetPlaying(componentId, true);
 
         public SpriteAnimationPlaylist GetPlaylist(int componentId)
         {
@@ -1125,7 +1126,7 @@ namespace Fracture.Engine.Ecs
                 var animation = component.Playlist.GetAnimation(component.AnimationName);
                 var duration = TimeSpan.FromTicks((long)(animation.Durations[component.FrameId].Ticks +
                                                          component.FrameDurationModifier.Ticks *
-                                                         component.FrameDuractionScale));
+                                                         component.FrameDurationScale));
 
                 if (component.Elapsed >= duration)
                 {
