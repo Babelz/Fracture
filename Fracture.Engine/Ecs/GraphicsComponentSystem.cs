@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
@@ -191,6 +190,13 @@ namespace Fracture.Engine.Ecs
             scrubbedComponentIds = new HashSet<int>(ComponentsCapacity);
             dirtyComponentIds    = new HashSet<int>(ComponentsCapacity);
         }
+
+        protected void SetGlobalTransform(int componentId, in Transform transform)
+        {
+            AssertAlive(componentId);
+            
+            Components.AtIndex(componentId).GlobalTransform = transform;
+        }
         
         public override bool Delete(int componentId)
         {
@@ -363,7 +369,7 @@ namespace Fracture.Engine.Ecs
 
                 foreach (var componentId in AllFor(letter.Args.EntityId))
                 {
-                    Components.AtIndex(componentId).GlobalTransform = letter.Args.Transform;
+                    SetGlobalTransform(componentId, letter.Args.Transform);
 
                     dirtyComponentIds.Add(componentId);
                 }
@@ -614,6 +620,7 @@ namespace Fracture.Engine.Ecs
         {
             var componentId = InitializeComponent(entityId);
 
+            SetGlobalTransform(componentId, Transform.Default);
             SetTransform(componentId, transform);
             SetBounds(componentId, bounds);
             SetColor(componentId, color);
@@ -634,6 +641,7 @@ namespace Fracture.Engine.Ecs
         {
             var componentId = InitializeComponent(entityId);
 
+            SetGlobalTransform(componentId, Transform.Default);
             SetTransform(componentId, transform);
             SetBounds(componentId, bounds);
             SetColor(componentId, color);
@@ -779,6 +787,7 @@ namespace Fracture.Engine.Ecs
         {
             var componentId = InitializeComponent(entityId);
 
+            SetGlobalTransform(componentId, Transform.Default);
             SetTransform(componentId, transform);
             SetBounds(componentId, bounds);
             SetColor(componentId, color);
@@ -1049,6 +1058,7 @@ namespace Fracture.Engine.Ecs
         {
             var componentId = InitializeComponent(entityId);
 
+            SetGlobalTransform(componentId, Transform.Default);
             SetTransform(componentId, transform);
             SetBounds(componentId, bounds);
             SetColor(componentId, color);
@@ -1300,6 +1310,7 @@ namespace Fracture.Engine.Ecs
         {
             var componentId = InitializeComponent(entityId);
 
+            SetGlobalTransform(componentId, Transform.Default);
             SetTransform(componentId, transform);
             SetBounds(componentId, bounds);
             SetColor(componentId, color);

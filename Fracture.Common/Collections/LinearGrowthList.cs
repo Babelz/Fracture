@@ -14,38 +14,20 @@ namespace Fracture.Common.Collections
 
         #region Properties
         public int Count
-        {
-            get;
-            private set;
-        }
+            => items.Length;
         #endregion
 
         public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1)
             => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
-
-        public void Add(in T value)
+        
+        public ref T AtIndex(int index)
         {
-            if (Count >= items.Length)
+            while (index >= items.Length)
                 items.Grow();
 
-            items.Insert(Count++, value);
+            return ref items.AtIndex (index);
         }
-
-        public bool Remove(in T value)
-        {
-            var index = items.IndexOf(value);
-
-            if (index < 0)
-                return false;
-
-            items.Insert(index, default);
-
-            return true;
-        }
-
-        public ref T AtIndex(int index)
-            => ref items.AtIndex(index);
-
+        
         /// <summary>
         /// Inserts given item to given index. This insert function allows inserting past the collection. When inserting past
         /// the collection bounds the collection will grow to fit to the index that is out of the current bounds.
@@ -53,11 +35,7 @@ namespace Fracture.Common.Collections
         public void Insert(int index, in T value)
         {
             while (index >= items.Length)
-            {
                 items.Grow();
-
-                Count = items.Length;
-            }
 
             items.Insert(index, value);
         }

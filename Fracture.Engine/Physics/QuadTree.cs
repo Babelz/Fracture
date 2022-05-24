@@ -5,19 +5,15 @@ using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
 
-namespace Fracture.Engine.Physics.Spatial
+namespace Fracture.Engine.Physics
 {
     /// <summary>
     /// Class that represents a tree where each leaf has four children. 
     /// </summary>
-    public sealed class QuadTree
+    public sealed class QuadTree 
     {
-        #region Constant fields
-        private const int InitialBodyBufferCapacity = 512;
-        #endregion
-
         #region Fields
-        private readonly HashSet<int> active;
+        private readonly HashSet<Body> active;
         #endregion
 
         #region Events
@@ -30,56 +26,60 @@ namespace Fracture.Engine.Physics.Spatial
         {
             get;
         }
-
+        
         public QuadTreeNode Root
         {
             get;
+            private set;
         }
         #endregion
 
         /// <summary>
         /// Creates new instance of <see cref="QuadTree"/> using given configuration.
         /// </summary>
-        /// <param name="bodies">body list this tree is presenting</param>
-        /// <param name="nodeBodyLimit">max body limit for each node before split occurs</param>
+        /// <param name="nodeStaticBodyLimit">max static body limit for each node before split occurs</param>
         /// <param name="maxDepth">max depth in nodes</param>
         /// <param name="bounds">bounds of the tree</param>
-        public QuadTree(BodyList bodies, int nodeBodyLimit, int maxDepth, Vector2 bounds)
+        public QuadTree(int nodeStaticBodyLimit, int maxDepth, Vector2 bounds)
         {
-            if (nodeBodyLimit < 0)
-                throw new ArgumentOutOfRangeException(nameof(nodeBodyLimit));
+            if (nodeStaticBodyLimit < 0)
+                throw new ArgumentOutOfRangeException(nameof(nodeStaticBodyLimit));
 
             if (maxDepth < 0)
                 throw new ArgumentOutOfRangeException(nameof(maxDepth));
 
-            Root        = new QuadTreeNode(bodies, nodeBodyLimit, maxDepth, bounds);
+            Root        = new QuadTreeNode(nodeStaticBodyLimit, maxDepth, bounds);
             BoundingBox = new Aabb(bounds * 0.5f, bounds * 0.5f);
-            active      = new HashSet<int>(InitialBodyBufferCapacity);
+            active        = new HashSet<Body>();
         }
 
         /// <summary>
         /// Adds given body to the tree.
         /// </summary>
-        public bool Add(int bodyId)
+        public bool Add(Body body)
         {
-            var added = Root.Add(bodyId);
+            if (body == null) throw new ArgumentNullException(nameof(body));
+
+            var added = Root.Add(body);
 
             if (added)
-                Added?.Invoke(this, new BodyEventArgs(bodyId));
-
+                Added?.Invoke(this, new BodyEventArgs(body));
+            
             return added;
         }
 
         /// <summary>
         /// Removes given body from the tree.
         /// </summary>
-        public bool Remove(int bodyId)
+        public bool Remove(Body body)   
         {
-            var removed = Root.Remove(bodyId);
+            if (body == null) throw new ArgumentNullException(nameof(body));
 
+            var removed = Root.Remove(body);
+            
             if (removed)
-                Removed?.Invoke(this, new BodyEventArgs(bodyId));
-
+                Removed?.Invoke(this, new BodyEventArgs(body));
+        
             return removed;
         }
 
@@ -102,18 +102,18 @@ namespace Fracture.Engine.Physics.Spatial
         {
             if (link == null) throw new ArgumentNullException(nameof(link));
 
-            Root.AabbQueryNarrow(link, aabb);
+            Root.AabbQueryNarrow(link, in aabb);
         }
 
         /// <summary>
         /// Does narrow ray cast to the tree using ray represented
         /// as two vectors. Does not do AABB checks between bodies, checks only nodes.
         /// </summary>
-        public void RayCastNarrow(QuadTreeNodeLink link, in Line line)
+        public void RayCastNarrow(QuadTreeNodeLink link, in Vector2 a, in Vector2 b)
         {
             if (link == null) throw new ArgumentNullException(nameof(link));
 
-            Root.RayCastNarrow(link, line);
+            Root.RayCastNarrow(link, in a, in b);
         }
 
         /// <summary>
@@ -121,21 +121,21 @@ namespace Fracture.Engine.Physics.Spatial
         /// as two vectors. Pass points as read only ref
         /// to ease memory pressure. Does AABB checks for bodies.
         /// </summary>
-        public void RayCastBroad(QuadTreeNodeLink link, in Line line, BodySelector selector = null)
+        public void RayCastBroad(QuadTreeNodeLink link, in Vector2 a, in Vector2 b, Func<Body, bool> selector = null)
         {
             if (link == null) throw new ArgumentNullException(nameof(link));
 
-            Root.RayCastBroad(link, line, selector);
+            Root.RayCastBroad(link, in a, in b, selector);
         }
 
         /// <summary>
         /// Does broad query to the tree using given AABB. Does AABB checks for bodies.
         /// </summary>
-        public void AabbQueryBroad(QuadTreeNodeLink link, in Aabb aabb, BodySelector selector = null)
+        public void AabbQueryBroad(QuadTreeNodeLink link, in Aabb aabb, Func<Body, bool> selector = null)
         {
             if (link == null) throw new ArgumentNullException(nameof(link));
 
-            Root.AabbQueryBroad(link, aabb, selector);
+            Root.AabbQueryBroad(link, in aabb, selector);
         }
 
         /// <summary>
@@ -144,14 +144,14 @@ namespace Fracture.Engine.Physics.Spatial
         /// frame will be checked. Bodies that are lost have moved
         /// away from at least of their nodes.
         /// </summary>
-        public IEnumerable<int> RelocateLostBodies()
+        public IEnumerable<Body> RelocateMovingBodies()
         {
             Root.GetActiveBodies(active);
 
             if (active.Count == 0)
-                return Enumerable.Empty<int>();
+                return Enumerable.Empty<Body>();
 
-            IEnumerable<int> GetEnumeration()
+            IEnumerable<Body> GetEnumeration()
             {
                 foreach (var body in active)
                 {

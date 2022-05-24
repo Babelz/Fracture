@@ -124,7 +124,7 @@ namespace Fracture.Engine.Core.Primitives
         /// Creates new AABB with given position and computes its bounds from
         /// given vertices. Assumes the vertices are already rotated.
         /// </summary>
-        public Aabb(in Vector2 position, float rotation, Vector2 [] vertices)
+        public Aabb(in Vector2 position, float rotation, Vector2[] vertices)
         {
             var minX = vertices.Min(v => v.X);
             var minY = vertices.Min(v => v.Y);
@@ -208,10 +208,10 @@ namespace Fracture.Engine.Core.Primitives
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Intersects(in Aabb a, in Aabb b)
-            => (a.Position.X - a.HalfBounds.X) < (b.Position.X + b.HalfBounds.X) &&
-               (a.Position.X + a.HalfBounds.X) > (b.Position.X - b.HalfBounds.X) &&
-               (a.Position.Y - a.HalfBounds.Y) < (b.Position.Y + b.HalfBounds.Y) &&
-               (a.Position.Y + a.HalfBounds.Y) > (b.Position.Y - b.HalfBounds.Y);
+            => (a.Position.X - a.HalfBounds.X) <= (b.Position.X + b.HalfBounds.X) &&
+               (a.Position.X + a.HalfBounds.X) >= (b.Position.X - b.HalfBounds.X) &&
+               (a.Position.Y - a.HalfBounds.Y) <= (b.Position.Y + b.HalfBounds.Y) &&
+               (a.Position.Y + a.HalfBounds.Y) >= (b.Position.Y - b.HalfBounds.Y);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Aabb TranslatePosition(in Aabb aabb, in Vector2 translation)
