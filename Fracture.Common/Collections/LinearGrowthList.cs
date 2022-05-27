@@ -25,7 +25,7 @@ namespace Fracture.Common.Collections
             while (index >= items.Length)
                 items.Grow();
 
-            return ref items.AtIndex (index);
+            return ref items.AtIndex(index);
         }
         
         /// <summary>

@@ -58,7 +58,7 @@ namespace Fracture.Engine.Graphics
         void SetRenderTarget(RenderTarget2D renderTarget);
         void Clear(Color color);
 
-        Texture2D CreateTexture2D(byte [] data);
+        Texture2D CreateTexture2D(byte[] data);
 
         RenderTarget2D CreateRenderTarget2D(int width,
                                             int height,
@@ -166,7 +166,7 @@ namespace Fracture.Engine.Graphics
         public void Clear(Color color)
             => manager.GraphicsDevice.Clear(color);
 
-        public Texture2D CreateTexture2D(byte [] data)
+        public Texture2D CreateTexture2D(byte[] data)
         {
             using var ms = new MemoryStream(data);
 

@@ -94,7 +94,7 @@ namespace Fracture.Engine
         #endregion
 
         #region Properties
-        public string [] Args
+        public string[] Args
         {
             get;
         }
@@ -112,7 +112,7 @@ namespace Fracture.Engine
         }
         #endregion
 
-        protected GameHost(string [] args)
+        protected GameHost(string[] args)
         {
             Args = args;
 
@@ -157,7 +157,7 @@ namespace Fracture.Engine
 
             systems.Bind<EntitySystem>();
             systems.Bind<EntityPrefabSystem>();
-            
+
             // Allow game to bind game specific bindings.
             Log.Info($"binding game specific systems...");
 

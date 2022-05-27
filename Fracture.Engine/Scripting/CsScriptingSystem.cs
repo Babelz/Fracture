@@ -13,7 +13,7 @@ namespace Fracture.Engine.Scripting
     /// </summary>
     public interface ICsScriptingSystem : IGameEngineSystem
     {
-        T Load<T>(params IBindingValue [] bindings) where T : CsScript;
+        T Load<T>(params IBindingValue[] bindings) where T : CsScript;
     }
 
     /// <summary>
@@ -142,7 +142,7 @@ namespace Fracture.Engine.Scripting
             };
         }
 
-        public T Load<T>(params IBindingValue [] bindings) where T : CsScript
+        public T Load<T>(params IBindingValue[] bindings) where T : CsScript
         {
             var script = activator.Activate<T>(bindings);
 

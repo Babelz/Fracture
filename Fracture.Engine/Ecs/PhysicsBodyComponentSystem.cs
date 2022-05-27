@@ -34,7 +34,7 @@ namespace Fracture.Engine.Ecs
         /// <returns></returns>
         int Create(int entityId,
                    BodyType type,
-                   in Shape shape,
+                   in IShape shape,
                    in Vector2 position = default,
                    float rotation = 0.0f,
                    object userData = null,
@@ -42,28 +42,21 @@ namespace Fracture.Engine.Ecs
 
         Vector2 GetPosition(int componentId);
         float GetRotation(int componentId);
-        Vector2 GetActiveLinearForce(int componentId);
-        float GetActiveAngularForce(int componentId);
-        Vector2 GetNextPosition(int componentId);
-        float GetNextRotation(int componentId);
         Aabb GetBoundingBox(int componentId);
         BodyType GetType(int componentId);
-        Shape GetShape(int componentId);
+        IShape GetShape(int componentId);
         IEnumerable<BodyComponentContact> GetCurrentContacts(int componentId);
         IEnumerable<BodyComponentContact> GetLeavingContacts(int componentId);
         object GetUserData(int componentId);
 
         bool IsPrimary(int componentId);
 
-        void SetPosition(int componentId, Vector2 position);
-        void SetRotation(int componentId, float rotation);
-
-        void SetLinearVelocity(int componentId, Vector2 velocity);
-        void SetAngularVelocity(int componentId, float velocity);
-
-        void ApplyLinearImpulse(int componentId, float magnitude, Vector2 direction);
-        void ApplyAngularImpulse(int componentId, float magnitude);
-
+        void Transform(int componentId, in Vector2 position, float rotation);
+        void Transform(int componentId, in Vector2 position);
+        
+        void Translate(int componentId, in Vector2 position, float rotation);
+        void Translate(int componentId, in Vector2 position);
+        
         void SetUserData(int componentId, object userData);
 
         /// <summary>
@@ -122,7 +115,7 @@ namespace Fracture.Engine.Ecs
                 set;
             }
 
-            public Body Body
+            public int BodyId
             {
                 get;
                 set;
@@ -189,7 +182,7 @@ namespace Fracture.Engine.Ecs
         #endregion
 
         [BindingConstructor]
-        public PhysicsBodyComponentSystem(IEventQueueSystem events, 
+        public PhysicsBodyComponentSystem(IEventQueueSystem events,
                                           ITransformComponentSystem transforms,
                                           IPhysicsWorldSystem physics)
             : base(events)
@@ -200,43 +193,43 @@ namespace Fracture.Engine.Ecs
             physics.BeginContact += Physics_BeginContact;
             physics.EndContact   += Physics_EndContact;
             physics.Moving       += Physics_Moving;
-            
-            components         =  new LinearGrowthList<PhysicsBodyComponent>();
-            dirtyComponentIds  =  new List<int>();
+
+            components        = new LinearGrowthList<PhysicsBodyComponent>();
+            dirtyComponentIds = new List<int>();
         }
 
         #region Event handlers
-        private void Physics_Moving(object sender, BodyEventArgs e)
+        private void Physics_Moving(object sender, in BodyEventArgs args)
         {
-            dirtyComponentIds.Add((int)e.Body.UserData);
+            dirtyComponentIds.Add((int)physics.Bodies.WithId(args.BodyId).UserData);
         }
-        
-        private void Physics_EndContact(object sender, BodyContactEventArgs e)
+
+        private void Physics_EndContact(object sender, in BodyContactEventArgs args)
         {
-            var firstComponentId  = (int)e.Body.UserData;
-            var secondComponentId = (int)e.Contact.UserData;
-        
+            var firstComponentId  = (int)physics.Bodies.AtIndex(args.BodyId).UserData;
+            var secondComponentId = (int)physics.Bodies.AtIndex(args.ContactId).UserData;
+
             ref var firstComponent  = ref components.AtIndex(firstComponentId);
             ref var secondComponent = ref components.AtIndex(secondComponentId);
-        
+
             firstComponent.LeavingContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, Vector2.Zero));
             secondComponent.LeavingContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, Vector2.Zero));
-        
+
             dirtyComponentIds.Add(firstComponentId);
             dirtyComponentIds.Add(secondComponentId);
         }
-        
-        private void Physics_BeginContact(object sender, BodyContactEventArgs e)
+
+        private void Physics_BeginContact(object sender, in BodyContactEventArgs args)
         {
-            var firstComponentId  = (int)e.Body.UserData;
-            var secondComponentId = (int)e.Contact.UserData;
-        
+            var firstComponentId  = (int)physics.Bodies.AtIndex(args.BodyId).UserData;
+            var secondComponentId = (int)physics.Bodies.AtIndex(args.ContactId).UserData;
+
             ref var firstComponent  = ref components.AtIndex(firstComponentId);
             ref var secondComponent = ref components.AtIndex(secondComponentId);
-        
+
             firstComponent.EnteringContacts.Add(new BodyComponentContact(firstComponentId, secondComponentId, Vector2.Zero));
             secondComponent.EnteringContacts.Add(new BodyComponentContact(secondComponentId, firstComponentId, Vector2.Zero));
-        
+
             dirtyComponentIds.Add(firstComponentId);
             dirtyComponentIds.Add(secondComponentId);
         }
@@ -276,7 +269,7 @@ namespace Fracture.Engine.Ecs
 
         public int Create(int entityId,
                           BodyType type,
-                          in Shape shape,
+                          in IShape shape,
                           in Vector2 position = default,
                           float rotation = 0.0f,
                           object userData = null,
@@ -287,10 +280,8 @@ namespace Fracture.Engine.Ecs
 
             // Create actual body. Store component id as user data for the actual body
             // for reverse lookups.
-            var body = physics.Create(type, shape, position, rotation);
+            var bodyId = physics.Create(type, shape, position, rotation, componentId);
 
-            body.UserData = componentId;
-            
             if (primary)
             {
                 if (AllFor(entityId).Count(IsPrimary) != 0)
@@ -301,7 +292,7 @@ namespace Fracture.Engine.Ecs
             ref var component = ref components.AtIndex(componentId);
 
             component.EntityId         =   entityId;
-            component.Body             =   body;
+            component.BodyId           =   bodyId;
             component.Primary          =   primary;
             component.UserData         =   userData;
             component.CurrentContacts  ??= new List<BodyComponentContact>();
@@ -322,74 +313,74 @@ namespace Fracture.Engine.Ecs
             component.LeavingContacts.Clear();
 
             // Delete world data.           
-            physics.Delete(component.Body);
+            physics.Delete(component.BodyId);
 
             dirtyComponentIds.Remove(componentId);
 
             return base.Delete(componentId);
         }
 
+        public void Transform(int componentId, in Vector2 position, float rotation) 
+        {
+            AssertAlive(componentId);
+            
+            physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Transform(position, rotation);
+        }
+        
+        public void Transform(int componentId, in Vector2 position) 
+        {
+            AssertAlive(componentId);
+            
+            physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Transform(position);
+        }
+        
+        public void Translate(int componentId, in Vector2 position, float rotation) 
+        {
+            AssertAlive(componentId);
+            
+            physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Translate(position, rotation);
+        }
+        
+        public void Translate(int componentId, in Vector2 position) 
+        {
+            AssertAlive(componentId);
+            
+            physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Translate(position);
+        }
+        
         public Vector2 GetPosition(int componentId)
         {
             AssertAlive(componentId);
 
-            return components.AtIndex(componentId).Body.Position;
+            return physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Position;
         }
 
         public float GetRotation(int componentId)
         {
             AssertAlive(componentId);
 
-            return components.AtIndex(componentId).Body.Angle;
+            return physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Rotation;
         }
-
-        public Vector2 GetActiveLinearForce(int componentId)
-        {
-            AssertAlive(componentId);
-
-            return components.AtIndex(componentId).Body.PositionTranslation;
-        }
-
-        public float GetActiveAngularForce(int componentId)
-        {
-            AssertAlive(componentId);
-
-            return components.AtIndex(componentId).Body.AngleTranslation;
-        }
-
-        public Vector2 GetNextPosition(int componentId)
-        {
-            AssertAlive(componentId);
-
-            return components.AtIndex(componentId).Body.PositionTransform;
-        }
-
-        public float GetNextRotation(int componentId)
-        {
-            AssertAlive(componentId);
-
-            return components.AtIndex(componentId).Body.AngleTransform;
-        }
-
+        
         public Aabb GetBoundingBox(int componentId)
         {
             AssertAlive(componentId);
 
-            return default; // world.Bodies.WithId(components.AtIndex(componentId).Body).BoundingBox;
+            return physics.Bodies.WithId(components.AtIndex(componentId).BodyId).BoundingBox;
         }
 
         public BodyType GetType(int componentId)
         {
             AssertAlive(componentId);
 
-            return default; // world.Bodies.WithId(components.AtIndex(componentId).Body).Type;
+            return physics.Bodies.WithId(components.AtIndex(componentId).BodyId).Type;
         }
 
-        public Shape GetShape(int componentId)
+        public IShape GetShape(int componentId)
         {
             AssertAlive(componentId);
 
-            return default; // world.Bodies.WithId(components.AtIndex(componentId).Body).Shape;
+            return physics.Bodies.WithId(components.AtIndex(componentId).BodyId).Shape;
         }
 
         public IEnumerable<BodyComponentContact> GetCurrentContacts(int componentId)
@@ -419,48 +410,6 @@ namespace Fracture.Engine.Ecs
 
             return components.AtIndex(componentId).Primary;
         }
-
-        public void SetPosition(int componentId, Vector2 position)
-        {
-            AssertAlive(componentId);
-
-            // world.Bodies.WithId(components.AtIndex(componentId).Body).ForcedPosition = position;
-
-            UpdateBodyDirtyState(componentId);
-        }
-
-        public void SetRotation(int componentId, float rotation)
-        {
-            AssertAlive(componentId);
-
-            // world.Bodies.WithId(components.AtIndex(componentId).Body).ForcedRotation = rotation;
-
-            UpdateBodyDirtyState(componentId);
-        }
-
-        public void SetLinearVelocity(int componentId, Vector2 velocity)
-        {
-            AssertAlive(componentId);
-
-            components.AtIndex(componentId).Body.Translate(velocity);
-
-            UpdateBodyDirtyState(componentId);
-        }
-
-        public void SetAngularVelocity(int componentId, float velocity)
-        {
-            AssertAlive(componentId);
-
-            components.AtIndex(componentId).Body.Translate(velocity);
-            
-            UpdateBodyDirtyState(componentId);
-        }
-
-        public void ApplyLinearImpulse(int componentId, float magnitude, Vector2 direction)
-            => SetLinearVelocity(componentId, magnitude * direction);
-
-        public void ApplyAngularImpulse(int componentId, float magnitude)
-            => SetAngularVelocity(componentId, magnitude);
 
         public void SetUserData(int componentId, object userData)
         {
@@ -525,7 +474,7 @@ namespace Fracture.Engine.Ecs
             base.Update(time);
 
             if (dirtyComponentIds.Count == 0) return;
-            
+
             foreach (var componentId in dirtyComponentIds)
             {
                 ref var component = ref components.AtIndex(componentId);
@@ -539,29 +488,31 @@ namespace Fracture.Engine.Ecs
                 //       * clear leaving
                 //       * clear entering
                 component.LastContacts.Clear();
-            
+
                 foreach (var leaving in component.LeavingContacts)
                 {
                     component.CurrentContacts.Remove(leaving);
                     component.LastContacts.Add(leaving);
                 }
-            
+
                 foreach (var entering in component.EnteringContacts)
                     component.CurrentContacts.Add(entering);
-            
+
                 component.LeavingContacts.Clear();
                 component.EnteringContacts.Clear();
-            
+
                 // Update transform.    
                 if (!transforms.BoundTo(component.EntityId))
                     continue;
-            
+
                 var transformId      = transforms.FirstFor(component.EntityId);
                 var currentTransform = transforms.GetTransform(transforms.FirstFor(component.EntityId));
-            
-                transforms.ApplyTransformation(transformId, new Transform(component.Body.Position, currentTransform.Scale, component.Body.Angle));
+
+                ref var body = ref physics.Bodies.AtIndex(component.BodyId);
+                
+                transforms.ApplyTransformation(transformId, new Transform(body.Position, currentTransform.Scale, body.Rotation));
             }
-            
+
             dirtyComponentIds.Clear();
         }
     }

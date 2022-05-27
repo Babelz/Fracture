@@ -42,7 +42,7 @@ namespace Fracture.Engine.Input
         public override void Update(IGameEngineTime time)
             => manager.Update(time);
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params Keys [] combination)
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params Keys[] combination)
             => manager.Bind(name, callback, state, combination);
 
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, Keys trigger)
@@ -51,7 +51,7 @@ namespace Fracture.Engine.Input
         public void Clear()
             => manager.Clear();
 
-        public void Rebind(string name, InputTriggerState state, params Keys [] combination)
+        public void Rebind(string name, InputTriggerState state, params Keys[] combination)
             => manager.Rebind(name, state, combination);
 
         public void Rebind(string name, InputTriggerState state, Keys trigger)

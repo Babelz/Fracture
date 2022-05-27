@@ -70,14 +70,14 @@ namespace Fracture.Engine.Core.Primitives
         public float Right => Position.X + HalfBounds.X;
         #endregion
 
-        public Aabb(in Vector2 position, float rotation, in Vector2 halfBounds)
+        public Aabb(in Vector2 position, float rotation, in Vector2 bounds)
         {
             unsafe
             {
-                var points = stackalloc Vector2 [PointsLength];
+                var points = stackalloc Vector2[PointsLength];
 
-                Rotate(halfBounds,
-                       halfBounds,
+                Rotate(position,
+                       bounds,
                        rotation,
                        out var p1,
                        out var p2,

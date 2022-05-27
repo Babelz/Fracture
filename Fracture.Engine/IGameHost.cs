@@ -10,7 +10,7 @@ namespace Fracture.Engine
 {
     public interface IGameEngineSystemBinder
     {
-        void Bind<T>(params IBindingValue [] bindings) where T : IGameEngineSystem;
+        void Bind<T>(params IBindingValue[] bindings) where T : IGameEngineSystem;
         void Bind<T>(T system) where T : IGameEngineSystem;
     }
 
@@ -43,7 +43,7 @@ namespace Fracture.Engine
             context = new SortedList<int, Type>();
         }
 
-        public void Bind<T>(params IBindingValue [] bindings) where T : IGameEngineSystem
+        public void Bind<T>(params IBindingValue[] bindings) where T : IGameEngineSystem
         {
             Log.Info($"binding system {typeof(T).FullName}...");
 
@@ -83,7 +83,7 @@ namespace Fracture.Engine
         /// <summary>
         /// Gets the startup arguments passed to the game
         /// </summary>
-        string [] Args
+        string[] Args
         {
             get;
         }

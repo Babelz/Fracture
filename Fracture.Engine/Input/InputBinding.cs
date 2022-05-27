@@ -47,7 +47,7 @@ namespace Fracture.Engine.Input
             get;
         }
 
-        public T [] Triggers
+        public T[] Triggers
         {
             get;
             set;
@@ -60,7 +60,7 @@ namespace Fracture.Engine.Input
         }
         #endregion
 
-        public InputBinding(string name, T [] triggers, InputBindingCallback callback, InputTriggerState state)
+        public InputBinding(string name, T[] triggers, InputBindingCallback callback, InputTriggerState state)
         {
             Name     = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
             Callback = callback ?? throw new ArgumentNullException(nameof(callback));

@@ -99,7 +99,7 @@ namespace Fracture.Engine.Ecs
 
         void Clear();
     }
-    
+
     public static class Entity
     {
         #region Constant fields

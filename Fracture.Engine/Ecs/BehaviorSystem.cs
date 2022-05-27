@@ -87,7 +87,7 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Attaches behaviour of given type to given entity.
         /// </summary>
-        void Attach<T>(int entityId, params IBindingValue [] bindings) where T : Behavior;
+        void Attach<T>(int entityId, params IBindingValue[] bindings) where T : Behavior;
 
         /// <summary>
         /// Returns first behaviour of specified type to the caller that is attached to given entity. Throws exception if no behaviour exists. 
@@ -138,7 +138,7 @@ namespace Fracture.Engine.Ecs
             entityBehaviourLists = new Dictionary<int, List<Behavior>>();
         }
 
-        public void Attach<T>(int entityId, params IBindingValue [] bindings) where T : Behavior
+        public void Attach<T>(int entityId, params IBindingValue[] bindings) where T : Behavior
         {
             var behaviour = scripts.Load<T>(bindings);
 

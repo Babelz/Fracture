@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO.MemoryMappedFiles;
 using System.Runtime.CompilerServices;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
@@ -22,26 +23,41 @@ namespace Fracture.Engine.Graphics
             get;
         }
 
+        /// <summary>
+        /// Gets the bounding box of the view in world space.
+        /// </summary>
         Aabb BoundingBox
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the view bounds in world space.
+        /// </summary>
         Vector2 Bounds
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the view position in world space.
+        /// </summary>
         Vector2 Position
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the rotation of the view in radians.
+        /// </summary>
         float Rotation
         {
             get;
         }
 
+        /// <summary>
+        /// Gets the zoom level of the view.
+        /// </summary>
         float Zoom
         {
             get;
@@ -57,17 +73,27 @@ namespace Fracture.Engine.Graphics
             get;
             set;
         }
+        
+        /// <summary>
+        /// Gets the view area in world units.
+        /// </summary>
+        Rectf ViewArea
+        {
+            get;
+        }
         #endregion
 
-        void ScrollTo(in Vector2 position);
-        void ScrollBy(in Vector2 amount);
+        void TransformPosition(in Vector2 transform);
+        void TranslatePosition(in Vector2 translation);
 
-        void RotateTo(float rotation);
-        void RotateBy(float amount);
+        void TransformRotation(float transform);
+        void TranslateRotation(float translation);
 
-        void FocusTo(float zoom);
-        void FocusBy(float amount);
+        void TransformZoom(float zoom);
+        void TranslateZoom(float amount);
 
+        void Clamp(in Rectf viewArea);
+        
         /// <summary>
         /// Returns screen space point in view space.
         /// </summary>
@@ -141,6 +167,12 @@ namespace Fracture.Engine.Graphics
             get;
             set;
         }
+        
+        public Rectf ViewArea
+        {
+            get;
+            private set;
+        }
         #endregion
 
         /// <summary>
@@ -158,45 +190,52 @@ namespace Fracture.Engine.Graphics
             Update();
         }
 
-        public void ScrollTo(in Vector2 position)
+        public void TransformPosition(in Vector2 transform)
         {
-            Position = position;
+            Position = transform;
 
             Update();
         }
 
-        public void ScrollBy(in Vector2 amount)
+        public void TranslatePosition(in Vector2 translation)
         {
-            Position += amount;
+            Position += translation;
 
             Update();
         }
 
-        public void RotateTo(float rotation)
+        public void TransformRotation(float transform)
         {
-            Rotation = rotation;
+            Rotation = transform;
 
             Update();
         }
 
-        public void RotateBy(float amount)
+        public void TranslateRotation(float translation)
         {
-            Rotation += amount;
+            Rotation += translation;
 
             Update();
         }
 
-        public void FocusTo(float zoom)
+        public void TransformZoom(float zoom)
         {
             Zoom = zoom;
 
             Update();
         }
 
-        public void FocusBy(float amount)
+        public void TranslateZoom(float amount)
         {
             Zoom += amount;
 
+            Update();
+        }
+
+        public void Clamp(in Rectf viewArea)
+        {
+            ViewArea = viewArea;
+            
             Update();
         }
 
@@ -214,10 +253,29 @@ namespace Fracture.Engine.Graphics
 
         public void Update()
         {
-            Bounds = new Vector2(Viewport.Width / Zoom, Viewport.Height / Zoom);
-
+            Bounds      = new Vector2(Transform.ToWorldUnits(Viewport.Width) / Zoom, Transform.ToWorldUnits(Viewport.Height) / Zoom);
             BoundingBox = new Aabb(Position, Rotation, Bounds);
-            Matrix      = CreateViewMatrix(BoundingBox.Position, new Vector2(Viewport.Width, Viewport.Height), Rotation, Zoom);
+            
+            // Ensure view is inside view area.
+            if (ViewArea != Rectf.Empty)
+            {
+                // Clamp right and left.
+                if (BoundingBox.Right > ViewArea.Right)
+                    Position = new Vector2(ViewArea.Right - BoundingBox.HalfBounds.X, Position.Y);
+                else if (BoundingBox.Left < ViewArea.Left)
+                    Position = new Vector2(ViewArea.Left + BoundingBox.HalfBounds.X, Position.Y);
+                
+                // Clamp top and bottom.
+                if (BoundingBox.Bottom > ViewArea.Bottom)
+                    Position = new Vector2(Position.X, ViewArea.Bottom - BoundingBox.HalfBounds.Y);
+                else if (BoundingBox.Top < ViewArea.Top)
+                    Position = new Vector2(Position.X, ViewArea.Top + BoundingBox.HalfBounds.Y);
+                
+                // Recalculate bounding box.
+                BoundingBox = new Aabb(Position, Rotation, Bounds);
+            }
+            
+            Matrix = CreateViewMatrix(Transform.ToScreenUnits(BoundingBox.Position), new Vector2(Viewport.Width, Viewport.Height), Rotation, Zoom);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

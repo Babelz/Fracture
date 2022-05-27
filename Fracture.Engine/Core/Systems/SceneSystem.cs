@@ -97,7 +97,7 @@ namespace Fracture.Engine.Core.Systems
         /// <summary>
         /// Adds new scene to the system for later use.
         /// </summary>
-        void Push<T>(SceneChangedCallback callback = null, params IBindingValue [] bindings) where T : Scene;
+        void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene;
 
         /// <summary>
         /// Pop current active scene from the scene stack
@@ -143,12 +143,12 @@ namespace Fracture.Engine.Core.Systems
         public SceneSystem(IGameObjectActivatorSystem activator)
         {
             this.activator = activator;
-            
+
             actions = new Queue<Action>();
             scenes  = new Stack<Scene>();
         }
 
-        public void Push<T>(SceneChangedCallback callback = null, params IBindingValue [] bindings) where T : Scene
+        public void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene
         {
             actions.Enqueue(() =>
             {
@@ -166,7 +166,7 @@ namespace Fracture.Engine.Core.Systems
 
                 callback?.Invoke(last, scene);
 
-                Current = scene;   
+                Current = scene;
             });
         }
 
@@ -189,7 +189,7 @@ namespace Fracture.Engine.Core.Systems
 
                 callback?.Invoke(last, next);
 
-                Current = next;   
+                Current = next;
             });
         }
 
@@ -233,7 +233,7 @@ namespace Fracture.Engine.Core.Systems
         {
             while (actions.Count != 0)
                 actions.Dequeue()();
-            
+
             Current?.Update(time);
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Fracture.Engine.Physics.Dynamics;
 
 namespace Fracture.Engine.Physics.Contacts
@@ -9,89 +10,54 @@ namespace Fracture.Engine.Physics.Contacts
     /// </summary>
     public sealed class ContactList
     {
-        #region Constant fields
-        private const int Capacity = 32;
-        #endregion
-
         #region Fields
-        private HashSet<Body> oldContacts;
-        private HashSet<Body> newContacts;
-
-        private ulong last;
+        private HashSet<int> oldContacts;
+        private HashSet<int> newContacts;
         #endregion
 
         #region Properties
         /// <summary>
         /// Returns old, leaving contacts.
         /// </summary>
-        public IEnumerable<Body> LeavingContacts
-        {
-            get
-            {
-                foreach (var oldContact in oldContacts)
-                {
-                    if (!newContacts.Contains(oldContact))
-                        yield return oldContact;
-                }
-            }
-        }
+        public IEnumerable<int> LeavingContacts => oldContacts.Where(oldContact => !newContacts.Contains(oldContact));
 
         /// <summary>
         /// Returns new, entering contacts.
         /// </summary>
-        public IEnumerable<Body> EnteringContacts
-        {
-            get
-            {
-                foreach (var newContact in newContacts)
-                {
-                    if (oldContacts.Contains(newContact))
-                        yield return newContact;
-                }
-            }
-        }
+        public IEnumerable<int> EnteringContacts => newContacts.Where(newContact => oldContacts.Contains(newContact));
 
         /// <summary>
         /// Returns current contacts.
         /// </summary>
-        public IEnumerable<Body> CurrentContacts
-            => oldContacts;
+        public IEnumerable<int> CurrentContacts => oldContacts;
 
         /// <summary>
         /// Body that owns this contact list.
         /// </summary>
-        public Body Body
+        public int BodyId
         {
             get;
         }
         #endregion
 
-        public ContactList(Body body)
+        public ContactList(int bodyId)
         {
-            Body        = body ?? throw new ArgumentNullException(nameof(body));
-            oldContacts = new HashSet<Body>(Capacity);
-            newContacts = new HashSet<Body>(Capacity);
+            BodyId      = bodyId;
+            oldContacts = new HashSet<int>();
+            newContacts = new HashSet<int>();
         }
-        
+
         /// <summary>
         /// Adds new body to contact list.
         /// </summary>
-        public void Add(Body body, ulong frame)
+        public void Add(int bodyId)
+            => newContacts.Add(bodyId);
+
+        public void Update()
         {
-            if (last < frame)
-            {
-                // Swap and clear.
-                var temp = oldContacts;
+            (oldContacts, newContacts) = (newContacts, oldContacts);
 
-                oldContacts = newContacts;
-                newContacts = temp;
-
-                newContacts.Clear();
-
-                last = frame;
-            }
-
-            newContacts.Add(body);
+            newContacts.Clear();
         }
     }
 }

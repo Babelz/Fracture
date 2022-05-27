@@ -41,6 +41,11 @@ namespace Fracture.Engine.Core.Primitives
         public float Area => Bounds.X * Bounds.Y;
         #endregion
 
+        public Rectf(float x, float y, float w, float h)
+            : this(new Vector2(x, y), new Vector2(w, h))
+        {
+        }
+        
         public Rectf(in Vector2 position, in Vector2 bounds)
         {
             Position = position;

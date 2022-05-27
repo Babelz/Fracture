@@ -1,19 +1,69 @@
 ﻿using System;
 using System.Diagnostics;
 using Fracture.Common;
+using Fracture.Common.Events;
 using Fracture.Engine.Core.Primitives;
+using Fracture.Engine.Physics.Contacts;
 using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics.Dynamics
 {
-    /// <summary>
-    /// Class representing a body that are is used to detect collisions with other bodies. 
-    /// Bodies are defined by the translation and transform being applied to them and their geometry.
-    /// </summary>
-    [DebuggerDisplay("UserData = {UserData}")]
-    public sealed class Body
+    public readonly struct BodyEventArgs : IStructEventArgs
     {
         #region Properties
+        public int BodyId
+        {
+            get;
+        }
+        #endregion
+
+        public BodyEventArgs(int bodyId)
+            => BodyId = bodyId;
+    }
+
+    /// <summary>
+    /// Enumeration defining supported body types.
+    /// </summary>
+    public enum BodyType : byte
+    {
+        /// <summary>
+        /// Undefined body type.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
+        /// Static bodies cannot be moved and collide with dynamic bodies.
+        /// </summary>
+        Static = 1,
+
+        /// <summary>
+        /// Dynamic bodies are moved by their velocity or position and collide with static bodies
+        /// and respond to collisions.
+        /// </summary>
+        Dynamic = 2,
+
+        /// <summary>
+        /// Sensor bodies are moved by their velocity or position and only detect collisions
+        /// with dynamic bodies but do not respond to them.
+        /// </summary>
+        Sensor = 3
+    }
+
+    /// <summary>
+    /// Structure representing a body that are is used to detect collisions with other bodies. 
+    /// Bodies are defined by the translation and transform being applied to them and their geometry.
+    /// </summary>
+    public struct Body
+    {
+        #region Properties
+        /// <summary>
+        /// Gets the unique id of the body.
+        /// </summary>
+        public int Id
+        {
+            get;
+        }
+
         /// <summary>
         /// Position this body will transform to
         /// during this frame.
@@ -47,7 +97,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// Angle this body will transform to 
         /// during next frame.
         /// </summary>
-        public float AngleTransform
+        public float RotationTransform
         {
             get;
             private set;
@@ -57,7 +107,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// Translation angle of the body. If translation is being
         /// applied to the body during update call, it will be normalized.
         /// </summary>  
-        public float AngleTranslation
+        public float RotationTranslation
         {
             get;
             private set;
@@ -66,7 +116,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// <summary>
         /// Current angle of this body in radians.
         /// </summary>
-        public float Angle
+        public float Rotation
         {
             get;
             private set;
@@ -104,10 +154,9 @@ namespace Fracture.Engine.Physics.Dynamics
         /// <summary>
         /// Shape data associated with this body.
         /// </summary>
-        public Shape Shape
+        public IShape Shape
         {
             get;
-            private set;
         }
 
         /// <summary>
@@ -134,8 +183,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// Returns boolean declaring is there a transform or
         /// translation being applies to the body in current time.
         /// </summary>
-        public bool Active
-            => Translating || Transforming;
+        public bool Active => Translating || Transforming;
 
         public bool Normalized
         {
@@ -146,8 +194,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// <summary>
         /// Current bounding box of the body.
         /// </summary>
-        public Aabb BoundingBox
-            => Shape.BoundingBox;
+        public Aabb BoundingBox => Shape.BoundingBox;
 
         /// <summary>
         /// Bounding box that contains translation or transformation. In case
@@ -161,27 +208,17 @@ namespace Fracture.Engine.Physics.Dynamics
         }
         #endregion
 
-        public Body()
+        public Body(int id, BodyType type, in IShape shape, in Vector2 position, float angle = 0.0f, object userData = null)
+            : this()
         {
-        }
-        
-        public void Setup(BodyType type, Shape shape, Vector2 position, float angle = 0.0f)
-        {
-            Type  = type != BodyType.None ? type : throw new InvalidOrUnsupportedException(nameof(type), type);
-            Shape = shape ?? throw new ArgumentNullException(nameof(shape));
-
-            UserData = null;
-            Group    = null;
+            Id       = id;
+            Type     = type != BodyType.None ? type : throw new InvalidOrUnsupportedException(nameof(type), type);
+            Shape    = shape ?? throw new ArgumentNullException(nameof(shape));
+            UserData = userData;
 
             // No need to transform, just keep track of the initial state.
             Position = position;
-            Angle    = angle;
-
-            AngleTransform   = 0.0f;
-            AngleTranslation = 0.0f;
-
-            PositionTransform   = Vector2.Zero;
-            PositionTranslation = Vector2.Zero;
+            Rotation = angle;
 
             // Apply initial shape transform.
             shape.ApplyTransformation(position, angle);
@@ -193,14 +230,14 @@ namespace Fracture.Engine.Physics.Dynamics
             else
                 TransformBoundingBox = BoundingBox;
         }
-        
+
         private void ResetTranslation()
         {
             if (!Translating) return;
-            
+
             Normalized           = false;
             Translating          = false;
-            AngleTranslation     = 0.0f;
+            RotationTranslation  = 0.0f;
             PositionTranslation  = Vector2.Zero;
             TransformBoundingBox = BoundingBox;
         }
@@ -208,10 +245,10 @@ namespace Fracture.Engine.Physics.Dynamics
         private void ResetTransform()
         {
             if (!Transforming) return;
-            
+
             Normalized           = false;
             Transforming         = false;
-            AngleTransform       = 0.0f;
+            RotationTransform    = 0.0f;
             PositionTransform    = Vector2.Zero;
             TransformBoundingBox = BoundingBox;
         }
@@ -221,12 +258,12 @@ namespace Fracture.Engine.Physics.Dynamics
             // Static bodies can't be moved or rotated.
             if (Type == BodyType.Static)
                 return;
-            
+
             ResetTransform();
 
             Translating          = true;
             PositionTranslation  = translation;
-            TransformBoundingBox = Shape.TranslateBoundingBox(translation, AngleTranslation, Angle); 
+            TransformBoundingBox = Shape.TranslateBoundingBox(translation, RotationTranslation, Rotation);
         }
 
         /// <summary>
@@ -238,21 +275,21 @@ namespace Fracture.Engine.Physics.Dynamics
             // Static bodies can't be moved or rotated.
             if (Type == BodyType.Static)
                 return;
-            
+
             ResetTransform();
 
             Translating          = true;
-            AngleTranslation     = translation;
-            TransformBoundingBox = Shape.TranslateBoundingBox(PositionTranslation, translation, Angle);
+            RotationTranslation  = translation;
+            TransformBoundingBox = Shape.TranslateBoundingBox(PositionTranslation, translation, Rotation);
         }
-        
+
         public void Translate(Vector2 position, float angle)
         {
             Translate(position);
 
             Translate(angle);
         }
-        
+
         /// <summary>
         /// Saves given transformation for the body to transform to
         /// during next <see cref="ApplyTransformation"/> call.
@@ -262,17 +299,17 @@ namespace Fracture.Engine.Physics.Dynamics
             // Static bodies can't be moved or rotated.
             if (Type == BodyType.Static)
                 return;
-            
+
             ResetTranslation();
 
             Transforming         = true;
             PositionTransform    = positionTransform;
-            AngleTransform       = angleTransform;
-            TransformBoundingBox = Shape.TransformBoundingBox(positionTransform, angleTransform); 
+            RotationTransform    = angleTransform;
+            TransformBoundingBox = Shape.TransformBoundingBox(positionTransform, angleTransform);
         }
 
         public void Transform(Vector2 positionTransform)
-            => Transform(positionTransform, AngleTransform);
+            => Transform(positionTransform, RotationTransform);
 
         public void Transform(float angleTransform)
             => Transform(PositionTransform, angleTransform);
@@ -280,17 +317,16 @@ namespace Fracture.Engine.Physics.Dynamics
         public void NormalizeTransformation(float delta = 1.0f)
         {
             if (!Translating) return;
-            if (Normalized)   return;
+            if (Normalized) return;
 
-            Normalized           = true;
-            PositionTranslation *= delta;
-            AngleTranslation    *= delta;
-            TransformBoundingBox = Shape.TranslateBoundingBox(PositionTranslation, AngleTranslation, Angle);
+            Normalized           =  true;
+            PositionTranslation  *= delta;
+            RotationTranslation  *= delta;
+            TransformBoundingBox =  Shape.TranslateBoundingBox(PositionTranslation, RotationTranslation, Rotation);
         }
 
         /// <summary>
-        /// Applies translation or transformation to the body and 
-        /// it's shape. 
+        /// Applies translation or transformation to the body and it's shape. 
         /// </summary>
         public void ApplyTransformation()
         {
@@ -304,26 +340,26 @@ namespace Fracture.Engine.Physics.Dynamics
                 // In case the angle does not change, we can skip transforming 
                 // the shape and just translate it's geometry to our current translation
                 // vector.
-                var oldAngle = Angle;
+                var oldAngle = Rotation;
 
                 Position += PositionTranslation;
-                Angle    += AngleTranslation;
+                Rotation += RotationTranslation;
 
                 // No need to transform the position in case angle did not change, we 
                 // can just translate.
-                if (oldAngle != Angle) Shape.ApplyTransformation(Position, Angle);
-                else                   Shape.ApplyTranslation(PositionTranslation);
-                
+                if (oldAngle != Rotation) Shape.ApplyTransformation(Position, Rotation);
+                else Shape.ApplyTranslation(PositionTranslation);
+
                 ResetTranslation();
             }
             else if (Transforming)
             {
                 Position = PositionTransform;
-                Angle    = AngleTransform;
+                Rotation = RotationTransform;
 
                 // Always transform shape in case of 
                 // transform is preferred.
-                Shape.ApplyTransformation(Position, Angle);
+                Shape.ApplyTransformation(Position, Rotation);
 
                 ResetTransform();
             }

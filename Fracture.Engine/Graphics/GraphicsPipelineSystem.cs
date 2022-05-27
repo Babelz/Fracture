@@ -25,7 +25,7 @@ namespace Fracture.Engine.Graphics
 
         public MissingTexture2D(IGraphicsDeviceSystem graphics)
         {
-            var data = new byte []
+            var data = new byte[]
             {
                 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0,
                 13, 73, 72, 68, 82, 0, 0, 0, 64, 0,
@@ -129,7 +129,7 @@ namespace Fracture.Engine.Graphics
 
         public EmptyTexture2D(IGraphicsDeviceSystem graphics)
         {
-            var data = new byte []
+            var data = new byte[]
             {
                 137, 80, 78, 71, 13, 10, 26, 10, 0, 0, 0,
                 13, 73, 72, 68, 82, 0, 0, 0, 1, 0,
@@ -434,7 +434,7 @@ namespace Fracture.Engine.Graphics
 
         public void DrawSurface(Texture2D texture, Rectangle center, Rectangle destination, Color color)
         {
-            var sources = new []
+            var sources = new[]
             {
                 // Top-left.
                 new Rectangle(0, 0, center.Left, center.Top),

@@ -194,10 +194,10 @@ namespace Fracture.Engine.Ecs
         protected void SetGlobalTransform(int componentId, in Transform transform)
         {
             AssertAlive(componentId);
-            
+
             Components.AtIndex(componentId).GlobalTransform = transform;
         }
-        
+
         public override bool Delete(int componentId)
         {
             var deleted = base.Delete(componentId);
@@ -251,7 +251,7 @@ namespace Fracture.Engine.Ecs
             AssertAlive(componentId);
 
             Components.AtIndex(componentId).LocalTransform = transform;
-            
+
             dirtyComponentIds.Add(componentId);
         }
 
@@ -422,7 +422,7 @@ namespace Fracture.Engine.Ecs
                     var aabb = component.Aabb;
 
                     // Update on layer.
-                    if (Layers.TryGetLayer(component.CurrentLayer, out var layer))
+                    if (!Layers.TryGetLayer(component.CurrentLayer, out var layer))
                     {
                         scrubbedComponentIds.Add(componentId);
 
@@ -459,7 +459,7 @@ namespace Fracture.Engine.Ecs
         private readonly List<Rectangle> sources;
         #endregion
 
-        public SpriteSet(Texture2D texture, params Rectangle [] sources)
+        public SpriteSet(Texture2D texture, params Rectangle[] sources)
         {
             this.texture = texture ?? throw new ArgumentNullException(nameof(texture));
 
@@ -1038,7 +1038,7 @@ namespace Fracture.Engine.Ecs
             component.Mode                  = mode;
             component.Elapsed               = TimeSpan.Zero;
             component.FrameId               = 0;
-            component.FrameDurationScale   = frameDurationScale;
+            component.FrameDurationScale    = frameDurationScale;
             component.FrameDurationModifier = frameDurationModifier;
 
             SetPlaying(componentId, true);
@@ -1047,13 +1047,13 @@ namespace Fracture.Engine.Ecs
         public override bool Delete(int componentId)
         {
             var deleted = base.Delete(componentId);
-            
+
             if (deleted)
                 finishedEvents.Delete(componentId);
-            
+
             return deleted;
         }
-        
+
         public int Create(int entityId, string layer, in Transform transform, in Vector2 bounds, in Color color, SpriteAnimationPlaylist playlist)
         {
             var componentId = InitializeComponent(entityId);

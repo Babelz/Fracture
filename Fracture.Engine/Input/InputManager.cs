@@ -13,10 +13,10 @@ namespace Fracture.Engine.Input
     /// </summary>
     public interface IInputBinder<in T> where T : struct
     {
-        void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T [] combination);
+        void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T[] combination);
         void Bind(string name, InputBindingCallback callback, InputTriggerState state, T trigger);
 
-        void Rebind(string name, InputTriggerState state, params T [] combination);
+        void Rebind(string name, InputTriggerState state, params T[] combination);
         void Rebind(string name, InputTriggerState state, T trigger);
         void Unbind(string name);
 
@@ -67,12 +67,12 @@ namespace Fracture.Engine.Input
             bindings = new List<InputBinding<T>>();
         }
 
-        protected abstract bool IsTriggerUp(T [] triggers);
-        protected abstract bool IsTriggerReleased(T [] triggers);
-        protected abstract bool IsTriggerDown(T [] triggers);
-        protected abstract bool IsTriggerPressed(T [] triggers);
+        protected abstract bool IsTriggerUp(T[] triggers);
+        protected abstract bool IsTriggerReleased(T[] triggers);
+        protected abstract bool IsTriggerDown(T[] triggers);
+        protected abstract bool IsTriggerPressed(T[] triggers);
 
-        protected bool TestTriggers(T [] triggers, Func<int, T, bool> test)
+        protected bool TestTriggers(T[] triggers, Func<int, T, bool> test)
         {
             if (triggers.Length == 1)
                 return test(0, triggers[0]);
@@ -100,10 +100,10 @@ namespace Fracture.Engine.Input
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
             if (callback == null) throw new ArgumentNullException(nameof(callback));
 
-            bindings.Add(new InputBinding<T>(name, new [] { trigger }, callback, state));
+            bindings.Add(new InputBinding<T>(name, new[] { trigger }, callback, state));
         }
 
-        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T [] combination)
+        public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T[] combination)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
             if (callback == null) throw new ArgumentNullException(nameof(callback));
@@ -120,14 +120,14 @@ namespace Fracture.Engine.Input
             var binding = bindings.First(b => b.Name == name);
 
             if (binding.Triggers.Length > 1)
-                binding.Triggers = new [] { trigger };
+                binding.Triggers = new[] { trigger };
             else
                 binding.Triggers[0] = trigger;
 
             binding.State = state;
         }
 
-        public void Rebind(string name, InputTriggerState state, params T [] combination)
+        public void Rebind(string name, InputTriggerState state, params T[] combination)
         {
             if (combination.Length < 2)
                 throw new ArgumentOutOfRangeException(nameof(combination), "at least 2 triggers are required for combination");
@@ -172,16 +172,16 @@ namespace Fracture.Engine.Input
             : base(combinationAccuracy)
             => this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(Keys [] triggers)
+        protected override bool IsTriggerDown(Keys[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsKeyDown(k, i));
 
-        protected override bool IsTriggerPressed(Keys [] triggers)
+        protected override bool IsTriggerPressed(Keys[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsKeyPressed(k, i));
 
-        protected override bool IsTriggerReleased(Keys [] triggers)
+        protected override bool IsTriggerReleased(Keys[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsKeyReleased(k, i));
 
-        protected override bool IsTriggerUp(Keys [] triggers)
+        protected override bool IsTriggerUp(Keys[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsKeyUp(k, i));
     }
 
@@ -195,16 +195,16 @@ namespace Fracture.Engine.Input
             : base(combinationAccuracy)
             => this.device = device ?? throw new ArgumentNullException(nameof(device));
 
-        protected override bool IsTriggerDown(MouseButton [] triggers)
+        protected override bool IsTriggerDown(MouseButton[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsButtonDown(k, i));
 
-        protected override bool IsTriggerPressed(MouseButton [] triggers)
+        protected override bool IsTriggerPressed(MouseButton[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsButtonPressed(k, i));
 
-        protected override bool IsTriggerReleased(MouseButton [] triggers)
+        protected override bool IsTriggerReleased(MouseButton[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsButtonReleased(k, i));
 
-        protected override bool IsTriggerUp(MouseButton [] triggers)
+        protected override bool IsTriggerUp(MouseButton[] triggers)
             => TestTriggers(triggers, (i, k) => device.IsButtonUp(k, i));
     }
 }

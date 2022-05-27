@@ -68,7 +68,7 @@ namespace Fracture.Engine.Events
 
         private void AssertEventDoesNotExist<TTopic, TArgs>()
         {
-            if (queues.Any(q => q.GetType().GetGenericArguments().SequenceEqual(new [] { typeof(TTopic), typeof(TArgs) })))
+            if (queues.Any(q => q.GetType().GetGenericArguments().SequenceEqual(new[] { typeof(TTopic), typeof(TArgs) })))
                 throw new InvalidOperationException($"event with given topic and argument types already exists")
                 {
                     Data =

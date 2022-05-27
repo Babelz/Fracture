@@ -168,7 +168,7 @@ namespace Fracture.Engine.Ui.Controls
                                                new Vector2(area.Width, area.Height));
         }
 
-        private (Rectangle Rectangle, IListBoxItem Item) [] GetItemTuples()
+        private (Rectangle Rectangle, IListBoxItem Item)[] GetItemTuples()
         {
             var font       = Style.Get<SpriteFont>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Font.Normal}");
             var itemSource = Style.Get<Rectangle>($"{UiStyleKeys.Target.ListBox}\\{UiStyleKeys.Source.Text}");

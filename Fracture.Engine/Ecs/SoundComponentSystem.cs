@@ -7,22 +7,21 @@ namespace Fracture.Engine.Ecs
     public interface ISoundComponentSystem : IComponentSystem
     {
         int Create(int entityId);
-        
+
         void Play(int componentId, SoundEffect effect, int listeningEntityId, float maxDistance, float minDistance);
         void Loop(int componentId, SoundEffect effect, int listeningEntityId, float maxDistance, float minDistance);
-        
+
         bool IsPlaying(int componentId);
-        
+
         void Stop(int componentId);
     }
-    
+
     public sealed class SoundComponentSystem : ComponentSystem, ISoundComponentSystem
     {
         #region Properties
-        
         #endregion
-        
-        public SoundComponentSystem(IEventQueueSystem events) 
+
+        public SoundComponentSystem(IEventQueueSystem events)
             : base(events)
         {
         }

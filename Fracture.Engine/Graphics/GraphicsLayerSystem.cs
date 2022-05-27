@@ -188,7 +188,7 @@ namespace Fracture.Engine.Graphics
         private readonly LinearGrowthArray<GraphicsElementLocation> locations;
         private readonly LinearGrowthArray<GraphicsElement>         elements;
 
-        private GraphicsElementCell [] [] grid;
+        private GraphicsElementCell[][] grid;
         #endregion
 
         #region Properties
@@ -248,7 +248,7 @@ namespace Fracture.Engine.Graphics
             locations = new LinearGrowthArray<GraphicsElementLocation>(ElementsCapacity);
 
             // Create initial grid.
-            grid = new GraphicsElementCell[InitialRows] [];
+            grid = new GraphicsElementCell[InitialRows][];
 
             for (var i = 0; i < InitialRows; i++)
             {
@@ -563,8 +563,8 @@ namespace Fracture.Engine.Graphics
 
         private readonly IViewSystem views;
 
-        private readonly IGraphicsComponentSystem [] lookup;
-        private readonly HashSet<GraphicsElement>    results;
+        private readonly IGraphicsComponentSystem[] lookup;
+        private readonly HashSet<GraphicsElement>   results;
         #endregion
 
         public GraphicsLayerPipelinePhase(IGameHost host,

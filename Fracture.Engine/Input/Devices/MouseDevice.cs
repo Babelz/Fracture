@@ -96,7 +96,7 @@ namespace Fracture.Engine.Input.Devices
     public sealed class MouseDevice : IMouseDevice
     {
         #region Static fields
-        private static readonly MouseButton [] MouseButtonValues = typeof(MouseButton).GetEnumValues().Cast<MouseButton>().ToArray();
+        private static readonly MouseButton[] MouseButtonValues = typeof(MouseButton).GetEnumValues().Cast<MouseButton>().ToArray();
         #endregion
 
         #region Fields
