@@ -1,8 +1,12 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data.OleDb;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
@@ -11,6 +15,7 @@ using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Ecs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using NLog.Targets;
 
 namespace Fracture.Engine.Graphics
 {
@@ -70,21 +75,19 @@ namespace Fracture.Engine.Graphics
         {
             get;
         }
+        
+        public bool IsUnique
+        {
+            get;
+        }
         #endregion
 
         public GraphicsElementLocation(CellIndex begin, CellIndex end)
         {
-            Begin = begin;
-            End   = end;
+            Begin    = begin;
+            End      = end;
+            IsUnique = Begin.Row == End.Row && Begin.Column == End.Column;
         }
-
-        /// <summary>
-        /// Returns boolean whether this location occupies
-        /// single unique location.
-        /// </summary>
-        public bool Unique()
-            => Begin.Row == End.Row &&
-               Begin.Column == End.Column;
     }
 
     /// <summary>
@@ -275,17 +278,17 @@ namespace Fracture.Engine.Graphics
 
         private void AreaRange(in Aabb aabb, out GraphicsElementLocation range)
         {
-            var beginColumn = (int)(aabb.Left / (Columns * CellBounds * CellScale));
-            var endColumn   = (int)(aabb.Right / (Columns * CellBounds * CellScale));
+            var beginColumn = (int)Math.Round((aabb.Left * CellScale));
+            var endColumn   = (int)Math.Round((aabb.Right * CellScale));
 
-            var beginRow = (int)(aabb.Top / (Rows * CellBounds * CellScale));
-            var endRow   = (int)(aabb.Bottom / (Rows * CellBounds * CellScale));
+            var beginRow = (int)Math.Round((aabb.Top * CellScale));
+            var endRow   = (int)Math.Round((aabb.Bottom * CellScale));
 
-            beginColumn = MathHelper.Clamp(beginColumn, 0, grid[0].Length - 1);
-            endColumn   = MathHelper.Clamp(endColumn, 0, grid[0].Length - 1);
+            beginColumn = MathHelper.Clamp(beginColumn, 0, Columns - 1);
+            endColumn   = MathHelper.Clamp(endColumn, 0, Columns - 1);
 
-            beginRow = MathHelper.Clamp(beginRow, 0, grid.Length - 1);
-            endRow   = MathHelper.Clamp(endRow, 0, grid.Length - 1);
+            beginRow = MathHelper.Clamp(beginRow, 0, Rows - 1);
+            endRow   = MathHelper.Clamp(endRow, 0, Rows - 1);
 
             range = new GraphicsElementLocation(new CellIndex(beginRow, beginColumn), new CellIndex(endRow, endColumn));
         }
@@ -294,38 +297,41 @@ namespace Fracture.Engine.Graphics
         {
             // Compute overlapping indices in delta and grow the grid by
             // that amount.
-            var dc = Columns - (int)(aabb.Right * CellScale);
-            var dr = Rows - (int)(aabb.Bottom * CellScale);
+            var dco = Math.Round(Columns - aabb.Right * CellScale);
+            var dro = Math.Round(Rows - aabb.Bottom * CellScale);
 
             // No need to grow the grid as the aabb does not overlap from 
             // right or bottom.
-            if (dc >= 0 || dr >= 0)
+            if (dco > 0 && dro > 0)
                 return;
 
-            dc = Math.Abs(dc) + 1;
-            dr = Math.Abs(dr) + 1;
-
+            var dc = dco > 0 ? 0 : Math.Abs((int)dco) + 1;
+            var dr = dro > 0 ? 0 : Math.Abs((int)dro) + 1;
+            
             // Resize cells.
             var oldRows    = Rows;
             var oldColumns = Columns;
 
-            Array.Resize(ref grid, oldRows + dr);
-
-            for (var i = oldRows; i < oldRows + dr; i++)
+            if (dr != 0)
             {
-                // Create whole new cells starting from the new space 
-                // allocated.
-                grid[i] = new GraphicsElementCell[oldColumns + dr];
-
-                for (var j = 0; j < oldColumns + dc; j++)
-                    grid[i][j] = new GraphicsElementCell();
+                Array.Resize(ref grid, oldRows + dr);
+            
+                for (var i = oldRows; i < oldRows + dr; i++)
+                {
+                    // Create whole new cells starting from the new space 
+                    // allocated.
+                    grid[i] = new GraphicsElementCell[oldColumns + dr];
+            
+                    for (var j = 0; j < oldColumns + dc; j++)
+                        grid[i][j] = new GraphicsElementCell();
+                }   
             }
-
+            
             // Resize old rows to have as much columns as the new columns.
             for (var i = 0; i < oldRows; i++)
             {
                 Array.Resize(ref grid[i], oldColumns + dc);
-
+                
                 for (var j = oldColumns; j < oldColumns + dc; j++)
                     grid[i][j] = new GraphicsElementCell();
             }
@@ -340,19 +346,24 @@ namespace Fracture.Engine.Graphics
 
             GrowToFit(aabb);
 
-            // Make sure we have enough space for this new element.
-            if (elementId >= elements.Length)
-                elements.Grow();
-
             // Compute location for the element.
             AreaRange(aabb, out var location);
 
+            File.AppendAllText("/home/babelz/test-2.txt", $"{elementId}, begin: {{ c: {location.Begin.Column}, r: {location.Begin.Row} }}, end: {{ c: {location.End.Column}, r: {location.End.Row} }}" + Environment.NewLine, Encoding.UTF8);
+            
+            // Make sure we have enough space for this new element.
+            if (elementId >= elements.Length) 
+            {
+                elements.Grow();
+                locations.Grow();
+            }
+            
             // Store actual data of the element.
             locations.Insert(elementId, location);
             elements.Insert(elementId, new GraphicsElement(elementId, typeId));
 
             // Add to actual cells.
-            if (location.Unique())
+            if (location.IsUnique)
                 grid[location.Begin.Row][location.Begin.Column].Add(elementId);
             else
             {
@@ -375,7 +386,7 @@ namespace Fracture.Engine.Graphics
             ref var location = ref locations.AtIndex(elementId);
 
             // Remove to actual cells.
-            if (location.Unique())
+            if (location.IsUnique)
                 grid[location.Begin.Row][location.Begin.Column].Remove(elementId);
             else
             {
@@ -411,7 +422,7 @@ namespace Fracture.Engine.Graphics
                 return;
 
             // Reinsert, begin by removing.
-            if (location.Unique())
+            if (location.IsUnique)
                 grid[location.Begin.Row][location.Begin.Column].Remove(elementId);
             else
             {
@@ -423,7 +434,7 @@ namespace Fracture.Engine.Graphics
             }
 
             // Reinsert, add to new locations.
-            if (updateLocation.Unique())
+            if (updateLocation.IsUnique)
                 grid[updateLocation.Begin.Row][updateLocation.Begin.Column].Add(elementId);
             else
             {
@@ -446,7 +457,7 @@ namespace Fracture.Engine.Graphics
         {
             AreaRange(aabb, out var range);
 
-            if (range.Unique())
+            if (range.IsUnique)
             {
                 foreach (var elementId in grid[range.Begin.Row][range.Begin.Column])
                     results.Add(elements.AtIndex(elementId));
