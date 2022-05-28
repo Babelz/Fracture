@@ -349,8 +349,6 @@ namespace Fracture.Engine.Graphics
             // Compute location for the element.
             AreaRange(aabb, out var location);
 
-            File.AppendAllText("/home/babelz/test-2.txt", $"{elementId}, begin: {{ c: {location.Begin.Column}, r: {location.Begin.Row} }}, end: {{ c: {location.End.Column}, r: {location.End.Row} }}" + Environment.NewLine, Encoding.UTF8);
-            
             // Make sure we have enough space for this new element.
             if (elementId >= elements.Length) 
             {
