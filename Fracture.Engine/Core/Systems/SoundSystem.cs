@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
 using Microsoft.Xna.Framework.Audio;
-using Microsoft.Xna.Framework.Media;
 
 namespace Fracture.Engine.Core.Systems
 {

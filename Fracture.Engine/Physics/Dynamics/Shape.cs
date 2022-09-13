@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using Fracture.Common;
 using Fracture.Common.Memory;
 using Fracture.Engine.Core.Primitives;
 using Microsoft.Xna.Framework;

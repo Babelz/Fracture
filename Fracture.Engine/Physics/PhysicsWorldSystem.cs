@@ -1,18 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
-using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Events;
-using Fracture.Common.Memory.Pools;
-using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Physics.Contacts;
 using Fracture.Engine.Physics.Dynamics;
 using Microsoft.Xna.Framework;
-using NLog;
 
 namespace Fracture.Engine.Physics
 {

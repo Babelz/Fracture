@@ -8,7 +8,6 @@ using Fracture.Common.Memory.Pools;
 using Fracture.Common.Memory.Storages;
 using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Physics.Dynamics;
-using Fracture.Engine.Ui.Controls;
 using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics

@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Fracture.Engine.Physics.Dynamics;
 
 namespace Fracture.Engine.Physics.Contacts
 {

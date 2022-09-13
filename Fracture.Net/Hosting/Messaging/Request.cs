@@ -92,7 +92,7 @@ namespace Fracture.Net.Hosting.Messaging
             {
                 return true;
             };
-
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Request(Predicate<IRequest> predicate)
         {

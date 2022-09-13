@@ -1,12 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.OleDb;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using Fracture.Common.Collections;
 using Fracture.Common.Di.Attributes;
 using Fracture.Common.Util;
@@ -15,7 +11,6 @@ using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Ecs;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using NLog.Targets;
 
 namespace Fracture.Engine.Graphics
 {

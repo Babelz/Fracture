@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
 using Fracture.Common;
 using Fracture.Common.Events;
 using Fracture.Engine.Core.Primitives;
-using Fracture.Engine.Physics.Contacts;
 using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics.Dynamics

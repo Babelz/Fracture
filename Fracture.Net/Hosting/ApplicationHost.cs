@@ -107,7 +107,7 @@ namespace Fracture.Net.Hosting
         }
         #endregion
 
-        void Load(Type type, params IBindingValue [] args);
+        void Load(Type type, params IBindingValue[] args);
     }
 
     /// <summary>
