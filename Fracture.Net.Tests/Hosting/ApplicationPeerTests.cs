@@ -7,8 +7,8 @@ using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
 using Fracture.Net.Serialization;
 using Fracture.Net.Serialization.Generation;
-using Fracture.Net.Tests.Hosting.Fakes;
-using Fracture.Net.Tests.Hosting.Utils;
+using Fracture.Net.Tests.Util.Hosting.Fakes;
+using Fracture.Net.Tests.Util.Hosting.Utils;
 using Xunit;
 
 namespace Fracture.Net.Tests.Hosting

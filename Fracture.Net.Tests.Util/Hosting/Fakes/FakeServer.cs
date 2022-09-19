@@ -8,7 +8,7 @@ using Fracture.Net.Hosting.Servers;
 using Fracture.Net.Messages;
 using Fracture.Net.Serialization;
 
-namespace Fracture.Net.Tests.Hosting.Fakes
+namespace Fracture.Net.Tests.Util.Hosting.Fakes
 {
     public sealed class FakeServerFrame
     {

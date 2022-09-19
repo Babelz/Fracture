@@ -2,7 +2,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Hosting.Servers;
 
-namespace Fracture.Net.Tests.Hosting.Fakes
+namespace Fracture.Net.Tests.Util.Hosting.Fakes
 {
     /// <summary>
     /// Static utility class that provides easy way to interact and create peers for testing purposes.

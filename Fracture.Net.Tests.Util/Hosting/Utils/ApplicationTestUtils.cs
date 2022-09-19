@@ -2,7 +2,7 @@ using System;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Hosting;
 
-namespace Fracture.Net.Tests.Hosting.Utils
+namespace Fracture.Net.Tests.Util.Hosting.Utils
 {
     /// <summary>
     /// Static utility class that provides testing utilities for applications.
