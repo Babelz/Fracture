@@ -105,7 +105,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         private FakeServer(params FakeServerFrame [] frames)
         {
-            this.frames = new Queue<FakeServerFrame>(frames);
+            this.frames = new Queue<FakeServerFrame>(frames ?? throw new ArgumentNullException(nameof(frames)));
 
             peerIds   = new HashSet<int>();
             leaves    = new HashSet<PeerResetEventArgs>();
@@ -187,6 +187,6 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeServer Create()
-            => new FakeServer(Array.Empty<FakeServerFrame>());
+            => new FakeServer();
     }
 }

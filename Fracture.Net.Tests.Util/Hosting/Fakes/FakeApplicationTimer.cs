@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Fracture.Net.Hosting;
 
 namespace Fracture.Net.Tests.Util.Hosting.Fakes
@@ -80,22 +81,12 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         }
         #endregion
 
-        public FakeApplicationTimer(TimeSpan delta, params FakeApplicationTimerStep[] steps)
+        private FakeApplicationTimer(TimeSpan delta, params FakeApplicationTimerStep[] steps)
         {
             this.delta = delta;
             this.steps = steps ?? throw new ArgumentNullException(nameof(steps));
         }
-        
-        public FakeApplicationTimer(params FakeApplicationTimerStep[] steps)
-            : this(DefaultDelta, steps)
-        {
-        }
 
-        public FakeApplicationTimer(TimeSpan delta)
-            : this(delta, Array.Empty<FakeApplicationTimerStep>())
-        {
-        }
-        
         public void Tick()
         {
             var activeDelta = delta;
@@ -114,5 +105,21 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
             Elapsed =  activeDelta;
             Current =  activeDelta;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeApplicationTimer Create()
+            => new FakeApplicationTimer(DefaultDelta);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeApplicationTimer Create(TimeSpan delta)
+            => new FakeApplicationTimer(delta);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeApplicationTimer FromSteps(params FakeApplicationTimerStep[] steps)
+            => new FakeApplicationTimer(DefaultDelta, steps);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeApplicationTimer FromSteps(TimeSpan delta, params FakeApplicationTimerStep[] steps)
+            => new FakeApplicationTimer(delta, steps);
     }
 }
