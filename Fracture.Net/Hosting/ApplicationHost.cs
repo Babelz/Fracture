@@ -321,41 +321,51 @@ namespace Fracture.Net.Hosting
     /// Class that serves as application host in cases the service and script layer is used for application programming. This class groups application,
     /// services and scripts together.
     /// </summary>
-    public sealed class ApplicationHost
+    public class ApplicationHost
     {
-        #region Fields
-        private readonly Application application;
+        #region Properties
+        protected Application Application
+        {
+            get;
+        }
 
-        private readonly ApplicationScriptingHost scripts;
-        private readonly ApplicationServiceHost   services;
+        protected ApplicationScriptingHost Scripts
+        {
+            get;
+        }
+
+        protected ApplicationServiceHost Services
+        {
+            get;
+        }
         #endregion
 
         public ApplicationHost(Application application, ApplicationServiceHost services, ApplicationScriptingHost scripts)
         {
-            this.application = application ?? throw new ArgumentNullException(nameof(application));
-            this.services    = services ?? throw new ArgumentNullException(nameof(services));
-            this.scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
+            Application = application ?? throw new ArgumentNullException(nameof(application));
+            Services    = services ?? throw new ArgumentNullException(nameof(services));
+            Scripts     = scripts ?? throw new ArgumentNullException(nameof(scripts));
         }
 
         /// <summary>
         /// Signals the application to shutdown.
         /// </summary>
         public void Shutdown()
-            => application.Shutdown();
+            => Application.Shutdown();
 
         /// <summary>
         /// Starts running the application.
         /// </summary>
         public void Start()
         {
-            application.Tick += delegate
+            Application.Tick += delegate
             {
-                services.Tick();
+                Services.Tick();
 
-                scripts.Tick();
+                Scripts.Tick();
             };
 
-            application.Start();
+            Application.Start();
         }
     }
 }

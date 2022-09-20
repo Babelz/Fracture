@@ -61,17 +61,22 @@ namespace Fracture.Net.Hosting
     {
         #region Fields
         private readonly Stopwatch timer;
-
-        private TimeSpan elapsed;
-        private TimeSpan total;
         #endregion
 
         #region Properties
-        public TimeSpan Elapsed => elapsed;
+        public TimeSpan Elapsed
+        {
+            get;
+            private set;
+        }
 
         public TimeSpan Current => timer.Elapsed;
 
-        public TimeSpan Total => total;
+        public TimeSpan Total
+        {
+            get;
+            private set;
+        }
 
         public ulong Ticks
         {
@@ -87,8 +92,8 @@ namespace Fracture.Net.Hosting
         {
             Ticks++;
 
-            total   += timer.Elapsed;
-            elapsed =  timer.Elapsed;
+            Total   += timer.Elapsed;
+            Elapsed =  timer.Elapsed;
 
             timer.Restart();
         }

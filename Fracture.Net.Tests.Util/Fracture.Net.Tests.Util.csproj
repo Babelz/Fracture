@@ -32,8 +32,10 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+      <Compile Include="Hosting\Fakes\FakeApplicationTimer.cs" />
       <Compile Include="Hosting\Fakes\FakePeer.cs" />
       <Compile Include="Hosting\Fakes\FakeServer.cs" />
+      <Compile Include="Hosting\Utils\ApplicationHostTestUtils.cs" />
       <Compile Include="Hosting\Utils\ApplicationTestUtils.cs" />
     </ItemGroup>
     <ItemGroup>

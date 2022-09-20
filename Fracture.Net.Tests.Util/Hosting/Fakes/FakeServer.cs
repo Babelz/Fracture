@@ -184,5 +184,9 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeServer FromFrames(params FakeServerFrame [] frames)
             => new FakeServer(frames);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeServer Create()
+            => new FakeServer(Array.Empty<FakeServerFrame>());
     }
 }
