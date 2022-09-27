@@ -348,16 +348,6 @@ namespace Fracture.Engine.Ui.Controls
         void SuspendMouseInputUpdate();
         void SuspendTextInputUpdate();
 
-        ///// <summary>
-        ///// Disable focusing for the control. 
-        ///// </summary>
-        //void IgnoreFocus();
-
-        ///// <summary>
-        ///// Enables focusing for the control.
-        ///// </summary>
-        //void AcceptFocus();
-
         /// <summary>
         /// Enables control be dragged. Does not work with <see cref="Engine.Ui.Anchor"/>.
         /// </summary>

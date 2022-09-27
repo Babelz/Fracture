@@ -266,7 +266,6 @@
         <Compile Include="BufferPool.cs" />
         <Compile Include="Clients\Client.cs" />
         <Compile Include="Clients\ClientUpdate.cs" />
-        <Compile Include="Clients\ClientMessageHandler.cs" />
         <Compile Include="Clients\TcpClient.cs" />
         <Compile Include="Hosting\Application.cs" />
         <Compile Include="Hosting\ApplicationBuilder.cs" />

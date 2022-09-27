@@ -90,5 +90,19 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
 
             application.Tick += Tick;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RunForTicks(IActiveApplicationScript script, ulong ticks)
+        {
+            for (var i = 0u; i < ticks; i++)
+                script.Tick();
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void RunForTicks(IActiveApplicationService service, ulong ticks)
+        {
+            for (var i = 0u; i < ticks; i++)
+                service.Tick();
+        }
     }
 }
