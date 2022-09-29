@@ -85,9 +85,8 @@ namespace Fracture.Net.Tests.Hosting
 
             ApplicationTestUtils.LimitFrames(application, 4);
 
-            application.Requests.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(),
-                                                (in RequestMiddlewareContext _) =>
-                                                    throw new Exception("not expecting messages to reach this part")
+            application.Requests.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(), 
+                                                (in RequestMiddlewareContext _) => throw new Exception("not expecting messages to reach this part")
             );
         }
 

@@ -203,11 +203,10 @@ namespace Fracture.Net.Hosting.Services
 
                                 Log.Debug($"testing peer {peerId} latency...");
 
-                                Application.Notifications.Queue.Enqueue(n => n.Send(peerId,
-                                                                                    Message.Create<EchoMessage>(m =>
-                                                                                        {
-                                                                                            m.RequestId = latency.RecordPing(peerId);
-                                                                                        })));
+                                Application.Notifications.Queue.Enqueue(n => n.Send(peerId, Message.Create<EchoMessage>(m =>
+                                {
+                                    m.RequestId = latency.RecordPing(peerId);
+                                })));
 
                                 return PulseEventResult.Continue;
                             },
