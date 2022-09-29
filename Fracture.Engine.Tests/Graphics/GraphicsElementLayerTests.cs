@@ -119,10 +119,7 @@ namespace Fracture.Engine.Tests.Graphics
         public void Query_Works_With_Overlapping_Aabb()
         {
             // Act.
-            var exception = Record.Exception(() =>
-                                                 layer.QueryArea(new Aabb(new Vector2(40.0f),
-                                                                          new Vector2(1000.0f)),
-                                                                 new HashSet<GraphicsElement>()));
+            var exception = Record.Exception(() => layer.QueryArea(new Aabb(new Vector2(40.0f), new Vector2(1000.0f)), new HashSet<GraphicsElement>()));
 
             // Assert.
             Assert.Null(exception);

@@ -191,26 +191,26 @@ namespace Fracture.Net.Hosting.Services
         private void CreatePeerLatencyTestScheduler(int peerId)
         {
             scheduler.Pulse((args) =>
-                            {
-                                if (!Application.PeerIds.Contains(peerId))
-                                {
-                                    Log.Debug($"clearing peer {peerId} latency metrics");
+            {
+                if (!Application.PeerIds.Contains(peerId))
+                {
+                    Log.Debug($"clearing peer {peerId} latency metrics");
 
-                                    latency.Reset(peerId);
+                    latency.Reset(peerId);
 
-                                    return PulseEventResult.Break;
-                                }
+                    return PulseEventResult.Break;
+                }
 
-                                Log.Debug($"testing peer {peerId} latency...");
+                Log.Debug($"testing peer {peerId} latency...");
 
-                                Application.Notifications.Queue.Enqueue(n => n.Send(peerId, Message.Create<EchoMessage>(m =>
-                                {
-                                    m.RequestId = latency.RecordPing(peerId);
-                                })));
+                Application.Notifications.Queue.Enqueue(n => n.Send(peerId, Message.Create<EchoMessage>(m =>
+                {
+                    m.RequestId = latency.RecordPing(peerId);
+                })));
 
-                                return PulseEventResult.Continue;
-                            },
-                            TimeSpan.FromSeconds(5));
+                return PulseEventResult.Continue;
+            },
+            TimeSpan.FromSeconds(5));
         }
 
         #region Event handlers
