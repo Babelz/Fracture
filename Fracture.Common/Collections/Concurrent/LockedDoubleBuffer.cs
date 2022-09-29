@@ -35,7 +35,7 @@ namespace Fracture.Common.Collections.Concurrent
         /// <summary>
         /// Returns the contents of the buffer to the caller. Clears and swaps internal state.
         /// </summary>
-        public T [] Read()
+        public T[] Read()
         {
             lock (swapLock)
             {

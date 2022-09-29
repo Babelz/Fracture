@@ -15,7 +15,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     public sealed class DynamicGetSizeFromValueDelegateBuilder : DynamicSerializationDelegateBuilder
     {
         #region Static fields
-        private static readonly Predicate<SerializationValue> [] NonConstRunTypePredicates =
+        private static readonly Predicate<SerializationValue>[] NonConstRunTypePredicates =
         {
             (t) => t.Type.IsGenericType && t.Type.GetGenericTypeDefinition() == typeof(List<>),
             (t) => t.Type.IsGenericType && t.Type.GetGenericTypeDefinition() == typeof(Dictionary<,>),
@@ -37,7 +37,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                    new DynamicMethodBuilder(
                        $"GetSizeFromValue",
                        typeof(ushort),
-                       new []
+                       new[]
                        {
                            typeof(object) // Argument 0.
                        }

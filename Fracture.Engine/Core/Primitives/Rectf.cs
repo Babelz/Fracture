@@ -12,20 +12,27 @@ namespace Fracture.Engine.Core.Primitives
 
         #region Properties
         public Vector2 TopLeft => Position;
+
         public Vector2 TopRight => new Vector2(Position.X + Bounds.X, Position.Y);
 
         public Vector2 BottomLeft => new Vector2(Position.X, Position.Y + Bounds.Y);
+
         public Vector2 BottomRight => Position + Bounds;
 
         public float Left => Position.X;
+
         public float Right => Position.X + Bounds.X;
+
         public float Top => Position.Y;
+
         public float Bottom => Position.Y + Bounds.Y;
 
         public float X => Position.X;
+
         public float Y => Position.Y;
 
         public float Width => Bounds.X;
+
         public float Height => Bounds.Y;
 
         public Vector2 Position
@@ -45,7 +52,7 @@ namespace Fracture.Engine.Core.Primitives
             : this(new Vector2(x, y), new Vector2(w, h))
         {
         }
-        
+
         public Rectf(in Vector2 position, in Vector2 bounds)
         {
             Position = position;
@@ -54,10 +61,10 @@ namespace Fracture.Engine.Core.Primitives
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Position.X)
-                        .Append(Position.Y)
-                        .Append(Bounds.X)
-                        .Append(Bounds.Y);
+                .Append(Position.X)
+                .Append(Position.Y)
+                .Append(Bounds.X)
+                .Append(Bounds.Y);
 
         public override bool Equals(object obj)
         {

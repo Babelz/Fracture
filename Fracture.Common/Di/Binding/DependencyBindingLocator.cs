@@ -96,10 +96,10 @@ namespace Fracture.Common.Di.Binding
     {
         #region Fields
         private readonly IDependencyLocator locator;
-        private readonly IBindingValue []   values;
+        private readonly IBindingValue[]    values;
         #endregion
 
-        public DependencyBindingValueLocator(IDependencyLocator locator, IBindingValue [] values)
+        public DependencyBindingValueLocator(IDependencyLocator locator, IBindingValue[] values)
         {
             this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
             this.values  = values ?? Array.Empty<IBindingValue>();
@@ -108,10 +108,10 @@ namespace Fracture.Common.Di.Binding
         private bool ParameterBindingsExist(IEnumerable<ParameterInfo> parameters)
             => parameters.All(p => values.Any(v => v.Name == p.Name) || locator.Exists(p.ParameterType) || p.HasDefaultValue);
 
-        private object [] GetParameterBindingValues(IEnumerable<ParameterInfo> parameters)
+        private object[] GetParameterBindingValues(IEnumerable<ParameterInfo> parameters)
             => parameters.Select(p => values.FirstOrDefault(v => v.Name == p.Name)?.Value ??
                                       (locator.Exists(p.ParameterType) ? locator.First(p.ParameterType) : p.DefaultValue))
-                         .ToArray();
+                .ToArray();
 
         public bool BindingExist(PropertyInfo property)
             => values.Any(v => v.Name == property.Name) || locator.Exists(property.PropertyType);
@@ -125,10 +125,10 @@ namespace Fracture.Common.Di.Binding
         public object GetPropertyBindingValue(PropertyInfo property)
             => values.FirstOrDefault(v => v.Name == property.Name)?.Value ?? locator.First(property.PropertyType);
 
-        public object [] GetConstructorBindingValues(ConstructorInfo constructor)
+        public object[] GetConstructorBindingValues(ConstructorInfo constructor)
             => GetParameterBindingValues(constructor.GetParameters());
 
-        public object [] GetMethodBindingValues(MethodInfo method)
+        public object[] GetMethodBindingValues(MethodInfo method)
             => GetParameterBindingValues(method.GetParameters());
     }
 }

@@ -63,7 +63,7 @@ namespace Fracture.Common.Memory
         #endregion
 
         #region Static fields
-        private static readonly Type [] NumericTypes =
+        private static readonly Type[] NumericTypes =
         {
             typeof(sbyte),
             typeof(byte),
@@ -91,7 +91,7 @@ namespace Fracture.Common.Memory
                     methodBuilder.Emit(OpCodes.Ldnull);
             }
 
-            var methodBuilder = new DynamicMethodBuilder("Clear", typeof(void), new [] { typeof(T).MakeByRefType() });
+            var methodBuilder = new DynamicMethodBuilder("Clear", typeof(void), new[] { typeof(T).MakeByRefType() });
 
             foreach (var option in options)
             {
@@ -160,13 +160,13 @@ namespace Fracture.Common.Memory
             properties.RemoveAll(p => p.SetMethod.IsPrivate);
 
             return EmitClearDelegate<T>(fields.Select(
-                                                   f => ClearOption.Field(f.Name))
-                                              .Concat(properties.Select(p => ClearOption.Property(p.Name)))
+                                                f => ClearOption.Field(f.Name))
+                                            .Concat(properties.Select(p => ClearOption.Property(p.Name)))
             );
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static ClearDelegate<T> CreateClearDelegate<T>(params ClearOption [] options)
+        public static ClearDelegate<T> CreateClearDelegate<T>(params ClearOption[] options)
         {
             var fields     = GetFields<T>();
             var properties = GetProperties<T>();

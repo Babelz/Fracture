@@ -10,9 +10,9 @@ namespace Fracture.Common.Memory.Pools
     /// </summary>
     public interface IArrayPool<T>
     {
-        void Return(T [] array);
+        void Return(T[] array);
 
-        T [] Take(int size);
+        T[] Take(int size);
     }
 
     /// <summary>
@@ -23,16 +23,16 @@ namespace Fracture.Common.Memory.Pools
         #region Fields
         private readonly int storageCapacity;
 
-        private readonly Func<IStorageObject<T []>> factory;
+        private readonly Func<IStorageObject<T[]>> factory;
 
-        private readonly Dictionary<int, IStorageObject<T []>> storages;
+        private readonly Dictionary<int, IStorageObject<T[]>> storages;
         #endregion
 
         /// <summary>
         /// Creates new instance of array pool with initial max storage size
         /// and storage capacity.
         /// </summary>
-        public ArrayPool(Func<IStorageObject<T []>> factory, int initialMaxStorages, int storageCapacity)
+        public ArrayPool(Func<IStorageObject<T[]>> factory, int initialMaxStorages, int storageCapacity)
         {
             if (initialMaxStorages < 0) throw new ArgumentOutOfRangeException(nameof(initialMaxStorages));
             if (storageCapacity < 0) throw new ArgumentOutOfRangeException(nameof(storageCapacity));
@@ -40,7 +40,7 @@ namespace Fracture.Common.Memory.Pools
             this.factory         = factory ?? throw new ArgumentNullException(nameof(factory));
             this.storageCapacity = storageCapacity;
 
-            storages = new Dictionary<int, IStorageObject<T []>>();
+            storages = new Dictionary<int, IStorageObject<T[]>>();
 
             for (var i = 0; i < initialMaxStorages; i++) storages.Add(i, factory());
         }
@@ -48,7 +48,7 @@ namespace Fracture.Common.Memory.Pools
         /// <summary>
         /// Creates new instance of array pool with storage capacity.
         /// </summary>
-        public ArrayPool(Func<IStorageObject<T []>> factory, int initialMaxStorages)
+        public ArrayPool(Func<IStorageObject<T[]>> factory, int initialMaxStorages)
             : this(factory, initialMaxStorages, 0)
         {
         }
@@ -57,7 +57,7 @@ namespace Fracture.Common.Memory.Pools
         /// Returns pre-created array or creates new
         /// if there are any arrays free.
         /// </summary>
-        private static T [] GetNextFreeArray(IStorageObject<T []> storage, int size)
+        private static T[] GetNextFreeArray(IStorageObject<T[]> storage, int size)
         {
             if (storage.Empty) return new T[size];
 
@@ -73,7 +73,7 @@ namespace Fracture.Common.Memory.Pools
         /// Grows the storage size if required
         /// and returns the array storage object.
         /// </summary>
-        private IStorageObject<T []> GetArrayStorage(int size)
+        private IStorageObject<T[]> GetArrayStorage(int size)
         {
             // Grow storage size.
             if (!storages.ContainsKey(size)) storages.Add(size, factory());
@@ -81,7 +81,7 @@ namespace Fracture.Common.Memory.Pools
             return storages[size];
         }
 
-        public T [] Take(int size)
+        public T[] Take(int size)
         {
             // Reduce 1 to get 0 index working.
             size = Math.Max(0, size - 1);
@@ -92,7 +92,7 @@ namespace Fracture.Common.Memory.Pools
             return GetNextFreeArray(storage, size + 1);
         }
 
-        public void Return(T [] array)
+        public void Return(T[] array)
         {
             var storage = GetArrayStorage(array.Length - 1);
 
@@ -115,12 +115,12 @@ namespace Fracture.Common.Memory.Pools
         public ConcurrentArrayPool(IArrayPool<T> pool)
             => this.pool = pool ?? throw new ArgumentNullException(nameof(pool));
 
-        public void Return(T [] array)
+        public void Return(T[] array)
         {
             lock (pool) pool.Return(array);
         }
 
-        public T [] Take(int size)
+        public T[] Take(int size)
         {
             lock (pool) return pool.Take(size);
         }
@@ -158,7 +158,7 @@ namespace Fracture.Common.Memory.Pools
         private int GetBlocksCount(int size)
             => size / blockSize + (size % blockSize > 0 ? 1 : 0);
 
-        public void Return(T [] array)
+        public void Return(T[] array)
         {
             if (!FitsToBlockBoundaries(array.Length))
                 return;
@@ -166,7 +166,7 @@ namespace Fracture.Common.Memory.Pools
             pool.Return(array);
         }
 
-        public T [] Take(int size)
+        public T[] Take(int size)
             => !FitsToBlockBoundaries(size) ? new T[size] : pool.Take(GetBlocksCount(size) * blockSize);
     }
 }

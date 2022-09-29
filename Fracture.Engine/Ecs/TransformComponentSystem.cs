@@ -128,11 +128,12 @@ namespace Fracture.Engine.Ecs
             var componentId = InitializeComponent(entityId);
 
             // Store component data and state.
-            components.Insert(componentId, new TransformComponent
-            {
-                EntityId  = entityId,
-                Transform = transform
-            });
+            components.Insert(componentId,
+                              new TransformComponent
+                              {
+                                  EntityId  = entityId,
+                                  Transform = transform
+                              });
 
             // Create events.
             changedEvent.Create(componentId);
@@ -226,7 +227,9 @@ namespace Fracture.Engine.Ecs
             component.Transform = Transform.TranslatePosition(component.Transform, translation);
 
             changedEvent.Publish(componentId,
-                                 new TransformChangedEventArgs(component.EntityId, component.Transform, Transform.ComponentPosition(translation),
+                                 new TransformChangedEventArgs(component.EntityId,
+                                                               component.Transform,
+                                                               Transform.ComponentPosition(translation),
                                                                component.Transform - previous),
                                  AggregateTransformChanges);
         }
@@ -242,7 +245,9 @@ namespace Fracture.Engine.Ecs
             component.Transform = Transform.TranslateScale(component.Transform, translation);
 
             changedEvent.Publish(componentId,
-                                 new TransformChangedEventArgs(component.EntityId, component.Transform, Transform.ComponentScale(translation),
+                                 new TransformChangedEventArgs(component.EntityId,
+                                                               component.Transform,
+                                                               Transform.ComponentScale(translation),
                                                                component.Transform - previous),
                                  AggregateTransformChanges);
         }
@@ -258,7 +263,9 @@ namespace Fracture.Engine.Ecs
             component.Transform = Transform.TranslateRotation(component.Transform, translation);
 
             changedEvent.Publish(componentId,
-                                 new TransformChangedEventArgs(component.EntityId, component.Transform, Transform.ComponentRotation(translation),
+                                 new TransformChangedEventArgs(component.EntityId,
+                                                               component.Transform,
+                                                               Transform.ComponentRotation(translation),
                                                                component.Transform - previous),
                                  AggregateTransformChanges);
         }

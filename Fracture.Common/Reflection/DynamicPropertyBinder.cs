@@ -21,7 +21,7 @@ namespace Fracture.Common.Reflection
 
             var parameterType = setMethod.GetParameters().FirstOrDefault()!.ParameterType;
 
-            var dynamicMethod = new DynamicMethod("Set", typeof(void), new [] { typeof(object), typeof(object) }, true);
+            var dynamicMethod = new DynamicMethod("Set", typeof(void), new[] { typeof(object), typeof(object) }, true);
             var il            = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);
@@ -56,7 +56,7 @@ namespace Fracture.Common.Reflection
             if (getMethod == null)
                 throw new InvalidOperationException("property does not have get method");
 
-            var dynamicMethod = new DynamicMethod("Get", typeof(object), new [] { typeof(object) }, true);
+            var dynamicMethod = new DynamicMethod("Get", typeof(object), new[] { typeof(object) }, true);
             var il            = dynamicMethod.GetILGenerator();
 
             il.Emit(OpCodes.Ldarg_0);

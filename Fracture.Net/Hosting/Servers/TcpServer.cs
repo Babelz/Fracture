@@ -33,8 +33,8 @@ namespace Fracture.Net.Hosting.Servers
         #region Fields
         private readonly TimeSpan gracePeriod;
 
-        private readonly byte [] receiveBuffer;
-        private readonly Socket  socket;
+        private readonly byte[] receiveBuffer;
+        private readonly Socket socket;
 
         private readonly LockedDoubleBuffer<PeerMessageEventArgs>   incomingMessageBuffer;
         private readonly LockedDoubleBuffer<ServerMessageEventArgs> outgoingMessageBuffer;
@@ -52,14 +52,17 @@ namespace Fracture.Net.Hosting.Servers
         public event StructEventHandler<PeerResetEventArgs> Reset;
 
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
+
         public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
         #region Properties
         private bool IsConnected => socket.Connected;
+
         private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) > gracePeriod;
 
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
+
         private bool HasDisconnected => disconnectResult?.IsCompleted ?? false;
 
         public int Id
@@ -232,7 +235,7 @@ namespace Fracture.Net.Hosting.Servers
         public void Disconnect()
             => InternalDisconnect(ResetReason.LocalReset);
 
-        public void Send(byte [] data, int offset, int length)
+        public void Send(byte[] data, int offset, int length)
         {
             if (state != PeerState.Connected)
                 return;

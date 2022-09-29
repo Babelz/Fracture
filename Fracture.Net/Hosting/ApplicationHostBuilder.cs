@@ -10,8 +10,9 @@ namespace Fracture.Net.Hosting
     /// Base class that provides common application host building functionality. Generality of this class makes no sense from functional point of view and it
     /// is only intended for reusing the functionality of the base builder in inheriting builders. 
     /// </summary>
-    public abstract class BaseApplicationHostBuilder<TImplementation, TApplicationHost> where TImplementation : BaseApplicationHostBuilder<TImplementation, TApplicationHost>
-                                                                                        where TApplicationHost : ApplicationHost
+    public abstract class BaseApplicationHostBuilder<TImplementation, TApplicationHost>
+        where TImplementation : BaseApplicationHostBuilder<TImplementation, TApplicationHost>
+        where TApplicationHost : ApplicationHost
     {
         #region Properties
         protected Application Application
@@ -41,7 +42,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register service to be used by the application.
         /// </summary>
-        public virtual TImplementation Service<T>(params IBindingValue [] args) where T : class, IApplicationService
+        public virtual TImplementation Service<T>(params IBindingValue[] args) where T : class, IApplicationService
         {
             Services.Bind<T>(args);
 
@@ -51,7 +52,7 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Register startup script that is loaded to the application before it starts.
         /// </summary>
-        public virtual TImplementation Script<T>(params IBindingValue [] args) where T : class, IApplicationScript
+        public virtual TImplementation Script<T>(params IBindingValue[] args) where T : class, IApplicationScript
         {
             Scripts.Bind<T>(args);
 
@@ -92,11 +93,11 @@ namespace Fracture.Net.Hosting
     /// </summary>
     public sealed class ApplicationHostBuilder : BaseApplicationHostBuilder<ApplicationHostBuilder, ApplicationHost>
     {
-        private ApplicationHostBuilder(Application application) 
+        private ApplicationHostBuilder(Application application)
             : base(application)
         {
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void LogBinding(Type type, string asWhat = "")
             => Log.Information($"binding {type.FullName} to application host builder{(string.IsNullOrEmpty(asWhat) ? "..." : $" as {asWhat}...")}");
@@ -105,14 +106,14 @@ namespace Fracture.Net.Hosting
         private static void LogBinding(object value, string asWhat = "")
             => LogBinding(value.GetType(), asWhat);
 
-        public override ApplicationHostBuilder Service<T>(params IBindingValue [] args) 
+        public override ApplicationHostBuilder Service<T>(params IBindingValue[] args)
         {
             LogBinding(typeof(T), "as service");
 
             return base.Service<T>(args);
         }
 
-        public override ApplicationHostBuilder Script<T>(params IBindingValue [] args)
+        public override ApplicationHostBuilder Script<T>(params IBindingValue[] args)
         {
             LogBinding(typeof(T), "as script");
 
@@ -132,7 +133,7 @@ namespace Fracture.Net.Hosting
 
             return base.ScriptDependency(dependency);
         }
-        
+
         public override ApplicationHost Build()
         {
             Log.Information("building application host");

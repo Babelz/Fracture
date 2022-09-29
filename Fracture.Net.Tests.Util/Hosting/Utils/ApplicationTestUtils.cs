@@ -8,7 +8,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
     /// Delegate that is used for decorating the <see cref="TestApplicationHostBuilder"/> before building the host.
     /// </summary>
     public delegate void TestApplicationHostBuilderDecorator(TestApplicationHostBuilder builder);
-    
+
     /// <summary>
     /// Static utility class that provides testing utilities for applications.
     /// </summary>
@@ -18,13 +18,13 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
         /// Creates application and the application host for testing purposes and returns single service from the build application host for testing it.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static T CreateTestService<T>(ApplicationBuilder applicationBuilder, 
+        public static T CreateTestService<T>(ApplicationBuilder applicationBuilder,
                                              TestApplicationHostBuilderDecorator decorator = null) where T : class, IApplicationService
         {
             var hostBuilder = TestApplicationHostBuilder.FromApplication(applicationBuilder.Build());
-            
+
             decorator?.Invoke(hostBuilder);
-            
+
             return hostBuilder.Service<T>().Build().ServiceKernel.First<T>();
         }
 
@@ -36,9 +36,9 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
                                             TestApplicationHostBuilderDecorator decorator = null) where T : class, IApplicationScript
         {
             var hostBuilder = TestApplicationHostBuilder.FromApplication(applicationBuilder.Build());
-            
+
             decorator?.Invoke(hostBuilder);
-            
+
             return hostBuilder.Script<T>().Build().ServiceKernel.First<T>();
         }
 
@@ -97,7 +97,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
             for (var i = 0u; i < ticks; i++)
                 script.Tick();
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void RunForTicks(IActiveApplicationService service, ulong ticks)
         {

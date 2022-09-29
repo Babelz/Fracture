@@ -99,7 +99,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Deserializes_From_Buffer_Correctly()
         {
-            var buffer = new byte []
+            var buffer = new byte[]
             {
                 6, // Size of the serialized bit field in bytes.
                 0,
@@ -127,7 +127,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Get_Size_From_Buffer_Returns_Bit_Field_Size_And_Size_Field_In_Bytes()
         {
-            var buffer = new byte []
+            var buffer = new byte[]
             {
                 6, // Size of the bit field in bytes.
                 0,

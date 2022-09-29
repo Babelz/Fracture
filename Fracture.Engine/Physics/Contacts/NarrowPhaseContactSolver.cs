@@ -337,7 +337,7 @@ namespace Fracture.Engine.Physics.Contacts
         {
             Debug.Assert(a.Shape.Type == ShapeType.Circle);
             Debug.Assert(b.Shape.Type == ShapeType.Circle);
-            
+
             // Distance between circles and the length.
             var distance = a.Position - b.Position;
 
@@ -383,10 +383,10 @@ namespace Fracture.Engine.Physics.Contacts
             // before doing narrow phase.
             if (!mask[(int)a.Type - 1][(int)b.Type - 1])
                 return false;
-            
+
             if (a.Shape.Type == ShapeType.Circle)
                 return b.Shape.Type == ShapeType.Polygon ? SolvePolygonToCircle(a, b) : SolveCircleToCircle(a, b);
-            
+
             return b.Shape.Type == ShapeType.Polygon ? SolvePolygonToPolygon(a, b) : SolveCircleToCircle(b, a);
         }
     }

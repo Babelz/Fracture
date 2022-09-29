@@ -23,7 +23,7 @@ namespace Fracture.Net.Serialization
         /// Writes given string value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(string value, byte [] buffer, int offset)
+        public static void Serialize(string value, byte[] buffer, int offset)
         {
             // Get string bytes.
             var bytes = Encoding.GetBytes(value);
@@ -42,7 +42,7 @@ namespace Fracture.Net.Serialization
         /// string itself from given buffer, beginning at given offset and returns the string value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static string Deserialize(byte [] buffer, int offset)
+        public static string Deserialize(byte[] buffer, int offset)
         {
             // Get the dynamic field size. Remove content length bytes count from the actual size to get the string length.
             var size = checked((ushort)(Protocol.ContentLength.Read(buffer, offset) - Protocol.ContentLength.Size));
@@ -57,7 +57,7 @@ namespace Fracture.Net.Serialization
         /// field size header size.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace Fracture.Net.Serialization
         /// Writes given char value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(char value, byte [] buffer, int offset)
+        public static void Serialize(char value, byte[] buffer, int offset)
             => MemoryMapper.WriteChar(value, buffer, offset);
 
         /// <summary>
@@ -92,14 +92,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static char Deserialize(byte [] buffer, int offset)
+        public static char Deserialize(byte[] buffer, int offset)
             => MemoryMapper.ReadChar(buffer, offset);
 
         /// <summary>
         /// Returns size of char, should always be 2-bytes.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(char);
 
         /// <summary>

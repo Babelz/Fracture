@@ -8,10 +8,7 @@ namespace Fracture.Engine.Net
     public static class NetPacketMatch
     {
         public static NetPacketMatchDelegate Any
-            => delegate
-            {
-                return true;
-            };
+            => delegate { return true; };
 
         public static NetPacketMatchDelegate Message(MessageMatchDelegate match)
             => (p) => match(p.Message);

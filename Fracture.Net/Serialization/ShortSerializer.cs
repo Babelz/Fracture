@@ -17,7 +17,7 @@ namespace Fracture.Net.Serialization
         /// Writes given int16 value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(short value, byte [] buffer, int offset)
+        public static void Serialize(short value, byte[] buffer, int offset)
             => MemoryMapper.WriteShort(value, buffer, offset);
 
         /// <summary>
@@ -25,14 +25,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static short Deserialize(byte [] buffer, int offset)
+        public static short Deserialize(byte[] buffer, int offset)
             => MemoryMapper.ReadShort(buffer, offset);
 
         /// <summary>
         /// Returns size of int16, should always be 2-bytes.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(short);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Fracture.Net.Serialization
         /// Writes given uint16 value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(ushort value, byte [] buffer, int offset)
+        public static void Serialize(ushort value, byte[] buffer, int offset)
             => MemoryMapper.WriteUshort(value, buffer, offset);
 
         /// <summary>
@@ -65,14 +65,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static ushort Deserialize(byte [] buffer, int offset)
+        public static ushort Deserialize(byte[] buffer, int offset)
             => MemoryMapper.ReadUshort(buffer, offset);
 
         /// <summary>
         /// Returns size of uint16, should always be 2-bytes.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(ushort);
 
         /// <summary>

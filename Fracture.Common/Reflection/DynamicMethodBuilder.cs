@@ -17,7 +17,7 @@ namespace Fracture.Common.Reflection
         private readonly ILGenerator il;
         #endregion
 
-        public DynamicMethodBuilder(string name, Type returnType, Type [] parameterTypes)
+        public DynamicMethodBuilder(string name, Type returnType, Type[] parameterTypes)
         {
             dynamicMethod = new DynamicMethod(name, returnType, parameterTypes, true);
 

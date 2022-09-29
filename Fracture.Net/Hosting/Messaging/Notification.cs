@@ -160,7 +160,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.Send;
-            PeerIds = new [] { peerId };
+            PeerIds = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));
         }
 
@@ -169,7 +169,7 @@ namespace Fracture.Net.Hosting.Messaging
             AssertUnset();
 
             Command = NotificationCommand.Reset;
-            PeerIds = new [] { peerId };
+            PeerIds = new[] { peerId };
             Message = message;
         }
 
@@ -215,9 +215,9 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Command)
-                        .Append(PeerIds)
-                        .Append(Message);
+                .Append(Command)
+                .Append(PeerIds)
+                .Append(Message);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Notification Take()
@@ -242,13 +242,13 @@ namespace Fracture.Net.Hosting.Messaging
             get;
         }
 
-        public int [] Peers
+        public int[] Peers
         {
             get;
         }
         #endregion
 
-        public NotificationMiddlewareContext(int [] peers, INotification notification)
+        public NotificationMiddlewareContext(int[] peers, INotification notification)
         {
             Peers        = peers;
             Notification = notification ?? throw new ArgumentNullException(nameof(notification));
@@ -265,10 +265,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Any()
-            => delegate
-            {
-                return true;
-            };
+            => delegate { return true; };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Notification(Predicate<INotification> predicate)
@@ -280,7 +277,7 @@ namespace Fracture.Net.Hosting.Messaging
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Peers(Predicate<int []> predicate)
+        public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Peers(Predicate<int[]> predicate)
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));

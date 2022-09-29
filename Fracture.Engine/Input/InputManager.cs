@@ -150,10 +150,10 @@ namespace Fracture.Engine.Input
                 var triggered = binding.State switch
                 {
                     InputTriggerState.Released => IsTriggerReleased(binding.Triggers),
-                    InputTriggerState.Up       => IsTriggerUp(binding.Triggers),
-                    InputTriggerState.Pressed  => IsTriggerPressed(binding.Triggers),
-                    InputTriggerState.Down     => IsTriggerDown(binding.Triggers),
-                    _                          => false
+                    InputTriggerState.Up => IsTriggerUp(binding.Triggers),
+                    InputTriggerState.Pressed => IsTriggerPressed(binding.Triggers),
+                    InputTriggerState.Down => IsTriggerDown(binding.Triggers),
+                    _ => false
                 };
 
                 if (triggered)

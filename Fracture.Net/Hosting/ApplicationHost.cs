@@ -123,6 +123,7 @@ namespace Fracture.Net.Hosting
 
         #region Events
         public event EventHandler Starting;
+
         public event EventHandler ShuttingDown;
         #endregion
 
@@ -138,15 +139,9 @@ namespace Fracture.Net.Hosting
 
             services.Bind(this);
 
-            application.ShuttingDown += delegate
-            {
-                ShuttingDown?.Invoke(this, EventArgs.Empty);
-            };
+            application.ShuttingDown += delegate { ShuttingDown?.Invoke(this, EventArgs.Empty); };
 
-            application.Starting += delegate
-            {
-                Starting?.Invoke(this, EventArgs.Empty);
-            };
+            application.Starting += delegate { Starting?.Invoke(this, EventArgs.Empty); };
 
             foreach (var service in services.All<IApplicationService>())
                 Log.Information($"loaded service {service.GetType().FullName} at startup...");
@@ -186,7 +181,9 @@ namespace Fracture.Net.Hosting
 
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
+
         public event StructEventHandler<PeerResetEventArgs> Reset;
+
         public event StructEventHandler<PeerMessageEventArgs> BadRequest;
         #endregion
 
@@ -244,7 +241,7 @@ namespace Fracture.Net.Hosting
             scripts.Verify();
         }
 
-        public void Load(Type type, params IBindingValue [] args)
+        public void Load(Type type, params IBindingValue[] args)
         {
             if (!typeof(IApplicationScript).IsAssignableFrom(type))
                 throw new ArgumentException($"{type.Name} is not a script type", nameof(type));
@@ -273,10 +270,7 @@ namespace Fracture.Net.Hosting
                     break;
             }
 
-            script.Unloading += delegate
-            {
-                scripts.Unbind(script);
-            };
+            script.Unloading += delegate { scripts.Unbind(script); };
 
             scripts.Bind(script);
         }

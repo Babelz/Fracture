@@ -57,7 +57,7 @@ namespace Fracture.Net.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static object InternalDeserialize(byte [] buffer, int offset)
+        private static object InternalDeserialize(byte[] buffer, int offset)
         {
             offset += Protocol.ContentLength.Size;
 
@@ -73,7 +73,7 @@ namespace Fracture.Net.Serialization
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void InternalSerialize(Type serializationType, object value, byte [] buffer, int offset)
+        private static void InternalSerialize(Type serializationType, object value, byte[] buffer, int offset)
         {
             if (!SerializationTypeIdMappings.ContainsKey(serializationType))
                 throw new SerializationTypeNotMappedException(serializationType);
@@ -121,13 +121,13 @@ namespace Fracture.Net.Serialization
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T value, byte [] buffer, int offset)
+        public static void Serialize<T>(T value, byte[] buffer, int offset)
             => InternalSerialize(value.GetType(), value, buffer, offset);
 
         /// <summary>
         /// Writes given structure to given buffer beginning at given offset.
         /// </summary>
-        public static void Serialize(object value, byte [] buffer, int offset)
+        public static void Serialize(object value, byte[] buffer, int offset)
             => InternalSerialize(value.GetType(), value, buffer, offset);
 
         /// <summary>
@@ -135,21 +135,21 @@ namespace Fracture.Net.Serialization
         /// buffer for the object.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T Deserialize<T>(byte [] buffer, int offset)
+        public static T Deserialize<T>(byte[] buffer, int offset)
             => (T)InternalDeserialize(buffer, offset);
 
         /// <summary>
         /// Reads next n-bytes from given buffer beginning at given offset as structure and returns that value to the caller. Type information is retrieved the
         /// buffer for the object.
         /// </summary>
-        public static object Deserialize(byte [] buffer, int offset)
+        public static object Deserialize(byte[] buffer, int offset)
             => InternalDeserialize(buffer, offset);
 
         /// <summary>
         /// Returns size of structure, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>

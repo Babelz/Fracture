@@ -16,8 +16,10 @@ namespace Fracture.Common.Tests.Memory
         {
             pool = new BlockArrayPool<int>(
                 new ArrayPool<int>(
-                    () => new LinearStorageObject<int []>(new LinearGrowthArray<int []>(8, 1)), 1),
-                32, 1024);
+                    () => new LinearStorageObject<int[]>(new LinearGrowthArray<int[]>(8, 1)),
+                    1),
+                32,
+                1024);
         }
 
         [Fact]

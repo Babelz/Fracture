@@ -46,8 +46,8 @@ namespace Fracture.Engine.Physics.Contacts
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(FirstBodyId)
-                        .Append(SecondBodyId);
+                .Append(FirstBodyId)
+                .Append(SecondBodyId);
 
         public static bool operator ==(in ContactPair lhs, in ContactPair rhs)
             => lhs.Equals(rhs);
@@ -127,7 +127,7 @@ namespace Fracture.Engine.Physics.Contacts
                 foreach (var dynamicBodyId in node.Dynamics)
                 {
                     ref var dynamicBody = ref node.Bodies.AtIndex(dynamicBodyId);
-                    
+
                     // If not transformation or translation is being applied to the body,
                     // we can skip bounding volume checks thus eliminating pairing.
                     if (!dynamicBody.Active)

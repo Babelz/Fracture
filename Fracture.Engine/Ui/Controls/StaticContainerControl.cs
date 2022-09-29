@@ -95,6 +95,7 @@ namespace Fracture.Engine.Ui.Controls
 
         #region Events
         public event EventHandler<ControlEventArgs> ControlAdded;
+
         public event EventHandler<ControlEventArgs> ControlRemoved;
         #endregion
 
@@ -156,7 +157,7 @@ namespace Fracture.Engine.Ui.Controls
                     UpdateRenderTarget();
 
                 foreach (var container in Children.Controls.Where(c => c is IStaticContainerControl)
-                                                  .Cast<IStaticContainerControl>())
+                             .Cast<IStaticContainerControl>())
                 {
                     container.Graphics = value;
                 }

@@ -124,6 +124,7 @@ namespace Fracture.Common.Collections
 
         #region Properties
         public bool Empty => stack.Empty;
+
         public int Top => stack.Top;
         #endregion
 

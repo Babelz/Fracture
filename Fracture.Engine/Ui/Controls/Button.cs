@@ -18,7 +18,9 @@ namespace Fracture.Engine.Ui.Controls
     {
         #region Events
         public event EventHandler Click;
+
         public event EventHandler Down;
+
         public event EventHandler Released;
         #endregion
 

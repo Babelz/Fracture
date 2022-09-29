@@ -118,7 +118,7 @@ namespace Fracture.Engine.Input.Devices
                 throw new ArgumentOutOfRangeException(nameof(frame), $"{nameof(frame)} >= {StatesCount}");
 
             return keyboardStateBuffer.AtOffset(-frame)
-                                      .GetPressedKeys();
+                .GetPressedKeys();
         }
 
         public string GetCharacters(int frame = 0)
@@ -146,8 +146,8 @@ namespace Fracture.Engine.Input.Devices
                 throw new ArgumentOutOfRangeException(nameof(frame), $"{nameof(frame)} >= {StatesCount}");
 
             return keyboardStateBuffer.AtOffset(-frame)
-                                      .GetPressedKeys()
-                                      .Where(k => !KeysHashSet.Contains(k));
+                .GetPressedKeys()
+                .Where(k => !KeysHashSet.Contains(k));
         }
 
         public IEnumerable<Keys> GetKeysReleased(int frame = 0)

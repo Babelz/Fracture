@@ -17,7 +17,7 @@ namespace Fracture.Net.Serialization
         /// Writes given int64 value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(long value, byte [] buffer, int offset)
+        public static void Serialize(long value, byte[] buffer, int offset)
             => MemoryMapper.WriteLong(value, buffer, offset);
 
         /// <summary>
@@ -25,14 +25,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static long Deserialize(byte [] buffer, int offset)
+        public static long Deserialize(byte[] buffer, int offset)
             => MemoryMapper.ReadLong(buffer, offset);
 
         /// <summary>
         /// Returns size of int64, should always be 8-bytes.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(long);
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace Fracture.Net.Serialization
         /// Writes given uint64 value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize(ulong value, byte [] buffer, int offset)
+        public static void Serialize(ulong value, byte[] buffer, int offset)
             => MemoryMapper.WriteUlong(value, buffer, offset);
 
         /// <summary>
@@ -65,14 +65,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static ulong Deserialize(byte [] buffer, int offset)
+        public static ulong Deserialize(byte[] buffer, int offset)
             => MemoryMapper.ReadUlong(buffer, offset);
 
         /// <summary>
         /// Returns size of uint64, should always be 8-bytes.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => sizeof(ulong);
 
         /// <summary>

@@ -11,9 +11,9 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping deserialization functions.  
     /// </summary>
-    public delegate object DynamicDeserializeDelegate(byte [] buffer, int offset);
+    public delegate object DynamicDeserializeDelegate(byte[] buffer, int offset);
 
-    public delegate object DynamicIndirectActivationDeserializeDelegate(byte [] buffer, int offset, ObjectActivationDelegate callback);
+    public delegate object DynamicIndirectActivationDeserializeDelegate(byte[] buffer, int offset, ObjectActivationDelegate callback);
 
     public sealed class DynamicDeserializeDelegateBuilder : DynamicSerializationDelegateBuilder
     {
@@ -257,10 +257,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 new DynamicMethodBuilder(
                     $"Deserialize",
                     typeof(object),
-                    new []
+                    new[]
                     {
-                        typeof(byte []), // Argument 0.
-                        typeof(int)      // Argument 1.
+                        typeof(byte[]), // Argument 0.
+                        typeof(int) // Argument 1.
                     }
                 ),
                 valueRanges,
@@ -278,10 +278,10 @@ namespace Fracture.Net.Serialization.Generation.Builders
                 new DynamicMethodBuilder(
                     $"Deserialize",
                     typeof(object),
-                    new []
+                    new[]
                     {
-                        typeof(byte []),                 // Argument 0.
-                        typeof(int),                     // Argument 1.
+                        typeof(byte[]), // Argument 0.
+                        typeof(int), // Argument 1.
                         typeof(ObjectActivationDelegate) // Argument 1.
                     }
                 ),

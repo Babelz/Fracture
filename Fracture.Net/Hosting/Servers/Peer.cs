@@ -41,9 +41,9 @@ namespace Fracture.Net.Hosting.Servers
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(PeerId)
-                        .Append(EndPoint)
-                        .Append(EndPoint.Port);
+                .Append(PeerId)
+                .Append(EndPoint)
+                .Append(EndPoint.Port);
     }
 
     /// <summary>
@@ -119,7 +119,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <param name="data">message data to be send</param>
         /// <param name="offset">offset from where the sending begins</param>
         /// <param name="length">length of the message to be send starting from the offset</param>
-        void Send(byte [] data, int offset, int length);
+        void Send(byte[] data, int offset, int length);
 
         /// <summary>
         /// Polls the peer once allowing it to update its internal state and invoke any events in queue. 

@@ -11,7 +11,7 @@ namespace Fracture.Common.Collections
     public sealed class CircularBuffer<T> : IEnumerable<T>
     {
         #region Fields
-        private readonly T [] items;
+        private readonly T[] items;
 
         // The current head index, head index
         // always points to the next index where writing occurs.

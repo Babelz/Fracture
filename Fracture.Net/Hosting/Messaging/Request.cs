@@ -28,7 +28,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Gets the request contents in its raw serialized format.
         /// </summary>
-        byte [] Contents
+        byte[] Contents
         {
             get;
         }
@@ -88,11 +88,8 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any()
-            => delegate
-            {
-                return true;
-            };
-        
+            => delegate { return true; };
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Request(Predicate<IRequest> predicate)
         {
@@ -140,7 +137,7 @@ namespace Fracture.Net.Hosting.Messaging
             set;
         }
 
-        public byte [] Contents
+        public byte[] Contents
         {
             get;
             set;
@@ -183,10 +180,10 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Connection)
-                        .Append(Contents)
-                        .Append(Message)
-                        .Append(Timestamp);
+                .Append(Connection)
+                .Append(Contents)
+                .Append(Message)
+                .Append(Timestamp);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Request Take()

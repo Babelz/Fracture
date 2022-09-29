@@ -36,7 +36,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
             Delta = delta;
         }
     }
-    
+
     /// <summary>
     /// Class that provides application timer for testing purposes. The delta value and the passing total time of the application can be manipulated by
     /// supplying list of <see cref="FakeApplicationTimerStep"/> values.
@@ -54,7 +54,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         private readonly TimeSpan                   delta;
         private readonly FakeApplicationTimerStep[] steps;
         #endregion
-        
+
         #region Properties
         public TimeSpan Elapsed
         {
@@ -98,7 +98,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
                 if (fakeStep.Delta != TimeSpan.Zero)
                     activeDelta = fakeStep.Delta;
             }
-            
+
             Ticks++;
 
             Total   += activeDelta;
@@ -113,7 +113,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeApplicationTimer Create(TimeSpan delta)
             => new FakeApplicationTimer(delta);
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeApplicationTimer FromSteps(params FakeApplicationTimerStep[] steps)
             => new FakeApplicationTimer(DefaultDelta, steps);

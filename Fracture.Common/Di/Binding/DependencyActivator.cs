@@ -43,7 +43,8 @@ namespace Fracture.Common.Di.Binding
                 throw new DependencyBinderException(type,
                                                     $"could not create instance of {type.Name} using default " +
                                                     $"parameterless constructor, please check that the type has a " +
-                                                    $"public parameterless default constructor available", e);
+                                                    $"public parameterless default constructor available",
+                                                    e);
             }
 
             if (instance == null)

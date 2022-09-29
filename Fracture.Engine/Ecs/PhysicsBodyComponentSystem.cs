@@ -53,10 +53,10 @@ namespace Fracture.Engine.Ecs
 
         void Transform(int componentId, in Vector2 position, float rotation);
         void Transform(int componentId, in Vector2 position);
-        
+
         void Translate(int componentId, in Vector2 position, float rotation);
         void Translate(int componentId, in Vector2 position);
-        
+
         void SetUserData(int componentId, object userData);
 
         /// <summary>
@@ -320,34 +320,34 @@ namespace Fracture.Engine.Ecs
             return base.Delete(componentId);
         }
 
-        public void Transform(int componentId, in Vector2 position, float rotation) 
+        public void Transform(int componentId, in Vector2 position, float rotation)
         {
             AssertAlive(componentId);
-            
+
             physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Transform(position, rotation);
         }
-        
-        public void Transform(int componentId, in Vector2 position) 
+
+        public void Transform(int componentId, in Vector2 position)
         {
             AssertAlive(componentId);
-            
+
             physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Transform(position);
         }
-        
-        public void Translate(int componentId, in Vector2 position, float rotation) 
+
+        public void Translate(int componentId, in Vector2 position, float rotation)
         {
             AssertAlive(componentId);
-            
+
             physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Translate(position, rotation);
         }
-        
-        public void Translate(int componentId, in Vector2 position) 
+
+        public void Translate(int componentId, in Vector2 position)
         {
             AssertAlive(componentId);
-            
+
             physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Translate(position);
         }
-        
+
         public Vector2 GetPosition(int componentId)
         {
             AssertAlive(componentId);
@@ -361,7 +361,7 @@ namespace Fracture.Engine.Ecs
 
             return physics.Bodies.AtIndex(components.AtIndex(componentId).BodyId).Rotation;
         }
-        
+
         public Aabb GetBoundingBox(int componentId)
         {
             AssertAlive(componentId);
@@ -509,7 +509,7 @@ namespace Fracture.Engine.Ecs
                 var currentTransform = transforms.GetTransform(transforms.FirstFor(component.EntityId));
 
                 ref var body = ref physics.Bodies.AtIndex(component.BodyId);
-                
+
                 transforms.ApplyTransformation(transformId, new Transform(body.Position, currentTransform.Scale, body.Rotation));
             }
 

@@ -93,17 +93,23 @@ namespace Fracture.Engine.Ui.Controls
         event EventHandler<ControlParentEventArgs> ParentChanged;
 
         event EventHandler VisibilityChanged;
+
         event EventHandler EnabledChanged;
 
         event EventHandler BoundingBoxChanged;
+
         event EventHandler PositionChanged;
+
         event EventHandler SizeChanged;
 
         event EventHandler ActualBoundingBoxChanged;
+
         event EventHandler ActualPositionChanged;
+
         event EventHandler ActualSizeChanged;
 
         event EventHandler PaddingChanged;
+
         event EventHandler MarginChanged;
 
         event EventHandler LayoutChanged;
@@ -111,17 +117,23 @@ namespace Fracture.Engine.Ui.Controls
         event EventHandler FocusChanged;
 
         event EventHandler<ControlKeyboardInputEventArgs> KeyboardInputReceived;
+
         event EventHandler<ControlMouseInputEventArgs> MouseInputReceived;
+
         event EventHandler<ControlTextInputEventArgs> TextInputReceived;
 
         event EventHandler KeyboardInputEnabledChanged;
+
         event EventHandler MouseInputEnabledChanged;
+
         event EventHandler TextInputEnabledChanged;
 
         event EventHandler StyleChanged;
 
         event EventHandler<ControlMouseInputEventArgs> MouseEnter;
+
         event EventHandler<ControlMouseInputEventArgs> MouseHover;
+
         event EventHandler<ControlMouseInputEventArgs> MouseLeave;
 
         event EventHandler<ControlMouseInputEventArgs> Drag;
@@ -454,17 +466,23 @@ namespace Fracture.Engine.Ui.Controls
         public event EventHandler<ControlParentEventArgs> ParentChanged;
 
         public event EventHandler VisibilityChanged;
+
         public event EventHandler EnabledChanged;
 
         public event EventHandler BoundingBoxChanged;
+
         public event EventHandler PositionChanged;
+
         public event EventHandler SizeChanged;
 
         public event EventHandler ActualBoundingBoxChanged;
+
         public event EventHandler ActualPositionChanged;
+
         public event EventHandler ActualSizeChanged;
 
         public event EventHandler PaddingChanged;
+
         public event EventHandler MarginChanged;
 
         public event EventHandler LayoutChanged;
@@ -472,17 +490,23 @@ namespace Fracture.Engine.Ui.Controls
         public event EventHandler FocusChanged;
 
         public event EventHandler<ControlKeyboardInputEventArgs> KeyboardInputReceived;
+
         public event EventHandler<ControlMouseInputEventArgs> MouseInputReceived;
+
         public event EventHandler<ControlTextInputEventArgs> TextInputReceived;
 
         public event EventHandler KeyboardInputEnabledChanged;
+
         public event EventHandler MouseInputEnabledChanged;
+
         public event EventHandler TextInputEnabledChanged;
 
         public event EventHandler StyleChanged;
 
         public event EventHandler<ControlMouseInputEventArgs> MouseEnter;
+
         public event EventHandler<ControlMouseInputEventArgs> MouseHover;
+
         public event EventHandler<ControlMouseInputEventArgs> MouseLeave;
 
         public event EventHandler<ControlMouseInputEventArgs> Drag;
@@ -606,6 +630,7 @@ namespace Fracture.Engine.Ui.Controls
         }
 
         public virtual Rectf BoundingBox => boundingBox;
+
         public virtual Rectf ActualBoundingBox => actualBoundingBox;
 
         public Rectf CollisionBoundingBox

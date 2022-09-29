@@ -20,10 +20,7 @@ namespace Fracture.Net.Messages
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MessageMatchDelegate Any()
-            => delegate
-            {
-                return true;
-            };
+            => delegate { return true; };
 
         /// <summary>
         /// Matcher that only accepts one specific message type.
@@ -36,7 +33,7 @@ namespace Fracture.Net.Messages
         /// Matcher that allows many message types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate Many(params Type [] messageTypes)
+        public static MessageMatchDelegate Many(params Type[] messageTypes)
         {
             if (messageTypes.Any(t => typeof(IMessage).IsAssignableFrom(t)))
                 throw new ArgumentException($"every type must be assignable to {nameof(IMessage)}", nameof(messageTypes));
@@ -61,7 +58,7 @@ namespace Fracture.Net.Messages
         /// Match that accepts all message types expect the ones specified.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static MessageMatchDelegate ExcludeMany(params Type [] messageTypes)
+        public static MessageMatchDelegate ExcludeMany(params Type[] messageTypes)
         {
             var many = Many(messageTypes);
 

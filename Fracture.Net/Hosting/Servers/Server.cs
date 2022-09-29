@@ -108,7 +108,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Sends message to peer with given id.
         /// </summary>
-        void Send(int peerId, byte [] data, int offset, int length);
+        void Send(int peerId, byte[] data, int offset, int length);
 
         void Start();
 
@@ -121,9 +121,11 @@ namespace Fracture.Net.Hosting.Servers
     {
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
+
         public event StructEventHandler<PeerResetEventArgs> Reset;
 
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
+
         public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
@@ -198,7 +200,7 @@ namespace Fracture.Net.Hosting.Servers
             peer.Disconnect();
         }
 
-        public void Send(int peerId, byte [] data, int offset, int length)
+        public void Send(int peerId, byte[] data, int offset, int length)
         {
             if (!lookup.TryGetValue(peerId, out var peer))
                 throw new InvalidOperationException("peer not connected");

@@ -8,7 +8,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     /// <summary>
     /// Delegate for wrapping serialization functions.
     /// </summary>
-    public delegate void DynamicSerializeDelegate(object value, byte [] buffer, int offset);
+    public delegate void DynamicSerializeDelegate(object value, byte[] buffer, int offset);
 
     /// <summary>
     /// Class that provides dynamic functions building for dynamic serialization functions. 
@@ -28,11 +28,11 @@ namespace Fracture.Net.Serialization.Generation.Builders
                    new DynamicMethodBuilder(
                        "Serialize",
                        typeof(void),
-                       new []
+                       new[]
                        {
-                           typeof(object),  // Argument 0.
-                           typeof(byte []), // Argument 1.
-                           typeof(int)      // Argument 2.
+                           typeof(object), // Argument 0.
+                           typeof(byte[]), // Argument 1.
+                           typeof(int) // Argument 2.
                        }
                    ))
         {
@@ -216,7 +216,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Instantiate local 'nullMask' bit field.
             DynamicMethodBuilder.Emit(OpCodes.Ldloca_S, localNullMask);
             DynamicMethodBuilder.Emit(OpCodes.Ldc_I4, BitField.LengthFromBits(ValueRanges.NullableValuesCount));
-            DynamicMethodBuilder.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new [] { typeof(int) })!);
+            DynamicMethodBuilder.Emit(OpCodes.Call, typeof(BitField).GetConstructor(new[] { typeof(int) })!);
 
             // Store current offset to local 'nullMaskOffset'.
             DynamicMethodBuilder.Emit(OpCodes.Ldarg_2);

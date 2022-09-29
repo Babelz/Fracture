@@ -2,8 +2,10 @@
 
 Fracture serializer provides fast and compact serialization format for serializing objects to binary. However it does
 not attempt to be the best fastest or most compact serializer available. Serialization is developed with online games in
-mind and more precisely the Shattered World MMO. Serialization uses dynamic code generation to avoid overhead from reflection
-when serializing and deserializing objects. This format is purely intended to be used for communication and is not suited
+mind and more precisely the Shattered World MMO. Serialization uses dynamic code generation to avoid overhead from
+reflection
+when serializing and deserializing objects. This format is purely intended to be used for communication and is not
+suited
 for file serialization as it does not have schema version or migration support.
 
 Serialization is heavily focusing on improving the following aspects:
@@ -48,6 +50,7 @@ Fracture serializer provides serialization for the following types:
 - [x] Sparse collections with possible null references or nullable values
 - [x] Deserialization to pre-allocated objects
 - [x] Indirect/deferred activation of deserialized objects
+- [x] Types (System.Type)
 - [ ] Small binary packed primitive types such as int1/2/3/4, bool1 etc
 
 ## How to setup serialization
@@ -87,7 +90,8 @@ StructSerializer.Serialize(new Vec2(200.0f, 100.0f), buffer, 0);
 
 ## Protocol headers
 
-Depending on the object that is serialized the serializer can add additional metadata about the object to the serialization stream.
+Depending on the object that is serialized the serializer can add additional metadata about the object to the
+serialization stream.
 
 ### Serialization type id, 2-bytes
 
@@ -99,18 +103,22 @@ Denotes the dynamic content length in bytes for objects that can vary in size.
 
 ### Collection length, 2-bytes
 
-Header that contains the collection length in elements, this header should be present for all collection types. For example when serializing an array with
+Header that contains the collection length in elements, this header should be present for all collection types. For
+example when serializing an array with
 length of 32 this header would get the value of 32.
 
 ### Type data, 1-byte
 
-Optional serializer specific "user data" used to store type specific information in context of serialization. For example in case of collections this header
+Optional serializer specific "user data" used to store type specific information in context of serialization. For
+example in case of collections this header
 is used as flags field to determine if the collection is sparse or not.
 
 ## Overhead of nulls
 
-Null values are not serialized to streams but instead all objects that have nullable members will be serialized with special bit field that contains
-the field indices and a flag that can be used to determine if the field value is null. Minimum space overhead from having nulls in your objects is 3-bytes
+Null values are not serialized to streams but instead all objects that have nullable members will be serialized with
+special bit field that contains
+the field indices and a flag that can be used to determine if the field value is null. Minimum space overhead from
+having nulls in your objects is 3-bytes
 and for each 8-fields the overhead grows by one byte.
 
 Few example cases:
@@ -120,7 +128,8 @@ Few example cases:
 * Object with 64 nullable members - overhead is 64 % 8 + 64 / 8 + 2 = 10-bytes
 * Object with zero nullable members - overhead is 0-bytes
 
-These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary format.
+These rules about nulls apply both to fields and properties. See example objects and how they are represented in binary
+format.
 
 ## Example objects and how they are represented in binary format
 

@@ -71,7 +71,7 @@ namespace Fracture.Common.Tests.Collections
             buffer.Push(8);
             buffer.Push(9);
 
-            Assert.Equal(new [] { 7, 8, 9, 4, 5, 6 }, buffer.ToArray());
+            Assert.Equal(new[] { 7, 8, 9, 4, 5, 6 }, buffer.ToArray());
         }
 
         [Fact]

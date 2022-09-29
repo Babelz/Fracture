@@ -46,8 +46,8 @@ namespace Fracture.Content.Pipeline.Ui
             if (!value.Contains("x") || !value.Contains("y")) return false;
 
             var tokens = value.Split(',')
-                              .Select(s => s.Trim())
-                              .ToArray();
+                .Select(s => s.Trim())
+                .ToArray();
 
             var x = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("x:"))?.Replace("x:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
             var y = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("y:"))?.Replace("y:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
@@ -77,8 +77,8 @@ namespace Fracture.Content.Pipeline.Ui
                 return false;
 
             var tokens = value.Split(',')
-                              .Select(s => s.Trim())
-                              .ToArray();
+                .Select(s => s.Trim())
+                .ToArray();
 
             var r = byte.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("r:"))?.Replace("r:", "").Trim() ?? "0");
             var g = byte.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("g:"))?.Replace("g:", "").Trim() ?? "0");
@@ -98,8 +98,8 @@ namespace Fracture.Content.Pipeline.Ui
                 return false;
 
             var tokens = value.Split(',')
-                              .Select(s => s.Trim())
-                              .ToArray();
+                .Select(s => s.Trim())
+                .ToArray();
 
             var x = int.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("x:"))?.Replace("x:", "").Trim() ?? "0");
             var y = int.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("y:"))?.Replace("y:", "").Trim() ?? "0");

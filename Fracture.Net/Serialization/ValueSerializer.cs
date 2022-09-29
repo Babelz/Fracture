@@ -145,22 +145,22 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Serializes given object of specific type to given buffer beginning at given offset.
     /// </summary>
-    public delegate void SerializeDelegate<in T>(T value, byte [] buffer, int offset);
+    public delegate void SerializeDelegate<in T>(T value, byte[] buffer, int offset);
 
     /// <summary>
     /// Deserializes object of specified type from given buffer beginning at given offset.
     /// </summary>
-    public delegate T DeserializeDelegate<out T>(byte [] buffer, int offset);
+    public delegate T DeserializeDelegate<out T>(byte[] buffer, int offset);
 
     /// <summary>
     /// Returns the size of an object inside the buffer beginning at given offset.
     /// </summary>
-    public delegate ushort GetSizeFromBufferDelegate(byte [] buffer, int offset);
+    public delegate ushort GetSizeFromBufferDelegate(byte[] buffer, int offset);
 
     /// <summary>
     /// Returns the size of an object inside the buffer using generic type information provided beginning at given offset. 
     /// </summary>
-    public delegate ushort GetSizeFromBufferDelegate<in T>(byte [] buffer, int offset);
+    public delegate ushort GetSizeFromBufferDelegate<in T>(byte[] buffer, int offset);
 
     /// <summary>
     /// Returns size of the value when it is serialized.
@@ -194,8 +194,8 @@ namespace Fracture.Net.Serialization
                 try
                 {
                     ValueSerializerTypes.AddRange(assembly.GetTypes()
-                                                          .Where(t => (t.GetCustomAttribute<ValueSerializerAttribute>() != null ||
-                                                                       t.GetCustomAttribute<GenericValueSerializerAttribute>() != null)));
+                                                      .Where(t => (t.GetCustomAttribute<ValueSerializerAttribute>() != null ||
+                                                                   t.GetCustomAttribute<GenericValueSerializerAttribute>() != null)));
                 }
                 catch (ReflectionTypeLoadException e)
                 {
@@ -237,19 +237,20 @@ namespace Fracture.Net.Serialization
 
             // Make method info generic based on serialization type.
             return serializationValueType.IsGenericType
-                       ? methodInfo.MakeGenericMethod(serializationValueType.GetGenericArguments())
-                       : methodInfo.MakeGenericMethod(serializationValueType);
+                ? methodInfo.MakeGenericMethod(serializationValueType.GetGenericArguments())
+                : methodInfo.MakeGenericMethod(serializationValueType);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static MethodInfo GetValuerSerializerMethodInfo<T>(Type valueSerializerType, Type serializationValueType = null) where T : Attribute
         {
             var methodInfo = valueSerializerType.GetMethods(BindingFlags.Static | BindingFlags.Public)
-                                                .FirstOrDefault(m => m.GetCustomAttribute<T>() != null);
+                .FirstOrDefault(m => m.GetCustomAttribute<T>() != null);
 
             if (methodInfo == null)
                 throw new ValueSerializerSchemaException($"could not find static method annotated with {typeof(T).Name} for " +
-                                                         $"value serializer", valueSerializerType);
+                                                         $"value serializer",
+                                                         valueSerializerType);
 
             return serializationValueType == null ? methodInfo : SpecializeMethodInfo(methodInfo, valueSerializerType, serializationValueType);
         }
@@ -337,7 +338,8 @@ namespace Fracture.Net.Serialization
                                                          valueSerializerType);
 
             if (Delegate.CreateDelegate(typeof(SerializeDelegate<>).MakeGenericType(valueSerializerAttribute.SerializationType),
-                                        ValueSerializerRegistry.GetSerializeMethodInfo(valueSerializerType), false) ==
+                                        ValueSerializerRegistry.GetSerializeMethodInfo(valueSerializerType),
+                                        false) ==
                 null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.SerializeAttribute)} does not match the " +
                                                          $"required method signature of {typeof(SerializeDelegate<>)}, if the signature is correct" +
@@ -345,7 +347,8 @@ namespace Fracture.Net.Serialization
                                                          valueSerializerType);
 
             if (Delegate.CreateDelegate(typeof(DeserializeDelegate<>).MakeGenericType(valueSerializerAttribute.SerializationType),
-                                        ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType), false) ==
+                                        ValueSerializerRegistry.GetDeserializeMethodInfo(valueSerializerType),
+                                        false) ==
                 null)
                 throw new ValueSerializerSchemaException($"static method annotated with {nameof(ValueSerializer.DeserializeAttribute)} does not match the " +
                                                          $"required method signature of {typeof(DeserializeDelegate<>)}, if the signature is correct" +
@@ -360,7 +363,8 @@ namespace Fracture.Net.Serialization
                     valueSerializerType);
 
             if (Delegate.CreateDelegate(typeof(GetSizeFromValueDelegate<>).MakeGenericType(valueSerializerAttribute.SerializationType),
-                                        ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType), false) ==
+                                        ValueSerializerRegistry.GetSizeFromValueMethodInfo(valueSerializerType),
+                                        false) ==
                 null)
                 throw new ValueSerializerSchemaException(
                     $"static method annotated with {nameof(ValueSerializer.GetSizeFromValueAttribute)} does not match the " +

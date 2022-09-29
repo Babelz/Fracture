@@ -27,10 +27,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<T> Any()
-            => delegate
-            {
-                return true;
-            };
+            => delegate { return true; };
     }
 
     /// <summary>

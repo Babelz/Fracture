@@ -62,7 +62,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Gets the raw serialized contents of this message.
         /// </summary>
-        public byte [] Contents
+        public byte[] Contents
         {
             get;
         }
@@ -84,7 +84,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
 
-        public PeerMessageEventArgs(in PeerConnection connection, byte [] contents, int length, in TimeSpan timestamp)
+        public PeerMessageEventArgs(in PeerConnection connection, byte[] contents, int length, in TimeSpan timestamp)
         {
             Connection = connection;
             Contents   = contents;
@@ -101,7 +101,7 @@ namespace Fracture.Net.Hosting.Servers
             get;
         }
 
-        public byte [] Contents
+        public byte[] Contents
         {
             get;
         }
@@ -122,7 +122,7 @@ namespace Fracture.Net.Hosting.Servers
         }
         #endregion
 
-        public ServerMessageEventArgs(in PeerConnection connection, byte [] contents, int offset, int length, in TimeSpan timestamp)
+        public ServerMessageEventArgs(in PeerConnection connection, byte[] contents, int offset, int length, in TimeSpan timestamp)
         {
             Connection = connection;
             Contents   = contents;

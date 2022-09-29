@@ -9,7 +9,7 @@ namespace Fracture.Benchmarks.Serialization
         #endregion
 
         #region Fields
-        private readonly byte [] buffer;
+        private readonly byte[] buffer;
         #endregion
 
         public MemoryMapper()
@@ -39,7 +39,7 @@ namespace Fracture.Benchmarks.Serialization
         #endregion
 
         #region Fields
-        private readonly byte [] buffer;
+        private readonly byte[] buffer;
         #endregion
 
         public BenchmarkMemoryMapperGenericTypes()
@@ -81,9 +81,9 @@ namespace Fracture.Benchmarks.Serialization
         #endregion
 
         #region Fields
-        private byte [] buffer;
+        private byte[] buffer;
 
-        private int [] testArray;
+        private int[] testArray;
         #endregion
 
         #region Properties

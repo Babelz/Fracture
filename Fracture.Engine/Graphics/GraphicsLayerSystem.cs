@@ -70,7 +70,7 @@ namespace Fracture.Engine.Graphics
         {
             get;
         }
-        
+
         public bool IsUnique
         {
             get;
@@ -124,8 +124,8 @@ namespace Fracture.Engine.Graphics
 
             // Precompute hash for faster lookups.
             hash = HashUtils.Create()
-                            .Append(Id)
-                            .Append(typeId);
+                .Append(Id)
+                .Append(typeId);
         }
 
         public override int GetHashCode()
@@ -302,7 +302,7 @@ namespace Fracture.Engine.Graphics
 
             var dc = dco > 0 ? 0 : Math.Abs((int)dco) + 1;
             var dr = dro > 0 ? 0 : Math.Abs((int)dro) + 1;
-            
+
             // Resize cells.
             var oldRows    = Rows;
             var oldColumns = Columns;
@@ -310,23 +310,23 @@ namespace Fracture.Engine.Graphics
             if (dr != 0)
             {
                 Array.Resize(ref grid, oldRows + dr);
-            
+
                 for (var i = oldRows; i < oldRows + dr; i++)
                 {
                     // Create whole new cells starting from the new space 
                     // allocated.
                     grid[i] = new GraphicsElementCell[oldColumns + dr];
-            
+
                     for (var j = 0; j < oldColumns + dc; j++)
                         grid[i][j] = new GraphicsElementCell();
-                }   
+                }
             }
-            
+
             // Resize old rows to have as much columns as the new columns.
             for (var i = 0; i < oldRows; i++)
             {
                 Array.Resize(ref grid[i], oldColumns + dc);
-                
+
                 for (var j = oldColumns; j < oldColumns + dc; j++)
                     grid[i][j] = new GraphicsElementCell();
             }
@@ -345,12 +345,12 @@ namespace Fracture.Engine.Graphics
             AreaRange(aabb, out var location);
 
             // Make sure we have enough space for this new element.
-            if (elementId >= elements.Length) 
+            if (elementId >= elements.Length)
             {
                 elements.Grow();
                 locations.Grow();
             }
-            
+
             // Store actual data of the element.
             locations.Insert(elementId, location);
             elements.Insert(elementId, new GraphicsElement(elementId, typeId));
@@ -577,7 +577,10 @@ namespace Fracture.Engine.Graphics
                                           IViewSystem views,
                                           IEnumerable<IGraphicsComponentSystem> systems,
                                           int index)
-            : base(host, pipelines, index, new GraphicsFragmentSettings(
+            : base(host,
+                   pipelines,
+                   index,
+                   new GraphicsFragmentSettings(
                        SpriteSortMode.Deferred,
                        BlendState.AlphaBlend,
                        SamplerState.PointClamp,

@@ -72,7 +72,7 @@ namespace Fracture.Engine.Graphics
             get;
             set;
         }
-        
+
         /// <summary>
         /// Gets the view area in world units.
         /// </summary>
@@ -92,7 +92,7 @@ namespace Fracture.Engine.Graphics
         void TranslateZoom(float amount);
 
         void Clamp(in Rectf viewArea);
-        
+
         /// <summary>
         /// Returns screen space point in view space.
         /// </summary>
@@ -166,7 +166,7 @@ namespace Fracture.Engine.Graphics
             get;
             set;
         }
-        
+
         public Rectf ViewArea
         {
             get;
@@ -234,7 +234,7 @@ namespace Fracture.Engine.Graphics
         public void Clamp(in Rectf viewArea)
         {
             ViewArea = viewArea;
-            
+
             Update();
         }
 
@@ -254,7 +254,7 @@ namespace Fracture.Engine.Graphics
         {
             Bounds      = new Vector2(Transform.ToWorldUnits(Viewport.Width) / Zoom, Transform.ToWorldUnits(Viewport.Height) / Zoom);
             BoundingBox = new Aabb(Position, Rotation, Bounds);
-            
+
             // Ensure view is inside view area.
             if (ViewArea != Rectf.Empty)
             {
@@ -263,17 +263,17 @@ namespace Fracture.Engine.Graphics
                     Position = new Vector2(ViewArea.Right - BoundingBox.HalfBounds.X, Position.Y);
                 else if (BoundingBox.Left < ViewArea.Left)
                     Position = new Vector2(ViewArea.Left + BoundingBox.HalfBounds.X, Position.Y);
-                
+
                 // Clamp top and bottom.
                 if (BoundingBox.Bottom > ViewArea.Bottom)
                     Position = new Vector2(Position.X, ViewArea.Bottom - BoundingBox.HalfBounds.Y);
                 else if (BoundingBox.Top < ViewArea.Top)
                     Position = new Vector2(Position.X, ViewArea.Top + BoundingBox.HalfBounds.Y);
-                
+
                 // Recalculate bounding box.
                 BoundingBox = new Aabb(Position, Rotation, Bounds);
             }
-            
+
             Matrix = CreateViewMatrix(Transform.ToScreenUnits(BoundingBox.Position), new Vector2(Viewport.Width, Viewport.Height), Rotation, Zoom);
         }
 

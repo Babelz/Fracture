@@ -10,7 +10,7 @@ namespace Fracture.Net.Tests.Serialization
     {
         static DictionarySerializerTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });
+            ObjectSerializerAnalyzer.Analyze(new[] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });
         }
 
         public DictionarySerializerTests()

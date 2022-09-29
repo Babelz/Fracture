@@ -11,7 +11,7 @@ namespace Fracture.Net.Tests.Serialization
     {
         static ArraySerializerTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(int []), typeof(int? []) });
+            ObjectSerializerAnalyzer.Analyze(new[] { typeof(int[]), typeof(int?[]) });
         }
 
         public ArraySerializerTests()
@@ -33,7 +33,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Non_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
-            var numbers = new []
+            var numbers = new[]
             {
                 16,
                 32,
@@ -65,7 +65,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serializes_Nullable_Primitive_Types_To_Buffer_Correctly()
         {
-            var numbers = new int? []
+            var numbers = new int?[]
             {
                 0,
                 1,
@@ -121,7 +121,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Non_Nullable_Primitive_Types()
         {
-            var numbersIn = new []
+            var numbersIn = new[]
             {
                 int.MinValue,
                 128,
@@ -141,7 +141,7 @@ namespace Fracture.Net.Tests.Serialization
         [Fact]
         public void Serialization_Back_And_Forth_Works_With_Nullable_Primitive_Types()
         {
-            var numbersIn = new int? []
+            var numbersIn = new int?[]
             {
                 0,
                 1,

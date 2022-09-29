@@ -15,7 +15,7 @@ namespace Fracture.Net.Serialization
             {
                 var serializeDelegate = (SerializeDelegate<T>)serializationDelegate;
 
-                void Serialize(T? value, byte [] buffer, int offset)
+                void Serialize(T? value, byte[] buffer, int offset)
                 {
                     if (!value.HasValue) return;
 
@@ -35,7 +35,7 @@ namespace Fracture.Net.Serialization
             {
                 var deserializeDelegate = (DeserializeDelegate<T>)serializationDelegate;
 
-                T? Deserialize(byte [] buffer, int offset)
+                T? Deserialize(byte[] buffer, int offset)
                     => deserializeDelegate(buffer, offset);
 
                 return Deserialize;
@@ -62,7 +62,7 @@ namespace Fracture.Net.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Delegate UnwindNullableSerializationDelegate(MethodInfo createDelegateMethod, Delegate serializationDelegate, Type nullableType)
-            => (Delegate)createDelegateMethod.MakeGenericMethod(nullableType.GetGenericArguments()[0]).Invoke(null, new object [] { serializationDelegate });
+            => (Delegate)createDelegateMethod.MakeGenericMethod(nullableType.GetGenericArguments()[0]).Invoke(null, new object[] { serializationDelegate });
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertNullableTypeParameter(Type nullableType)
@@ -162,7 +162,7 @@ namespace Fracture.Net.Serialization
         /// Writes given nullable value to given buffer beginning at given offset if it has value.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T? value, byte [] buffer, int offset) where T : struct
+        public static void Serialize<T>(T? value, byte[] buffer, int offset) where T : struct
         {
             if (!value.HasValue)
                 return;
@@ -175,7 +175,7 @@ namespace Fracture.Net.Serialization
         /// there is an actual value in the buffer at given offset.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T? Deserialize<T>(byte [] buffer, int offset) where T : struct
+        public static T? Deserialize<T>(byte[] buffer, int offset) where T : struct
         {
             return ((DeserializeDelegate<T?>)DeserializeDelegates[typeof(T?)])(buffer, offset);
         }
@@ -184,7 +184,7 @@ namespace Fracture.Net.Serialization
         /// Returns size of nullable value from buffer, size will vary. This function assumes there is an actual value in the buffer at given offset.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer<T>(byte [] buffer, int offset) where T : struct
+        public static ushort GetSizeFromBuffer<T>(byte[] buffer, int offset) where T : struct
         {
             return ((GetSizeFromBufferDelegate)GetSizeFromBufferDelegates[typeof(T?)])(buffer, offset);
         }

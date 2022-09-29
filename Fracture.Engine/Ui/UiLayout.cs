@@ -105,10 +105,10 @@ namespace Fracture.Engine.Ui
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Top)
-                        .Append(Left)
-                        .Append(Bottom)
-                        .Append(Right);
+                .Append(Top)
+                .Append(Left)
+                .Append(Bottom)
+                .Append(Right);
 
         public override bool Equals(object obj)
             => obj is UiOffset other && this == other;

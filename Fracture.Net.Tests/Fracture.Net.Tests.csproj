@@ -293,6 +293,7 @@
         <Compile Include="Serialization\ListSerializerTests.cs" />
         <Compile Include="Serialization\StructSerializerTests.cs" />
         <Compile Include="Serialization\StringSerializerTests.cs" />
+        <Compile Include="Serialization\TypeSerializerTests.cs" />
         <Compile Include="Serialization\ValueSerializerTests.cs" />
     </ItemGroup>
     <ItemGroup>
@@ -304,8 +305,8 @@
             <Name>Fracture.Common</Name>
         </ProjectReference>
         <ProjectReference Include="..\Fracture.Net.Tests.Util\Fracture.Net.Tests.Util.csproj">
-          <Project>{a0df02ca-d3b9-4e02-9a95-165b3c56cad9}</Project>
-          <Name>Fracture.Net.Tests.Util</Name>
+            <Project>{a0df02ca-d3b9-4e02-9a95-165b3c56cad9}</Project>
+            <Name>Fracture.Net.Tests.Util</Name>
         </ProjectReference>
         <ProjectReference Include="..\Fracture.Net\Fracture.Net.csproj">
             <Project>{8c8efbea-e0ad-4507-99ec-c79a0d8b556c}</Project>

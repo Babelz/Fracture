@@ -10,7 +10,7 @@ namespace Fracture.Net.Tests.Serialization
     {
         static ListSerializerTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new [] { typeof(List<int>), typeof(List<int?>), });
+            ObjectSerializerAnalyzer.Analyze(new[] { typeof(List<int>), typeof(List<int?>), });
         }
 
         public ListSerializerTests()

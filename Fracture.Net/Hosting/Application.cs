@@ -159,9 +159,11 @@ namespace Fracture.Net.Hosting
 
         #region Events
         public event EventHandler Starting;
+
         public event EventHandler ShuttingDown;
 
         public event StructEventHandler<PeerJoinEventArgs> Join;
+
         public event StructEventHandler<PeerResetEventArgs> Reset;
 
         public event StructEventHandler<PeerMessageEventArgs> BadRequest;
@@ -694,7 +696,7 @@ namespace Fracture.Net.Hosting
                 server.Send(peerId, contents, 0, size);
             }
 
-            void Broadcast(in IMessage message, int [] peerIds)
+            void Broadcast(in IMessage message, int[] peerIds)
             {
                 var size     = serializer.GetSizeFromMessage(message);
                 var contents = BufferPool.Take(size);
@@ -713,7 +715,7 @@ namespace Fracture.Net.Hosting
                 BufferPool.Return(contents);
             }
 
-            void Reset(in IMessage message, int [] peerIds)
+            void Reset(in IMessage message, int[] peerIds)
             {
                 if (message != null)
                     Broadcast(message, peerIds);

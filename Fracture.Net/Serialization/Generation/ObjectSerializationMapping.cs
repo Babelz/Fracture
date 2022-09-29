@@ -368,7 +368,7 @@ namespace Fracture.Net.Serialization.Generation
             {
                 // Ensure type has parameterless constructor.
                 constructor = serializationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                                               .FirstOrDefault(c => c.GetParameters().Length == 0);
+                    .FirstOrDefault(c => c.GetParameters().Length == 0);
 
                 if (!serializationType.IsValueType && constructor == null)
                     throw new InvalidOperationException($"type {serializationType.Name} has no parameterless constructor");
@@ -376,8 +376,8 @@ namespace Fracture.Net.Serialization.Generation
             else
             {
                 var candidates = serializationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                                                  .Where(c => c.GetParameters().Length == objectActivationHints.Count)
-                                                  .ToArray();
+                    .Where(c => c.GetParameters().Length == objectActivationHints.Count)
+                    .ToArray();
 
                 if (objectActivationHints.Any(h => h.Type != null))
                 {
@@ -385,9 +385,9 @@ namespace Fracture.Net.Serialization.Generation
                         throw new InvalidOperationException("type hints are used but all activation hints don't have it");
 
                     candidates = candidates.Where(c => c.GetParameters()
-                                                        .Select(p => p.ParameterType)
-                                                        .SequenceEqual(objectActivationHints.Select(h => h.Type)))
-                                           .ToArray();
+                                                      .Select(p => p.ParameterType)
+                                                      .SequenceEqual(objectActivationHints.Select(h => h.Type)))
+                        .ToArray();
                 }
 
                 // Go trough all arguments and make sure types match.
@@ -421,9 +421,10 @@ namespace Fracture.Net.Serialization.Generation
                 if (objectActivationHint.Value.Path == SerializationValueLocation.Field)
                 {
                     // Make sure the serialization field is valid.
-                    var serializationTypeField = serializationType.GetField(objectActivationHint.Value.Name, BindingFlags.Public |
-                                                                                                             BindingFlags.NonPublic |
-                                                                                                             BindingFlags.Instance);
+                    var serializationTypeField = serializationType.GetField(objectActivationHint.Value.Name,
+                                                                            BindingFlags.Public |
+                                                                            BindingFlags.NonPublic |
+                                                                            BindingFlags.Instance);
 
                     AssertFieldIsValidForSerialization(serializationTypeField, objectActivationHint.Value.Name, true);
 
@@ -432,9 +433,10 @@ namespace Fracture.Net.Serialization.Generation
                 else
                 {
                     // Make sure serialization property is valid.
-                    var serializationTypeProperty = serializationType.GetProperty(objectActivationHint.Value.Name, BindingFlags.Public |
-                                                                                      BindingFlags.NonPublic |
-                                                                                      BindingFlags.Instance);
+                    var serializationTypeProperty = serializationType.GetProperty(objectActivationHint.Value.Name,
+                                                                                  BindingFlags.Public |
+                                                                                  BindingFlags.NonPublic |
+                                                                                  BindingFlags.Instance);
 
                     AssertPropertyIsValidForSerialization(serializationTypeProperty, objectActivationHint.Value.Name, true);
 
@@ -485,11 +487,11 @@ namespace Fracture.Net.Serialization.Generation
                 return;
 
             var serializationTypeFields = serializationType.GetFields(BindingFlags.Instance | BindingFlags.Public)
-                                                           .Where(f => !serializationValueHints.Any(h => h.Name == f.Name &&
-                                                                                                         h.Path == SerializationValueLocation.Field));
+                .Where(f => !serializationValueHints.Any(h => h.Name == f.Name &&
+                                                              h.Path == SerializationValueLocation.Field));
 
             serializationValueHints.AddRange(serializationTypeFields.Where(f => !excludedFields.Contains(f.Name))
-                                                                    .Select(f => SerializationValueHint.Field(f.Name)));
+                                                 .Select(f => SerializationValueHint.Field(f.Name)));
         }
 
         private void DiscoverPublicPropertyHints()
@@ -498,11 +500,11 @@ namespace Fracture.Net.Serialization.Generation
                 return;
 
             var serializationTypeProperties = serializationType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                                                               .Where(p => !serializationValueHints.Any(h => h.Name == p.Name &&
-                                                                                                             h.Path == SerializationValueLocation.Property));
+                .Where(p => !serializationValueHints.Any(h => h.Name == p.Name &&
+                                                              h.Path == SerializationValueLocation.Property));
 
             serializationValueHints.AddRange(serializationTypeProperties.Where(p => !excludedProperties.Contains(p.Name))
-                                                                        .Select(p => SerializationValueHint.Property(p.Name)));
+                                                 .Select(p => SerializationValueHint.Property(p.Name)));
         }
 
         private void RemoveActivationValueHints()
@@ -510,13 +512,13 @@ namespace Fracture.Net.Serialization.Generation
 
         private ObjectActivator GetObjectActivator()
             => activator != null
-                   ? new ObjectActivator(activator)
-                   : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
+                ? new ObjectActivator(activator)
+                : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
 
         /// <summary>
         /// Directs the builder to map the types constructor that matches given hints.
         /// </summary>
-        public ObjectSerializationMapper ParametrizedActivation(params ObjectActivationHint [] hints)
+        public ObjectSerializationMapper ParametrizedActivation(params ObjectActivationHint[] hints)
         {
             if (hints == null)
                 throw new ArgumentNullException(nameof(hints));
@@ -542,7 +544,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Directs the builder to map types all fields and properties based on given hints.
         /// </summary>
-        public ObjectSerializationMapper Values(params SerializationValueHint [] values)
+        public ObjectSerializationMapper Values(params SerializationValueHint[] values)
         {
             if (values == null)
                 throw new ArgumentNullException(nameof(values));
@@ -555,7 +557,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Directs the builder to map all public fields of the type.
         /// </summary>
-        public ObjectSerializationMapper PublicFields(params string [] excludeFields)
+        public ObjectSerializationMapper PublicFields(params string[] excludeFields)
         {
             discoverPublicFields = true;
 
@@ -568,7 +570,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Directs the builder to map all public properties of the type.
         /// </summary>
-        public ObjectSerializationMapper PublicProperties(params string [] excludeProperties)
+        public ObjectSerializationMapper PublicProperties(params string[] excludeProperties)
         {
             discoverPublicProperties = true;
 

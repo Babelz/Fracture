@@ -49,8 +49,8 @@ namespace Fracture.Common.Runtime
             timer = new Stopwatch();
 
             this.samplingTime = samplingTime > TimeSpan.Zero
-                                    ? samplingTime
-                                    : throw new ArgumentOutOfRangeException(nameof(samplingTime), "expecting positive non-zero time");
+                ? samplingTime
+                : throw new ArgumentOutOfRangeException(nameof(samplingTime), "expecting positive non-zero time");
 
             Reset();
         }

@@ -56,7 +56,7 @@ namespace Fracture.Net.Serialization
         /// Writes given enumeration value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T value, byte [] buffer, int offset) where T : struct, Enum
+        public static void Serialize<T>(T value, byte[] buffer, int offset) where T : struct, Enum
             => SerializeDelegates[typeof(T).GetEnumUnderlyingType()](value, buffer, offset);
 
         /// <summary>
@@ -64,14 +64,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T Deserialize<T>(byte [] buffer, int offset) where T : struct, Enum
+        public static T Deserialize<T>(byte[] buffer, int offset) where T : struct, Enum
             => (T)DeserializeDelegates[typeof(T).GetEnumUnderlyingType()](buffer, offset);
 
         /// <summary>
         /// Returns size of enum, can vary between 1 to 4-bytes plus the added small content length size.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer<T>(byte [] buffer, int offset) where T : struct, Enum
+        public static ushort GetSizeFromBuffer<T>(byte[] buffer, int offset) where T : struct, Enum
             => SizeOfUnderlyingTypes[typeof(T).GetEnumUnderlyingType()];
 
         /// <summary>

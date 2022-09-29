@@ -112,7 +112,8 @@ namespace Fracture.Net.Messages
                 {
                     pool = new CleanPool<IMessage>(
                         new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)),
-                                                   () => new T(), 8)
+                                                   () => new T(),
+                                                   8)
                     );
 
                     Pools.Add(type, pool);

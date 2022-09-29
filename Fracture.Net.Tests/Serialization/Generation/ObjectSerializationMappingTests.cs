@@ -224,8 +224,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_No_Default_Constructor_Exists()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("no parameterless constructor", exception.Message);
@@ -235,9 +235,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Constructor_Does_Not_Exist()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
-                                                                            .PublicProperties()
-                                                                            .ParametrizedActivation(ObjectActivationHint.Property("bar", "Bar"))
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .ParametrizedActivation(ObjectActivationHint.Property("bar", "Bar"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("that accepts 1 arguments", exception.Message);
@@ -247,8 +247,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Type_Is_Left_Null()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType(null)
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("Value cannot be null", exception.Message);
@@ -258,8 +258,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Type_Is_Abstract()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<AbstractTestClass>()
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("can't map abstract type", exception.Message);
@@ -269,8 +269,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Type_Is_Interface()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ITestInterface>()
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("can't map interface type", exception.Message);
@@ -280,8 +280,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_Correctly_To_Default_Constructor()
         {
             var mapping = ObjectSerializationMapper.ForType<DefaultConstructorTestClass>()
-                                                   .PublicFields()
-                                                   .Map();
+                .PublicFields()
+                .Map();
 
             Assert.True(mapping.Activator.IsDefaultConstructor);
         }
@@ -290,9 +290,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_Correctly_To_Parametrized_Constructor()
         {
             var mapping = ObjectSerializationMapper.ForType<NoDefaultConstructorTestClass>()
-                                                   .ParametrizedActivation(ObjectActivationHint.Property("foo", "Foo"))
-                                                   .PublicProperties()
-                                                   .Map();
+                .ParametrizedActivation(ObjectActivationHint.Property("foo", "Foo"))
+                .PublicProperties()
+                .Map();
 
             Assert.False(mapping.Activator.IsDefaultConstructor);
             Assert.Contains(mapping.Activator.Values, f => f.IsProperty && f.Name == "Foo");
@@ -302,8 +302,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Property_Is_Readonly()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ReadOnlyPropertyTestClass>()
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("can't be used for writing", exception.Message);
@@ -313,8 +313,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Property_Is_Write_Only()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<WriteOnlyPropertyTestClass>()
-                                                                            .PublicProperties()
-                                                                            .Map());
+                                                 .PublicProperties()
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("can't be used for reading", exception.Message);
@@ -324,8 +324,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Field_Is_Readonly()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<ReadOnlyFieldTestClass>()
-                                                                            .Values(SerializationValueHint.Field("x"))
-                                                                            .Map());
+                                                 .Values(SerializationValueHint.Field("x"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("can't serialize readonly field", exception.Message);
@@ -335,8 +335,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Allow_Readonly_Fields_When_They_Are_Used_With_Object_Activation()
         {
             var mapping = ObjectSerializationMapper.ForType<ParametrizedReadOnlyFieldTestClass>()
-                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"))
-                                                   .Map();
+                .ParametrizedActivation(ObjectActivationHint.Field("x", "X"))
+                .Map();
 
             Assert.DoesNotContain(mapping.Values, f => f.Name == "X");
             Assert.Contains(mapping.Activator.Values, f => f.Name == "X");
@@ -346,8 +346,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Allow_Readonly_Properties_When_They_Are_Used_With_Object_Activation()
         {
             var mapping = ObjectSerializationMapper.ForType<ParametrizedReadOnlyPropertyTestClass>()
-                                                   .ParametrizedActivation(ObjectActivationHint.Property("x", "X"))
-                                                   .Map();
+                .ParametrizedActivation(ObjectActivationHint.Property("x", "X"))
+                .Map();
 
             Assert.DoesNotContain(mapping.Values, f => f.Name == "X");
             Assert.Contains(mapping.Activator.Values, f => f.Name == "X");
@@ -357,8 +357,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Field_Is_Static()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<StaticFieldTestClass>()
-                                                                            .Values(SerializationValueHint.Field("x"))
-                                                                            .Map());
+                                                 .Values(SerializationValueHint.Field("x"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("no field matches serialization field hint", exception.Message);
@@ -368,8 +368,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Property_Is_Static()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<StaticPropertyTestClass>()
-                                                                            .Values(SerializationValueHint.Property("Foo"))
-                                                                            .Map());
+                                                 .Values(SerializationValueHint.Property("Foo"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("no property matches serialization field hint", exception.Message);
@@ -379,8 +379,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Field_Does_Not_Exist()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<EmptyTestClass>()
-                                                                            .Values(SerializationValueHint.Field("x"))
-                                                                            .Map());
+                                                 .Values(SerializationValueHint.Field("x"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("no field matches serialization field hint", exception.Message);
@@ -390,8 +390,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Throw_If_Serialization_Property_Does_Not_Exist()
         {
             var exception = Record.Exception(() => ObjectSerializationMapper.ForType<EmptyTestClass>()
-                                                                            .Values(SerializationValueHint.Property("Foo"))
-                                                                            .Map());
+                                                 .Values(SerializationValueHint.Property("Foo"))
+                                                 .Map());
 
             Assert.NotNull(exception);
             Assert.Contains("no property matches serialization field hint", exception.Message);
@@ -401,8 +401,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_All_Public_Fields()
         {
             var mapping = ObjectSerializationMapper.ForType<PublicFieldTestClass>()
-                                                   .PublicFields()
-                                                   .Map();
+                .PublicFields()
+                .Map();
 
             Assert.Contains(mapping.Values, f => f.Name == "X2");
             Assert.DoesNotContain(mapping.Values, f => f.Name == "X1");
@@ -415,8 +415,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_All_Public_Properties()
         {
             var mapping = ObjectSerializationMapper.ForType<PublicPropertyTestClass>()
-                                                   .PublicProperties()
-                                                   .Map();
+                .PublicProperties()
+                .Map();
 
             Assert.DoesNotContain(mapping.Values, f => f.Name == "Foo1");
             Assert.Contains(mapping.Values, f => f.Name == "Foo2");
@@ -429,9 +429,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Map_Nullable_Types()
         {
             var mapping = ObjectSerializationMapper.ForType<NullableTestClass>()
-                                                   .PublicProperties()
-                                                   .PublicFields()
-                                                   .Map();
+                .PublicProperties()
+                .PublicFields()
+                .Map();
 
             Assert.Contains(mapping.Values, f => f.Name == "MaybeNumber");
             Assert.Contains(mapping.Values, f => f.Name == "MaybeByte");
@@ -441,12 +441,12 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Order_Activation_Values_First()
         {
             var mapping = ObjectSerializationMapper.ForType<ActivationTestClass>()
-                                                   .PublicProperties()
-                                                   .PublicFields()
-                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
-                                                                           ObjectActivationHint.Field("y", "Y"),
-                                                                           ObjectActivationHint.Field("k", "K"))
-                                                   .Map();
+                .PublicProperties()
+                .PublicFields()
+                .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
+                                        ObjectActivationHint.Field("y", "Y"),
+                                        ObjectActivationHint.Field("k", "K"))
+                .Map();
 
             Assert.Equal("X", mapping.Activator.Values.ElementAt(0).Name);
             Assert.Equal("Y", mapping.Activator.Values.ElementAt(1).Name);

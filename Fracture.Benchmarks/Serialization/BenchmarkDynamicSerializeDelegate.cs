@@ -57,7 +57,7 @@ namespace Fracture.Benchmarks.Serialization
         {
         }
 
-        public void Serialize(in ObjectSerializationValueRanges valueRanges, object value, byte [] buffer, int offset)
+        public void Serialize(in ObjectSerializationValueRanges valueRanges, object value, byte[] buffer, int offset)
         {
             var actual         = (TestClass)value;
             var nullMask       = new BitField(1);
@@ -121,7 +121,7 @@ namespace Fracture.Benchmarks.Serialization
 
         private readonly ObjectSerializationValueRanges valueRanges;
         private readonly DynamicSerializeDelegate       serializeDelegate;
-        private readonly byte []                        buffer;
+        private readonly byte[]                         buffer;
 
         private readonly TestClassSerializer serializer;
         #endregion
@@ -129,9 +129,9 @@ namespace Fracture.Benchmarks.Serialization
         public BenchmarkDynamicSerializeDelegate()
         {
             var mapping = ObjectSerializationMapper.ForType<TestClass>()
-                                                   .PublicFields()
-                                                   .PublicProperties()
-                                                   .Map();
+                .PublicFields()
+                .PublicProperties()
+                .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 

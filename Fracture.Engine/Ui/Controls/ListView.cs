@@ -156,6 +156,7 @@ namespace Fracture.Engine.Ui.Controls
 
         #region Properties
         public int ColumnsCount => columns.Count;
+
         public int RowsCount => items.Count;
 
         public IEnumerable<IListViewItem> Items => items;

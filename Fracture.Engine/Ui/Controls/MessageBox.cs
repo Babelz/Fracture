@@ -112,12 +112,12 @@ namespace Fracture.Engine.Ui.Controls
             if (buttons != MessageBoxButtons.None)
             {
                 var messageBoxButtonsValues = Enum.GetValues(typeof(MessageBoxButtons))
-                                                  .Cast<MessageBoxButtons>()
-                                                  .ToList();
+                    .Cast<MessageBoxButtons>()
+                    .ToList();
 
                 var messageBoxResultValues = Enum.GetValues(typeof(MessageBoxResult))
-                                                 .Cast<MessageBoxResult>()
-                                                 .ToDictionary(v => v.ToString().ToLower(), v => v);
+                    .Cast<MessageBoxResult>()
+                    .ToDictionary(v => v.ToString().ToLower(), v => v);
 
                 foreach (var messageBoxButtonValue in messageBoxButtonsValues)
                 {

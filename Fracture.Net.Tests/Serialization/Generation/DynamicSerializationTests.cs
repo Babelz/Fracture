@@ -37,19 +37,19 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 set;
             }
 
-            public int [] Numbers
+            public int[] Numbers
             {
                 get;
                 set;
             }
 
-            public int? [] NullableNumbers
+            public int?[] NullableNumbers
             {
                 get;
                 set;
             }
 
-            public int []? MaybeNumbers
+            public int[]? MaybeNumbers
             {
                 get;
                 set;
@@ -78,9 +78,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
 
         static DynamicSerializationTests()
         {
-            ObjectSerializerAnalyzer.Analyze(new []
+            ObjectSerializerAnalyzer.Analyze(new[]
             {
-                typeof(int? []), typeof(int []), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>)
+                typeof(int?[]), typeof(int[]), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>)
             });
         }
 
@@ -92,9 +92,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Serialization_Back_And_Forth_Works_With_All_Field_Types()
         {
             var mapping = ObjectSerializationMapper.ForType<AllFieldTypesTestClass>()
-                                                   .PublicFields()
-                                                   .PublicProperties()
-                                                   .Map();
+                .PublicFields()
+                .PublicProperties()
+                .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             var serializationOps   = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
@@ -125,8 +125,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
                 S      = "hello world!",
                 MaybeS = "this should not be null",
 
-                Numbers         = new [] { 200, 300, 400, 500 },
-                NullableNumbers = new int? [] { null, null, 200, null, null },
+                Numbers         = new[] { 200, 300, 400, 500 },
+                NullableNumbers = new int?[] { null, null, 200, null, null },
                 MaybeNumbers    = null,
 
                 Map = new Dictionary<string, float>

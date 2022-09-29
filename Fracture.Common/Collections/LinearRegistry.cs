@@ -16,7 +16,7 @@ namespace Fracture.Common.Collections
         #endregion
 
         #region Fields
-        private T [] items;
+        private T[] items;
         #endregion
 
         #region Properties

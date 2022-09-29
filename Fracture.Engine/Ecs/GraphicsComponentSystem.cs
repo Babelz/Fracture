@@ -880,7 +880,7 @@ namespace Fracture.Engine.Ecs
     }
 
     public sealed class SpriteAnimationComponentSystem : GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>,
-                                                         ISpriteAnimationComponentSystem
+        ISpriteAnimationComponentSystem
     {
         #region Sprite animation structure
         public struct SpriteAnimationComponent : IGraphicsComponent
@@ -1134,6 +1134,7 @@ namespace Fracture.Engine.Ecs
                 component.Elapsed += time.Elapsed;
 
                 var animation = component.Playlist.GetAnimation(component.AnimationName);
+
                 var duration = TimeSpan.FromTicks((long)(animation.Durations[component.FrameId].Ticks +
                                                          component.FrameDurationModifier.Ticks *
                                                          component.FrameDurationScale));
@@ -1214,7 +1215,7 @@ namespace Fracture.Engine.Ecs
     }
 
     public sealed class SpriteTextComponentSystem : GraphicsComponentSystem<SpriteTextComponentSystem.SpriteTextComponent>,
-                                                    ISpriteTextComponentSystem
+        ISpriteTextComponentSystem
     {
         #region Sprite text component structure
         public struct SpriteTextComponent : IGraphicsComponent

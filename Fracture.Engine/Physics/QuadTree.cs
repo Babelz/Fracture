@@ -12,7 +12,6 @@ using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Physics
 {
-    
     /// <summary>
     /// Class that represents query results to quad tree as 
     /// linked structure. Creating instance of this class can be
@@ -77,10 +76,13 @@ namespace Fracture.Engine.Physics
                 new DelegatePool<List<int>>(
                     new LinearStorageObject<List<int>>(
                         new LinearGrowthArray<List<int>>(
-                            8, 1)), () => new List<int>()));
+                            8,
+                            1)),
+                    () => new List<int>()));
 
             arrayPool = new ArrayPool<List<int>>(
-                () => new LinearStorageObject<List<int>[]>(new LinearGrowthArray<List<int>[]>(8, 1)), 8);
+                () => new LinearStorageObject<List<int>[]>(new LinearGrowthArray<List<int>[]>(8, 1)),
+                8);
         }
 
         private QuadTreeNodeLink(DelegatePool<QuadTreeNodeLink> linkPool,
@@ -178,7 +180,7 @@ namespace Fracture.Engine.Physics
         public QuadTreeNodeLink Clone()
             => new QuadTreeNodeLink(linkPool, listPool, arrayPool);
     }
-    
+
     /// <summary>
     /// Represents single node inside the quad tree.
     /// </summary>
@@ -196,6 +198,7 @@ namespace Fracture.Engine.Physics
 
         #region Events
         public event EventHandler<BodyEventArgs> Removed;
+
         public event EventHandler<BodyEventArgs> Added;
         #endregion
 
@@ -240,7 +243,7 @@ namespace Fracture.Engine.Physics
         public IEnumerable<int> Statics => bodyLists?[(int)BodyType.Static - 1] ?? Enumerable.Empty<int>();
 
         public IEnumerable<int> Dynamics => bodyLists?[(int)BodyType.Dynamic - 1] ?? Enumerable.Empty<int>();
-        
+
         public BodyList Bodies
         {
             get;
@@ -618,6 +621,7 @@ namespace Fracture.Engine.Physics
 
         #region Events
         public event StructEventHandler<BodyEventArgs> Removed;
+
         public event StructEventHandler<BodyEventArgs> Added;
         #endregion
 

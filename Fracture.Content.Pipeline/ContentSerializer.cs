@@ -8,7 +8,7 @@ namespace Fracture.Content.Pipeline
     public static class ContentSerializer
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static byte [] GetBytes(object target)
+        public static byte[] GetBytes(object target)
         {
             var binaryFormatter = new BinaryFormatter();
 
@@ -20,7 +20,7 @@ namespace Fracture.Content.Pipeline
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static object GetObject(byte [] bytes)
+        public static object GetObject(byte[] bytes)
         {
             using var memoryStream = new MemoryStream();
 

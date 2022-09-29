@@ -18,11 +18,12 @@ namespace Fracture.Common.Collections
 
         private readonly int bucketSize;
 
-        private T [] [] buckets;
+        private T[][] buckets;
         #endregion
 
         #region Properties
         public int Length => buckets.Length * bucketSize;
+
         public int Buckets => buckets.Length;
         #endregion
 
@@ -40,7 +41,7 @@ namespace Fracture.Common.Collections
             this.bucketSize = bucketSize > 0 ? bucketSize : throw new ArgumentOutOfRangeException(nameof(bucketSize));
 
             // Create initial buckets.
-            buckets = new T[initialBuckets] [];
+            buckets = new T[initialBuckets][];
 
             for (var i = 0; i < initialBuckets; i++) buckets[i] = new T[bucketSize];
 

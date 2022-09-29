@@ -257,9 +257,9 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(StatusCode)
-                        .Append(Message)
-                        .Append(Exception);
+                .Append(StatusCode)
+                .Append(Message)
+                .Append(Exception);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Response Take()

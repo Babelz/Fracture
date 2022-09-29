@@ -75,10 +75,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Any()
-            => delegate
-            {
-                return true;
-            };
+            => delegate { return true; };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestResponseMiddlewareContext> Request(Predicate<IRequest> predicate)

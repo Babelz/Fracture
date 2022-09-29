@@ -19,7 +19,7 @@ namespace Fracture.Common.Collections
 
         public LinearGrowthList(int bucketSize = 16, int initialBuckets = 1)
             => items = new LinearGrowthArray<T>(bucketSize, initialBuckets);
-        
+
         public ref T AtIndex(int index)
         {
             while (index >= items.Length)
@@ -27,7 +27,7 @@ namespace Fracture.Common.Collections
 
             return ref items.AtIndex(index);
         }
-        
+
         /// <summary>
         /// Inserts given item to given index. This insert function allows inserting past the collection. When inserting past
         /// the collection bounds the collection will grow to fit to the index that is out of the current bounds.

@@ -23,7 +23,10 @@ namespace Fracture.Engine.Ui
         #endregion
 
         public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index)
-            : base(host, pipelines, index, new GraphicsFragmentSettings(
+            : base(host,
+                   pipelines,
+                   index,
+                   new GraphicsFragmentSettings(
                        SpriteSortMode.Deferred,
                        BlendState.AlphaBlend,
                        new SamplerState

@@ -22,7 +22,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
     [Serializable]
     public sealed class DynamicDeserializeException : Exception
     {
-        public DynamicDeserializeException(Type serializationType, Exception innerException, byte [] buffer, int offset)
+        public DynamicDeserializeException(Type serializationType, Exception innerException, byte[] buffer, int offset)
             : base($"exception occurred while deserializing object {serializationType.FullName}", innerException)
         {
             Data["SerializationType"] = serializationType;

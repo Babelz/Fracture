@@ -18,9 +18,9 @@ namespace Fracture.Common.Reflection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDelegate(MethodInfo methodInfo)
             => methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters()
-                                                                              .Select(p => p.ParameterType)
-                                                                              .Concat(new [] { methodInfo.ReturnType })
-                                                                              .ToArray()));
+                                                                        .Select(p => p.ParameterType)
+                                                                        .Concat(new[] { methodInfo.ReturnType })
+                                                                        .ToArray()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType)

@@ -51,7 +51,7 @@ namespace Fracture.Common.Tests.Memory
         {
             var list = pool.Take();
 
-            list.AddRange(new [] { 20, 30, 40 });
+            list.AddRange(new[] { 20, 30, 40 });
 
             pool.Return(list);
 

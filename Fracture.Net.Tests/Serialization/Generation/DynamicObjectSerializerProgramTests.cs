@@ -31,7 +31,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                                                  typeof(int),
                                                  new List<ISerializationOp>
                                                          { new SerializeValueOp(new SerializationValue(typeof(Foo).GetField("X")), typeof(IntSerializer)) }
-                                                    .AsReadOnly(),
+                                                     .AsReadOnly(),
                                                  new List<ISerializationOp>().AsReadOnly(),
                                                  new List<Type>())
             );

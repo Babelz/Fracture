@@ -60,13 +60,13 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Serializers given object to given buffer using dynamically generated serializer.
         /// </summary>
-        public void Serialize(object value, byte [] buffer, int offset)
+        public void Serialize(object value, byte[] buffer, int offset)
             => serialize(value, buffer, offset);
 
         /// <summary>
         /// Deserializes object from given buffer using dynamically generated deserializer.
         /// </summary>
-        public object Deserialize(byte [] buffer, int offset)
+        public object Deserialize(byte[] buffer, int offset)
             => deserialize(buffer, offset);
 
         /// <summary>
@@ -333,8 +333,8 @@ namespace Fracture.Net.Serialization.Generation
                             mapping.Activator.Values.Select(v => new SerializeValueOp(
                                                                 v,
                                                                 ValueSerializerRegistry.GetValueSerializerForRunType(v.Type)))
-                                   .ToList()
-                                   .AsReadOnly()
+                                .ToList()
+                                .AsReadOnly()
                         )
                 );
             else if (!mapping.Activator.IsStructInitializer)
@@ -357,10 +357,10 @@ namespace Fracture.Net.Serialization.Generation
             => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer
                     ? mapping.Values
                     : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                                                                           v => (ISerializationOp)new SerializeValueOp(v,
-                                                                               ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-                                                                       )
-                                                                      .ToList();
+                    v => (ISerializationOp)new SerializeValueOp(v,
+                                                                ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
+                )
+                .ToList();
 
         /// <summary>
         /// Compiles both serialization and deserialization instructions from given mappings.
@@ -410,8 +410,8 @@ namespace Fracture.Net.Serialization.Generation
             var serializationValueIndex = 0;
 
             var builder = ops.OfType<IndirectActivationOp>().Any()
-                              ? DynamicDeserializeDelegateBuilder.CreateWithIndirectActivation(valueRanges, type)
-                              : DynamicDeserializeDelegateBuilder.CreateWithDirectActivation(valueRanges, type);
+                ? DynamicDeserializeDelegateBuilder.CreateWithIndirectActivation(valueRanges, type)
+                : DynamicDeserializeDelegateBuilder.CreateWithDirectActivation(valueRanges, type);
 
             builder.EmitLocals();
 

@@ -15,7 +15,7 @@ namespace Fracture.Common.Di.Binding
         public DependencyBindingResolver(IDependencyLocator locator)
             => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
-        public bool ResolveActivator(Type type, IBindingValue [] values, out IDependencyActivator activator)
+        public bool ResolveActivator(Type type, IBindingValue[] values, out IDependencyActivator activator)
         {
             if (type.IsAbstract)
                 throw new DependencyBinderException(type, $"can't create instance of abstract type {type.Name}");
@@ -33,7 +33,7 @@ namespace Fracture.Common.Di.Binding
             return activator != null;
         }
 
-        public bool ResolveBindings(Type type, IBindingValue [] values, out List<IDependencyBinding> bindings)
+        public bool ResolveBindings(Type type, IBindingValue[] values, out List<IDependencyBinding> bindings)
         {
             bindings = new List<IDependencyBinding>();
 

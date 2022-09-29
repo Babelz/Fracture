@@ -12,6 +12,7 @@ namespace Fracture.Engine.Ui.Components
     {
         #region Events
         event EventHandler<ControlEventArgs> ControlAdded;
+
         event EventHandler<ControlEventArgs> ControlRemoved;
         #endregion
 
@@ -77,6 +78,7 @@ namespace Fracture.Engine.Ui.Components
 
         #region Events
         public event EventHandler<ControlEventArgs> ControlAdded;
+
         public event EventHandler<ControlEventArgs> ControlRemoved;
         #endregion
 

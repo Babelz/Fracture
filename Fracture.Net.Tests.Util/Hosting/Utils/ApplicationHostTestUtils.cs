@@ -27,25 +27,25 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
             get;
         }
         #endregion
-        
-        public TestApplicationHost(Application application, 
-                                   ApplicationServiceHost services, 
+
+        public TestApplicationHost(Application application,
+                                   ApplicationServiceHost services,
                                    ApplicationScriptingHost scripts,
                                    Kernel serviceKernel,
-                                   Kernel scriptKernel) 
+                                   Kernel scriptKernel)
             : base(application, services, scripts)
         {
             ServiceKernel = serviceKernel ?? throw new ArgumentNullException(nameof(serviceKernel));
             ScriptKernel  = scriptKernel ?? throw new ArgumentNullException(nameof(scriptKernel));
         }
     }
-    
+
     /// <summary>
     /// Class that provides builder implementation for <see cref="TestApplicationHost"/>.
     /// </summary>
     public sealed class TestApplicationHostBuilder : BaseApplicationHostBuilder<TestApplicationHostBuilder, TestApplicationHost>
     {
-        public TestApplicationHostBuilder(Application application) 
+        public TestApplicationHostBuilder(Application application)
             : base(application)
         {
         }

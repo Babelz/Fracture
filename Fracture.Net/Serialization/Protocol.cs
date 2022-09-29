@@ -8,12 +8,12 @@ namespace Fracture.Net.Serialization
     /// <summary>
     /// Generic delegate for wrapping write calls to buffer.
     /// </summary>
-    public delegate void HeaderWriteDelegate<in T>(T value, byte [] buffer, int offset);
+    public delegate void HeaderWriteDelegate<in T>(T value, byte[] buffer, int offset);
 
     /// <summary>
     /// Generic delegate for wrapping read calls to buffer.
     /// </summary>
-    public delegate T HeaderReadDelegate<out T>(byte [] buffer, int offset);
+    public delegate T HeaderReadDelegate<out T>(byte[] buffer, int offset);
 
     /// <summary>
     /// Class providing generic wrapper for protocol labels such as message type id and size fields.
@@ -43,10 +43,10 @@ namespace Fracture.Net.Serialization
             this.read  = read ?? throw new ArgumentNullException(nameof(read));
         }
 
-        public void Write(T value, byte [] buffer, int offset)
+        public void Write(T value, byte[] buffer, int offset)
             => write(value, buffer, offset);
 
-        public T Read(byte [] buffer, int offset)
+        public T Read(byte[] buffer, int offset)
             => read(buffer, offset);
     }
 

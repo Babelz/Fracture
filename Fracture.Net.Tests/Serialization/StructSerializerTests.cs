@@ -88,9 +88,9 @@ namespace Fracture.Net.Tests.Serialization
         static StructSerializerTests()
         {
             StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
-                                                          .PublicFields()
-                                                          .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
-                                                          .Map());
+                                     .PublicFields()
+                                     .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
+                                     .Map());
 
             StructSerializer.Map(ObjectSerializationMapper.ForType<ClassComposedOfStructs>().PublicFields().Map());
 
@@ -117,12 +117,9 @@ namespace Fracture.Net.Tests.Serialization
             var testValueIn = new IndirectlyActivatedTestClass();
 
             StructSerializer.Map(ObjectSerializationMapper.ForType<IndirectlyActivatedTestClass>()
-                                                          .PublicFields()
-                                                          .IndirectActivation(() =>
-                                                           {
-                                                               return testValueIn;
-                                                           })
-                                                          .Map());
+                                     .PublicFields()
+                                     .IndirectActivation(() => { return testValueIn; })
+                                     .Map());
 
             testValueIn.X = testValueIn.Y = 256;
 

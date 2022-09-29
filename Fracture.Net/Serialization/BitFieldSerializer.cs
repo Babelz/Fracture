@@ -14,7 +14,7 @@ namespace Fracture.Net.Serialization
         #endregion
 
         #region Fields
-        private readonly byte [] bytes;
+        private readonly byte[] bytes;
         #endregion
 
         #region Properties
@@ -70,13 +70,13 @@ namespace Fracture.Net.Serialization
         /// <summary>
         /// Copies bit field bytes to given buffer at given offset.
         /// </summary>
-        public void CopyTo(byte [] buffer, int offset)
+        public void CopyTo(byte[] buffer, int offset)
             => MemoryMapper.VectorizedCopy(bytes, 0, buffer, offset, bytes.Length);
 
         /// <summary>
         /// Copies buffer values to bit field beginning from given offset.
         /// </summary>
-        public void CopyFrom(byte [] buffer, int offset)
+        public void CopyFrom(byte[] buffer, int offset)
             => MemoryMapper.VectorizedCopy(buffer, offset, bytes, 0, bytes.Length);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -101,7 +101,7 @@ namespace Fracture.Net.Serialization
             => type == typeof(BitField);
 
         [ValueSerializer.Serialize]
-        public static void Serialize(BitField value, byte [] buffer, int offset)
+        public static void Serialize(BitField value, byte[] buffer, int offset)
         {
             Protocol.ContentLength.Write(checked((ushort)(value.BytesLength + Protocol.ContentLength.Size)), buffer, offset);
 
@@ -109,7 +109,7 @@ namespace Fracture.Net.Serialization
         }
 
         [ValueSerializer.Deserialize]
-        public static BitField Deserialize(byte [] buffer, int offset)
+        public static BitField Deserialize(byte[] buffer, int offset)
         {
             var size = Protocol.ContentLength.Read(buffer, offset) - Protocol.ContentLength.Size;
 
@@ -121,7 +121,7 @@ namespace Fracture.Net.Serialization
         }
 
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => Protocol.ContentLength.Read(buffer, offset);
 
         [ValueSerializer.GetSizeFromValue]

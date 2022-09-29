@@ -47,7 +47,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
             return this;
         }
 
-        public FakeServerFrame Incoming(PeerConnection connection, byte [] data, int length)
+        public FakeServerFrame Incoming(PeerConnection connection, byte[] data, int length)
         {
             messages.Enqueue(new PeerMessageEventArgs(connection, data, length, DateTime.UtcNow.TimeOfDay));
 
@@ -93,9 +93,11 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         #region Events
         public event StructEventHandler<PeerJoinEventArgs> Join;
+
         public event StructEventHandler<PeerResetEventArgs> Reset;
 
         public event StructEventHandler<PeerMessageEventArgs> Incoming;
+
         public event StructEventHandler<ServerMessageEventArgs> Outgoing;
         #endregion
 
@@ -103,7 +105,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         public IEnumerable<int> PeerIds => peerIds;
 
-        private FakeServer(params FakeServerFrame [] frames)
+        private FakeServer(params FakeServerFrame[] frames)
         {
             this.frames = new Queue<FakeServerFrame>(frames ?? throw new ArgumentNullException(nameof(frames)));
 
@@ -122,7 +124,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         public bool Connected(int peerId)
             => peerIds.Contains(peerId);
 
-        public void Send(int peerId, byte [] data, int offset, int length)
+        public void Send(int peerId, byte[] data, int offset, int length)
             => outgoing.Enqueue(new ServerMessageEventArgs(new PeerConnection(peerId, endpoints[peerId]), data, offset, length, DateTime.UtcNow.TimeOfDay));
 
         public void Start()
@@ -182,7 +184,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeServer FromFrames(params FakeServerFrame [] frames)
+        public static FakeServer FromFrames(params FakeServerFrame[] frames)
             => new FakeServer(frames);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

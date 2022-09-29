@@ -29,7 +29,7 @@ namespace Fracture.Common.Di
         private readonly bool strict;
         #endregion
 
-        public Dependency(object value, Type [] types, bool strict)
+        public Dependency(object value, Type[] types, bool strict)
         {
             Debug.Assert(types?.Length != 0);
 
@@ -71,6 +71,6 @@ namespace Fracture.Common.Di
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(types);
+                .Append(types);
     }
 }

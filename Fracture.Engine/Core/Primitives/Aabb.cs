@@ -161,9 +161,9 @@ namespace Fracture.Engine.Core.Primitives
 
         public override int GetHashCode()
             => HashUtils.Create()
-                        .Append(Position)
-                        .Append(Bounds)
-                        .Append(Rotation);
+                .Append(Position)
+                .Append(Bounds)
+                .Append(Rotation);
 
         public override string ToString()
             => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";

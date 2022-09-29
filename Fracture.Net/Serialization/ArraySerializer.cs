@@ -55,7 +55,7 @@ namespace Fracture.Net.Serialization
         /// Writes given array to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(T [] values, byte [] buffer, int offset)
+        public static void Serialize<T>(T[] values, byte[] buffer, int offset)
         {
             // Leave 2-bytes from the beginning of the object for content length.
             var contentLengthOffset = offset;
@@ -132,7 +132,7 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static T [] Deserialize<T>(byte [] buffer, int offset)
+        public static T[] Deserialize<T>(byte[] buffer, int offset)
         {
             // Seek to collection length.
             offset += Protocol.ContentLength.Size;
@@ -169,14 +169,14 @@ namespace Fracture.Net.Serialization
         /// Returns size of array, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
         /// Returns size of array value, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
-        public static ushort GetSizeFromValue<T>(T [] values)
+        public static ushort GetSizeFromValue<T>(T[] values)
         {
             var isSparseCollection       = false;
             var getSizeFromValueDelegate = (GetSizeFromValueDelegate<T>)GetSizeFromValueDelegates[typeof(T)];
@@ -227,7 +227,7 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<T>(List<T> value, byte [] buffer, int offset)
+        public static void Serialize<T>(List<T> value, byte[] buffer, int offset)
             => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
 
         /// <summary>
@@ -235,14 +235,14 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static List<T> Deserialize<T>(byte [] buffer, int offset)
+        public static List<T> Deserialize<T>(byte[] buffer, int offset)
             => new List<T>(ArraySerializer.Deserialize<T>(buffer, offset));
 
         /// <summary>
         /// Returns size of list, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => ArraySerializer.GetSizeFromBuffer(buffer, offset);
 
         /// <summary>
@@ -296,7 +296,7 @@ namespace Fracture.Net.Serialization
         /// Writes given key value pair value to given buffer beginning at given offset.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte [] buffer, int offset)
+        public static void Serialize<TKey, TValue>(KeyValuePair<TKey, TValue> value, byte[] buffer, int offset)
         {
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
@@ -328,7 +328,7 @@ namespace Fracture.Net.Serialization
         /// and returns that value to the caller.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static KeyValuePair<TKey, TValue> Deserialize<TKey, TValue>(byte [] buffer, int offset)
+        public static KeyValuePair<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
         {
             var keyType   = typeof(TKey);
             var valueType = typeof(TValue);
@@ -355,7 +355,7 @@ namespace Fracture.Net.Serialization
         /// Returns size of key value pair value, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => Protocol.ContentLength.Read(buffer, offset);
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Serialize]
-        public static void Serialize<TKey, TValue>(Dictionary<TKey, TValue> value, byte [] buffer, int offset)
+        public static void Serialize<TKey, TValue>(Dictionary<TKey, TValue> value, byte[] buffer, int offset)
             => ArraySerializer.Serialize(value.ToArray(), buffer, offset);
 
         /// <summary>
@@ -413,14 +413,14 @@ namespace Fracture.Net.Serialization
         /// TODO: fix the possible performance issue if needed.
         /// </summary>
         [ValueSerializer.Deserialize]
-        public static Dictionary<TKey, TValue> Deserialize<TKey, TValue>(byte [] buffer, int offset)
+        public static Dictionary<TKey, TValue> Deserialize<TKey, TValue>(byte[] buffer, int offset)
             => ArraySerializer.Deserialize<KeyValuePair<TKey, TValue>>(buffer, offset).ToDictionary(k => k.Key, v => v.Value);
 
         /// <summary>
         /// Returns size of dictionary, size will vary.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
-        public static ushort GetSizeFromBuffer(byte [] buffer, int offset)
+        public static ushort GetSizeFromBuffer(byte[] buffer, int offset)
             => ArraySerializer.GetSizeFromBuffer(buffer, offset);
 
         /// <summary>

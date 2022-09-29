@@ -61,6 +61,7 @@ namespace Fracture.Common.Tests.Memory
         public void Default_Clear_Delegate_Clears_All_Fields_And_Properties_That_Are_Public()
         {
             var clear = ClearableUtils.CreateClearDelegate<ClearableTestClass>();
+
             var value = new ClearableTestClass()
             {
                 A = "hello",
