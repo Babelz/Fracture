@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -35,78 +35,79 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="mscorlib"/>
+        <Reference Include="mscorlib" />
         <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed">
             <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
         </Reference>
-        <Reference Include="System"/>
-        <Reference Include="System.Core"/>
-        <Reference Include="System.Data"/>
-        <Reference Include="System.Numerics"/>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Numerics" />
         <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
             <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
             <Private>True</Private>
         </Reference>
-        <Reference Include="System.Xml"/>
+        <Reference Include="System.Xml" />
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Collections\CircularBuffer.cs"/>
-        <Compile Include="Collections\Concurrent\LockedDoubleBuffer.cs"/>
-        <Compile Include="Collections\FreeList.cs"/>
-        <Compile Include="Collections\LinearGrowthArray.cs"/>
-        <Compile Include="Collections\LinearGrowthList.cs"/>
-        <Compile Include="Collections\LinearRegistry.cs"/>
-        <Compile Include="Collections\Stack.cs"/>
-        <Compile Include="Di\Attributes\BindingConstructorAttribute.cs"/>
-        <Compile Include="Di\Attributes\BindingMethodAttribute.cs"/>
-        <Compile Include="Di\Attributes\BindingPropertyAttribute.cs"/>
-        <Compile Include="Di\Binding\DependencyActivator.cs"/>
-        <Compile Include="Di\Binding\DependencyBinder.cs"/>
-        <Compile Include="Di\Binding\DependencyBinding.cs"/>
-        <Compile Include="Di\Binding\DependencyBindingOptions.cs"/>
-        <Compile Include="Di\Binding\DependencyBindingResolver.cs"/>
-        <Compile Include="Di\Binding\DependencyBindingLocator.cs"/>
-        <Compile Include="Di\Binding\DependencyTypeMapper.cs"/>
-        <Compile Include="Di\Dependency.cs"/>
-        <Compile Include="Di\Exceptions.cs"/>
-        <Compile Include="Di\Kernel.cs"/>
-        <Compile Include="Events\EventQueue.cs"/>
-        <Compile Include="Events\EventScheduler.cs"/>
-        <Compile Include="Events\KeyEventScheduler.cs"/>
-        <Compile Include="Events\ScheduledEvent.cs"/>
-        <Compile Include="Events\StructEventArgs.cs"/>
-        <Compile Include="Exceptions.cs"/>
-        <Compile Include="Memory\MemoryMapper.cs"/>
-        <Compile Include="Memory\IClearable.cs"/>
-        <Compile Include="Memory\ICloneable.cs"/>
-        <Compile Include="Memory\ICopyable.cs"/>
-        <Compile Include="Memory\Pools\ArrayPool.cs"/>
-        <Compile Include="Memory\Pools\CleanPool.cs"/>
-        <Compile Include="Memory\Pools\CollectionPool.cs"/>
-        <Compile Include="Memory\Pools\ConcurrentPool.cs"/>
-        <Compile Include="Memory\Pools\DelegatePool.cs"/>
-        <Compile Include="Memory\Pools\LinearPool.cs"/>
-        <Compile Include="Memory\Pools\Pool.cs"/>
-        <Compile Include="Memory\Pools\PrototypePool.cs"/>
-        <Compile Include="Memory\Storages\FixedStorageObject.cs"/>
-        <Compile Include="Memory\Storages\IStorageObject.cs"/>
-        <Compile Include="Memory\Storages\LinearStorageObject.cs"/>
-        <Compile Include="Memory\Storages\ListStorageObject.cs"/>
-        <Compile Include="Memory\Storages\StackStorageObject.cs"/>
-        <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="Reflection\DynamicConstructorBinder.cs"/>
-        <Compile Include="Reflection\DynamicMethodBuilder.cs"/>
-        <Compile Include="Reflection\DynamicPropertyBinder.cs"/>
-        <Compile Include="Reflection\DynamicPropertyWrapper.cs"/>
-        <Compile Include="Reflection\ReflectionUtil.cs"/>
-        <Compile Include="Runtime\ExecutionTimer.cs"/>
-        <Compile Include="Util\HashUtil.cs"/>
-        <Compile Include="Util\MathUtil.cs"/>
+        <Compile Include="Collections\CircularBuffer.cs" />
+        <Compile Include="Collections\Concurrent\LockedDoubleBuffer.cs" />
+        <Compile Include="Collections\FreeList.cs" />
+        <Compile Include="Collections\LinearGrowthArray.cs" />
+        <Compile Include="Collections\LinearGrowthList.cs" />
+        <Compile Include="Collections\LinearRegistry.cs" />
+        <Compile Include="Collections\Stack.cs" />
+        <Compile Include="Di\Attributes\BindingConstructorAttribute.cs" />
+        <Compile Include="Di\Attributes\BindingMethodAttribute.cs" />
+        <Compile Include="Di\Attributes\BindingPropertyAttribute.cs" />
+        <Compile Include="Di\Binding\DependencyActivator.cs" />
+        <Compile Include="Di\Binding\DependencyBinder.cs" />
+        <Compile Include="Di\Binding\DependencyBinding.cs" />
+        <Compile Include="Di\Binding\DependencyBindingOptions.cs" />
+        <Compile Include="Di\Binding\DependencyBindingResolver.cs" />
+        <Compile Include="Di\Binding\DependencyBindingLocator.cs" />
+        <Compile Include="Di\Binding\DependencyTypeMapper.cs" />
+        <Compile Include="Di\Dependency.cs" />
+        <Compile Include="Di\Exceptions.cs" />
+        <Compile Include="Di\Kernel.cs" />
+        <Compile Include="Events\EventQueue.cs" />
+        <Compile Include="Events\EventScheduler.cs" />
+        <Compile Include="Events\KeyEventScheduler.cs" />
+        <Compile Include="Events\ScheduledEvent.cs" />
+        <Compile Include="Events\StructEventArgs.cs" />
+        <Compile Include="Exceptions.cs" />
+        <Compile Include="Memory\MemoryMapper.cs" />
+        <Compile Include="Memory\IClearable.cs" />
+        <Compile Include="Memory\ICloneable.cs" />
+        <Compile Include="Memory\ICopyable.cs" />
+        <Compile Include="Memory\Pools\ArrayPool.cs" />
+        <Compile Include="Memory\Pools\CleanPool.cs" />
+        <Compile Include="Memory\Pools\CollectionPool.cs" />
+        <Compile Include="Memory\Pools\ConcurrentPool.cs" />
+        <Compile Include="Memory\Pools\DelegatePool.cs" />
+        <Compile Include="Memory\Pools\LinearPool.cs" />
+        <Compile Include="Memory\Pools\Pool.cs" />
+        <Compile Include="Memory\Pools\PrototypePool.cs" />
+        <Compile Include="Memory\Storages\FixedStorageObject.cs" />
+        <Compile Include="Memory\Storages\IStorageObject.cs" />
+        <Compile Include="Memory\Storages\LinearStorageObject.cs" />
+        <Compile Include="Memory\Storages\ListStorageObject.cs" />
+        <Compile Include="Memory\Storages\StackStorageObject.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Reflection\DynamicConstructorBinder.cs" />
+        <Compile Include="Reflection\DynamicMethodBuilder.cs" />
+        <Compile Include="Reflection\DynamicPropertyBinder.cs" />
+        <Compile Include="Reflection\DynamicPropertyWrapper.cs" />
+        <Compile Include="Reflection\ReflectionUtil.cs" />
+        <Compile Include="Runtime\ExecutionTimer.cs" />
+        <Compile Include="Util\HashUtil.cs" />
+        <Compile Include="Util\MathUtil.cs" />
+        <Compile Include="Util\TimeUtil.cs" />
     </ItemGroup>
     <ItemGroup>
-        <None Include="packages.config"/>
+        <None Include="packages.config" />
     </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
