@@ -30,6 +30,18 @@ namespace Fracture.Net.Messages
             => (in IMessage message) => message is T;
 
         /// <summary>
+        /// Matcher that only accepts one specific message type with specific message details.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static MessageMatchDelegate Exact<T>(Predicate<T> predicate) where T : IMessage
+        {
+            if (predicate == null)
+                throw new ArgumentNullException(nameof(predicate));
+            
+            return (in IMessage message) => message is T value && predicate(value);
+        }
+        
+        /// <summary>
         /// Matcher that allows many message types.
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
