@@ -180,22 +180,30 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         public void Poll()
         {
+            void HandleLeaves(IEnumerable<PeerResetEventArgs> leaves)
+            {
+                foreach (var leaving in leaves)
+                {
+                    peerIds.Remove(leaving.Connection.PeerId);
+                    endpoints.Remove(leaving.Connection.PeerId);
+
+                    Reset?.Invoke(this, leaving); 
+                }
+            }
+            
+            // Handle leaves outside frame context.
+            HandleLeaves(leaves);
+            
+            leaves.Clear();
+            
             while (frames.Count != 0 && frames[0].Frame == ticks)
             {
                 // Player frames that have been enqueued for this tick.
                 var frame = frames[0];
                 
-                // Handle leaves.
-                foreach (var leaving in leaves.Concat(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>()))
-                {
-                    peerIds.Remove(leaving.Connection.PeerId);
-                    endpoints.Remove(leaving.Connection.PeerId);
-
-                    Reset?.Invoke(this, leaving);
-                }
-
-                leaves.Clear();
-
+                // Handle leaves inside frame context.
+                HandleLeaves(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>());
+                
                 // Handle joins.
                 foreach (var joining in frame?.Joins ?? Array.Empty<PeerJoinEventArgs>())
                 {
@@ -209,12 +217,12 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
                 foreach (var message in frame?.Messages ?? Array.Empty<PeerMessageEventArgs>())
                     Incoming?.Invoke(this, message);
 
-                // Handle outgoing.
-                while (outgoing.Count != 0)
-                    Outgoing?.Invoke(this, outgoing.Dequeue());       
-                
                 frames.RemoveAt(0);
             }
+
+            // Handle outgoing.
+            while (outgoing.Count != 0)
+                Outgoing?.Invoke(this, outgoing.Dequeue());       
             
             ticks++;
         }

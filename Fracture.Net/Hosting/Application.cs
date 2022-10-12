@@ -371,7 +371,7 @@ namespace Fracture.Net.Hosting
                 }
                 catch (Exception e)
                 {
-                    Log.Warning(e, "unhandled error occurred notifying about reseting peer");
+                    Log.Warning(e, "unhandled error occurred notifying about resetting peer");
                 }
 
                 leavedPeers.Add(resetEvent.Connection.PeerId);

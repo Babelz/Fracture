@@ -101,10 +101,13 @@ namespace Fracture.Net.Tests.Hosting
 
             var resetConnections = new List<PeerConnection>();
 
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create(0ul).Join(first),
-                                                                                  FakeServerFrame.Create(1ul).Join(second),
-                                                                                  FakeServerFrame.Create(2ul).Incoming(first, Message.Create<TestValueMessage>())))
-                                                .Build();
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Sequence(
+                                                                                      (s) => FakeServerFrame.Create(s).Join(first),
+                                                                                      (s) => FakeServerFrame.Create(s).Join(second),
+                                                                                      (s) => FakeServerFrame.Create(s)
+                                                                                                            .Incoming(first, Message.Create<TestValueMessage>()))
+                                                            )
+            ).Build();
 
             ApplicationTestUtils.LimitTicks(application, 4);
 

@@ -74,7 +74,7 @@ namespace Fracture.Net.Messages
             if (type.GetAttribute<DescriptionAttribute>() == null)
                 throw new MessageSchemaTypeException(type, $"type is not annotated with {nameof(MessageSchema)}.{nameof(DescriptionAttribute)}");
             
-            if (!type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public).Any(m => m.GetAttribute<LoadAttribute>() != null))
+            if (!type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).Any(m => m.GetAttribute<LoadAttribute>() != null))
                 throw new MessageSchemaTypeException(type, $"none of the types methods are annotated with {nameof(MessageSchema)}.{nameof(LoadAttribute)}");
         }
 
