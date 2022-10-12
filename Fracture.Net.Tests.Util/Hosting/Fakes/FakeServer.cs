@@ -10,6 +10,8 @@ using Fracture.Net.Serialization;
 
 namespace Fracture.Net.Tests.Util.Hosting.Fakes
 {
+    public delegate FakeServerFrame FakeServerFrameGeneratorDelegate(ulong frame);
+    
     public sealed class FakeServerFrame
     {
         #region Fields
@@ -24,10 +26,16 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         public IEnumerable<PeerJoinEventArgs> Joins => joins;
 
         public IEnumerable<PeerMessageEventArgs> Messages => messages;
+
+        public ulong Frame
+        {
+            get;
+        }
         #endregion
 
-        private FakeServerFrame()
+        private FakeServerFrame(ulong frame)
         {
+            Frame    = frame;
             leaves   = new Queue<PeerResetEventArgs>();
             joins    = new Queue<PeerJoinEventArgs>();
             messages = new Queue<PeerMessageEventArgs>();
@@ -66,9 +74,29 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
             return this;
         }
 
+        public FakeServerFrame Noop()
+        {
+            // In most cases we don't need do this but just to avoid any programming mistakes make sure the frame is clear when it is configured as noop.
+            if (leaves.Count + joins.Count + messages.Count > 0)
+                throw new InvalidOperationException("Attempting to create noop frame from non-empty one");
+
+            return this;
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static FakeServerFrame Create()
-            => new FakeServerFrame();
+        public static FakeServerFrame Create(ulong frame)
+            => new FakeServerFrame(frame);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<FakeServerFrame> Sequence(ulong startFrame = 0ul, params FakeServerFrameGeneratorDelegate[] generators)
+        {
+            foreach (var generator in generators)
+                yield return generator(startFrame++);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IEnumerable<FakeServerFrame> Sequence(params FakeServerFrameGeneratorDelegate[] generators)
+            => Sequence(0ul, generators);
     }
 
     public sealed class FakeServer : IServer
@@ -88,7 +116,9 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         private readonly HashSet<PeerResetEventArgs>   leaves;
         private readonly Queue<ServerMessageEventArgs> outgoing;
 
-        private readonly Queue<FakeServerFrame> frames;
+        private readonly List<FakeServerFrame> frames;
+
+        private ulong ticks;
         #endregion
 
         #region Events
@@ -107,7 +137,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         private FakeServer(params FakeServerFrame[] frames)
         {
-            this.frames = new Queue<FakeServerFrame>(frames ?? throw new ArgumentNullException(nameof(frames)));
+            this.frames = new List<FakeServerFrame>(frames ?? throw new ArgumentNullException(nameof(frames)));
 
             peerIds   = new HashSet<int>();
             leaves    = new HashSet<PeerResetEventArgs>();
@@ -116,7 +146,11 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         }
 
         public void EnqueueFrame(FakeServerFrame frame)
-            => frames.Enqueue(frame ?? throw new ArgumentNullException(nameof(frame)));
+        {
+            frames.Add(frame ?? throw new ArgumentNullException(nameof(frame)));
+            
+            frames.Sort((a, b) => a.Frame > b.Frame ? -1 : a.Frame < b.Frame ? 1 : 0);
+        }
 
         public void Disconnect(int peerId)
             => leaves.Add(new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));
@@ -146,36 +180,43 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         public void Poll()
         {
-            // Get frame.
-            var frame = frames.Count != 0 ? frames.Dequeue() : null;
-
-            // Handle leaves.
-            foreach (var leaving in leaves.Concat(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>()))
+            while (frames.Count != 0 && frames[0].Frame == ticks)
             {
-                peerIds.Remove(leaving.Connection.PeerId);
-                endpoints.Remove(leaving.Connection.PeerId);
+                // Player frames that have been enqueued for this tick.
+                var frame = frames[0];
+                
+                // Handle leaves.
+                foreach (var leaving in leaves.Concat(frame?.Leaves ?? Array.Empty<PeerResetEventArgs>()))
+                {
+                    peerIds.Remove(leaving.Connection.PeerId);
+                    endpoints.Remove(leaving.Connection.PeerId);
 
-                Reset?.Invoke(this, leaving);
+                    Reset?.Invoke(this, leaving);
+                }
+
+                leaves.Clear();
+
+                // Handle joins.
+                foreach (var joining in frame?.Joins ?? Array.Empty<PeerJoinEventArgs>())
+                {
+                    peerIds.Add(joining.Connection.PeerId);
+                    endpoints.Add(joining.Connection.PeerId, joining.Connection.EndPoint);
+
+                    Join?.Invoke(this, joining);
+                }
+
+                // Handle incoming
+                foreach (var message in frame?.Messages ?? Array.Empty<PeerMessageEventArgs>())
+                    Incoming?.Invoke(this, message);
+
+                // Handle outgoing.
+                while (outgoing.Count != 0)
+                    Outgoing?.Invoke(this, outgoing.Dequeue());       
+                
+                frames.RemoveAt(0);
             }
-
-            leaves.Clear();
-
-            // Handle joins.
-            foreach (var joining in frame?.Joins ?? Array.Empty<PeerJoinEventArgs>())
-            {
-                peerIds.Add(joining.Connection.PeerId);
-                endpoints.Add(joining.Connection.PeerId, joining.Connection.EndPoint);
-
-                Join?.Invoke(this, joining);
-            }
-
-            // Handle incoming
-            foreach (var message in frame?.Messages ?? Array.Empty<PeerMessageEventArgs>())
-                Incoming?.Invoke(this, message);
-
-            // Handle outgoing.
-            while (outgoing.Count != 0)
-                Outgoing?.Invoke(this, outgoing.Dequeue());
+            
+            ticks++;
         }
 
         public void Dispose()
@@ -186,6 +227,10 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeServer FromFrames(params FakeServerFrame[] frames)
             => new FakeServer(frames);
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FakeServer FromFrames(IEnumerable<FakeServerFrame> frames)
+            => new FakeServer(frames.ToArray());
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FakeServer Create()

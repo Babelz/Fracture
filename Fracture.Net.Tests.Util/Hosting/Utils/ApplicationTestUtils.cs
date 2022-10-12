@@ -1,6 +1,9 @@
 using System;
 using System.Runtime.CompilerServices;
 using Fracture.Net.Hosting;
+using Fracture.Net.Hosting.Messaging;
+using Fracture.Net.Hosting.Servers;
+using Fracture.Net.Messages;
 
 namespace Fracture.Net.Tests.Util.Hosting.Utils
 {
@@ -48,7 +51,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
         /// <param name="limit">for how many ticks the application should run before shutdown is called</param>
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void LimitFrames(Application application, ulong limit)
+        public static void LimitTicks(Application application, ulong limit)
         {
             void Tick(object sender, EventArgs args)
             {

@@ -158,7 +158,7 @@ namespace Fracture.Net.Hosting.Messaging
         public void Send(int peerId, in IMessage message)
         {
             AssertUnset();
-
+            
             Command = NotificationCommand.Send;
             PeerIds = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));

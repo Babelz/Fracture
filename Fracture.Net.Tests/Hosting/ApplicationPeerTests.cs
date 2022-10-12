@@ -53,11 +53,11 @@ namespace Fracture.Net.Tests.Hosting
             var first  = FakePeer.Create();
             var second = FakePeer.Create();
 
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
-                                                                                  FakeServerFrame.Create().Join(second).Leave(first, ResetReason.LocalReset)))
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create(0ul).Join(first),
+                                                                                  FakeServerFrame.Create(1ul).Join(second).Leave(first, ResetReason.LocalReset)))
                                                 .Build();
 
-            ApplicationTestUtils.LimitFrames(application, 2);
+            ApplicationTestUtils.LimitTicks(application, 2);
 
             application.Join += (object s, in PeerJoinEventArgs e) =>
             {
@@ -81,13 +81,13 @@ namespace Fracture.Net.Tests.Hosting
         {
             var peerId = FakePeer.Create();
 
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(peerId),
-                                                                                  FakeServerFrame.Create()
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create(0ul).Join(peerId),
+                                                                                  FakeServerFrame.Create(1ul)
                                                                                                  .Incoming(peerId, Message.Create<TestValueMessage>())
                                                                                                  .Leave(peerId, ResetReason.RemoteReset)))
                                                 .Build();
 
-            ApplicationTestUtils.LimitFrames(application, 4);
+            ApplicationTestUtils.LimitTicks(application, 4);
 
             application.Requests.Middleware.Use(MiddlewareMatch<RequestMiddlewareContext>.Any(),
                                                 (in RequestMiddlewareContext _) => throw new Exception("not expecting messages to reach this part"));
@@ -101,12 +101,12 @@ namespace Fracture.Net.Tests.Hosting
 
             var resetConnections = new List<PeerConnection>();
 
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first),
-                                                                                  FakeServerFrame.Create().Join(second),
-                                                                                  FakeServerFrame.Create().Incoming(first, Message.Create<TestValueMessage>())))
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create(0ul).Join(first),
+                                                                                  FakeServerFrame.Create(1ul).Join(second),
+                                                                                  FakeServerFrame.Create(2ul).Incoming(first, Message.Create<TestValueMessage>())))
                                                 .Build();
 
-            ApplicationTestUtils.LimitFrames(application, 4);
+            ApplicationTestUtils.LimitTicks(application, 4);
 
             application.Requests.Router.Use(MessageMatch.Any(), (request, response) => response.Reset());
 
@@ -129,9 +129,9 @@ namespace Fracture.Net.Tests.Hosting
 
             var resetConnections = new List<PeerConnection>();
 
-            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create().Join(first), FakeServerFrame.Create().Join(second))).Build();
+            var application = ApplicationBuilder.FromServer(FakeServer.FromFrames(FakeServerFrame.Create(0ul).Join(first), FakeServerFrame.Create(1ul).Join(second))).Build();
 
-            ApplicationTestUtils.LimitFrames(application, 3);
+            ApplicationTestUtils.LimitTicks(application, 3);
             ApplicationTestUtils.FrameAction(application, 1, () => application.Notifications.Queue.Enqueue(n => n.Reset(first.PeerId)));
 
             application.Reset += (object sender, in PeerResetEventArgs args) =>

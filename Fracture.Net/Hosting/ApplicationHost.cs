@@ -231,8 +231,8 @@ namespace Fracture.Net.Hosting
                 }
             };
 
-            application.Join       += (object sender, in PeerJoinEventArgs e) => Join?.Invoke(this, e);
-            application.Reset      += (object sender, in PeerResetEventArgs e) => Reset?.Invoke(this, e);
+            application.Join       += (object sender, in PeerJoinEventArgs e)    => Join?.Invoke(this, e);
+            application.Reset      += (object sender, in PeerResetEventArgs e)   => Reset?.Invoke(this, e);
             application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
 
             foreach (var script in scripts.All<IApplicationScript>())

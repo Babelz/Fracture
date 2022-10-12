@@ -1,6 +1,10 @@
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Runtime.CompilerServices;
+using Castle.Core.Internal;
 using Fracture.Common.Collections;
 using Fracture.Common.Memory;
 using Fracture.Common.Memory.Pools;
@@ -150,43 +154,6 @@ namespace Fracture.Net.Messages
                 if (IsPooled(message))
                     Pools[message.GetType()].Return(message);
             }
-        }
-    }
-
-    /// <summary>
-    /// Utility class for defining messaging schemas. Works only as wrapper around serialization library. For any more fine tuned schema mapping use the
-    /// serialization type mappers.
-    /// </summary>
-    public static class MessageSchema
-    {
-        /// <summary>
-        /// Defines message inside the schema and maps it for usage.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ForMessage<T>(ObjectSchemaMapDelegate map) where T : IMessage
-        {
-            var mapper = ObjectSerializationMapper.ForType<T>();
-
-            map(mapper);
-
-            var mapping = mapper.Map();
-
-            StructSerializer.Map(mapping);
-        }
-
-        /// <summary>
-        /// Defines structure that can be found inside the messages and maps it for usage.
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void ForStruct<T>(ObjectSchemaMapDelegate map)
-        {
-            var mapper = ObjectSerializationMapper.ForType<T>();
-
-            map(mapper);
-
-            var mapping = mapper.Map();
-
-            StructSerializer.Map(mapping);
         }
     }
 }

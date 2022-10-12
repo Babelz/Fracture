@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Security.Permissions;
 using Fracture.Common.Di;
 using Fracture.Net.Hosting;
 
@@ -37,6 +38,41 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
         {
             ServiceKernel = serviceKernel ?? throw new ArgumentNullException(nameof(serviceKernel));
             ScriptKernel  = scriptKernel ?? throw new ArgumentNullException(nameof(scriptKernel));
+        }
+
+        public void FrameAction(ulong frame, Action action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(frame));
+
+            void Tick(object sender, EventArgs args)
+            {
+                if (Application.Clock.Ticks != frame)
+                    return;
+
+                action();
+
+                Application.Tick -= Tick;
+            }
+
+            Application.Tick += Tick;
+        }
+
+        public void Start(ulong limit)
+        {
+            void Tick(object sender, EventArgs args)
+            {
+                if (Application.Clock.Ticks < limit)
+                    return;
+                
+                Application.Shutdown();
+
+                Application.Tick -= Tick;
+            }
+
+            Application.Tick += Tick;
+
+            Start();
         }
     }
 

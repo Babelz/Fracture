@@ -43,7 +43,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
             decorator(notification);
 
             Enqueued?.Invoke(this, new NotificationEventArgs(notification));
-
+            
             notifications.Enqueue(notification);
         }
 
