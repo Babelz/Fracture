@@ -50,3 +50,5 @@ Then to consume the schema and take it into use in your application:
 // You can call Load as many times as you want but the schema is only loaded once.
 MessageSchema.Load(typeof(ExampleSchema));         
 ```
+
+Now when you use the builtin serializer of Fracture all the serialization will follow the schema defined in ExampleSchema.
