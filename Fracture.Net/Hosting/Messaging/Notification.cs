@@ -215,9 +215,9 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(Command)
-                .Append(PeerIds)
-                .Append(Message);
+                        .Append(Command)
+                        .Append(PeerIds)
+                        .Append(Message);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Notification Take()

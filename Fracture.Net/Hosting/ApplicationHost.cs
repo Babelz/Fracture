@@ -160,6 +160,9 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warning(e, "unhandled error occurred while updating service", service);
+                    
+                    // Propagate exceptions to application layer.
+                    throw;
                 }
             }
         }
@@ -227,6 +230,9 @@ namespace Fracture.Net.Hosting
                     catch (Exception ex)
                     {
                         Log.Warning(ex, "unhandled error occurred while unloading script");
+
+                        // Propagate exceptions to application layer.
+                        throw;
                     }
                 }
             };
@@ -289,6 +295,9 @@ namespace Fracture.Net.Hosting
                         catch (Exception e)
                         {
                             Log.Warning(e, "unhandled error occurred while invoking command script", script);
+
+                            // Propagate exceptions to the application layer.
+                            throw;
                         }
 
                         break;
@@ -300,6 +309,9 @@ namespace Fracture.Net.Hosting
                         catch (Exception e)
                         {
                             Log.Warning(e, "unhandled error occurred while executing active script", script);
+
+                            // Propagate exceptions to the application layer.
+                            throw;
                         }
 
                         break;

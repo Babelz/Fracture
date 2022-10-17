@@ -85,7 +85,8 @@ namespace Fracture.Net.Messages
             
             try
             {
-                foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public).Where(m => m.GetAttribute<LoadAttribute>() != null))
+                foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
+                                           .Where(m => m.GetAttribute<LoadAttribute>() != null))
                 {
                     try
                     {

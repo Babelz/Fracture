@@ -168,6 +168,9 @@ namespace Fracture.Net.Tests.Util.Hosting.Fakes
 
         public void Shutdown()
         {
+            if (frames.Any())
+                throw new InvalidOperationException($"server was torn down but total {frames.Count()} frames are still queued");
+            
             foreach (var peerId in peerIds)
             {
                 Reset?.Invoke(this, new PeerResetEventArgs(new PeerConnection(peerId, endpoints[peerId]), ResetReason.LocalReset, DateTime.UtcNow.TimeOfDay));

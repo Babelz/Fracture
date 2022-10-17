@@ -106,6 +106,22 @@ namespace Fracture.Net.Hosting
     }
 
     /// <summary>
+    /// Flags for defining how any exceptions in the pipeline should be handled. This is useful for debugging and test purposes.
+    /// </summary>
+    public enum PipelineExceptionFidelity : byte
+    {
+        /// <summary>
+        /// All exceptions in the pipeline are ingested and reported back via logging. 
+        /// </summary>
+        Ingest = 0,
+        
+        /// <summary>
+        /// All exceptions in the pipeline are re-thrown.
+        /// </summary>
+        Throw
+    }
+
+    /// <summary>
     /// Class that provides functionality for creating net applications. Application provides request and response pipeline support for handling peer requests
     /// and state. 
     /// </summary>
@@ -125,7 +141,8 @@ namespace Fracture.Net.Hosting
 
         private readonly IApplicationTimer timer;
 
-        private readonly PeerPipelineFidelity fidelity;
+        private readonly PeerPipelineFidelity      peerFidelity;
+        private readonly PipelineExceptionFidelity exceptionFidelity;
 
         private readonly Queue<PeerMessageEventArgs> incomingEvents;
         private readonly Queue<PeerResetEventArgs>   resetsEvents;
@@ -198,7 +215,8 @@ namespace Fracture.Net.Hosting
                            IMiddlewarePipeline<RequestResponseMiddlewareContext> responseMiddleware,
                            IMessageSerializer serializer,
                            IApplicationTimer timer,
-                           PeerPipelineFidelity fidelity)
+                           PeerPipelineFidelity peerFidelity,
+                           PipelineExceptionFidelity exceptionFidelity)
         {
             this.server     = server ?? throw new ArgumentNullException(nameof(server));
             this.serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
@@ -210,7 +228,8 @@ namespace Fracture.Net.Hosting
             this.notificationMiddleware = notificationMiddleware ?? throw new ArgumentNullException(nameof(notificationMiddleware));
             this.responseMiddleware     = responseMiddleware ?? throw new ArgumentNullException(nameof(responseMiddleware));
 
-            this.fidelity = fidelity;
+            this.peerFidelity      = peerFidelity;
+            this.exceptionFidelity = exceptionFidelity;
 
             Requests      = new ApplicationRequestContext(requestRouter, requestMiddleware);
             Notifications = new ApplicationNotificationContext(notificationCenter, notificationMiddleware);
@@ -271,13 +290,21 @@ namespace Fracture.Net.Hosting
 
         private void HandlePeerFidelityViolation(PeerPipelineFidelity flag, int peer)
         {
-            if ((fidelity & flag) != flag)
+            if ((peerFidelity & flag) != flag)
                 return;
 
             Log.Warning($"marking peer {peer} to be reset as it broke required fidelity level of " +
                         $"{Enum.GetName(typeof(PeerPipelineFidelity), flag)}");
 
             leavingPeerIds.Add(peer);
+        }
+
+        private void HandlePipelineExceptionFidelity(Exception exception)
+        {
+            if (exceptionFidelity == PipelineExceptionFidelity.Ingest)
+                return;
+
+            throw new Exception("unhandled pipeline exception occurred, pipeline is not configured to ingest exceptions", exception);
         }
 
         #region Event handlers
@@ -312,19 +339,11 @@ namespace Fracture.Net.Hosting
         {
             ShuttingDown?.Invoke(this, EventArgs.Empty);
 
+            notificationCenter.Shutdown();
+            
             server.Shutdown();
         }
-
-        /// <summary>
-        /// Polls the server for incoming events and updates application time.
-        /// </summary>
-        private void PollApplication()
-        {
-            timer.Tick();
-
-            server.Poll();
-        }
-
+        
         /// <summary>
         /// Handles received peer join events.
         /// </summary>
@@ -346,6 +365,8 @@ namespace Fracture.Net.Hosting
                     Log.Warning(e, "unhandled error occurred notifying about joining peer");
 
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Join, joinEvent.Connection.PeerId);
+
+                    HandlePipelineExceptionFidelity(e);
                 }
             }
         }
@@ -372,6 +393,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warning(e, "unhandled error occurred notifying about resetting peer");
+                    
+                    HandlePipelineExceptionFidelity(e);
                 }
 
                 leavedPeers.Add(resetEvent.Connection.PeerId);
@@ -456,6 +479,8 @@ namespace Fracture.Net.Hosting
                     {
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Receive, incomingEvent.Connection.PeerId);
 
+                        HandlePipelineExceptionFidelity(e);
+
                         ReleaseRequest(request);
 
                         BadRequest?.Invoke(this, incomingEvent);
@@ -490,6 +515,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Connection.PeerId);
+
+                    HandlePipelineExceptionFidelity(e);
 
                     ReleaseRequest(request);
 
@@ -569,6 +596,8 @@ namespace Fracture.Net.Hosting
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Request, request.Connection.PeerId);
 
+                    HandlePipelineExceptionFidelity(e);
+
                     ReleaseRequest(request);
                     ReleaseResponse(response);
 
@@ -589,6 +618,8 @@ namespace Fracture.Net.Hosting
             catch (Exception e)
             {
                 Log.Warning(e, "unhandled error occurred when invoking tick");
+                    
+                HandlePipelineExceptionFidelity(e);
             }
         }
 
@@ -612,6 +643,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Connection.PeerId);
+
+                    HandlePipelineExceptionFidelity(e);
 
                     ReleaseRequestResponse(requestResponse);
 
@@ -644,6 +677,8 @@ namespace Fracture.Net.Hosting
                     foreach (var peerId in peerIds)
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peerId);
 
+                    HandlePipelineExceptionFidelity(e);
+
                     ReleaseNotification(notification);
 
                     Log.Warning(e, "unhandled error occurred in notification middleware");
@@ -673,6 +708,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     HandlePeerFidelityViolation(PeerPipelineFidelity.Response, requestResponse.Request.Connection.PeerId);
+
+                    HandlePipelineExceptionFidelity(e);
 
                     Log.Warning(e, "unhandled error occurred while handling accepted responses");
                 }
@@ -769,6 +806,8 @@ namespace Fracture.Net.Hosting
                     foreach (var peerId in peerIds)
                         HandlePeerFidelityViolation(PeerPipelineFidelity.Notification, peerId);
 
+                    HandlePipelineExceptionFidelity(e);
+
                     Log.Warning(e, "unhandled error occurred while handling accepted notifications");
                 }
 
@@ -790,6 +829,8 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Error(e, "unhandled error occurred while disconnecting peer");
+                    
+                    HandlePipelineExceptionFidelity(e);
                 }
             }
 
@@ -823,9 +864,9 @@ namespace Fracture.Net.Hosting
             {
                 applicationLoopTimer.Begin();
 
-                // Step 1: poll server and receive events, update application time. Handle all incoming peer leave and join events first and track all peers that
+                // Step 1: poll server and receive events. Handle all incoming peer leave and join events first and track all peers that
                 //         are about to leave.
-                PollApplication();
+                server.Poll();
 
                 HandlePeerJoins();
                 HandlePeerLeaves();
@@ -848,6 +889,9 @@ namespace Fracture.Net.Hosting
 
                 // Step 6: disconnect all leaving peers.
                 ResetLeavingPeers();
+                
+                // Step 7: update application timer.
+                timer.Tick();
 
                 applicationLoopTimer.End(() =>
                 {

@@ -122,9 +122,21 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Set application peer pipeline fidelity level. If left un set this value defaults to <see cref="PeerPipelineFidelity.Loose"/>.
         /// </summary>
-        public ApplicationBuilder Fidelity(PeerPipelineFidelity fidelity)
+        public ApplicationBuilder PeerFidelity(PeerPipelineFidelity fidelity)
         {
             LogBinding(fidelity, "as peer pipeline configuration variable");
+
+            binder.Bind(fidelity);
+
+            return this;
+        }
+        
+        /// <summary>
+        /// Set application exception fidelity level. If left un set this value defaults to <see cref="PipelineExceptionFidelity.Ingest"/>.
+        /// </summary>
+        public ApplicationBuilder ExceptionFidelity(PipelineExceptionFidelity fidelity)
+        {
+            LogBinding(fidelity, "as pipeline configuration variable");
 
             binder.Bind(fidelity);
 
@@ -163,6 +175,9 @@ namespace Fracture.Net.Hosting
 
             if (!binder.Exists<PeerPipelineFidelity>())
                 binder.Bind(PeerPipelineFidelity.Receive);
+            
+            if (!binder.Exists<PipelineExceptionFidelity>())
+                binder.Bind(PipelineExceptionFidelity.Ingest);
 
             // Initialize application.
             return binder.Activate<Application>();

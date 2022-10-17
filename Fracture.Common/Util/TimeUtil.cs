@@ -10,6 +10,6 @@ namespace Fracture.Common.Util
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TimeSpan TimeRemaining(DateTime startTime, DateTime timeNow, TimeSpan period)
-            => TimeSpan.FromTicks(MathUtil.Clamp((int)(period - (timeNow - startTime)).Ticks, 0, int.MaxValue));
+            => TimeSpan.FromTicks(MathUtil.Clamp((int)(period - (timeNow - startTime)).Ticks, period.Ticks, period.Ticks));
     }
 }

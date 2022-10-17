@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using Serilog;
 
 namespace Fracture.Net.Hosting.Messaging
 {
@@ -39,6 +41,11 @@ namespace Fracture.Net.Hosting.Messaging
         /// this method also transfers the ownership of any notifications to the caller.
         /// </summary>
         void Handle(NotificationHandlerDelegate handler);
+
+        /// <summary>
+        /// Signals shutdown to the notification center.
+        /// </summary>
+        void Shutdown();
     }
 
     /// <summary>
@@ -77,6 +84,14 @@ namespace Fracture.Net.Hosting.Messaging
         {
             while (notifications.Count != 0)
                 handler(notifications.Dequeue());
+        }
+
+        public void Shutdown()
+        {
+            if (notifications.Count == 0)
+                return;
+            
+            Log.Warning("received shutdown signal, total {count} notifications are still enqueued and will not be send", notifications.Count);
         }
     }
 }
