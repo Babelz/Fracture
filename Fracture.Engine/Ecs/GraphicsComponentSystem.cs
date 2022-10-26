@@ -880,7 +880,7 @@ namespace Fracture.Engine.Ecs
     }
 
     public sealed class SpriteAnimationComponentSystem : GraphicsComponentSystem<SpriteAnimationComponentSystem.SpriteAnimationComponent>,
-        ISpriteAnimationComponentSystem
+                                                         ISpriteAnimationComponentSystem
     {
         #region Sprite animation structure
         public struct SpriteAnimationComponent : IGraphicsComponent
