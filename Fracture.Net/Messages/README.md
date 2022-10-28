@@ -36,9 +36,9 @@ public static class ExampleSchema
             s => s.PublicProperties().IndirectActivation(() => Message.Create<GameStateChanged<GameStateDetails.Ended>>())
         );
            
-        // Message that is not using the build in pool.
+        // Message that is not using the build in pool. Uses default parameterless public constructor. 
         MessageSchema.ForMessage<GameStateChanged<GameStateDetails.Wait>>(
-            s => s.PublicProperties().IndirectActivation()
+            s => s.PublicProperties()
         );
     }
   }
