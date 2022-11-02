@@ -64,13 +64,18 @@ namespace Fracture.Net.Messages
     /// </summary>
     public abstract class Message : IMessage
     {
+        #region Constant fields
+        public const int DefaultMessagePoolSize = 32;
+        #endregion
+
         #region Static fields
         private static readonly Dictionary<Type, IPool<IMessage>> Pools = new Dictionary<Type, IPool<IMessage>>();
+
+        private static int messagePoolSize;
         #endregion
 
         protected Message()
-        {
-        }
+            => messagePoolSize = DefaultMessagePoolSize;
 
         public virtual void Clear()
         {
@@ -78,6 +83,34 @@ namespace Fracture.Net.Messages
 
         public override string ToString()
             => JsonConvert.SerializeObject(this);
+
+        /// <summary>
+        /// Configures the internal pooling for all message types to use the defined bucket sizing. The messages will be pre-allocated. This method should be called before using
+        /// the actual pool.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConfigurePooling(int bucketSize)
+        {
+            if (bucketSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(bucketSize));
+
+            messagePoolSize = bucketSize;
+        }
+
+        /// <summary>
+        /// Configures pooling for specified message type. This method should be called before using the actual pool.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void ConfigurePooling<T>(int bucketSize) where T : class, IMessage, new()
+        {
+            if (bucketSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(bucketSize));
+
+            // ReSharper disable once InconsistentlySynchronizedField - should not be called after application configuration.
+            Pools.Add(typeof(T), new CleanPool<IMessage>(
+                          new LinearPool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(bucketSize)), () => new T(), bucketSize))
+            );
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Clock<T>(in IClockMessage from, Func<T> result) where T : IClockMessage
@@ -112,10 +145,11 @@ namespace Fracture.Net.Messages
 
             lock (Pools)
             {
+                // Automatically 
                 if (!Pools.TryGetValue(type, out var pool))
                 {
                     pool = new CleanPool<IMessage>(
-                        new LinearPool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(32)), () => new T(), 32)
+                        new LinearPool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(messagePoolSize)), () => new T(), messagePoolSize)
                     );
 
                     Pools.Add(type, pool);

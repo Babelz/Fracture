@@ -158,9 +158,8 @@ namespace Fracture.Net.Clients
             {
                 // In case async call fails due to exception fallback to setting the client status immediately to 
                 // disconnected.
-                Log.Error(e,
-                          "unexpected error occurred while when attempting to start disconnecting, " +
-                          "reverting to set state immediately to disconnected");
+                Log.Error(e, "unexpected error occurred while when attempting to start disconnecting, " +
+                             "reverting to set state immediately to disconnected");
 
                 UpdateState(ClientState.Disconnected);
 
