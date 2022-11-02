@@ -1,13 +1,16 @@
 ## Messages
+
 In fracture a message is a unit (or package) that can be serialized and send over a network. When using the builtin message
 serializer implementation each message must be mapped before it can be serialized and send over the network. Fracture also provides pooling for all
 message types by default.
 
 ## Schema as code
+
 Applications build with using Fractures builtin serialization map their messaging schema in the code. This allows the client and server to share the same schema easily
 by just sharing the binaries that contain the schema. Fracture also provides small layer to provide better management for schemas.
 
 To map your schema in easily shareable binary:
+
 ```csharp
 // Schemas in code are represented as static classes with annotations.
 [MessageSchema.Description]
@@ -46,6 +49,7 @@ public static class ExampleSchema
 ```
 
 Then to consume the schema and take it into use in your application:
+
 ```csharp
 // You can call Load as many times as you want but the schema is only loaded once.
 MessageSchema.Load(typeof(ExampleSchema));         

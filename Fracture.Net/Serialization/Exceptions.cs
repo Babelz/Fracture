@@ -7,9 +7,7 @@ namespace Fracture.Net.Serialization
     {
         public SerializationTypeException(string message, Type serializationType)
             : base($"{serializationType.Name} caused an exception: {message}")
-        {
-            Data["SerializationType"] = serializationType;
-        }
+            => Data["SerializationType"] = serializationType;
     }
 
     [Serializable]
@@ -17,8 +15,6 @@ namespace Fracture.Net.Serialization
     {
         public ValueSerializerSchemaException(string message, Type valueSerializerType)
             : base($"{valueSerializerType.Name} caused an exception: {message}")
-        {
-            Data["ValueSerializerType"] = valueSerializerType;
-        }
+            => Data["ValueSerializerType"] = valueSerializerType;
     }
 }

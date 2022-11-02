@@ -88,7 +88,10 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Any()
-            => delegate { return true; };
+            => delegate
+            {
+                return true;
+            };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<RequestMiddlewareContext> Request(Predicate<IRequest> predicate)
@@ -180,10 +183,10 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(Connection)
-                .Append(Contents)
-                .Append(Message)
-                .Append(Timestamp);
+                        .Append(Connection)
+                        .Append(Contents)
+                        .Append(Message)
+                        .Append(Timestamp);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Request Take()

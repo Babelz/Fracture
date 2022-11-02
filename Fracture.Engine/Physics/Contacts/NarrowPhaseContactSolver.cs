@@ -110,8 +110,10 @@ namespace Fracture.Engine.Physics.Contacts
             {
                 var next = Vector2.Dot(axis, points[i]);
 
-                if (next < projection.X) projection.X      = next;
-                else if (next > projection.Y) projection.Y = next;
+                if (next < projection.X)
+                    projection.X = next;
+                else if (next > projection.Y)
+                    projection.Y = next;
             }
 
             return projection;
@@ -127,7 +129,7 @@ namespace Fracture.Engine.Physics.Contacts
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static bool ProjectionsOverlap(in Vector2 a, in Vector2 b)
-            => (a.Y >= b.X) || (a.X >= b.Y);
+            => a.Y >= b.X || a.X >= b.Y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static float ComputeProjectionOverlap(in Vector2 a, in Vector2 b)
@@ -342,10 +344,11 @@ namespace Fracture.Engine.Physics.Contacts
             var distance = a.Position - b.Position;
 
             // Radius sum. 
-            var rs = (a.Shape.BoundingBox.Right - a.Shape.BoundingBox.Position.X) + (b.Shape.BoundingBox.Right - b.Shape.BoundingBox.Position.X);
+            var rs = a.Shape.BoundingBox.Right - a.Shape.BoundingBox.Position.X + (b.Shape.BoundingBox.Right - b.Shape.BoundingBox.Position.X);
 
             // Test if two circles collide.
-            if (distance.LengthSquared() > rs * rs) return false;
+            if (distance.LengthSquared() > rs * rs)
+                return false;
 
             // Sensor optimization, translation is irrelevant here.
             if (a.Type == BodyType.Sensor || b.Type == BodyType.Sensor)

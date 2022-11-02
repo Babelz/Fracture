@@ -77,12 +77,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
         #endregion
 
         static DynamicSerializationTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[]
+            => ObjectSerializerAnalyzer.Analyze(new[]
             {
-                typeof(int?[]), typeof(int[]), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>)
+                typeof(int?[]), typeof(int[]), typeof(Dictionary<string, float>), typeof(Dictionary<int, string?>), typeof(Dictionary<int, int>),
             });
-        }
 
         public DynamicSerializationTests()
         {
@@ -92,9 +90,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Serialization_Back_And_Forth_Works_With_All_Field_Types()
         {
             var mapping = ObjectSerializationMapper.ForType<AllFieldTypesTestClass>()
-                .PublicFields()
-                .PublicProperties()
-                .Map();
+                                                   .PublicFields()
+                                                   .PublicProperties()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
             var serializationOps   = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
@@ -146,7 +144,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
                     { 1, null },
                     { 2, null },
                     { 3, "hello!" },
-                }
+                },
             };
 
             var buffer = new byte[256];

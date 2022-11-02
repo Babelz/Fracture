@@ -20,7 +20,10 @@ namespace Fracture.Net.Messages
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MessageMatchDelegate Any()
-            => delegate { return true; };
+            => delegate
+            {
+                return true;
+            };
 
         /// <summary>
         /// Matcher that only accepts one specific message type.
@@ -37,10 +40,10 @@ namespace Fracture.Net.Messages
         {
             if (predicate == null)
                 throw new ArgumentNullException(nameof(predicate));
-            
+
             return (in IMessage message) => message is T value && predicate(value);
         }
-        
+
         /// <summary>
         /// Matcher that allows many message types.
         /// </summary>

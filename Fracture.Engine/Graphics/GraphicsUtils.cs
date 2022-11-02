@@ -14,11 +14,15 @@ namespace Fracture.Engine.Graphics
             var rx = 0.0f;
             var ry = 0.0f;
 
-            if (tx < ax) rx = ax / tx;
-            else rx         = tx / ax;
+            if (tx < ax)
+                rx = ax / tx;
+            else
+                rx = tx / ax;
 
-            if (ty < ay) ry = ay / ty;
-            else ry         = ty / ay;
+            if (ty < ay)
+                ry = ay / ty;
+            else
+                ry = ty / ay;
 
             var actual = new Vector2(scale.X / rx, scale.Y / ry);
 

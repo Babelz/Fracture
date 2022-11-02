@@ -113,9 +113,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         #endregion
 
         static DynamicGetSizeFromValueTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[] { typeof(int?) });
-        }
+            => ObjectSerializerAnalyzer.Analyze(new[] { typeof(int?) });
 
         public DynamicGetSizeFromValueTests()
         {
@@ -125,9 +123,9 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Non_Value_Type_Values_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<NonValueTypeTestClass>()
-                .PublicFields()
-                .PublicProperties()
-                .Map();
+                                                   .PublicFields()
+                                                   .PublicProperties()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -148,8 +146,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Non_Value_Type_Nullable_Values_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<NullableNonValueTypeTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -171,8 +169,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Nullable_Fields_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<NullableFieldTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -193,8 +191,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Nullable_Properties_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<NullablePropertyTestClass>()
-                .PublicProperties()
-                .Map();
+                                                   .PublicProperties()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -215,8 +213,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Value_Type_Structure_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<ValueTypeTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -237,10 +235,10 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Compute_Size_Of_Value_Type_Structure_With_Parametrized_Activator_Correctly()
         {
             var mapping = ObjectSerializationMapper.ForType<ValueTypeParametrizedActivationTestClass>()
-                .PublicFields()
-                .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
-                                        ObjectActivationHint.Field("y", "Y"))
-                .Map();
+                                                   .PublicFields()
+                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
+                                                                           ObjectActivationHint.Field("y", "Y"))
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 

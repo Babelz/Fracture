@@ -71,6 +71,6 @@ namespace Fracture.Common.Di
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(types);
+                        .Append(types);
     }
 }

@@ -90,7 +90,7 @@ namespace Fracture.Engine.Graphics
                 193, 230, 137, 103, 176, 125, 242, 25, 108, 158,
                 120, 116, 238, 15, 184, 236, 240, 226, 172, 82,
                 196, 233, 0, 0, 0, 0, 73, 69, 78, 68,
-                174, 66, 96, 130
+                174, 66, 96, 130,
             };
 
             Value = graphics.CreateTexture2D(data);
@@ -144,7 +144,7 @@ namespace Fracture.Engine.Graphics
                 164, 225, 0, 0, 0, 12, 73, 68, 65, 84,
                 24, 87, 99, 248, 255, 255, 63, 0, 5, 254,
                 2, 254, 167, 53, 129, 132, 0, 0, 0, 0,
-                73, 69, 78, 68, 174, 66, 96, 130
+                73, 69, 78, 68, 174, 66, 96, 130,
             };
 
             Value = graphics.CreateTexture2D(data);
@@ -186,7 +186,7 @@ namespace Fracture.Engine.Graphics
         /// <summary>
         /// Rectangle will be filled with color.
         /// </summary>
-        Fill
+        Fill,
     }
 
     /// <summary>
@@ -408,9 +408,7 @@ namespace Fracture.Engine.Graphics
                 width == graphics.BackBufferWidth &&
                 height == graphics.BackBufferHeight &&
                 samples == graphics.MultiSampleCount)
-            {
                 return;
-            }
 
             workBuffer?.Dispose();
             presentationBuffer?.Dispose();
@@ -461,7 +459,7 @@ namespace Fracture.Engine.Graphics
                 new Rectangle(center.Right, center.Top, center.Left, center.Height),
 
                 // Center,
-                center
+                center,
             };
 
             var centerToDestination = new Vector2(destination.Width / (float)texture.Width, destination.Height / (float)texture.Height);
@@ -954,9 +952,7 @@ namespace Fracture.Engine.Graphics
         }
 
         public void CreateFragment(int index, GraphicsFragmentSettings settings)
-        {
-            fragments.Register(index, new GraphicsFragment(index, graphics, settings));
-        }
+            => fragments.Register(index, new GraphicsFragment(index, graphics, settings));
 
         public void AddPhase(IGraphicsPipelinePhase phase)
             => phases.Add(phase);

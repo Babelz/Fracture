@@ -24,7 +24,7 @@ namespace Fracture.Net.Hosting.Servers
             SocketError.Shutdown,
             SocketError.ConnectionReset,
             SocketError.NetworkReset,
-            SocketError.NotConnected
+            SocketError.NotConnected,
         };
 
         private static int IdCounter;
@@ -59,7 +59,7 @@ namespace Fracture.Net.Hosting.Servers
         #region Properties
         private bool IsConnected => socket.Connected;
 
-        private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) > gracePeriod;
+        private bool HasTimedOut => DateTime.UtcNow - lastReceiveTime > gracePeriod;
 
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
 
@@ -344,7 +344,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Returns boolean declaring whether the listener is listening for incoming connections.
         /// </summary>
-        private bool Listening => (!listenResult?.IsCompleted ?? false);
+        private bool Listening => !listenResult?.IsCompleted ?? false;
         #endregion
 
         public TcpListener(int port, int backlog = 0)
@@ -354,7 +354,7 @@ namespace Fracture.Net.Hosting.Servers
 
             listener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp)
             {
-                NoDelay = true
+                NoDelay = true,
             };
 
             newConnections = new LockedDoubleBuffer<Socket>();

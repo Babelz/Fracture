@@ -28,7 +28,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
             Action = action;
         }
     }
-    
+
     public sealed class UnhandledFrameActionException : Exception
     {
         #region Properties
@@ -40,11 +40,9 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
 
         public UnhandledFrameActionException(IReadOnlyCollection<FrameAction> actions)
             : base($"total {actions.Count} actions were left unhandled after application shutdown")
-        {
-            Actions = actions;
-        }
+            => Actions = actions;
     }
-    
+
     /// <summary>
     /// Class that serves as application host for testing purposes. Do not use this in production as it leaks the internal IOC functionalities of the hosts.
     /// </summary>
@@ -53,7 +51,7 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
         #region Fields
         private readonly HashSet<FrameAction> actions;
         #endregion
-        
+
         #region Properties
         /// <summary>
         /// Gets the service kernel of the application host. Access your services for testing purposes from this property.
@@ -91,16 +89,16 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
                 throw new ArgumentNullException(nameof(action));
 
             var frameAction = new FrameAction(frame, action);
-            
+
             actions.Add(frameAction);
-            
+
             void Tick(object sender, EventArgs args)
             {
                 if (Application.Clock.Ticks != frame)
                     return;
 
                 actions.Remove(frameAction);
-                
+
                 action();
 
                 Application.Tick -= Tick;
@@ -116,17 +114,17 @@ namespace Fracture.Net.Tests.Util.Hosting.Utils
                 if (actions.Any())
                     throw new UnhandledFrameActionException(actions);
             }
-            
+
             void Tick(object sender, EventArgs args)
             {
                 if (Application.Clock.Ticks < limit)
                     return;
-                
+
                 Application.Shutdown();
-                
+
                 Application.Tick -= Tick;
             }
-            
+
             Application.ShuttingDown += ShuttingDown;
             Application.Tick         += Tick;
 

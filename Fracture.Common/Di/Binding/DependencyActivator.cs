@@ -69,17 +69,17 @@ namespace Fracture.Common.Di.Binding
         #endregion
 
         public DependencyBindingConstructorActivator(DependencyBindingValueLocator locator)
-        {
-            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
-        }
+            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingConstructor(Type type)
         {
             if (!DependencyTypeMapper.HasBindingConstructor(type))
+            {
                 throw new DependencyBinderException(type,
                                                     $"type {type.Name} does not contain constructor annotated with " +
                                                     $"{nameof(BindingConstructorAttribute)}");
+            }
         }
 
         private void InternalActivate(Type type, out object instance)

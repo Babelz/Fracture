@@ -8,7 +8,7 @@ namespace Fracture.Engine.Ui
     public enum Orientation : byte
     {
         Horizontal = 0,
-        Vertical
+        Vertical,
     }
 
     /// <summary>
@@ -24,27 +24,27 @@ namespace Fracture.Engine.Ui
         /// <summary>
         /// Anchors element to the top of the parent.
         /// </summary>
-        Top = (1 << 0),
+        Top = 1 << 0,
 
         /// <summary>
         /// Anchors the element to the left of the parent.
         /// </summary>
-        Left = (1 << 1),
+        Left = 1 << 1,
 
         /// <summary>
         /// Anchors the element to the bottom of the parent.
         /// </summary>
-        Bottom = (1 << 2),
+        Bottom = 1 << 2,
 
         /// <summary>
         /// Anchors the element to the right of the parent.
         /// </summary>
-        Right = (1 << 3),
+        Right = 1 << 3,
 
         /// <summary>
         /// Anchors the element to the center of the parent.
         /// </summary>
-        Center = (1 << 4)
+        Center = 1 << 4,
     }
 
     /// <summary>
@@ -74,7 +74,7 @@ namespace Fracture.Engine.Ui
         /// Positioned using absolute positioning, position is absolute. Allows 
         /// to be dragged.
         /// </summary>
-        Absolute
+        Absolute,
     }
 
     public readonly struct UiOffset
@@ -105,10 +105,10 @@ namespace Fracture.Engine.Ui
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(Top)
-                .Append(Left)
-                .Append(Bottom)
-                .Append(Right);
+                        .Append(Top)
+                        .Append(Left)
+                        .Append(Bottom)
+                        .Append(Right);
 
         public override bool Equals(object obj)
             => obj is UiOffset other && this == other;

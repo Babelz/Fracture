@@ -29,7 +29,7 @@ namespace Fracture.Engine.Input
         /// <summary>
         /// Trigger is being held down. State prior to down is pressed.
         /// </summary>
-        Down
+        Down,
     }
 
     public delegate void InputBindingCallback(IGameEngineTime time);

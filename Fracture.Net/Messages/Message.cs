@@ -115,9 +115,7 @@ namespace Fracture.Net.Messages
                 if (!Pools.TryGetValue(type, out var pool))
                 {
                     pool = new CleanPool<IMessage>(
-                        new DelegatePool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(8)),
-                                                   () => new T(),
-                                                   8)
+                        new LinearPool<IMessage>(new LinearStorageObject<IMessage>(new LinearGrowthArray<IMessage>(32)), () => new T(), 32)
                     );
 
                     Pools.Add(type, pool);

@@ -27,9 +27,7 @@ namespace Fracture.Common.Tests.Memory
         #endregion
 
         public CollectionPoolTests()
-        {
-            pool = new CollectionPool<List<int>>(new Pool<List<int>>(new LinearStorageObject<List<int>>(new LinearGrowthArray<List<int>>())));
-        }
+            => pool = new CollectionPool<List<int>>(new Pool<List<int>>(new LinearStorageObject<List<int>>(new LinearGrowthArray<List<int>>())));
 
         [Fact]
         public void Ctor_Throws_If_Element_Does_Not_Implement_Generic_Collection_Interface()

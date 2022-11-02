@@ -27,7 +27,7 @@ namespace Fracture.Engine.Tests.Graphics
             Assert.Throws<ArgumentNullException>(() => new GraphicsElementLayer(null, 0));
             Assert.Throws<ArgumentNullException>(() => new GraphicsElementLayer("", 0));
 
-            Assert.Null((Record.Exception(() => new GraphicsElementLayer("test-layer", 0))));
+            Assert.Null(Record.Exception(() => new GraphicsElementLayer("test-layer", 0)));
         }
 
         private sealed class ClampTestData : TheoryData<Aabb, Aabb, bool>

@@ -183,7 +183,8 @@ namespace Fracture.Engine.Ui.Controls
         #region Event handlers
         private void Paragraph_StyleChanged(object sender, EventArgs e)
         {
-            if (Style == null) return;
+            if (Style == null)
+                return;
 
             if (keepInTextBounds)
                 BoundToText();
@@ -195,8 +196,11 @@ namespace Fracture.Engine.Ui.Controls
 
         private void WrapText()
         {
-            if (string.IsNullOrEmpty(text)) return;
-            if (Style == null) return;
+            if (string.IsNullOrEmpty(text))
+                return;
+
+            if (Style == null)
+                return;
 
             lineBuffer.Clear();
             wrapBuffer.Clear();
@@ -262,9 +266,9 @@ namespace Fracture.Engine.Ui.Controls
                     {
                         if (size.X > destination.Width)
                         {
-                            wrapBuffer.Append(string.IsNullOrEmpty(wrapBuffer.ToString())
-                                                  ? WrapText(font, word.Insert(word.Length / 2, " ") + " ", destination)
-                                                  : $"\n{WrapText(font, word.Insert(word.Length / 2, " "), destination)} ");
+                            wrapBuffer.Append(string.IsNullOrEmpty(wrapBuffer.ToString()) ?
+                                                  WrapText(font, word.Insert(word.Length / 2, " ") + " ", destination) :
+                                                  $"\n{WrapText(font, word.Insert(word.Length / 2, " "), destination)} ");
                         }
                         else
                         {
@@ -281,7 +285,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void BoundToText()
         {
-            if (Style == null) return;
+            if (Style == null)
+                return;
 
             var font = Style.Get<SpriteFont>(Font);
 
@@ -293,11 +298,13 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            if (string.IsNullOrEmpty(text)) return;
+            if (string.IsNullOrEmpty(text))
+                return;
 
             var font = Style.Get<SpriteFont>(Font);
 
-            if (font == null) return;
+            if (font == null)
+                return;
 
             var destination = GetRenderDestinationRectangle();
             var color       = Style.Get<Color>($"{UiStyleKeys.Target.Paragraph}\\{(Enabled ? UiStyleKeys.Color.Enabled : UiStyleKeys.Color.Disabled)}");
@@ -313,7 +320,8 @@ namespace Fracture.Engine.Ui.Controls
                 {
                     var size = font.MeasureString(line);
 
-                    if (linePosition + size.Y > destination.Bottom) break;
+                    if (linePosition + size.Y > destination.Bottom)
+                        break;
 
                     var position = new Vector2(destination.X, linePosition);
 

@@ -71,9 +71,7 @@ namespace Fracture.Net.Hosting
         /// Creates new instance of this script. Mark the constructor with <see cref="BindingConstructorAttribute"/> and use it to locate any dependencies.
         /// </summary>
         protected ApplicationScript(IApplicationScriptingHost application)
-        {
-            Application = application ?? throw new ArgumentNullException(nameof(application));
-        }
+            => Application = application ?? throw new ArgumentNullException(nameof(application));
 
         public void Unload()
         {

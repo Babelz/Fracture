@@ -17,7 +17,7 @@ namespace Fracture.Common.Events
         /// <summary>
         /// Event keeps invoking the callback in given intervals.
         /// </summary>
-        Pulse
+        Pulse,
     }
 
     public sealed class ScheduledEventArgs : EventArgs
@@ -170,7 +170,8 @@ namespace Fracture.Common.Events
 
         public void Tick(TimeSpan elapsed)
         {
-            if (!Waiting) return;
+            if (!Waiting)
+                return;
 
             if (ElapsedTime < DueTime)
             {
@@ -264,11 +265,13 @@ namespace Fracture.Common.Events
 
         public void Tick(TimeSpan elapsed)
         {
-            if (!Waiting) return;
+            if (!Waiting)
+                return;
 
             ElapsedTime += elapsed;
 
-            if (ElapsedTime < DueTime) return;
+            if (ElapsedTime < DueTime)
+                return;
 
             Waiting = false;
 

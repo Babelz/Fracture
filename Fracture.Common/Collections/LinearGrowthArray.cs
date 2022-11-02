@@ -43,7 +43,8 @@ namespace Fracture.Common.Collections
             // Create initial buckets.
             buckets = new T[initialBuckets][];
 
-            for (var i = 0; i < initialBuckets; i++) buckets[i] = new T[bucketSize];
+            for (var i = 0; i < initialBuckets; i++)
+                buckets[i] = new T[bucketSize];
 
             // Compute scale for computing future lookup indices to avoid division.
             bucketScale = 1.0f / bucketSize;

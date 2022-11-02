@@ -42,15 +42,11 @@ namespace Fracture.Engine.Ui.Controls
         #endregion
 
         public HeaderPanel()
-        {
-            CreateHeaderParagraph();
-        }
+            => CreateHeaderParagraph();
 
         public HeaderPanel(IControlManager controls)
             : base(controls)
-        {
-            CreateHeaderParagraph();
-        }
+            => CreateHeaderParagraph();
 
         #region Event handlers
         private void Header_StyleChanged(object sender, EventArgs e)
@@ -59,7 +55,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void CenterHeaderParagraph()
         {
-            if (header.Style == null) return;
+            if (header.Style == null)
+                return;
 
             var centerArea = Style.Get<Rectangle>($"{UiStyleKeys.Target.HeaderPanel}\\{UiStyleKeys.Source.Center}");
             var headerArea = Style.Get<Rectangle>($"{UiStyleKeys.Target.HeaderPanel}\\{UiStyleKeys.Source.Header}");
@@ -81,7 +78,7 @@ namespace Fracture.Engine.Ui.Controls
                 Text             = "header-panel",
                 Font             = UiStyleKeys.Font.Normal,
                 KeepInTextBounds = true,
-                Positioning      = Positioning.Relative
+                Positioning      = Positioning.Relative,
             };
 
             header.StyleChanged += Header_StyleChanged;

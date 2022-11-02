@@ -34,15 +34,19 @@ namespace Fracture.Common.Memory.Pools
         /// </summary>
         public ArrayPool(Func<IStorageObject<T[]>> factory, int initialMaxStorages, int storageCapacity)
         {
-            if (initialMaxStorages < 0) throw new ArgumentOutOfRangeException(nameof(initialMaxStorages));
-            if (storageCapacity < 0) throw new ArgumentOutOfRangeException(nameof(storageCapacity));
+            if (initialMaxStorages < 0)
+                throw new ArgumentOutOfRangeException(nameof(initialMaxStorages));
+
+            if (storageCapacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(storageCapacity));
 
             this.factory         = factory ?? throw new ArgumentNullException(nameof(factory));
             this.storageCapacity = storageCapacity;
 
             storages = new Dictionary<int, IStorageObject<T[]>>();
 
-            for (var i = 0; i < initialMaxStorages; i++) storages.Add(i, factory());
+            for (var i = 0; i < initialMaxStorages; i++)
+                storages.Add(i, factory());
         }
 
         /// <summary>
@@ -59,7 +63,8 @@ namespace Fracture.Common.Memory.Pools
         /// </summary>
         private static T[] GetNextFreeArray(IStorageObject<T[]> storage, int size)
         {
-            if (storage.Empty) return new T[size];
+            if (storage.Empty)
+                return new T[size];
 
             // Get the array.
             var array = storage.Take();
@@ -76,7 +81,8 @@ namespace Fracture.Common.Memory.Pools
         private IStorageObject<T[]> GetArrayStorage(int size)
         {
             // Grow storage size.
-            if (!storages.ContainsKey(size)) storages.Add(size, factory());
+            if (!storages.ContainsKey(size))
+                storages.Add(size, factory());
 
             return storages[size];
         }
@@ -117,12 +123,18 @@ namespace Fracture.Common.Memory.Pools
 
         public void Return(T[] array)
         {
-            lock (pool) pool.Return(array);
+            lock (pool)
+            {
+                pool.Return(array);
+            }
         }
 
         public T[] Take(int size)
         {
-            lock (pool) return pool.Take(size);
+            lock (pool)
+            {
+                return pool.Take(size);
+            }
         }
     }
 

@@ -17,10 +17,10 @@ namespace Fracture.Engine.Ui
             if (targetActualSize.X > targetActualSize.Y)
             {
                 // Y to X ration or aspect ratio.
-                var yx = (targetActualSize.Y) / (targetActualSize.X);
+                var yx = targetActualSize.Y / targetActualSize.X;
 
                 // Difference between.
-                var dxy = (targetActualSize.X - targetActualSize.Y) / (targetActualSize.X);
+                var dxy = (targetActualSize.X - targetActualSize.Y) / targetActualSize.X;
 
                 // Scale to aspect ration.
                 var adx = yx * diameter;
@@ -43,8 +43,8 @@ namespace Fracture.Engine.Ui
             {
                 sx = diameter;
 
-                var xy  = (targetActualSize.X) / (targetActualSize.Y);
-                var dyx = (targetActualSize.Y - targetActualSize.X) / (targetActualSize.Y);
+                var xy  = targetActualSize.X / targetActualSize.Y;
+                var dyx = (targetActualSize.Y - targetActualSize.X) / targetActualSize.Y;
                 var ady = xy * diameter;
                 var pdy = diameter * ady;
 

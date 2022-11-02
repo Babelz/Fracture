@@ -61,14 +61,15 @@ namespace Fracture.Engine.Core.Primitives
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(Position.X)
-                .Append(Position.Y)
-                .Append(Bounds.X)
-                .Append(Bounds.Y);
+                        .Append(Position.X)
+                        .Append(Position.Y)
+                        .Append(Bounds.X)
+                        .Append(Bounds.Y);
 
         public override bool Equals(object obj)
         {
-            if (obj == null) return false;
+            if (obj == null)
+                return false;
 
             try
             {
@@ -99,8 +100,10 @@ namespace Fracture.Engine.Core.Primitives
             var brbl = rectf.BottomRight - rectf.BottomLeft;
             var c    = 2.0f * vector - rectf.TopLeft - rectf.BottomRight;
 
-            return (Vector2.Dot(brbl, c - brbl) <= 0.0f && Vector2.Dot(brbl, c + brbl) >= 0.0f) &&
-                   (Vector2.Dot(tlbl, c - tlbl) <= 0.0f && Vector2.Dot(tlbl, c + tlbl) >= 0.0f);
+            return Vector2.Dot(brbl, c - brbl) <= 0.0f &&
+                   Vector2.Dot(brbl, c + brbl) >= 0.0f &&
+                   Vector2.Dot(tlbl, c - tlbl) <= 0.0f &&
+                   Vector2.Dot(tlbl, c + tlbl) >= 0.0f;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

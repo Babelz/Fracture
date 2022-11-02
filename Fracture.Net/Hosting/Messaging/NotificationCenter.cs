@@ -58,9 +58,7 @@ namespace Fracture.Net.Hosting.Messaging
         #endregion
 
         public NotificationCenter()
-        {
-            notifications = new Queue<Notification>();
-        }
+            => notifications = new Queue<Notification>();
 
         public void Enqueue(NotificationDecoratorDelegate decorator)
         {
@@ -90,7 +88,7 @@ namespace Fracture.Net.Hosting.Messaging
         {
             if (notifications.Count == 0)
                 return;
-            
+
             Log.Warning("received shutdown signal, total {count} notifications are still enqueued and will not be send", notifications.Count);
         }
     }

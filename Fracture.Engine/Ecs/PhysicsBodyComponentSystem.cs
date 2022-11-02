@@ -200,9 +200,7 @@ namespace Fracture.Engine.Ecs
 
         #region Event handlers
         private void Physics_Moving(object sender, in BodyEventArgs args)
-        {
-            dirtyComponentIds.Add((int)physics.Bodies.WithId(args.BodyId).UserData);
-        }
+            => dirtyComponentIds.Add((int)physics.Bodies.WithId(args.BodyId).UserData);
 
         private void Physics_EndContact(object sender, in BodyContactEventArgs args)
         {
@@ -236,7 +234,6 @@ namespace Fracture.Engine.Ecs
         #endregion
 
         private IEnumerable<int> GetQueryResults(QuadTreeNodeLink link)
-        {
             // // Take first link bodies as result object and contact rest of the nodes to this.
             // var results = link.Bodies.Select(b => (int)world.Bodies.WithId(b).UserData);
             //
@@ -252,8 +249,7 @@ namespace Fracture.Engine.Ecs
             // }
             //
             // return results;
-            return Array.Empty<int>();
-        }
+            => Array.Empty<int>();
 
         private void UpdateBodyDirtyState(int componentId)
         {
@@ -440,20 +436,16 @@ namespace Fracture.Engine.Ecs
         }
 
         public IEnumerable<int> RayCastBroad(in Line line, Func<Body, bool> selector = null)
-        {
             // var link = world.RayCastBroad(line, selector);
             //
             // return GetQueryResults(link);
-            return default;
-        }
+            => default;
 
         public IEnumerable<int> RayCastNarrow(in Line line)
-        {
             // var link = world.RayCastNarrow(line);
             //
             // return GetQueryResults(link);
-            return default;
-        }
+            => default;
 
         public IEnumerable<int> AabbQueryBroad(in Aabb aabb, Func<Body, bool> selector = null)
         {
@@ -473,7 +465,8 @@ namespace Fracture.Engine.Ecs
         {
             base.Update(time);
 
-            if (dirtyComponentIds.Count == 0) return;
+            if (dirtyComponentIds.Count == 0)
+                return;
 
             foreach (var componentId in dirtyComponentIds)
             {

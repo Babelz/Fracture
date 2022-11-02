@@ -100,7 +100,7 @@ namespace Fracture.Engine.Ui.Controls
         event EventHandler ActualBoundingBoxChanged;
         event EventHandler ActualPositionChanged;
         event EventHandler ActualSizeChanged;
-        
+
         event EventHandler PaddingChanged;
         event EventHandler MarginChanged;
         event EventHandler LayoutChanged;
@@ -455,7 +455,7 @@ namespace Fracture.Engine.Ui.Controls
         public event EventHandler ActualBoundingBoxChanged;
         public event EventHandler ActualPositionChanged;
         public event EventHandler ActualSizeChanged;
-        
+
         public event EventHandler PaddingChanged;
         public event EventHandler MarginChanged;
         public event EventHandler LayoutChanged;
@@ -514,7 +514,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 position = value;
 
-                if (position == old) return;
+                if (position == old)
+                    return;
 
                 UpdatePosition();
 
@@ -535,7 +536,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 actualPosition = value;
 
-                if (actualPosition == old) return;
+                if (actualPosition == old)
+                    return;
 
                 UpdatePosition(true);
 
@@ -556,7 +558,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 size = value;
 
-                if (size == old) return;
+                if (size == old)
+                    return;
 
                 UpdateSize();
 
@@ -579,7 +582,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 actualSize = value;
 
-                if (actualSize == old) return;
+                if (actualSize == old)
+                    return;
 
                 UpdateSize(true);
 
@@ -623,13 +627,9 @@ namespace Fracture.Engine.Ui.Controls
                     y = parentBounds.Top;
                 }
                 else if (myBounds.Bottom > parentBounds.Bottom)
-                {
                     h = parentBounds.Bottom - myBounds.Top;
-                }
                 else
-                {
                     h = myBounds.Height;
-                }
 
                 // Clamp horizontal.
                 if (myBounds.Left < parentBounds.Left)
@@ -638,13 +638,9 @@ namespace Fracture.Engine.Ui.Controls
                     x = parentBounds.Left;
                 }
                 else if (myBounds.Right > parentBounds.Right)
-                {
                     w = parentBounds.Right - myBounds.Left;
-                }
                 else
-                {
                     w = myBounds.Width;
-                }
 
                 return new Rectf(new Vector2(x, y), new Vector2(w, h));
             }
@@ -683,7 +679,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 padding = value;
 
-                if (padding == old) return;
+                if (padding == old)
+                    return;
 
                 UpdateSize();
 
@@ -706,7 +703,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 anchor = value;
 
-                if (anchor == old || Positioning != Positioning.Anchor) return;
+                if (anchor == old || Positioning != Positioning.Anchor)
+                    return;
 
                 UpdateAnchor();
 
@@ -725,7 +723,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 positioning = value;
 
-                if (positioning == old) return;
+                if (positioning == old)
+                    return;
 
                 UpdatePosition();
 
@@ -758,7 +757,8 @@ namespace Fracture.Engine.Ui.Controls
 
                 parent = value;
 
-                if (parent == old) return;
+                if (parent == old)
+                    return;
 
                 UpdateSize();
 
@@ -857,6 +857,25 @@ namespace Fracture.Engine.Ui.Controls
             TabIndex = -1;
         }
 
+        private void UpdateMouseDrag()
+        {
+            if (!HasFocus)
+                return;
+
+            if (!Mouse.IsHovering(this))
+                return;
+
+            if (!Draggable)
+                return;
+
+            if (!Mouse.IsDown(MouseButton.Left) || Mouse.TimeDown(MouseButton.Left) < TimeSpan.FromSeconds(0.2f))
+                return;
+
+            Drag?.Invoke(this, new ControlMouseInputEventArgs(Mouse));
+
+            Position += Mouse.LocalPositionDelta;
+        }
+
         protected void UpdateMouseState()
         {
             if (!hover && Mouse.IsHovering(this))
@@ -868,9 +887,7 @@ namespace Fracture.Engine.Ui.Controls
             else if (hover)
             {
                 if (Mouse.IsHovering(this))
-                {
                     MouseHover?.Invoke(this, new ControlMouseInputEventArgs(Mouse));
-                }
                 else
                 {
                     MouseLeave?.Invoke(this, new ControlMouseInputEventArgs(Mouse));
@@ -878,20 +895,6 @@ namespace Fracture.Engine.Ui.Controls
                     hover = false;
                 }
             }
-        }
-
-        private void UpdateMouseDrag()
-        {
-            if (!HasFocus) return;
-            if (!Mouse.IsHovering(this)) return;
-            if (!Draggable) return;
-
-            if (!Mouse.IsDown(MouseButton.Left) || Mouse.TimeDown(MouseButton.Left) < TimeSpan.FromSeconds(0.2f))
-                return;
-
-            Drag?.Invoke(this, new ControlMouseInputEventArgs(Mouse));
-
-            Position += Mouse.LocalPositionDelta;
         }
 
         /// <summary>
@@ -917,7 +920,7 @@ namespace Fracture.Engine.Ui.Controls
 
             if ((anchor & Anchor.Center) == Anchor.Center)
             {
-                actualPosition = parentPosition + (parentSize * 0.5f) - (actualSize * 0.5f);
+                actualPosition = parentPosition + parentSize * 0.5f - actualSize * 0.5f;
 
                 if ((anchor & Anchor.Top) == Anchor.Top)
                     actualPosition = new Vector2(actualPosition.X, parentPosition.Y);
@@ -1006,14 +1009,18 @@ namespace Fracture.Engine.Ui.Controls
                     var parentActualPosition = GetParentActualPosition();
                     var parentActualSize     = GetParentActualSize();
 
-                    if (actual) position = parentActualPosition - position;
-                    else actualPosition  = position * parentActualSize + parentActualPosition;
+                    if (actual)
+                        position = parentActualPosition - position;
+                    else
+                        actualPosition = position * parentActualSize + parentActualPosition;
 
                     break;
                 case Positioning.Absolute:
                     // Update absolute position for control.
-                    if (actual) position = actualPosition;
-                    else actualPosition  = position;
+                    if (actual)
+                        position = actualPosition;
+                    else
+                        actualPosition = position;
 
                     break;
                 default:
@@ -1088,21 +1095,24 @@ namespace Fracture.Engine.Ui.Controls
 
         public void AfterDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            if (!Visible) return;
+            if (!Visible)
+                return;
 
             InternalAfterDraw(fragment, time);
         }
 
         public void Draw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            if (!Visible) return;
+            if (!Visible)
+                return;
 
             InternalDraw(fragment, time);
         }
 
         public void BeforeDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            if (!Visible) return;
+            if (!Visible)
+                return;
 
             InternalBeforeDraw(fragment, time);
         }

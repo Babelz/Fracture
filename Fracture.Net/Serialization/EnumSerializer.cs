@@ -20,7 +20,7 @@ namespace Fracture.Net.Serialization
             { typeof(int), (value, buffer, offset) => MemoryMapper.WriteInt((int)value, buffer, offset) },
             { typeof(uint), (value, buffer, offset) => MemoryMapper.WriteUint((uint)value, buffer, offset) },
             { typeof(long), (value, buffer, offset) => MemoryMapper.WriteLong((long)value, buffer, offset) },
-            { typeof(ulong), (value, buffer, offset) => MemoryMapper.WriteUlong((ulong)value, buffer, offset) }
+            { typeof(ulong), (value, buffer, offset) => MemoryMapper.WriteUlong((ulong)value, buffer, offset) },
         };
 
         private static readonly Dictionary<Type, DeserializeDelegate<object>> DeserializeDelegates = new Dictionary<Type, DeserializeDelegate<object>>
@@ -32,7 +32,7 @@ namespace Fracture.Net.Serialization
             { typeof(int), (buffer, offset) => MemoryMapper.ReadInt(buffer, offset) },
             { typeof(uint), (buffer, offset) => MemoryMapper.ReadUint(buffer, offset) },
             { typeof(long), (buffer, offset) => MemoryMapper.ReadLong(buffer, offset) },
-            { typeof(ulong), (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset) }
+            { typeof(ulong), (buffer, offset) => MemoryMapper.ReadUlong(buffer, offset) },
         };
 
         private static readonly Dictionary<Type, ushort> SizeOfUnderlyingTypes = new Dictionary<Type, ushort>
@@ -44,7 +44,7 @@ namespace Fracture.Net.Serialization
             { typeof(int), sizeof(int) },
             { typeof(uint), sizeof(uint) },
             { typeof(long), sizeof(long) },
-            { typeof(ulong), sizeof(ulong) }
+            { typeof(ulong), sizeof(ulong) },
         };
         #endregion
 

@@ -45,7 +45,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Notification message is considered as last message to all peers in the application, there will be no further messages after this one.
         /// </summary>
-        Shutdown
+        Shutdown,
     }
 
     /// <summary>
@@ -158,7 +158,7 @@ namespace Fracture.Net.Hosting.Messaging
         public void Send(int peerId, in IMessage message)
         {
             AssertUnset();
-            
+
             Command = NotificationCommand.Send;
             PeerIds = new[] { peerId };
             Message = message ?? throw new ArgumentException(nameof(message));
@@ -265,7 +265,10 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Any()
-            => delegate { return true; };
+            => delegate
+            {
+                return true;
+            };
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<NotificationMiddlewareContext> Notification(Predicate<INotification> predicate)

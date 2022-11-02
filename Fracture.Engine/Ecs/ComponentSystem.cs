@@ -133,15 +133,13 @@ namespace Fracture.Engine.Ecs
         public abstract IEnumerable<int> AllFor(int entityId);
 
         public override void Update(IGameEngineTime time)
-        {
-            entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
+            => entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
             {
                 foreach (var componentId in AllFor(letter.Args.EntityId))
                     Delete(componentId);
 
                 return LetterHandlingResult.Retain;
             });
-        }
 
         public virtual void Clear()
         {
@@ -231,17 +229,13 @@ namespace Fracture.Engine.Ecs
         #endregion
 
         static SharedComponentSystem()
-        {
-            EntityComponentListPool = new CollectionPool<List<int>>(
+            => EntityComponentListPool = new CollectionPool<List<int>>(
                 new Pool<List<int>>(new LinearStorageObject<List<int>>(new LinearGrowthArray<List<int>>()))
             );
-        }
 
         protected SharedComponentSystem(IEventQueueSystem events)
             : base(events)
-        {
-            entityToComponentsMap = new Dictionary<int, List<int>>();
-        }
+            => entityToComponentsMap = new Dictionary<int, List<int>>();
 
         protected override int InitializeComponent(int entityId)
         {

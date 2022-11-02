@@ -13,7 +13,7 @@ namespace Fracture.Net.Tests.Serialization
             Foo,
             Bar,
             Baz,
-            FooBar
+            FooBar,
         }
 
         private enum EnumWithExplicitUIntType : uint
@@ -21,7 +21,7 @@ namespace Fracture.Net.Tests.Serialization
             Foo = uint.MinValue,
             Bar,
             Baz,
-            FooBar = uint.MaxValue
+            FooBar = uint.MaxValue,
         }
 
         private enum EnumWithImplicitIntType
@@ -29,7 +29,7 @@ namespace Fracture.Net.Tests.Serialization
             Foo    = 0,
             Bar    = 1,
             Baz    = 2,
-            FooBar = 3
+            FooBar = 3,
         }
         #endregion
 

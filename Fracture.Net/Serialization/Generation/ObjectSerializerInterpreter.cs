@@ -254,7 +254,6 @@ namespace Fracture.Net.Serialization.Generation
         public static IEnumerable<Type> GetOpValueSerializerTypes(IEnumerable<ISerializationOp> ops)
         {
             foreach (var op in ops)
-            {
                 switch (op)
                 {
                     case ParametrizedActivationOp paop:
@@ -269,7 +268,6 @@ namespace Fracture.Net.Serialization.Generation
                     default:
                         continue;
                 }
-            }
         }
     }
 
@@ -328,15 +326,17 @@ namespace Fracture.Net.Serialization.Generation
             if (mapping.Activator.IsCallbackInitializer)
                 ops.Add(new IndirectActivationOp(mapping.Activator.Callback));
             else if (!mapping.Activator.IsDefaultConstructor)
+            {
                 ops.Add(new ParametrizedActivationOp(
                             mapping.Activator.Constructor,
                             mapping.Activator.Values.Select(v => new SerializeValueOp(
                                                                 v,
                                                                 ValueSerializerRegistry.GetValueSerializerForRunType(v.Type)))
-                                .ToList()
-                                .AsReadOnly()
+                                   .ToList()
+                                   .AsReadOnly()
                         )
                 );
+            }
             else if (!mapping.Activator.IsStructInitializer)
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
 
@@ -354,9 +354,7 @@ namespace Fracture.Net.Serialization.Generation
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
-            => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer
-                    ? mapping.Values
-                    : mapping.Activator.Values.Concat(mapping.Values)).Select(
+            => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
                     v => (ISerializationOp)new SerializeValueOp(v,
                                                                 ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
                 )
@@ -398,7 +396,7 @@ namespace Fracture.Net.Serialization.Generation
                     lastNullableValueIndex = i;
             }
 
-            var nullableValuesCount = lastNullableValueIndex < 0 ? 0 : (lastNullableValueIndex - firstNullableValueIndex) + 1;
+            var nullableValuesCount = lastNullableValueIndex < 0 ? 0 : lastNullableValueIndex - firstNullableValueIndex + 1;
 
             return new ObjectSerializationValueRanges(nullableValuesCount, valueOps.Count);
         }
@@ -409,14 +407,13 @@ namespace Fracture.Net.Serialization.Generation
         {
             var serializationValueIndex = 0;
 
-            var builder = ops.OfType<IndirectActivationOp>().Any()
-                ? DynamicDeserializeDelegateBuilder.CreateWithIndirectActivation(valueRanges, type)
-                : DynamicDeserializeDelegateBuilder.CreateWithDirectActivation(valueRanges, type);
+            var builder = ops.OfType<IndirectActivationOp>().Any() ?
+                DynamicDeserializeDelegateBuilder.CreateWithIndirectActivation(valueRanges, type) :
+                DynamicDeserializeDelegateBuilder.CreateWithDirectActivation(valueRanges, type);
 
             builder.EmitLocals();
 
             foreach (var op in ops)
-            {
                 switch (op)
                 {
                     case SerializeValueOp svop:
@@ -432,12 +429,10 @@ namespace Fracture.Net.Serialization.Generation
                         break;
                     case ParametrizedActivationOp paop:
                         foreach (var parameter in paop.ParameterValueOps)
-                        {
                             if (parameter.Value.IsNullAssignable)
                                 builder.EmitLoadNullableValue(parameter.Value, parameter.ValueSerializerType);
                             else
                                 builder.EmitLoadValue(parameter.Value, parameter.ValueSerializerType);
-                        }
 
                         builder.EmitActivation(paop.Constructor);
 
@@ -447,7 +442,6 @@ namespace Fracture.Net.Serialization.Generation
 
                         break;
                 }
-            }
 
             return builder.Build();
         }

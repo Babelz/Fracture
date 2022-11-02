@@ -9,9 +9,7 @@ namespace Fracture.Net.Tests.Serialization
     public class DictionarySerializerTests
     {
         static DictionarySerializerTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>), });
-        }
+            => ObjectSerializerAnalyzer.Analyze(new[] { typeof(Dictionary<string, int>), typeof(Dictionary<string, int?>) });
 
         public DictionarySerializerTests()
         {
@@ -24,7 +22,7 @@ namespace Fracture.Net.Tests.Serialization
             {
                 { "a", 200 },
                 { "b", 400 },
-                { "c", 800 }
+                { "c", 800 },
             };
 
             var buffer = new byte[128];
@@ -50,7 +48,7 @@ namespace Fracture.Net.Tests.Serialization
                 { "a", 200 },
                 { "b", 400 },
                 { "c", null },
-                { "d", 1600 }
+                { "d", 1600 },
             };
 
             var buffer = new byte[128];

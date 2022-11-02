@@ -18,7 +18,7 @@ namespace Fracture.Engine.Ui.Controls
         /// <summary>
         /// Children are wrapped vertically across the y-axis.
         /// </summary>
-        Vertical = 1
+        Vertical = 1,
     }
 
     /// <summary>
@@ -62,10 +62,8 @@ namespace Fracture.Engine.Ui.Controls
         #endregion
 
         public WrapPanel()
-        {
             // Default to 1.0 size.
-            Size = Vector2.One;
-        }
+            => Size = Vector2.One;
 
         #region Event handlers
         private void Control_LayoutChanged(object sender, EventArgs e)
@@ -84,7 +82,7 @@ namespace Fracture.Engine.Ui.Controls
             {
                 Children[i].Positioning = Positioning.Relative;
 
-                Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f + (offset * Children[i].Size.X) + offset * SpaceBetween,
+                Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f + offset * Children[i].Size.X + offset * SpaceBetween,
                                                    0.5f - Children[i].Size.Y * 0.5f);
 
                 Children[i].Margin = i % 2 == 0 ? UiOffset.ToLeft((origin + SpaceBetween) * i / 2) : UiOffset.ToLeft((-origin + -SpaceBetween) * (i + 1) / 2);
@@ -106,7 +104,7 @@ namespace Fracture.Engine.Ui.Controls
                 Children[i].Position = new Vector2(0.5f - Children[i].Size.X * 0.5f,
                                                    0.5f -
                                                    Children[i].Size.Y * 0.5f +
-                                                   (offset * Children[i].Size.Y) +
+                                                   offset * Children[i].Size.Y +
                                                    offset * SpaceBetween);
 
                 Children[i].Margin = i % 2 == 0 ? UiOffset.ToTop((origin + SpaceBetween) * i / 2) : UiOffset.ToTop((-origin + -SpaceBetween) * (i + 1) / 2);

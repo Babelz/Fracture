@@ -9,9 +9,7 @@ namespace Fracture.Net.Tests.Serialization
     public class ListSerializerTests
     {
         static ListSerializerTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[] { typeof(List<int>), typeof(List<int?>), });
-        }
+            => ObjectSerializerAnalyzer.Analyze(new[] { typeof(List<int>), typeof(List<int?>) });
 
         public ListSerializerTests()
         {
@@ -29,7 +27,7 @@ namespace Fracture.Net.Tests.Serialization
                 4,
                 5,
                 6,
-                7
+                7,
             };
 
             var buffer = new byte[128];
@@ -56,7 +54,7 @@ namespace Fracture.Net.Tests.Serialization
                 4,
                 null,
                 null,
-                7
+                7,
             };
 
             var buffer = new byte[128];

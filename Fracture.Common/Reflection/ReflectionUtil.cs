@@ -18,9 +18,9 @@ namespace Fracture.Common.Reflection
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDelegate(MethodInfo methodInfo)
             => methodInfo.CreateDelegate(Expression.GetDelegateType(methodInfo.GetParameters()
-                                                                        .Select(p => p.ParameterType)
-                                                                        .Concat(new[] { methodInfo.ReturnType })
-                                                                        .ToArray()));
+                                                                              .Select(p => p.ParameterType)
+                                                                              .Concat(new[] { methodInfo.ReturnType })
+                                                                              .ToArray()));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Delegate CreateDelegate(MethodInfo methodInfo, Type delegateType)
@@ -47,23 +47,23 @@ namespace Fracture.Common.Reflection
             var methodInfoParameters = methodInfo.GetParameters();
 
             if (delegateParameters.Length != methodInfoParameters.Length)
+            {
                 throw new InvalidOperationException("expecting method info and delegate type to have same length parameter list")
                 {
                     Data =
                     {
                         { nameof(delegateType), delegateType },
                         { "delegate parameters", delegateParameters },
-                        { "method info parameters", methodInfoParameters }
-                    }
+                        { "method info parameters", methodInfoParameters },
+                    },
                 };
+            }
 
             var genericTypeArguments = new List<Type>();
 
             for (var i = 0; i < delegateParameters.Length; i++)
-            {
                 if (delegateParameters[i].ParameterType.ContainsGenericParameters)
                     genericTypeArguments.Add(methodInfoParameters[i].ParameterType);
-            }
 
             if (delegateType.GetMethod("Invoke")!.ReturnType.ContainsGenericParameters)
                 genericTypeArguments.Add(methodInfo.ReturnType);

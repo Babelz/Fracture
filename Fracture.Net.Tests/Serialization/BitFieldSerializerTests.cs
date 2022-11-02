@@ -106,7 +106,7 @@ namespace Fracture.Net.Tests.Serialization
                 1, // Bit field bytes. 
                 2,
                 3,
-                4
+                4,
             };
 
             var bf = BitFieldSerializer.Deserialize(buffer, 0);
@@ -120,9 +120,7 @@ namespace Fracture.Net.Tests.Serialization
 
         [Fact]
         public void Get_Size_From_Value_Returns_Bit_Field_Size_In_And_Size_Field_Bytes()
-        {
-            Assert.Equal(18, BitFieldSerializer.GetSizeFromValue(new BitField(16)));
-        }
+            => Assert.Equal(18, BitFieldSerializer.GetSizeFromValue(new BitField(16)));
 
         [Fact]
         public void Get_Size_From_Buffer_Returns_Bit_Field_Size_And_Size_Field_In_Bytes()
@@ -134,7 +132,7 @@ namespace Fracture.Net.Tests.Serialization
                 1, // Bit field bytes. 
                 2,
                 3,
-                4
+                4,
             };
 
             Assert.Equal(6, BitFieldSerializer.GetSizeFromBuffer(buffer, 0));

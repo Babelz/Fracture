@@ -46,9 +46,11 @@ namespace Fracture.Common.Util
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int Append<T>(this int hash, T[] value)
         {
-            if (value == null) return hash;
+            if (value == null)
+                return hash;
 
-            for (int i = 0, length = value.Length; i < length; i++) hash = hash.Append(value[i].GetHashCode());
+            for (int i = 0, length = value.Length; i < length; i++)
+                hash = hash.Append(value[i].GetHashCode());
 
             return hash;
         }

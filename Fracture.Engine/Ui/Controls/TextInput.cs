@@ -97,19 +97,23 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalReceiveTextInput(IGameEngineTime time, string text)
         {
-            if (!HasFocus) return;
+            if (!HasFocus)
+                return;
 
             var oldLength = Text.Length;
 
             Text = Text.Insert(MathHelper.Clamp(CaretPosition, 0, Text.Length), text);
 
-            if (CaretPosition == oldLength) CaretPosition = Text.Length;
-            else CaretPosition++;
+            if (CaretPosition == oldLength)
+                CaretPosition = Text.Length;
+            else
+                CaretPosition++;
         }
 
         protected override void InternalReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard)
         {
-            if (!HasFocus) return;
+            if (!HasFocus)
+                return;
 
             // Move caret left.
             UpdateCaretLeft(time);
@@ -141,7 +145,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void UpdateCaretRight(IGameEngineTime time)
         {
-            if (CaretPosition == Text.Length) return;
+            if (CaretPosition == Text.Length)
+                return;
 
             if (Keyboard.IsPressed(Keys.Right) ||
                 (Keyboard.IsDown(Keys.Right) &&
@@ -158,7 +163,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void UpdateCaretErase(IGameEngineTime time)
         {
-            if (Text.Length == 0 || CaretPosition == 0) return;
+            if (Text.Length == 0 || CaretPosition == 0)
+                return;
 
             if (Keyboard.IsPressed(Keys.Back) ||
                 (Keyboard.IsDown(Keys.Back) &&
@@ -199,7 +205,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void UpdateDisplayText()
         {
-            if (string.IsNullOrEmpty(displayText)) return;
+            if (string.IsNullOrEmpty(displayText))
+                return;
 
             // Clip text to fit area.
             var target = Style.Get<Texture2D>($"{UiStyleKeys.Target.TextInput}\\{UiStyleKeys.Texture.Normal}").Bounds;
@@ -214,7 +221,8 @@ namespace Fracture.Engine.Ui.Controls
             var area  = UiUtils.ScaleTextArea(new Vector2(destination.X, destination.Y), scale, source);
             var local = new Rectangle(0, 0, area.Width, area.Height);
 
-            if (!(font.MeasureString(displayText).X >= area.Width)) return;
+            if (!(font.MeasureString(displayText).X >= area.Width))
+                return;
 
             // TODO: fix to work like HTML text input fields.
             var head       = string.Empty;
@@ -278,7 +286,8 @@ namespace Fracture.Engine.Ui.Controls
                                 texture,
                                 color);
 
-            if (string.IsNullOrEmpty(displayText)) return;
+            if (string.IsNullOrEmpty(displayText))
+                return;
 
             var scale = GraphicsUtils.ScaleToTarget(new Vector2(destination.Width, destination.Height),
                                                     new Vector2(texture.Width, texture.Height));

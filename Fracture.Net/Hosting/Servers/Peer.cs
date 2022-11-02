@@ -41,9 +41,9 @@ namespace Fracture.Net.Hosting.Servers
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(PeerId)
-                .Append(EndPoint)
-                .Append(EndPoint.Port);
+                        .Append(PeerId)
+                        .Append(EndPoint)
+                        .Append(EndPoint.Port);
     }
 
     /// <summary>
@@ -65,7 +65,7 @@ namespace Fracture.Net.Hosting.Servers
         /// <summary>
         /// Peer is in disconnected state and should be disposed.
         /// </summary>
-        Disconnected
+        Disconnected,
     }
 
     /// <summary>

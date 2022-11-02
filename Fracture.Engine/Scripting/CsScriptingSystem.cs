@@ -138,7 +138,7 @@ namespace Fracture.Engine.Scripting
             {
                 new ActiveCsScriptActor(),
                 new CommandCsScriptActor(),
-                new CsScriptActor<CsScript>()
+                new CsScriptActor<CsScript>(),
             };
         }
 

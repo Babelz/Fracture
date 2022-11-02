@@ -31,9 +31,7 @@ namespace Fracture.Common.Reflection
                 throw new InvalidOperationException("The delegate signature does not match that of the constructor");
 
             if (delParams.Where((t, i) => t.ParameterType != constructorParam[i].ParameterType || t.IsOut).Any())
-            {
                 throw new InvalidOperationException("The delegate signature does not match that of the constructor");
-            }
 
             // Create the dynamic method.
             var method = new DynamicMethod(
@@ -46,7 +44,6 @@ namespace Fracture.Common.Reflection
             var gen = method.GetILGenerator();
 
             for (var i = 0; i < constructorParam.Length; i++)
-            {
                 if (i < 4)
                 {
                     switch (i)
@@ -70,10 +67,7 @@ namespace Fracture.Common.Reflection
                     }
                 }
                 else
-                {
                     gen.Emit(OpCodes.Ldarg_S, i);
-                }
-            }
 
             gen.Emit(OpCodes.Newobj, constructor);
             gen.Emit(OpCodes.Ret);

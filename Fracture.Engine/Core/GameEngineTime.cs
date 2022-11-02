@@ -75,8 +75,6 @@ namespace Fracture.Engine.Core
         #endregion
 
         public GameEngineTime()
-        {
-            StartTime = DateTime.UtcNow.TimeOfDay;
-        }
+            => StartTime = DateTime.UtcNow.TimeOfDay;
     }
 }

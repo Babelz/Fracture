@@ -26,15 +26,11 @@ namespace Fracture.Common.Di
     {
         public DependencyBinderException(Type type, string message)
             : base(message)
-        {
-            Data["Type"] = type;
-        }
+            => Data["Type"] = type;
 
         public DependencyBinderException(Type type, string message, Exception innerException)
             : base(message, innerException)
-        {
-            Data["Type"] = type;
-        }
+            => Data["Type"] = type;
 
         private DependencyBinderException(SerializationInfo info, StreamingContext context)
             : base(info, context)

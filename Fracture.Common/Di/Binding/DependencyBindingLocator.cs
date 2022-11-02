@@ -111,7 +111,7 @@ namespace Fracture.Common.Di.Binding
         private object[] GetParameterBindingValues(IEnumerable<ParameterInfo> parameters)
             => parameters.Select(p => values.FirstOrDefault(v => v.Name == p.Name)?.Value ??
                                       (locator.Exists(p.ParameterType) ? locator.First(p.ParameterType) : p.DefaultValue))
-                .ToArray();
+                         .ToArray();
 
         public bool BindingExist(PropertyInfo property)
             => values.Any(v => v.Name == property.Name) || locator.Exists(property.PropertyType);

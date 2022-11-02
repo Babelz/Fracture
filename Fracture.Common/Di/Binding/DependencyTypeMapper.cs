@@ -12,37 +12,37 @@ namespace Fracture.Common.Di.Binding
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ConstructorInfo GetBindingConstructor(Type type)
             => type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .First(c => c.GetCustomAttribute<BindingConstructorAttribute>() != null);
+                   .First(c => c.GetCustomAttribute<BindingConstructorAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<MethodInfo> GetBindingMethods(Type type)
             => type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Where(c => c.GetCustomAttribute<BindingMethodAttribute>() != null);
+                   .Where(c => c.GetCustomAttribute<BindingMethodAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<PropertyInfo> GetBindingProperties(Type type)
             => type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Where(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null);
+                   .Where(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasDefaultConstructor(Type type)
             => type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Any(c => c.GetParameters().Length == 0);
+                   .Any(c => c.GetParameters().Length == 0);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasBindingConstructor(Type type)
             => type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Any(c => c.GetCustomAttribute<BindingConstructorAttribute>() != null);
+                   .Any(c => c.GetCustomAttribute<BindingConstructorAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasBindingMethods(Type type)
             => type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Any(c => c.GetCustomAttribute<BindingMethodAttribute>() != null);
+                   .Any(c => c.GetCustomAttribute<BindingMethodAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool HasBindingProperties(Type type)
             => type.GetProperties(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance)
-                .Any(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null);
+                   .Any(c => c.GetCustomAttribute<BindingPropertyAttribute>() != null);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Type[] Map(Type type, DependencyBindingOptions options)
@@ -50,9 +50,7 @@ namespace Fracture.Common.Di.Binding
             var types = new HashSet<Type>();
 
             if ((options & DependencyBindingOptions.BaseType) == DependencyBindingOptions.BaseType)
-            {
                 types.Add(type);
-            }
 
             if ((options & DependencyBindingOptions.SubTypes) == DependencyBindingOptions.SubTypes)
             {

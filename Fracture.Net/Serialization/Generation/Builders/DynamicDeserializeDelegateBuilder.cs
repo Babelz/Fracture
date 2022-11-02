@@ -30,7 +30,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             { typeof(ulong), dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
             { typeof(float), dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
             { typeof(decimal), dmb => dmb.Emit(OpCodes.Ldc_I4_0) },
-            { typeof(string), dmb => dmb.Emit(OpCodes.Ldstr, string.Empty) }
+            { typeof(string), dmb => dmb.Emit(OpCodes.Ldstr, string.Empty) },
         };
         #endregion
 
@@ -91,7 +91,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             else
                 DynamicMethodBuilder.Emit(value.Property.SetMethod.IsVirtual ? OpCodes.Callvirt : OpCodes.Call, value.Property.SetMethod);
 
-            if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
+            if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount)
+                return;
 
             // Push 'buffer' to stack. 
             DynamicMethodBuilder.Emit(OpCodes.Ldarg_0);
@@ -169,7 +170,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
         {
             base.EmitLocals();
 
-            if (ValueRanges.NullableValuesCount == 0) return;
+            if (ValueRanges.NullableValuesCount == 0)
+                return;
 
             localNullMask = DynamicMethodBuilder.DeclareLocal(typeof(BitField));
 
@@ -260,7 +262,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                     new[]
                     {
                         typeof(byte[]), // Argument 0.
-                        typeof(int) // Argument 1.
+                        typeof(int), // Argument 1.
                     }
                 ),
                 valueRanges,
@@ -282,7 +284,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                     {
                         typeof(byte[]), // Argument 0.
                         typeof(int), // Argument 1.
-                        typeof(ObjectActivationDelegate) // Argument 1.
+                        typeof(ObjectActivationDelegate), // Argument 1.
                     }
                 ),
                 valueRanges,

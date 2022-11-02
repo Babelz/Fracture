@@ -11,7 +11,7 @@ namespace Fracture.Engine.Ui.Controls
     public enum ButtonState
     {
         Released,
-        Down
+        Down,
     }
 
     public class Button : Control
@@ -62,7 +62,8 @@ namespace Fracture.Engine.Ui.Controls
 
         protected sealed override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
-            if (!HasFocus) return;
+            if (!HasFocus)
+                return;
 
             if (Mouse.IsDown(MouseButton.Left))
             {
@@ -91,7 +92,8 @@ namespace Fracture.Engine.Ui.Controls
 
         protected virtual Point GetStyleStateOffset()
         {
-            if ((!HasFocus || !Mouse.IsHovering(this)) ||
+            if (!HasFocus ||
+                !Mouse.IsHovering(this) ||
                 (!Mouse.IsDown(MouseButton.Left) && !Mouse.IsPressed(MouseButton.Left)))
                 return Point.Zero;
 

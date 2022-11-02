@@ -13,7 +13,7 @@ namespace Fracture.Net.Messages
         /// <summary>
         /// Pong phase, expected to happen after ping phase.
         /// </summary>
-        Pong
+        Pong,
     }
 
     /// <summary>

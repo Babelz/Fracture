@@ -44,9 +44,7 @@ namespace Fracture.Common.Tests.Memory
             #endregion
 
             public ClearableTestClass()
-            {
-                X = 500;
-            }
+                => X = 500;
 
             public void MutateC()
                 => C = 200.0f;
@@ -69,7 +67,7 @@ namespace Fracture.Common.Tests.Memory
                 I = 300,
                 J = 15,
                 O = new object(),
-                P = new object()
+                P = new object(),
             };
 
             value.MutateC();

@@ -55,9 +55,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitLoadLocalValue();
 
             if ((!value.IsValueType || value.IsNullable) && !nullableLocals.ContainsKey(value.Type))
-            {
                 nullableLocals.Add(value.Type, DynamicMethodBuilder.DeclareLocal(value.Type));
-            }
 
             if (value.IsProperty)
             {
@@ -85,9 +83,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
 
         protected void EmitLoadLocalValue()
-        {
-            DynamicMethodBuilder.Emit(SerializationType.IsClass ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, localValue);
-        }
+            => DynamicMethodBuilder.Emit(SerializationType.IsClass ? OpCodes.Ldloc_S : OpCodes.Ldloca_S, localValue);
 
         protected void EmitBoxLocalValue()
         {
@@ -96,9 +92,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
 
         protected void EmitStoreValueToLocal()
-        {
-            DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localValue);
-        }
+            => DynamicMethodBuilder.Emit(OpCodes.Stloc_S, localValue);
 
         protected void EmitStoreArgumentValueToLocal()
         {
@@ -111,9 +105,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
         }
 
         public virtual void EmitLocals()
-        {
             // Local 0: type we are serializing, create common locals for serialization. These are required across all serialization emit functions.
-            localValue = DynamicMethodBuilder.DeclareLocal(SerializationType);
-        }
+            => localValue = DynamicMethodBuilder.DeclareLocal(SerializationType);
     }
 }

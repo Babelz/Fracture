@@ -116,8 +116,10 @@ namespace Fracture.Engine.Ui.Controls
 
                 useRenderTarget = value;
 
-                if (useRenderTarget && !old) UpdateRenderTarget();
-                else DeinitializeRenderTarget();
+                if (useRenderTarget && !old)
+                    UpdateRenderTarget();
+                else
+                    DeinitializeRenderTarget();
             }
         }
 
@@ -157,10 +159,8 @@ namespace Fracture.Engine.Ui.Controls
                     UpdateRenderTarget();
 
                 foreach (var container in Children.Controls.Where(c => c is IStaticContainerControl)
-                             .Cast<IStaticContainerControl>())
-                {
+                                                  .Cast<IStaticContainerControl>())
                     container.Graphics = value;
-                }
             }
         }
 
@@ -171,7 +171,8 @@ namespace Fracture.Engine.Ui.Controls
             {
                 base.Style = value;
 
-                for (var i = 0; i < ControlsCount; i++) this[i].Style = value;
+                for (var i = 0; i < ControlsCount; i++)
+                    this[i].Style = value;
             }
         }
 
@@ -213,9 +214,11 @@ namespace Fracture.Engine.Ui.Controls
             control.Parent = null;
             control.Style  = null;
 
-            if (control is IStaticContainerControl container) container.Graphics = null;
+            if (control is IStaticContainerControl container)
+                container.Graphics = null;
 
-            if (useRenderTarget) UpdateRenderTarget();
+            if (useRenderTarget)
+                UpdateRenderTarget();
 
             UpdateChildrenLayout();
         }
@@ -232,14 +235,16 @@ namespace Fracture.Engine.Ui.Controls
             control.Parent = this;
             control.Style  = Style;
 
-            if (control is IStaticContainerControl container) container.Graphics = graphics;
+            if (control is IStaticContainerControl container)
+                container.Graphics = graphics;
 
             UpdateChildrenLayout();
         }
 
         private void Control_LayoutChanged(object sender, EventArgs e)
         {
-            if (useRenderTarget) UpdateRenderTarget();
+            if (useRenderTarget)
+                UpdateRenderTarget();
         }
 
         private void Control_ParentChanged(object sender, ControlParentEventArgs e)
@@ -288,7 +293,8 @@ namespace Fracture.Engine.Ui.Controls
         /// </summary>
         protected virtual void DisposeManaged()
         {
-            if (RenderTarget == null) return;
+            if (RenderTarget == null)
+                return;
 
             RenderTarget.Dispose();
 
@@ -307,8 +313,10 @@ namespace Fracture.Engine.Ui.Controls
         protected virtual void Dispose(bool disposing)
         {
             if (disposed)
+            {
                 throw new InvalidOperationException(
                     $"control {(string.IsNullOrEmpty(Id) ? GetType().Name : $"of type {GetType().Name} with id {Id}")} already disposed");
+            }
 
             if (disposing)
                 DisposeManaged();
@@ -320,7 +328,8 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalUpdate(IGameEngineTime time)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].Update(time);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].Update(time);
         }
 
         /// <summary>
@@ -328,9 +337,11 @@ namespace Fracture.Engine.Ui.Controls
         /// </summary>
         protected override void InternalBeforeDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].BeforeDraw(fragment, time);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].BeforeDraw(fragment, time);
 
-            if (!UseRenderTarget) return;
+            if (!UseRenderTarget)
+                return;
 
             fragment.Begin(RenderTarget,
                            new Viewport(0, 0, RenderTarget.Width, RenderTarget.Height),
@@ -368,7 +379,8 @@ namespace Fracture.Engine.Ui.Controls
             }
             else
             {
-                for (var i = 0; i < ControlsCount; i++) this[i].Draw(pipeline, time);
+                for (var i = 0; i < ControlsCount; i++)
+                    this[i].Draw(pipeline, time);
             }
         }
 
@@ -377,22 +389,26 @@ namespace Fracture.Engine.Ui.Controls
         /// </summary>
         protected override void InternalAfterDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].AfterDraw(fragment, time);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].AfterDraw(fragment, time);
         }
 
         protected override void InternalReceiveKeyboardInput(IGameEngineTime time, IKeyboardDevice keyboard)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].ReceiveKeyboardInput(time, keyboard);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].ReceiveKeyboardInput(time, keyboard);
         }
 
         protected override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].ReceiveMouseInput(time, mouse);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].ReceiveMouseInput(time, mouse);
         }
 
         protected override void InternalReceiveTextInput(IGameEngineTime time, string text)
         {
-            for (var i = 0; i < ControlsCount; i++) this[i].ReceiveTextInput(time, text);
+            for (var i = 0; i < ControlsCount; i++)
+                this[i].ReceiveTextInput(time, text);
         }
 
         public override void UpdateLayout()
@@ -406,41 +422,50 @@ namespace Fracture.Engine.Ui.Controls
         {
             base.Enable();
 
-            if (!Enabled) return;
+            if (!Enabled)
+                return;
 
-            for (var i = 0; i < Children.ControlsCount; i++) Children[i].Enable();
+            for (var i = 0; i < Children.ControlsCount; i++)
+                Children[i].Enable();
         }
 
         public override void Disable()
         {
             base.Disable();
 
-            if (Enabled) return;
+            if (Enabled)
+                return;
 
-            for (var i = 0; i < Children.ControlsCount; i++) Children[i].Disable();
+            for (var i = 0; i < Children.ControlsCount; i++)
+                Children[i].Disable();
         }
 
         public override void Show()
         {
             base.Show();
 
-            if (!Visible) return;
+            if (!Visible)
+                return;
 
-            for (var i = 0; i < Children.ControlsCount; i++) Children[i].Show();
+            for (var i = 0; i < Children.ControlsCount; i++)
+                Children[i].Show();
         }
 
         public override void Hide()
         {
             base.Hide();
 
-            if (Visible) return;
+            if (Visible)
+                return;
 
-            for (var i = 0; i < Children.ControlsCount; i++) Children[i].Hide();
+            for (var i = 0; i < Children.ControlsCount; i++)
+                Children[i].Hide();
         }
 
         public virtual void UpdateChildrenLayout()
         {
-            for (var i = 0; i < Children.ControlsCount; i++) Children[i].UpdateLayout();
+            for (var i = 0; i < Children.ControlsCount; i++)
+                Children[i].UpdateLayout();
         }
 
         public virtual void Clear()

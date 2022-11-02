@@ -54,20 +54,21 @@ namespace Fracture.Engine.Input.Devices
             devices = new HashSet<IInputDevice>();
 
             foreach (var configuration in configurations)
-            {
                 try
                 {
                     var device = configuration.CreateDevice(activator);
 
                     if (!devices.Add(device))
+                    {
                         throw new InvalidOperationException($"duplicated input device {device.GetType().FullName} in configuration")
                         {
                             Data =
                             {
                                 { nameof(device), device },
-                                { nameof(devices), devices }
-                            }
+                                { nameof(devices), devices },
+                            },
                         };
+                    }
                 }
                 catch (Exception e)
                 {
@@ -75,7 +76,6 @@ namespace Fracture.Engine.Input.Devices
 
                     throw;
                 }
-            }
         }
 
         public override void Update(IGameEngineTime time)

@@ -9,8 +9,6 @@ namespace Fracture.Common.Tests.Di.TestTypes
         }
 
         public void SuperFooBar()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

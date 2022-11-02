@@ -88,9 +88,9 @@ namespace Fracture.Net.Tests.Serialization
         static StructSerializerTests()
         {
             StructSerializer.Map(ObjectSerializationMapper.ForType<Vec2>()
-                                     .PublicFields()
-                                     .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
-                                     .Map());
+                                                          .PublicFields()
+                                                          .ParametrizedActivation(ObjectActivationHint.Field("x", "X"), ObjectActivationHint.Field("y", "Y"))
+                                                          .Map());
 
             StructSerializer.Map(ObjectSerializationMapper.ForType<ClassComposedOfStructs>().PublicFields().Map());
 
@@ -117,9 +117,12 @@ namespace Fracture.Net.Tests.Serialization
             var testValueIn = new IndirectlyActivatedTestClass();
 
             StructSerializer.Map(ObjectSerializationMapper.ForType<IndirectlyActivatedTestClass>()
-                                     .PublicFields()
-                                     .IndirectActivation(() => { return testValueIn; })
-                                     .Map());
+                                                          .PublicFields()
+                                                          .IndirectActivation(() =>
+                                                          {
+                                                              return testValueIn;
+                                                          })
+                                                          .Map());
 
             testValueIn.X = testValueIn.Y = 256;
 
@@ -139,7 +142,7 @@ namespace Fracture.Net.Tests.Serialization
             var testValueIn = new ClassComposedOfStructs
             {
                 X = new Vec2(1.0f, 2.0f),
-                Z = new Vec2(3.0f, 4.0f)
+                Z = new Vec2(3.0f, 4.0f),
             };
 
             var buffer = new byte[128];
@@ -164,11 +167,11 @@ namespace Fracture.Net.Tests.Serialization
                         {
                             Inner = new Inner4
                             {
-                                Value = new Vec2(float.MinValue, float.MaxValue)
-                            }
-                        }
-                    }
-                }
+                                Value = new Vec2(float.MinValue, float.MaxValue),
+                            },
+                        },
+                    },
+                },
             };
 
             var buffer = new byte[128];

@@ -13,12 +13,18 @@ namespace Fracture.Common.Memory.Pools
 
         public void Return(T element)
         {
-            lock (pool) pool.Return(element);
+            lock (pool)
+            {
+                pool.Return(element);
+            }
         }
 
         public T Take(PoolElementDecoratorDelegate<T> decorator = null)
         {
-            lock (pool) return pool.Take(decorator);
+            lock (pool)
+            {
+                return pool.Take(decorator);
+            }
         }
     }
 }

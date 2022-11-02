@@ -47,7 +47,7 @@ namespace Fracture.Common.Events
         /// <summary>
         /// Letter should be put back to the backlog.
         /// </summary>
-        Retain
+        Retain,
     }
 
     /// <summary>
@@ -106,7 +106,7 @@ namespace Fracture.Common.Events
         /// <summary>
         /// Letters from topics that are marked for deletion will be handled.
         /// </summary>
-        PublishDeletedTopics
+        PublishDeletedTopics,
     }
 
     /// <summary>
@@ -182,14 +182,16 @@ namespace Fracture.Common.Events
         protected void UpdateLetter(int index, in TTopic topic, in TArgs args)
         {
             if (index >= publishedLettersCount)
+            {
                 throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}")
                 {
                     Data =
                     {
                         { nameof(index), index },
-                        { nameof(publishedLettersCount), publishedLettersCount }
-                    }
+                        { nameof(publishedLettersCount), publishedLettersCount },
+                    },
                 };
+            }
 
             letters.Insert(index, new Letter<TTopic, TArgs>(topic, args));
         }
@@ -197,14 +199,16 @@ namespace Fracture.Common.Events
         protected ref Letter<TTopic, TArgs> LetterAtIndex(int index)
         {
             if (index >= publishedLettersCount)
+            {
                 throw new ArgumentOutOfRangeException($"{nameof(index)} is not in the range of {nameof(publishedLettersCount)}")
                 {
                     Data =
                     {
                         { nameof(index), index },
-                        { nameof(publishedLettersCount), publishedLettersCount }
-                    }
+                        { nameof(publishedLettersCount), publishedLettersCount },
+                    },
                 };
+            }
 
             return ref letters.AtIndex(index);
         }
@@ -297,7 +301,7 @@ namespace Fracture.Common.Events
                 return;
 
             if (topicLetterIndices.TryGetValue(topic, out var index))
-                UpdateLetter(index, topic, (aggregator != null ? aggregator(LetterAtIndex(index).Args, args) : args));
+                UpdateLetter(index, topic, aggregator != null ? aggregator(LetterAtIndex(index).Args, args) : args);
             else
                 topicLetterIndices[topic] = EnqueueLetter(topic, args);
         }

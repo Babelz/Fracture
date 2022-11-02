@@ -47,7 +47,7 @@ namespace Fracture.Net.Serialization
             var byteIndex = ByteIndex(index);
             var bitIndex  = BitIndex(index);
 
-            return (bytes[byteIndex] >> ((BitsInByte - 1) - bitIndex) & 1) == 1;
+            return ((bytes[byteIndex] >> (BitsInByte - 1 - bitIndex)) & 1) == 1;
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace Fracture.Net.Serialization
             var byteIndex = ByteIndex(index);
             var bitIndex  = BitIndex(index);
 
-            bytes[byteIndex] = (byte)(bytes[byteIndex] | ((value ? 1 : 0) << (BitsInByte - 1) - bitIndex));
+            bytes[byteIndex] = (byte)(bytes[byteIndex] | ((value ? 1 : 0) << (BitsInByte - 1 - bitIndex)));
         }
 
         /// <summary>
@@ -83,10 +83,10 @@ namespace Fracture.Net.Serialization
         public static int LengthFromBits(int bits)
         {
             // Determine how big of a bit field we need and instantiate bit field local.
-            var moduloBitsInBitField = (bits % 8);
+            var moduloBitsInBitField = bits % 8;
 
             // Add one additional byte to the field if we have any bits that don't fill all bytes.
-            return (bits / 8) + (moduloBitsInBitField != 0 ? 1 : 0);
+            return bits / 8 + (moduloBitsInBitField != 0 ? 1 : 0);
         }
     }
 

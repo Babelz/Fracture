@@ -18,9 +18,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Serialize]
         public static void Serialize(byte value, byte[] buffer, int offset)
-        {
-            MemoryMapper.WriteByte(value, buffer, offset);
-        }
+            => MemoryMapper.WriteByte(value, buffer, offset);
 
         /// <summary>
         /// Reads next 1-bytes from given buffer beginning at given offset as byte
@@ -28,9 +26,7 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static byte Deserialize(byte[] buffer, int offset)
-        {
-            return MemoryMapper.ReadByte(buffer, offset);
-        }
+            => MemoryMapper.ReadByte(buffer, offset);
 
         /// <summary>
         /// Returns size of byte, should always be 1-bytes.

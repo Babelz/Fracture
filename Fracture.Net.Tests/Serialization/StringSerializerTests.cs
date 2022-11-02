@@ -41,9 +41,7 @@ namespace Fracture.Net.Tests.Serialization
 
         [Fact]
         public void Get_Size_From_Buffer_Returns_String_Size_And_Size_Field_In_Bytes()
-        {
-            Assert.Equal(10, StringSerializer.GetSizeFromBuffer(new byte[] { 10, 0, 0, 0 }, 0));
-        }
+            => Assert.Equal(10, StringSerializer.GetSizeFromBuffer(new byte[] { 10, 0, 0, 0 }, 0));
 
         [Fact]
         public void Get_Size_From_Buffer_And_Get_Size_From_Value_Both_Return_Same_Value()

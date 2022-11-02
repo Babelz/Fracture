@@ -18,6 +18,6 @@ namespace Fracture.Net
         /// <summary>
         /// Connection was reset because it has timed out.
         /// </summary>
-        TimedOut
+        TimedOut,
     }
 }

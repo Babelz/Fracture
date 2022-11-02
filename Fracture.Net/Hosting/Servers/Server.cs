@@ -225,10 +225,8 @@ namespace Fracture.Net.Hosting.Servers
                 peerIds[i].Disconnect();
 
             while (peerIds.Count != 0)
-            {
                 for (var i = 0; i < peerIds.Count; i++)
                     peerIds[i].Poll();
-            }
         }
 
         public void Poll()

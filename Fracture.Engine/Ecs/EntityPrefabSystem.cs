@@ -59,7 +59,6 @@ namespace Fracture.Engine.Ecs
         public override void Initialize()
         {
             foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
                 try
                 {
                     foreach (var type in assembly.GetTypes().Where(t => typeof(IEntityPrefab).IsAssignableFrom(t) && !t.IsAbstract))
@@ -69,7 +68,6 @@ namespace Fracture.Engine.Ecs
                 {
                     Log.Error(e, "unhandled error occurred while loading entity prefabs");
                 }
-            }
         }
 
         public void Register<T>() where T : IEntityPrefab

@@ -44,7 +44,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// Sensor bodies are moved by their velocity or position and only detect collisions
         /// with dynamic bodies but do not respond to them.
         /// </summary>
-        Sensor = 3
+        Sensor = 3,
     }
 
     /// <summary>
@@ -231,7 +231,8 @@ namespace Fracture.Engine.Physics.Dynamics
 
         private void ResetTranslation()
         {
-            if (!Translating) return;
+            if (!Translating)
+                return;
 
             Normalized           = false;
             Translating          = false;
@@ -242,7 +243,8 @@ namespace Fracture.Engine.Physics.Dynamics
 
         private void ResetTransform()
         {
-            if (!Transforming) return;
+            if (!Transforming)
+                return;
 
             Normalized           = false;
             Transforming         = false;
@@ -314,8 +316,11 @@ namespace Fracture.Engine.Physics.Dynamics
 
         public void NormalizeTransformation(float delta = 1.0f)
         {
-            if (!Translating) return;
-            if (Normalized) return;
+            if (!Translating)
+                return;
+
+            if (Normalized)
+                return;
 
             Normalized           =  true;
             PositionTranslation  *= delta;
@@ -345,8 +350,10 @@ namespace Fracture.Engine.Physics.Dynamics
 
                 // No need to transform the position in case angle did not change, we 
                 // can just translate.
-                if (oldAngle != Rotation) Shape.ApplyTransformation(Position, Rotation);
-                else Shape.ApplyTranslation(PositionTranslation);
+                if (oldAngle != Rotation)
+                    Shape.ApplyTransformation(Position, Rotation);
+                else
+                    Shape.ApplyTranslation(PositionTranslation);
 
                 ResetTranslation();
             }

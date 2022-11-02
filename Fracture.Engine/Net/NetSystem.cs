@@ -119,7 +119,7 @@ namespace Fracture.Engine.Net
 
         #region Static fields
         private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        
+
         public static readonly TimeSpan DefaultQueryGracePeriod = TimeSpan.FromSeconds(15);
         #endregion
 
@@ -164,14 +164,11 @@ namespace Fracture.Engine.Net
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void ReleaseQueryContext(QueryMessageContext context)
-        {
-            Message.Release(context.Request);
-        }
+            => Message.Release(context.Request);
 
         private void HandleClientUpdates()
         {
             foreach (var update in client.Poll())
-            {
                 switch (update)
                 {
                     case ClientUpdate.Connected cu:
@@ -194,7 +191,6 @@ namespace Fracture.Engine.Net
 
                         break;
                 }
-            }
         }
 
         private void UpdateQueryContexts()
@@ -206,7 +202,7 @@ namespace Fracture.Engine.Net
             {
                 var context = queries[i];
 
-                if ((now - context.Timestamp) >= queryGracePeriod)
+                if (now - context.Timestamp >= queryGracePeriod)
                 {
                     context.TimeoutCallback?.Invoke(context.Request);
 
@@ -239,7 +235,7 @@ namespace Fracture.Engine.Net
 
             if (!packetHandler.Handle(packet))
                 Log.Warn($"packet with message type {packet.Message.GetType().Name} was left unahndled");
-            
+
             ReleasePacket(packet);
         }
 

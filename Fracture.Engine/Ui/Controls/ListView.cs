@@ -199,7 +199,8 @@ namespace Fracture.Engine.Ui.Controls
             {
                 base.Style = value;
 
-                if (value == null) return;
+                if (value == null)
+                    return;
 
                 hoverImageBox.Image    = value.Get<Texture2D>($"{UiStyleKeys.Target.ListView}\\{UiStyleKeys.Texture.Hover}");
                 selectedImageBox.Image = value.Get<Texture2D>($"{UiStyleKeys.Target.ListView}\\{UiStyleKeys.Texture.Focused}");
@@ -231,12 +232,12 @@ namespace Fracture.Engine.Ui.Controls
 
             hoverImageBox = new ImageBox
             {
-                ImageMode = ImageMode.Fit
+                ImageMode = ImageMode.Fit,
             };
 
             selectedImageBox = new ImageBox
             {
-                ImageMode = ImageMode.Fit
+                ImageMode = ImageMode.Fit,
             };
 
             hoverImageBox.Hide();
@@ -254,7 +255,8 @@ namespace Fracture.Engine.Ui.Controls
         #region Event handlers
         private void ListView_MouseInputReceived(object sender, ControlMouseInputEventArgs e)
         {
-            if (RowsCount == 0) return;
+            if (RowsCount == 0)
+                return;
 
             // Update selected item by mouse position.
             if (Mouse.IsHovering(itemsContent))
@@ -273,7 +275,8 @@ namespace Fracture.Engine.Ui.Controls
                                   itemSize);
 
                 // If index is valid, transform index to control index in the items content.
-                if (index < 0 || index >= RowsCount) return;
+                if (index < 0 || index >= RowsCount)
+                    return;
 
                 var controlIndex = index * ColumnsCount;
                 var control      = itemsContent.Controls.ElementAt(controlIndex);
@@ -328,7 +331,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private void UpdateColumnButtonPositions()
         {
-            if (columnButtons.Count == 0) return;
+            if (columnButtons.Count == 0)
+                return;
 
             var lastButton = columnButtons.First();
 
@@ -367,7 +371,7 @@ namespace Fracture.Engine.Ui.Controls
                     Size        = new Vector2(column.Size.X, 0.05f),
                     UserData    = column,
                     Positioning = Positioning.Relative,
-                    Position    = Vector2.Zero
+                    Position    = Vector2.Zero,
                 };
 
                 button.Click += Button_Click;
@@ -375,8 +379,11 @@ namespace Fracture.Engine.Ui.Controls
                 columnButtons.Add(button);
                 Children.Add(button);
 
-                if (button.ActualBoundingBox.Left < minX) minX   = button.BoundingBox.Left;
-                if (button.ActualBoundingBox.Bottom > maxY) maxY = button.BoundingBox.Bottom;
+                if (button.ActualBoundingBox.Left < minX)
+                    minX = button.BoundingBox.Left;
+
+                if (button.ActualBoundingBox.Bottom > maxY)
+                    maxY = button.BoundingBox.Bottom;
             }
 
             // Update items content position and size.
@@ -434,9 +441,7 @@ namespace Fracture.Engine.Ui.Controls
             itemsContent.Add(selectedImageBox);
 
             if (items.Contains(SelectedItem))
-            {
                 SelectedIndex = items.IndexOf(SelectedItem);
-            }
             else
             {
                 SelectedIndex = -1;
@@ -480,7 +485,8 @@ namespace Fracture.Engine.Ui.Controls
         {
             var removed = columns.Remove(column);
 
-            if (removed) ReconstructColumnsView();
+            if (removed)
+                ReconstructColumnsView();
 
             return removed;
         }
@@ -502,7 +508,8 @@ namespace Fracture.Engine.Ui.Controls
         {
             var removed = items.Remove(item);
 
-            if (removed) ReconstructItemsView();
+            if (removed)
+                ReconstructItemsView();
 
             return removed;
         }

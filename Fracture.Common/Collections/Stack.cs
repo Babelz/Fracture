@@ -97,7 +97,8 @@ namespace Fracture.Common.Collections
 
         public void Push(T value)
         {
-            if (Top >= storage.Length) storage.Grow();
+            if (Top >= storage.Length)
+                storage.Grow();
 
             storage.Insert(Top++, value);
         }

@@ -80,7 +80,8 @@ namespace Fracture.Engine.Ui.Components
         {
             var control = e.Control;
 
-            if (control is IStaticContainerControl container) UnhookContainerEventHandlers(container);
+            if (control is IStaticContainerControl container)
+                UnhookContainerEventHandlers(container);
             else
             {
                 control.FocusChanged   -= Control_FocusChanged;
@@ -94,7 +95,8 @@ namespace Fracture.Engine.Ui.Components
         {
             var control = e.Control;
 
-            if (control is IStaticContainerControl container) HookContainerEventHandlers(container);
+            if (control is IStaticContainerControl container)
+                HookContainerEventHandlers(container);
             else
             {
                 control.FocusChanged   += Control_FocusChanged;
@@ -108,7 +110,8 @@ namespace Fracture.Engine.Ui.Components
         {
             var control = (IControl)sender;
 
-            if (control.Enabled) return;
+            if (control.Enabled)
+                return;
 
             Disabled(control);
         }
@@ -117,8 +120,10 @@ namespace Fracture.Engine.Ui.Components
         {
             var control = (IControl)sender;
 
-            if (control.HasFocus) Focused(control);
-            else Defocused(control);
+            if (control.HasFocus)
+                Focused(control);
+            else
+                Defocused(control);
         }
         #endregion
 
@@ -132,7 +137,8 @@ namespace Fracture.Engine.Ui.Components
                 control.FocusChanged   += Control_FocusChanged;
                 control.EnabledChanged += Control_EnabledChanged;
 
-                if (control is IStaticContainerControl inner) HookContainerEventHandlers(inner);
+                if (control is IStaticContainerControl inner)
+                    HookContainerEventHandlers(inner);
 
                 HookCustomEvents(control);
             }
@@ -148,7 +154,8 @@ namespace Fracture.Engine.Ui.Components
                 control.FocusChanged   -= Control_FocusChanged;
                 control.EnabledChanged -= Control_EnabledChanged;
 
-                if (control is IStaticContainerControl inner) UnhookContainerEventHandlers(inner);
+                if (control is IStaticContainerControl inner)
+                    UnhookContainerEventHandlers(inner);
 
                 UnhookCustomEvents(control);
             }
@@ -201,7 +208,8 @@ namespace Fracture.Engine.Ui.Components
         private void Control_MouseInputEnabledChanged(object sender, EventArgs e)
         {
             // If not currently focused control, return.
-            if (!ReferenceEquals(Context.Mouse, sender)) return;
+            if (!ReferenceEquals(Context.Mouse, sender))
+                return;
 
             // If the control stopped accepting mouse input 
             // and it is the focused one, defocus it.
@@ -279,7 +287,8 @@ namespace Fracture.Engine.Ui.Components
         protected override void Defocused(IControl control)
         {
             // If the focused control did not get defocused, skip focus changes.
-            if (!ReferenceEquals(Context.Mouse, control)) return;
+            if (!ReferenceEquals(Context.Mouse, control))
+                return;
 
             Context.Mouse = null;
         }
@@ -287,14 +296,16 @@ namespace Fracture.Engine.Ui.Components
         protected override void Disabled(IControl control)
         {
             // If the focused control did not get disabled, skip focus changes.
-            if (!ReferenceEquals(Context.Mouse, control)) return;
+            if (!ReferenceEquals(Context.Mouse, control))
+                return;
 
             control.Defocus();
         }
 
         protected override void Focused(IControl control)
         {
-            if (!Updating) return;
+            if (!Updating)
+                return;
 
             if (Context.Mouse?.HasFocus ?? false)
                 Context.Mouse.Defocus();
@@ -312,7 +323,8 @@ namespace Fracture.Engine.Ui.Components
         {
             // If no click has happened we don't update focus. 
             // Focus requires a click to be applied.
-            if (!device.IsButtonPressed(MouseButton.Left)) return;
+            if (!device.IsButtonPressed(MouseButton.Left))
+                return;
 
             // Defocus keyboards focus if mouse is gaining the focus.
             Context.Keyboard?.Defocus();
@@ -333,7 +345,8 @@ namespace Fracture.Engine.Ui.Components
         private void Control_KeyboardInputEnabledChanged(object sender, EventArgs e)
         {
             // If not currently focused control, return.
-            if (!ReferenceEquals(Context.Keyboard, sender)) return;
+            if (!ReferenceEquals(Context.Keyboard, sender))
+                return;
 
             // If the control stopped accepting mouse input 
             // and it is the focused one, defocus it.
@@ -348,7 +361,6 @@ namespace Fracture.Engine.Ui.Components
             yield return container;
 
             for (var i = 0; i < container.ControlsCount; i++)
-            {
                 if (container[i] is IStaticContainerControl inner)
                 {
                     // Query all controls. This will also return the
@@ -363,14 +375,14 @@ namespace Fracture.Engine.Ui.Components
                     // Not a container, return next.
                     yield return container[i];
                 }
-            }
         }
 
         private static void Focus(IStaticContainerControl container, int index)
         {
             var controls = Controls(container).Where(c => c.VisibleFromParent).ToList();
 
-            if (controls.Count == 0) return;
+            if (controls.Count == 0)
+                return;
 
             var next = -1;
 
@@ -393,9 +405,7 @@ namespace Fracture.Engine.Ui.Components
                         next = candidates.Min(c => c.TabIndex);
                 }
                 else
-                {
                     next = candidates.Min(c => c.TabIndex);
-                }
             }
 
             var control = controls.FirstOrDefault(c => next == c.TabIndex);
@@ -409,7 +419,8 @@ namespace Fracture.Engine.Ui.Components
         protected override void Defocused(IControl control)
         {
             // If the focused control did not get defocused, skip focus changes.
-            if (!ReferenceEquals(Context.Keyboard, control)) return;
+            if (!ReferenceEquals(Context.Keyboard, control))
+                return;
 
             Context.Keyboard = null;
         }
@@ -417,14 +428,16 @@ namespace Fracture.Engine.Ui.Components
         protected override void Disabled(IControl control)
         {
             // If the focused control did not get disabled, skip focus changes.
-            if (!ReferenceEquals(Context.Mouse, control)) return;
+            if (!ReferenceEquals(Context.Mouse, control))
+                return;
 
             control.Defocus();
         }
 
         protected override void Focused(IControl control)
         {
-            if (!Updating) return;
+            if (!Updating)
+                return;
 
             if (Context.Keyboard?.HasFocus ?? false)
                 Context.Keyboard.Defocus();
@@ -449,7 +462,8 @@ namespace Fracture.Engine.Ui.Components
             }
 
             // No tab pressed, skip updates.
-            if (!device.IsKeyPressed(Keys.Tab)) return;
+            if (!device.IsKeyPressed(Keys.Tab))
+                return;
 
             // Find next focused control.
             var container = Context.Mouse as IStaticContainerControl ?? Root;

@@ -160,9 +160,7 @@ namespace Fracture.Net.Tests.Serialization.Generation
         #endregion
 
         static DynamicDeserializeTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[] { typeof(int?[]) });
-        }
+            => ObjectSerializerAnalyzer.Analyze(new[] { typeof(int?[]) });
 
         public DynamicDeserializeTests()
         {
@@ -172,8 +170,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Value_Type_Fields()
         {
             var mapping = ObjectSerializationMapper.ForType<ValueTypeFieldTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 
@@ -200,8 +198,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Value_Type_Properties()
         {
             var mapping = ObjectSerializationMapper.ForType<ValueTypePropertyTestClass>()
-                .PublicProperties()
-                .Map();
+                                                   .PublicProperties()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 
@@ -228,12 +226,12 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Objects_Containing_Value_Type_Fields_And_Properties_With_Parametrized_Constructor()
         {
             var mapping = ObjectSerializationMapper.ForType<ValueTypePropertyAndFieldWithParametrizedConstructorTestClass>()
-                .PublicProperties()
-                .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
-                                        ObjectActivationHint.Field("y", "Y"),
-                                        ObjectActivationHint.Property("x2", "X2"),
-                                        ObjectActivationHint.Property("y2", "Y2"))
-                .Map();
+                                                   .PublicProperties()
+                                                   .ParametrizedActivation(ObjectActivationHint.Field("x", "X"),
+                                                                           ObjectActivationHint.Field("y", "Y"),
+                                                                           ObjectActivationHint.Property("x2", "X2"),
+                                                                           ObjectActivationHint.Property("y2", "Y2"))
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 
@@ -267,8 +265,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Nullable_Fields()
         {
             var mapping = ObjectSerializationMapper.ForType<NullableFieldTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 
@@ -309,8 +307,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Nullable_Properties()
         {
             var mapping = ObjectSerializationMapper.ForType<NullablePropertyTestClass>()
-                .PublicProperties()
-                .Map();
+                                                   .PublicProperties()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 
@@ -351,8 +349,8 @@ namespace Fracture.Net.Tests.Serialization.Generation
         public void Should_Deserialize_Non_Value_Type_Fields()
         {
             var mapping = ObjectSerializationMapper.ForType<NonValueTypeFieldTestClass>()
-                .PublicFields()
-                .Map();
+                                                   .PublicFields()
+                                                   .Map();
 
             var deserializationOps = ObjectSerializerCompiler.CompileDeserializationOps(mapping).ToList().AsReadOnly();
 

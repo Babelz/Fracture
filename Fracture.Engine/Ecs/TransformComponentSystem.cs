@@ -132,7 +132,7 @@ namespace Fracture.Engine.Ecs
                               new TransformComponent
                               {
                                   EntityId  = entityId,
-                                  Transform = transform
+                                  Transform = transform,
                               });
 
             // Create events.

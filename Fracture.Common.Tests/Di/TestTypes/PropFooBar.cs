@@ -13,7 +13,8 @@ namespace Fracture.Common.Tests.Di.TestTypes
             get => throw new NotImplementedException();
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
             }
         }
 
@@ -24,7 +25,8 @@ namespace Fracture.Common.Tests.Di.TestTypes
             get => throw new NotImplementedException();
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
             }
         }
 
@@ -35,7 +37,8 @@ namespace Fracture.Common.Tests.Di.TestTypes
             get => throw new NotImplementedException();
             set
             {
-                if (value == null) throw new ArgumentNullException(nameof(value));
+                if (value == null)
+                    throw new ArgumentNullException(nameof(value));
             }
         }
         #endregion

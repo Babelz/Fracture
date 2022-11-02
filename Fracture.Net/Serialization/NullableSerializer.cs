@@ -17,7 +17,8 @@ namespace Fracture.Net.Serialization
 
                 void Serialize(T? value, byte[] buffer, int offset)
                 {
-                    if (!value.HasValue) return;
+                    if (!value.HasValue)
+                        return;
 
                     serializeDelegate(value.Value, buffer, offset);
                 }
@@ -36,7 +37,9 @@ namespace Fracture.Net.Serialization
                 var deserializeDelegate = (DeserializeDelegate<T>)serializationDelegate;
 
                 T? Deserialize(byte[] buffer, int offset)
-                    => deserializeDelegate(buffer, offset);
+                {
+                    return deserializeDelegate(buffer, offset);
+                }
 
                 return Deserialize;
             }
@@ -52,7 +55,9 @@ namespace Fracture.Net.Serialization
                 var getSizeFromValueDelegate = (GetSizeFromValueDelegate<T>)serializationDelegate;
 
                 ushort GetSizeFromValue(T? value)
-                    => value.HasValue ? getSizeFromValueDelegate(value.Value) : (ushort)0;
+                {
+                    return value.HasValue ? getSizeFromValueDelegate(value.Value) : (ushort)0;
+                }
 
                 return GetSizeFromValue;
             }
@@ -176,26 +181,20 @@ namespace Fracture.Net.Serialization
         /// </summary>
         [ValueSerializer.Deserialize]
         public static T? Deserialize<T>(byte[] buffer, int offset) where T : struct
-        {
-            return ((DeserializeDelegate<T?>)DeserializeDelegates[typeof(T?)])(buffer, offset);
-        }
+            => ((DeserializeDelegate<T?>)DeserializeDelegates[typeof(T?)])(buffer, offset);
 
         /// <summary>
         /// Returns size of nullable value from buffer, size will vary. This function assumes there is an actual value in the buffer at given offset.
         /// </summary>
         [ValueSerializer.GetSizeFromBuffer]
         public static ushort GetSizeFromBuffer<T>(byte[] buffer, int offset) where T : struct
-        {
-            return ((GetSizeFromBufferDelegate)GetSizeFromBufferDelegates[typeof(T?)])(buffer, offset);
-        }
+            => ((GetSizeFromBufferDelegate)GetSizeFromBufferDelegates[typeof(T?)])(buffer, offset);
 
         /// <summary>
         /// Returns size of nullable value if it has value, size will vary. Will returns zero if the nullable has no value. 
         /// </summary>
         [ValueSerializer.GetSizeFromValue]
         public static ushort GetSizeFromValue<T>(T? value) where T : struct
-        {
-            return (ushort)(!value.HasValue ? 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value));
-        }
+            => (ushort)(!value.HasValue ? 0 : ((GetSizeFromValueDelegate<T?>)GetSizeFromValueDelegates[typeof(T?)])(value));
     }
 }

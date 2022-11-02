@@ -12,9 +12,7 @@ namespace Fracture.Net.Serialization
     {
         public RunTypeNotMappedException(ushort serializationTypeId)
             : base($"no run type is mapped for serialization type {serializationTypeId}")
-        {
-            Data["SerializationTypeId"] = serializationTypeId;
-        }
+            => Data["SerializationTypeId"] = serializationTypeId;
     }
 
     /// <summary>
@@ -24,9 +22,7 @@ namespace Fracture.Net.Serialization
     {
         public SerializationTypeNotMappedException(Type serializationType)
             : base($"no serialization type is mapped for run type {serializationType?.Name ?? "null"}")
-        {
-            Data["SerializationType"] = serializationType;
-        }
+            => Data["SerializationType"] = serializationType;
     }
 
     /// <summary>
@@ -52,9 +48,7 @@ namespace Fracture.Net.Serialization
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ushort InternalGetSizeFromValue(Type serializationType, object value)
-        {
-            return checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
-        }
+            => checked((ushort)(Serializers[serializationType].GetSizeFromValue(value) + Protocol.ContentLength.Size + Protocol.SerializationTypeId.Size));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static object InternalDeserialize(byte[] buffer, int offset)
@@ -101,10 +95,12 @@ namespace Fracture.Net.Serialization
         public static void Map(ObjectSerializationMapping mapping)
         {
             if (SupportsType(mapping.Type))
+            {
                 throw new InvalidOperationException("serialization type already registered")
                 {
-                    Data = { { nameof(mapping.Type), mapping.Type } }
+                    Data = { { nameof(mapping.Type), mapping.Type } },
                 };
+            }
 
             var program    = ObjectSerializerCompiler.CompileSerializerProgram(mapping);
             var serializer = ObjectSerializerInterpreter.InterpretSerializer(program);

@@ -51,7 +51,7 @@ namespace Fracture.Engine
 
                 GraphicsDeviceManager = new GraphicsDeviceManager(this)
                 {
-                    GraphicsProfile = GraphicsProfile.HiDef
+                    GraphicsProfile = GraphicsProfile.HiDef,
                 };
             }
 

@@ -9,13 +9,9 @@ namespace Fracture.Common.Tests.Di.TestTypes
         }
 
         public void Bar()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public void Foo()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

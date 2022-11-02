@@ -93,11 +93,13 @@ namespace Fracture.Net.Hosting.Messaging
                     if (ResponseStatus.Empty(response.StatusCode) || !ResponseStatus.IndicatesFailure(response.StatusCode))
                         response.ServerError(exception: e);
                     else
+                    {
                         Log.Error(e,
                                   "unhandled error occurred while handling a request but the handler returned a response that is not empty and does not " +
                                   "indicate failure",
                                   request,
                                   response);
+                    }
                 }
             }
             else

@@ -34,13 +34,11 @@ namespace Fracture.Engine.Ui
                            Filter   = TextureFilter.Point,
                            AddressU = TextureAddressMode.Clamp,
                            AddressV = TextureAddressMode.Clamp,
-                           AddressW = TextureAddressMode.Clamp
+                           AddressW = TextureAddressMode.Clamp,
                        },
                        DepthStencilState.None,
                        RasterizerState.CullNone))
-        {
-            this.uis = uis ?? throw new ArgumentNullException(nameof(uis));
-        }
+            => this.uis = uis ?? throw new ArgumentNullException(nameof(uis));
 
         public override void Execute(IGameEngineTime time)
         {
@@ -100,7 +98,8 @@ namespace Fracture.Engine.Ui
 
         public override void Deinitialize()
         {
-            for (var i = 0; i < uis.Count; i++) uis[i].Dispose();
+            for (var i = 0; i < uis.Count; i++)
+                uis[i].Dispose();
 
             uis.Clear();
 

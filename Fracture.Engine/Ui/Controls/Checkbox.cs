@@ -87,7 +87,8 @@ namespace Fracture.Engine.Ui.Controls
                 }
 
                 // Group requires one to be checked.
-                if (Checked && !isChecked) return;
+                if (Checked && !isChecked)
+                    return;
             }
 
             var old = Checked;

@@ -124,8 +124,8 @@ namespace Fracture.Engine.Graphics
 
             // Precompute hash for faster lookups.
             hash = HashUtils.Create()
-                .Append(Id)
-                .Append(typeId);
+                            .Append(Id)
+                            .Append(typeId);
         }
 
         public override int GetHashCode()
@@ -224,13 +224,9 @@ namespace Fracture.Engine.Graphics
                 var results = new HashSet<GraphicsElement>();
 
                 for (var i = 0; i < Rows; i++)
-                {
-                    for (var j = 0; j < Columns; j++)
-                    {
-                        foreach (var elementId in grid[i][j])
-                            results.Add(elements.AtIndex(elementId));
-                    }
-                }
+                for (var j = 0; j < Columns; j++)
+                    foreach (var elementId in grid[i][j])
+                        results.Add(elements.AtIndex(elementId));
 
                 return results;
             }
@@ -273,11 +269,11 @@ namespace Fracture.Engine.Graphics
 
         private void AreaRange(in Aabb aabb, out GraphicsElementLocation range)
         {
-            var beginColumn = (int)Math.Round((aabb.Left * CellScale));
-            var endColumn   = (int)Math.Round((aabb.Right * CellScale));
+            var beginColumn = (int)Math.Round(aabb.Left * CellScale);
+            var endColumn   = (int)Math.Round(aabb.Right * CellScale);
 
-            var beginRow = (int)Math.Round((aabb.Top * CellScale));
-            var endRow   = (int)Math.Round((aabb.Bottom * CellScale));
+            var beginRow = (int)Math.Round(aabb.Top * CellScale);
+            var endRow   = (int)Math.Round(aabb.Bottom * CellScale);
 
             beginColumn = MathHelper.Clamp(beginColumn, 0, Columns - 1);
             endColumn   = MathHelper.Clamp(endColumn, 0, Columns - 1);
@@ -364,10 +360,8 @@ namespace Fracture.Engine.Graphics
                 // because row or column can indicate single cell and location always points to
                 // a index - it is zero based.
                 for (var i = location.Begin.Row; i <= location.End.Row; i++)
-                {
-                    for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                        grid[i][j].Add(elementId);
-                }
+                for (var j = location.Begin.Column; j <= location.End.Column; j++)
+                    grid[i][j].Add(elementId);
             }
         }
 
@@ -385,10 +379,8 @@ namespace Fracture.Engine.Graphics
             {
                 // Multiple cells in range, remove from them all.
                 for (var i = location.Begin.Row; i <= location.End.Row; i++)
-                {
-                    for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                        grid[i][j].Remove(elementId);
-                }
+                for (var j = location.Begin.Column; j <= location.End.Column; j++)
+                    grid[i][j].Remove(elementId);
             }
         }
 
@@ -420,10 +412,8 @@ namespace Fracture.Engine.Graphics
             else
             {
                 for (var i = location.Begin.Row; i <= location.End.Row; i++)
-                {
-                    for (var j = location.Begin.Column; j <= location.End.Column; j++)
-                        grid[i][j].Remove(elementId);
-                }
+                for (var j = location.Begin.Column; j <= location.End.Column; j++)
+                    grid[i][j].Remove(elementId);
             }
 
             // Reinsert, add to new locations.
@@ -432,10 +422,8 @@ namespace Fracture.Engine.Graphics
             else
             {
                 for (var i = updateLocation.Begin.Row; i <= updateLocation.End.Row; i++)
-                {
-                    for (var j = updateLocation.Begin.Column; j <= updateLocation.End.Column; j++)
-                        grid[i][j].Add(elementId);
-                }
+                for (var j = updateLocation.Begin.Column; j <= updateLocation.End.Column; j++)
+                    grid[i][j].Add(elementId);
             }
 
             // Record current location.
@@ -458,13 +446,9 @@ namespace Fracture.Engine.Graphics
             else
             {
                 for (var i = range.Begin.Row; i <= range.End.Row; i++)
-                {
-                    for (var j = range.Begin.Column; j <= range.End.Column; j++)
-                    {
-                        foreach (var elementId in grid[i][j])
-                            results.Add(elements.AtIndex(elementId));
-                    }
-                }
+                for (var j = range.Begin.Column; j <= range.End.Column; j++)
+                    foreach (var elementId in grid[i][j])
+                        results.Add(elements.AtIndex(elementId));
             }
         }
     }

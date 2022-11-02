@@ -46,21 +46,21 @@ namespace Fracture.Net.Hosting.Messaging
             /// <summary>
             /// Peer connection should be reset. 
             /// </summary>
-            Reset
+            Reset,
         }
 
         #region Static fields
         private static readonly HashSet<Code> SuccessfulStatusCodes = new HashSet<Code>
         {
             Code.Ok,
-            Code.Reset
+            Code.Reset,
         };
 
         private static readonly HashSet<Code> UnsuccessfulStatusCodes = new HashSet<Code>
         {
             Code.ServerError,
             Code.BadRequest,
-            Code.NoRoute
+            Code.NoRoute,
         };
         #endregion
 
@@ -257,9 +257,9 @@ namespace Fracture.Net.Hosting.Messaging
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(StatusCode)
-                .Append(Message)
-                .Append(Exception);
+                        .Append(StatusCode)
+                        .Append(Message)
+                        .Append(Exception);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Response Take()

@@ -22,7 +22,7 @@ namespace Fracture.Common.Memory
     public enum ClearTarget : byte
     {
         Field = 0,
-        Property
+        Property,
     }
 
     public readonly struct ClearOption
@@ -74,7 +74,7 @@ namespace Fracture.Common.Memory
             typeof(long),
             typeof(ulong),
             typeof(float),
-            typeof(decimal)
+            typeof(decimal),
         };
         #endregion
 
@@ -94,15 +94,16 @@ namespace Fracture.Common.Memory
             var methodBuilder = new DynamicMethodBuilder("Clear", typeof(void), new[] { typeof(T).MakeByRefType() });
 
             foreach (var option in options)
-            {
                 switch (option.Target)
                 {
                     case ClearTarget.Field:
                         var field = typeof(T).GetField(option.Name, Flags);
 
                         if (field == null)
+                        {
                             throw new InvalidOperationException($"could not locate field for specified clear option {option.Name} " +
                                                                 $"in type {typeof(T).FullName}");
+                        }
 
                         if (field.Name.Contains("_BackingField"))
                             continue;
@@ -119,12 +120,16 @@ namespace Fracture.Common.Memory
                         var property = typeof(T).GetProperty(option.Name, Flags);
 
                         if (property == null)
+                        {
                             throw new InvalidOperationException($"could not locate property for specified clear option {option.Name} " +
                                                                 $"in type {typeof(T).FullName}");
+                        }
 
                         if (property.SetMethod.IsPrivate)
+                        {
                             throw new InvalidOperationException($"can't clear value of property {property.Name} with private set method in type " +
                                                                 $"{typeof(T).FullName}");
+                        }
 
                         methodBuilder.Emit(OpCodes.Ldarg_0);
                         methodBuilder.Emit(OpCodes.Ldind_Ref);
@@ -137,7 +142,6 @@ namespace Fracture.Common.Memory
                     default:
                         throw new InvalidOrUnsupportedException(nameof(ClearTarget), option);
                 }
-            }
 
             methodBuilder.Emit(OpCodes.Ret);
 
@@ -160,8 +164,8 @@ namespace Fracture.Common.Memory
             properties.RemoveAll(p => p.SetMethod.IsPrivate);
 
             return EmitClearDelegate<T>(fields.Select(
-                                                f => ClearOption.Field(f.Name))
-                                            .Concat(properties.Select(p => ClearOption.Property(p.Name)))
+                                                  f => ClearOption.Field(f.Name))
+                                              .Concat(properties.Select(p => ClearOption.Property(p.Name)))
             );
         }
 
@@ -171,12 +175,10 @@ namespace Fracture.Common.Memory
             var fields     = GetFields<T>();
             var properties = GetProperties<T>();
 
-            if (options.Count(o => o.Target == ClearTarget.Field) != 0 &&
-                !options.Where(o => o.Target == ClearTarget.Field).Any(o => fields.Any(f => f.Name == o.Name)))
+            if (options.Count(o => o.Target == ClearTarget.Field) != 0 && !options.Where(o => o.Target == ClearTarget.Field).Any(o => fields.Any(f => f.Name == o.Name)))
                 throw new InvalidOperationException($"field specified in options does not exists on type {typeof(T).FullName}");
 
-            if (options.Count(o => o.Target == ClearTarget.Property) != 0 &&
-                !options.Where(o => o.Target == ClearTarget.Property).Any(o => properties.Any(p => p.Name == o.Name)))
+            if (options.Count(o => o.Target == ClearTarget.Property) != 0 && !options.Where(o => o.Target == ClearTarget.Property).Any(o => properties.Any(p => p.Name == o.Name)))
                 throw new InvalidOperationException($"property specified in options does not exists on type {typeof(T).FullName}");
 
             return EmitClearDelegate<T>(options);

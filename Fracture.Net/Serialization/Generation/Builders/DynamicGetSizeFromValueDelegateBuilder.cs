@@ -21,7 +21,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
             (t) => t.Type.IsGenericType && t.Type.GetGenericTypeDefinition() == typeof(Dictionary<,>),
             (t) => t.Type.IsArray,
             (t) => t.Type == typeof(string),
-            (t) => t.IsNullAssignable
+            (t) => t.IsNullAssignable,
         };
         #endregion
 
@@ -39,16 +39,13 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        typeof(ushort),
                        new[]
                        {
-                           typeof(object) // Argument 0.
+                           typeof(object), // Argument 0.
                        }
                    ))
-        {
-            valuesSizeIsConst = true;
-        }
+            => valuesSizeIsConst = true;
 
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueDelegate(DynamicGetSizeFromValueDelegate method)
-        {
-            return value =>
+            => value =>
             {
                 try
                 {
@@ -59,7 +56,6 @@ namespace Fracture.Net.Serialization.Generation.Builders
                     throw new DynamicGetSizeFromValueException(SerializationType, e, value);
                 }
             };
-        }
 
         private DynamicGetSizeFromValueDelegate CreateGetSizeFromValueAsConstClosure(DynamicGetSizeFromValueDelegate method)
         {
@@ -67,7 +63,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
             return value =>
             {
-                if (size != 0u) return size;
+                if (size != 0u)
+                    return size;
 
                 try
                 {
@@ -84,7 +81,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
 
         private void UpdateValuesSizeIsConstFlag(SerializationValue value)
         {
-            if (!valuesSizeIsConst) return;
+            if (!valuesSizeIsConst)
+                return;
 
             if (NonConstRunTypePredicates.Any(p => p(value)))
                 valuesSizeIsConst = false;

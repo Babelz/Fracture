@@ -37,7 +37,8 @@ namespace Fracture.Engine.Core.Components
         {
             foreach (var inactiveState in inactiveStates)
             {
-                if (!inactivityTimers.ContainsKey(inactiveState)) inactivityTimers.Add(inactiveState, TimeSpan.Zero);
+                if (!inactivityTimers.ContainsKey(inactiveState))
+                    inactivityTimers.Add(inactiveState, TimeSpan.Zero);
 
                 inactivityTimers[inactiveState] += time.Elapsed;
 
@@ -46,7 +47,8 @@ namespace Fracture.Engine.Core.Components
 
             foreach (var activeState in activeStates)
             {
-                if (!activityTimers.ContainsKey(activeState)) activityTimers.Add(activeState, TimeSpan.Zero);
+                if (!activityTimers.ContainsKey(activeState))
+                    activityTimers.Add(activeState, TimeSpan.Zero);
 
                 activityTimers[activeState] += time.Elapsed;
 

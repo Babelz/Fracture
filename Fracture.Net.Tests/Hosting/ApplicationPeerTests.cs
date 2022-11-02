@@ -37,9 +37,7 @@ namespace Fracture.Net.Tests.Hosting
         #endregion
 
         static ApplicationPeerTests()
-        {
-            StructSerializer.Map(ObjectSerializationMapper.ForType<TestValueMessage>().PublicProperties().Map());
-        }
+            => StructSerializer.Map(ObjectSerializationMapper.ForType<TestValueMessage>().PublicProperties().Map());
 
         public ApplicationPeerTests()
         {
@@ -107,7 +105,8 @@ namespace Fracture.Net.Tests.Hosting
                                                                                       (s) => FakeServerFrame.Create(s)
                                                                                                             .Incoming(first, Message.Create<TestValueMessage>()))
                                                             )
-            ).Build();
+                                                )
+                                                .Build();
 
             ApplicationTestUtils.LimitTicks(application, 4);
 

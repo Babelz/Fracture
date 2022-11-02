@@ -169,7 +169,8 @@ namespace Shattered.Content.Ui
 
         public T Get<T>(string name)
         {
-            if (values.TryGetValue(name, out var value)) return (T)value;
+            if (values.TryGetValue(name, out var value))
+                return (T)value;
 
             return default;
         }

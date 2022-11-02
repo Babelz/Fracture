@@ -130,7 +130,7 @@ namespace Fracture.Net.Hosting
 
             return this;
         }
-        
+
         /// <summary>
         /// Set application exception fidelity level. If left un set this value defaults to <see cref="PipelineExceptionFidelity.Ingest"/>.
         /// </summary>
@@ -175,7 +175,7 @@ namespace Fracture.Net.Hosting
 
             if (!binder.Exists<PeerPipelineFidelity>())
                 binder.Bind(PeerPipelineFidelity.Receive);
-            
+
             if (!binder.Exists<PipelineExceptionFidelity>())
                 binder.Bind(PipelineExceptionFidelity.Ingest);
 

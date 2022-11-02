@@ -71,9 +71,7 @@ namespace Fracture.Benchmarks.Serialization
                 offset += IntSerializer.GetSizeFromValue(actual.X.Value);
             }
             else
-            {
                 nullMask.SetBit(0, true);
-            }
 
             if (actual.Y.HasValue)
             {
@@ -81,9 +79,7 @@ namespace Fracture.Benchmarks.Serialization
                 offset += IntSerializer.GetSizeFromValue(actual.Y.Value);
             }
             else
-            {
                 nullMask.SetBit(1, true);
-            }
 
             IntSerializer.Serialize(actual.I, buffer, offset);
             offset += IntSerializer.GetSizeFromValue(actual.I);
@@ -97,18 +93,12 @@ namespace Fracture.Benchmarks.Serialization
                 offset += StringSerializer.GetSizeFromValue(actual.S1);
             }
             else
-            {
                 nullMask.SetBit(2, true);
-            }
 
             if (actual.S2 != null)
-            {
                 StringSerializer.Serialize(actual.S2, buffer, offset);
-            }
             else
-            {
                 nullMask.SetBit(3, true);
-            }
 
             BitFieldSerializer.Serialize(nullMask, buffer, nullMaskOffset);
         }
@@ -129,9 +119,9 @@ namespace Fracture.Benchmarks.Serialization
         public BenchmarkDynamicSerializeDelegate()
         {
             var mapping = ObjectSerializationMapper.ForType<TestClass>()
-                .PublicFields()
-                .PublicProperties()
-                .Map();
+                                                   .PublicFields()
+                                                   .PublicProperties()
+                                                   .Map();
 
             var serializationOps = ObjectSerializerCompiler.CompileSerializationOps(mapping).ToList().AsReadOnly();
 
@@ -142,7 +132,7 @@ namespace Fracture.Benchmarks.Serialization
                 I  = 200,
                 J  = 300,
                 S1 = null,
-                S2 = null
+                S2 = null,
             };
 
             valueRanges       = ObjectSerializerInterpreter.InterpretObjectSerializationValueRanges(typeof(TestClass), serializationOps);

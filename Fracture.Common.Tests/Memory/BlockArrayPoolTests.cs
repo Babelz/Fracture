@@ -13,14 +13,12 @@ namespace Fracture.Common.Tests.Memory
         #endregion
 
         public BlockArrayPoolTests()
-        {
-            pool = new BlockArrayPool<int>(
+            => pool = new BlockArrayPool<int>(
                 new ArrayPool<int>(
                     () => new LinearStorageObject<int[]>(new LinearGrowthArray<int[]>(8, 1)),
                     1),
                 32,
                 1024);
-        }
 
         [Fact]
         public void Take_Returns_Array_Of_Supplied_Size_If_It_Exceeds_Max_Size()

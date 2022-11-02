@@ -12,7 +12,7 @@ namespace Fracture.Engine.Ui.Controls
     {
         Normal,
         Source,
-        Fit
+        Fit,
     }
 
     public sealed class ImageBox : Control
@@ -57,7 +57,8 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
         {
-            if (Image == null) return;
+            if (Image == null)
+                return;
 
             var destination = GetRenderDestinationRectangle();
             var imageOffset = Style.Get<Vector2>($"{UiStyleKeys.Target.ImageBox}\\{UiStyleKeys.Offset.Normal}");

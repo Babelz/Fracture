@@ -40,7 +40,7 @@ namespace Fracture.Common.Runtime
             private set;
         }
 
-        public bool Ready => (lastMeasurementTimestamp - lastResetTimestamp) >= samplingTime;
+        public bool Ready => lastMeasurementTimestamp - lastResetTimestamp >= samplingTime;
         #endregion
 
         public ExecutionTimer(string name, TimeSpan samplingTime)
@@ -48,9 +48,7 @@ namespace Fracture.Common.Runtime
             Name  = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
             timer = new Stopwatch();
 
-            this.samplingTime = samplingTime > TimeSpan.Zero
-                ? samplingTime
-                : throw new ArgumentOutOfRangeException(nameof(samplingTime), "expecting positive non-zero time");
+            this.samplingTime = samplingTime > TimeSpan.Zero ? samplingTime : throw new ArgumentOutOfRangeException(nameof(samplingTime), "expecting positive non-zero time");
 
             Reset();
         }

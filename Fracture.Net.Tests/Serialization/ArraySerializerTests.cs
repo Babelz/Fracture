@@ -10,9 +10,7 @@ namespace Fracture.Net.Tests.Serialization
     public sealed class ArraySerializerTests
     {
         static ArraySerializerTests()
-        {
-            ObjectSerializerAnalyzer.Analyze(new[] { typeof(int[]), typeof(int?[]) });
-        }
+            => ObjectSerializerAnalyzer.Analyze(new[] { typeof(int[]), typeof(int?[]) });
 
         public ArraySerializerTests()
         {
@@ -38,7 +36,7 @@ namespace Fracture.Net.Tests.Serialization
                 16,
                 32,
                 64,
-                128
+                128,
             };
 
             var buffer = new byte[128];
@@ -74,7 +72,7 @@ namespace Fracture.Net.Tests.Serialization
                 4,
                 null,
                 null,
-                7
+                7,
             };
 
             var buffer = new byte[128];
@@ -114,6 +112,7 @@ namespace Fracture.Net.Tests.Serialization
             foreach (var number in numbers.Where(n => n != null).Select(n => n.Value))
             {
                 Assert.Equal(number, IntSerializer.Deserialize(buffer, offset));
+
                 offset += IntSerializer.GetSizeFromValue(number);
             }
         }
@@ -126,7 +125,7 @@ namespace Fracture.Net.Tests.Serialization
                 int.MinValue,
                 128,
                 256,
-                int.MaxValue
+                int.MaxValue,
             };
 
             var buffer = new byte[128];
@@ -150,7 +149,7 @@ namespace Fracture.Net.Tests.Serialization
                 4,
                 null,
                 null,
-                7
+                7,
             };
 
             var buffer = new byte[128];

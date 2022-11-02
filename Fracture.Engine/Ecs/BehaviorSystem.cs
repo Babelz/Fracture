@@ -176,8 +176,7 @@ namespace Fracture.Engine.Ecs
             => entityBehaviourLists[entityId];
 
         public override void Update(IGameEngineTime time)
-        {
-            entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
+            => entityDeletedEvents.Handle((in Letter<int, EntityEventArgs> letter) =>
             {
                 if (!entityBehaviourLists.TryGetValue(letter.Args.EntityId, out var behaviors))
                     return LetterHandlingResult.Retain;
@@ -190,6 +189,5 @@ namespace Fracture.Engine.Ecs
 
                 return LetterHandlingResult.Retain;
             });
-        }
     }
 }

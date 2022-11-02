@@ -27,7 +27,7 @@ namespace Fracture.Net.Clients
         #endregion
 
         #region Properties
-        private bool HasTimedOut => (DateTime.UtcNow - lastReceiveTime) >= GracePeriod;
+        private bool HasTimedOut => DateTime.UtcNow - lastReceiveTime >= GracePeriod;
 
         private bool IsReceiving => !receiveResult?.IsCompleted ?? false;
 
@@ -248,7 +248,7 @@ namespace Fracture.Net.Clients
                 {
                     NoDelay           = true,
                     ReceiveBufferSize = BufferSizes,
-                    SendBufferSize    = BufferSizes
+                    SendBufferSize    = BufferSizes,
                 };
 
                 socket.BeginConnect(endPoint, ConnectCallback, new ClientUpdate.Connected(endPoint));
@@ -270,7 +270,7 @@ namespace Fracture.Net.Clients
             InternalDisconnect(new ClientUpdate.Disconnected(ResetReason.LocalReset));
         }
 
-        public override IEnumerable<ClientUpdate> Poll()
+        public override Span<ClientUpdate> Poll()
         {
             UpdateConnectedState();
 

@@ -38,8 +38,11 @@ namespace Fracture.Common.Memory.Pools
 
         protected PoolBase(IStorageObject<T> storage, int initialStoredObjectsCount, int capacity)
         {
-            if (initialStoredObjectsCount < 0) throw new ArgumentOutOfRangeException(nameof(initialStoredObjectsCount));
-            if (capacity < 0) throw new ArgumentOutOfRangeException(nameof(capacity));
+            if (initialStoredObjectsCount < 0)
+                throw new ArgumentOutOfRangeException(nameof(initialStoredObjectsCount));
+
+            if (capacity < 0)
+                throw new ArgumentOutOfRangeException(nameof(capacity));
 
             this.storage  = storage ?? throw new ArgumentNullException(nameof(PoolBase<T>.storage));
             this.capacity = capacity;
@@ -47,9 +50,11 @@ namespace Fracture.Common.Memory.Pools
 
         protected void CreateObjects(int count)
         {
-            if (count == 0) return;
+            if (count == 0)
+                return;
 
-            for (var i = 0; i < count; i++) storage.Return(New());
+            for (var i = 0; i < count; i++)
+                storage.Return(New());
         }
 
         protected abstract T New();

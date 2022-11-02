@@ -46,8 +46,8 @@ namespace Fracture.Engine.Physics.Contacts
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(FirstBodyId)
-                .Append(SecondBodyId);
+                        .Append(FirstBodyId)
+                        .Append(SecondBodyId);
 
         public static bool operator ==(in ContactPair lhs, in ContactPair rhs)
             => lhs.Equals(rhs);

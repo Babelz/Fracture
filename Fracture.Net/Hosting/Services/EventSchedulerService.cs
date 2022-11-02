@@ -9,7 +9,7 @@ namespace Fracture.Net.Hosting.Services
     public enum PulseEventResult : byte
     {
         Continue,
-        Break
+        Break,
     }
 
     public delegate void ScheduledCallbackDelegate(ScheduledEventArgs args);
@@ -32,9 +32,7 @@ namespace Fracture.Net.Hosting.Services
         [BindingConstructor]
         public EventSchedulerService(IApplicationServiceHost application)
             : base(application)
-        {
-            scheduler = new EventScheduler();
-        }
+            => scheduler = new EventScheduler();
 
         public void Signal(ScheduledCallbackDelegate callback, TimeSpan delay, object state = null)
         {

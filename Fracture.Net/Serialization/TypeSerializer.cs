@@ -13,7 +13,7 @@ namespace Fracture.Net.Serialization
         #region Static fields
         private static readonly Encoding Encoding = Encoding.ASCII;
         #endregion
-        
+
         [ValueSerializer.SupportsType]
         public static bool SupportsType(Type type)
             => type == typeof(Type);

@@ -44,7 +44,8 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override Point GetStyleStateOffset()
         {
-            if (!Selected) return base.GetStyleStateOffset();
+            if (!Selected)
+                return base.GetStyleStateOffset();
 
             var offset = Style.Get<Vector2>($"{UiStyleKeys.Target.Button}\\{UiStyleKeys.Offset.Click}");
 
@@ -71,7 +72,8 @@ namespace Fracture.Engine.Ui.Controls
                 }
 
                 // Group requires one to be checked.
-                if (Selected && !selected) return;
+                if (Selected && !selected)
+                    return;
             }
 
             var old = Selected;

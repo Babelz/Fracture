@@ -94,7 +94,7 @@ namespace Fracture.Engine.Core.Systems
 
             VolumeChanged?.Invoke(this, new VolumeChangedEventArgs(channelName, value));
 
-            if ((channelName != DefaultSoundChannels.Master && channelName != DefaultSoundChannels.Music) && !IsPlaying())
+            if (channelName != DefaultSoundChannels.Master && channelName != DefaultSoundChannels.Music && !IsPlaying())
                 return;
 
             current.Stop();

@@ -26,17 +26,17 @@ namespace Fracture.Common.Di.Binding
         #endregion
 
         public DependencyMethodBinding(DependencyBindingValueLocator locator)
-        {
-            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
-        }
+            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingMethods(Type type)
         {
             if (!DependencyTypeMapper.HasBindingMethods(type))
+            {
                 throw new DependencyBinderException(type,
                                                     $"type {type.Name} does not contain any methods " +
                                                     $"annotated with {nameof(BindingMethodAttribute)}");
+            }
         }
 
         private void InternalBind(object instance)
@@ -68,17 +68,17 @@ namespace Fracture.Common.Di.Binding
         #endregion
 
         public DependencyPropertyBinding(DependencyBindingValueLocator locator)
-        {
-            this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
-        }
+            => this.locator = locator ?? throw new ArgumentNullException(nameof(locator));
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void AssertTypeHasBindingProperties(Type type)
         {
             if (!DependencyTypeMapper.HasBindingProperties(type))
+            {
                 throw new DependencyBinderException(type,
                                                     $"type {type.Name} does not contain any properties " +
                                                     $"annotated with {nameof(BindingPropertyAttribute)}");
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

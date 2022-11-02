@@ -144,9 +144,12 @@ namespace Fracture.Engine.Ui.Controls
 
                 int x;
 
-                if (maxValue == 0 || currentValue == 0) x = left.Right;
-                else if (currentValue == maxValue) x      = right.Left - destination.Height;
-                else x                                    = left.Right + (int)((right.Left - left.Right - destination.Height) / maxValue * currentValue);
+                if (maxValue == 0 || currentValue == 0)
+                    x = left.Right;
+                else if (currentValue == maxValue)
+                    x = right.Left - destination.Height;
+                else
+                    x = left.Right + (int)((right.Left - left.Right - destination.Height) / maxValue * currentValue);
 
                 slider = new Rectangle(x,
                                        destination.Y,
@@ -172,9 +175,12 @@ namespace Fracture.Engine.Ui.Controls
 
                 int y;
 
-                if (maxValue == 0 || currentValue == 0) y = left.Bottom;
-                else if (currentValue == maxValue) y      = right.Top - destination.Width;
-                else y                                    = left.Bottom + (int)((right.Top - left.Bottom - destination.Width) / maxValue * currentValue);
+                if (maxValue == 0 || currentValue == 0)
+                    y = left.Bottom;
+                else if (currentValue == maxValue)
+                    y = right.Top - destination.Width;
+                else
+                    y = left.Bottom + (int)((right.Top - left.Bottom - destination.Width) / maxValue * currentValue);
 
                 slider = new Rectangle(destination.X,
                                        y,
@@ -192,8 +198,10 @@ namespace Fracture.Engine.Ui.Controls
                 // If focused and mouse scrolled, handle scrolling input.
                 var delta = Mouse.LastScrollValue - Mouse.CurrentScrollValue;
 
-                if (delta < 0) Rewind(1);
-                else Forward(1);
+                if (delta < 0)
+                    Rewind(1);
+                else
+                    Forward(1);
 
                 return true;
             }
@@ -203,7 +211,8 @@ namespace Fracture.Engine.Ui.Controls
 
         private bool AcceptButtonInput(IGameEngineTime time)
         {
-            if (!Mouse.IsPressed(MouseButton.Left) && !Mouse.IsDown(MouseButton.Left)) return false;
+            if (!Mouse.IsPressed(MouseButton.Left) && !Mouse.IsDown(MouseButton.Left))
+                return false;
 
             // If we intersect buttons, handle clicks based on them.
             var (left, _, right, _) = GetActualRenderDestinationRectangles();
@@ -215,13 +224,17 @@ namespace Fracture.Engine.Ui.Controls
             {
                 if (Mouse.TimeDown(MouseButton.Left) == TimeSpan.Zero)
                 {
-                    if (forward) Forward(1);
-                    else Rewind(1);
+                    if (forward)
+                        Forward(1);
+                    else
+                        Rewind(1);
                 }
                 else if (Mouse.TimeDown(MouseButton.Left) >= TimeSpan.FromMilliseconds(125) && downElapsed >= TimeSpan.FromMilliseconds(125))
                 {
-                    if (forward) Forward(1);
-                    else Rewind(1);
+                    if (forward)
+                        Forward(1);
+                    else
+                        Rewind(1);
 
                     downElapsed = TimeSpan.Zero;
                 }
@@ -240,30 +253,39 @@ namespace Fracture.Engine.Ui.Controls
         {
             var (left, center, right, _) = GetActualRenderDestinationRectangles();
 
-            if (!Mouse.IsPressed(MouseButton.Left) || !Mouse.IsHovering(center)) return;
+            if (!Mouse.IsPressed(MouseButton.Left) || !Mouse.IsHovering(center))
+                return;
 
             if (Orientation == Orientation.Horizontal)
+            {
                 CurrentValue = (uint)MathHelper.Clamp(
                     ((int)Math.Floor(Mouse.CurrentScreenPosition.X) - left.X - left.Width * 0.5f) /
                     (right.Left - left.Right) *
                     MaxValue,
                     0,
                     MaxValue);
+            }
             else
+            {
                 CurrentValue = (uint)MathHelper.Clamp(
                     ((int)Math.Floor(Mouse.CurrentScreenPosition.Y) - left.Y - left.Height * 0.75f) /
                     (right.Top - left.Bottom) *
                     MaxValue,
                     0,
                     MaxValue);
+            }
         }
 
         protected override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
-            if (!HasFocus) return;
+            if (!HasFocus)
+                return;
 
-            if (AcceptScrollInput()) return;
-            if (AcceptButtonInput(time)) return;
+            if (AcceptScrollInput())
+                return;
+
+            if (AcceptButtonInput(time))
+                return;
 
             AcceptClickInput();
         }

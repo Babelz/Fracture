@@ -161,9 +161,9 @@ namespace Fracture.Engine.Core.Primitives
 
         public override int GetHashCode()
             => HashUtils.Create()
-                .Append(Position)
-                .Append(Bounds)
-                .Append(Rotation);
+                        .Append(Position)
+                        .Append(Bounds)
+                        .Append(Rotation);
 
         public override string ToString()
             => $"x: {Position.X}, y: {Position.Y}, w: {Bounds.X}, h: {Bounds.Y}, t: {Top}, b: {Bottom}, l: {Left}, r: {Right}";
@@ -186,32 +186,32 @@ namespace Fracture.Engine.Core.Primitives
             var cos    = (float)Math.Cos(rotation);
 
             // Top left.
-            topLeft.X =  (-center.X * cos) - (-center.Y * sin);
-            topLeft.Y =  (-center.X * sin) + (-center.Y * cos);
+            topLeft.X =  -center.X * cos - -center.Y * sin;
+            topLeft.Y =  -center.X * sin + -center.Y * cos;
             topLeft   += position + center;
 
             // Bottom left.
-            bottomLeft.X =  (-center.X * cos) - (center.Y * sin);
-            bottomLeft.Y =  (-center.X * sin) + (center.Y * cos);
+            bottomLeft.X =  -center.X * cos - center.Y * sin;
+            bottomLeft.Y =  -center.X * sin + center.Y * cos;
             bottomLeft   += position + center;
 
             // Top right.
-            topRight.X =  (center.X * cos) - (-center.Y * sin);
-            topRight.Y =  (center.X * sin) + (-center.Y * cos);
+            topRight.X =  center.X * cos - -center.Y * sin;
+            topRight.Y =  center.X * sin + -center.Y * cos;
             topRight   += position + center;
 
             // Bottom right.
-            bottomRight.X =  (center.X * cos) - (center.Y * sin);
-            bottomRight.Y =  (center.X * sin) + (center.Y * cos);
+            bottomRight.X =  center.X * cos - center.Y * sin;
+            bottomRight.Y =  center.X * sin + center.Y * cos;
             bottomRight   += position + center;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Intersects(in Aabb a, in Aabb b)
-            => (a.Position.X - a.HalfBounds.X) <= (b.Position.X + b.HalfBounds.X) &&
-               (a.Position.X + a.HalfBounds.X) >= (b.Position.X - b.HalfBounds.X) &&
-               (a.Position.Y - a.HalfBounds.Y) <= (b.Position.Y + b.HalfBounds.Y) &&
-               (a.Position.Y + a.HalfBounds.Y) >= (b.Position.Y - b.HalfBounds.Y);
+            => a.Position.X - a.HalfBounds.X <= b.Position.X + b.HalfBounds.X &&
+               a.Position.X + a.HalfBounds.X >= b.Position.X - b.HalfBounds.X &&
+               a.Position.Y - a.HalfBounds.Y <= b.Position.Y + b.HalfBounds.Y &&
+               a.Position.Y + a.HalfBounds.Y >= b.Position.Y - b.HalfBounds.Y;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Aabb TranslatePosition(in Aabb aabb, in Vector2 translation)

@@ -23,7 +23,8 @@ namespace Fracture.Content.Pipeline.Ui
 
         private static bool InsertTexture(IUiStyle uiStyle, ContentReader input, string target, string name, string value)
         {
-            if (!name.StartsWith("texture")) return false;
+            if (!name.StartsWith("texture"))
+                return false;
 
             uiStyle.Set($"{target}\\{name}", input.ContentManager.Load<Texture2D>(value));
 
@@ -32,7 +33,8 @@ namespace Fracture.Content.Pipeline.Ui
 
         private static bool InsertFont(IUiStyle uiStyle, ContentReader input, string target, string name, string value)
         {
-            if (!name.StartsWith("font")) return false;
+            if (!name.StartsWith("font"))
+                return false;
 
             uiStyle.Set($"{target}\\{name}", input.ContentManager.Load<SpriteFont>(value));
 
@@ -41,13 +43,15 @@ namespace Fracture.Content.Pipeline.Ui
 
         private static bool InsertOffset(IUiStyle uiStyle, string target, string name, string value)
         {
-            if (!name.StartsWith("offset")) return false;
+            if (!name.StartsWith("offset"))
+                return false;
 
-            if (!value.Contains("x") || !value.Contains("y")) return false;
+            if (!value.Contains("x") || !value.Contains("y"))
+                return false;
 
             var tokens = value.Split(',')
-                .Select(s => s.Trim())
-                .ToArray();
+                              .Select(s => s.Trim())
+                              .ToArray();
 
             var x = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("x:"))?.Replace("x:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
             var y = float.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("y:"))?.Replace("y:", "").Trim() ?? "0.0", CultureInfo.InvariantCulture);
@@ -59,14 +63,16 @@ namespace Fracture.Content.Pipeline.Ui
 
         private static bool InsertColor(IUiStyle uiStyle, string target, string name, string value)
         {
-            if (!name.StartsWith("color")) return false;
+            if (!name.StartsWith("color"))
+                return false;
 
             if (Regex.Match(value, "[A-Za-z]+").Length == value.Length)
             {
                 var colors = typeof(Color).GetProperties(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
                 var color  = colors.FirstOrDefault(p => p.Name.Equals(value, StringComparison.InvariantCultureIgnoreCase))?.GetValue(null);
 
-                if (color == null) return false;
+                if (color == null)
+                    return false;
 
                 uiStyle.Set($"{target}\\{name}", color);
 
@@ -77,8 +83,8 @@ namespace Fracture.Content.Pipeline.Ui
                 return false;
 
             var tokens = value.Split(',')
-                .Select(s => s.Trim())
-                .ToArray();
+                              .Select(s => s.Trim())
+                              .ToArray();
 
             var r = byte.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("r:"))?.Replace("r:", "").Trim() ?? "0");
             var g = byte.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("g:"))?.Replace("g:", "").Trim() ?? "0");
@@ -92,14 +98,15 @@ namespace Fracture.Content.Pipeline.Ui
 
         private static bool InsertSource(IUiStyle uiStyle, string target, string name, string value)
         {
-            if (!name.StartsWith("source")) return false;
+            if (!name.StartsWith("source"))
+                return false;
 
             if (!value.Contains("x:") || !value.Contains("y:") || !value.Contains("w:") || !value.Contains("h:"))
                 return false;
 
             var tokens = value.Split(',')
-                .Select(s => s.Trim())
-                .ToArray();
+                              .Select(s => s.Trim())
+                              .ToArray();
 
             var x = int.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("x:"))?.Replace("x:", "").Trim() ?? "0");
             var y = int.Parse(tokens.FirstOrDefault(t => t.ToLower().StartsWith("y:"))?.Replace("y:", "").Trim() ?? "0");
@@ -130,11 +137,20 @@ namespace Fracture.Content.Pipeline.Ui
                     var valueName   = value.Name.LocalName;
                     var valueString = value.Attribute("value")!.Value;
 
-                    if (InsertSource(style, targetName, valueName, valueString)) continue;
-                    if (InsertColor(style, targetName, valueName, valueString)) continue;
-                    if (InsertOffset(style, targetName, valueName, valueString)) continue;
-                    if (InsertTexture(style, input, targetName, valueName, valueString)) continue;
-                    if (InsertFont(style, input, targetName, valueName, valueString)) continue;
+                    if (InsertSource(style, targetName, valueName, valueString))
+                        continue;
+
+                    if (InsertColor(style, targetName, valueName, valueString))
+                        continue;
+
+                    if (InsertOffset(style, targetName, valueName, valueString))
+                        continue;
+
+                    if (InsertTexture(style, input, targetName, valueName, valueString))
+                        continue;
+
+                    if (InsertFont(style, input, targetName, valueName, valueString))
+                        continue;
 
                     InsertString(style, targetName, valueName, valueString);
                 }

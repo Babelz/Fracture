@@ -187,8 +187,10 @@ namespace Fracture.Engine.Ui.Controls
 
                 areas[i].Rectangle = itemArea;
 
-                if (i > 0) areas[i].Rectangle.Y = areas[i - 1].Rectangle.Bottom + separator;
-                else areas[i].Rectangle.Y       = itemArea.Y;
+                if (i > 0)
+                    areas[i].Rectangle.Y = areas[i - 1].Rectangle.Bottom + separator;
+                else
+                    areas[i].Rectangle.Y = itemArea.Y;
 
                 areas[i].Rectangle.Width  = (int)Math.Floor(size.X);
                 areas[i].Rectangle.Height = (int)Math.Floor(size.Y);
@@ -201,22 +203,27 @@ namespace Fracture.Engine.Ui.Controls
 
         protected override void InternalReceiveMouseInput(IGameEngineTime time, IMouseDevice mouse)
         {
-            if (!HasFocus) return;
+            if (!HasFocus)
+                return;
 
             // If we have focus and we are clicked, collapse.
-            if (!Mouse.IsPressed(MouseButton.Left)) return;
+            if (!Mouse.IsPressed(MouseButton.Left))
+                return;
 
             // If we have focus and we are clicked and we are collapsed, resolve selected item 
             // and retract.
-            if (collapsed) Retract();
-            else Collapse();
+            if (collapsed)
+                Retract();
+            else
+                Collapse();
         }
 
         protected override void UpdateSize(bool actual = false)
         {
             base.UpdateSize(actual);
 
-            if (!collapsed) retractedSize = Size;
+            if (!collapsed)
+                retractedSize = Size;
         }
 
         protected override void UpdatePosition(bool actual = false)
@@ -229,7 +236,8 @@ namespace Fracture.Engine.Ui.Controls
         {
             base.Defocus();
 
-            if (collapsed) Retract();
+            if (collapsed)
+                Retract();
         }
 
         protected override void InternalDraw(IGraphicsFragment fragment, IGameEngineTime time)
@@ -265,9 +273,12 @@ namespace Fracture.Engine.Ui.Controls
                 {
                     Color activeColor;
 
-                    if (ReferenceEquals(SelectedItem, tuple.Item)) activeColor = itemSelectedColor;
-                    else if (Mouse.IsHovering(tuple.Rectangle)) activeColor    = itemHoverColor;
-                    else activeColor                                           = itemNormalColor;
+                    if (ReferenceEquals(SelectedItem, tuple.Item))
+                        activeColor = itemSelectedColor;
+                    else if (Mouse.IsHovering(tuple.Rectangle))
+                        activeColor = itemHoverColor;
+                    else
+                        activeColor = itemNormalColor;
 
                     fragment.DrawSpriteText(new Vector2(tuple.Rectangle.X, tuple.Rectangle.Y),
                                             Vector2.One,
@@ -335,7 +346,8 @@ namespace Fracture.Engine.Ui.Controls
 
         public void RemoveAt(int index)
         {
-            if (ReferenceEquals(SelectedItem, items[index])) Select(-1);
+            if (ReferenceEquals(SelectedItem, items[index]))
+                Select(-1);
 
             items.RemoveAt(index);
         }
@@ -384,7 +396,8 @@ namespace Fracture.Engine.Ui.Controls
 
             foreach (var tuple in tuples)
             {
-                if (!Mouse.IsHovering(tuple.Rectangle)) continue;
+                if (!Mouse.IsHovering(tuple.Rectangle))
+                    continue;
 
                 Select(tuple.Item);
 

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using Fracture.Common.Events;
 
 namespace Fracture.Common.Collections.Concurrent
 {
@@ -11,16 +13,18 @@ namespace Fracture.Common.Collections.Concurrent
         // Lock object used to lock the buffer.
         private readonly object swapLock;
 
-        private List<T> a;
-        private List<T> b;
+        private int head;
+
+        private T[] writeBuffer;
+        private T[] readBuffer;
         #endregion
 
-        public LockedDoubleBuffer()
+        public LockedDoubleBuffer(int capacity = 8)
         {
             swapLock = new object();
 
-            a = new List<T>();
-            b = new List<T>();
+            writeBuffer = new T[capacity];
+            readBuffer  = new T[capacity];
         }
 
         /// <summary>
@@ -29,23 +33,32 @@ namespace Fracture.Common.Collections.Concurrent
         public void Push(T value)
         {
             lock (swapLock)
-                a.Add(value);
+            {
+                if (head >= writeBuffer.Length)
+                    Array.Resize(ref writeBuffer, writeBuffer.Length * 2);
+
+                writeBuffer[head++] = value;
+            }
         }
 
         /// <summary>
         /// Returns the contents of the buffer to the caller. Clears and swaps internal state.
         /// </summary>
-        public T[] Read()
+        public Span<T> Read()
         {
             lock (swapLock)
             {
-                var temp   = a;
-                var result = temp.ToArray();
+                if (writeBuffer.Length > readBuffer.Length)
+                    Array.Resize(ref readBuffer, head);
 
-                temp.Clear();
+                // Swap write and read buffers for second thread to continue on writing and 
+                // second thread to continue on writing.
+                (writeBuffer, readBuffer) = (readBuffer, writeBuffer);
 
-                a = b;
-                b = temp;
+                // Reset head for rewriting and return results.
+                var result = new Span<T>(readBuffer, 0, head);
+
+                head = 0;
 
                 return result;
             }

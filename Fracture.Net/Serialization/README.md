@@ -55,8 +55,9 @@ Fracture serializer provides serialization for the following types:
 
 ## How to setup serialization
 
-See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring portable message schemas see the read me 
+See Fracture.Net.Hosting for how to setup the serialization for applications. For configuring portable message schemas see the read me
 file under Fracture.Net.Messages.
+
 ```csharp
 // Map type Vec2 as serializable structure. Any attempts to serialize or deserialize Vec2 type before this
 // will cause runtime exception. 

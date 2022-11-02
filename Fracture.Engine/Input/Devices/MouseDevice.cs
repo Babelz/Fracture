@@ -17,11 +17,11 @@ namespace Fracture.Engine.Input.Devices
     public enum MouseButton : byte
     {
         None   = 0,
-        Left   = (1 << 0),
-        Middle = (1 << 1),
-        Right  = (1 << 2),
-        X1     = (1 << 3),
-        X2     = (1 << 4)
+        Left   = 1 << 0,
+        Middle = 1 << 1,
+        Right  = 1 << 2,
+        X1     = 1 << 3,
+        X2     = 1 << 4,
     }
 
     /// <summary>
@@ -139,10 +139,8 @@ namespace Fracture.Engine.Input.Devices
             IEnumerable<MouseButton> GetEnumeration()
             {
                 for (var i = 0; i < MouseButtonValues.Length; i++)
-                {
                     if (IsButtonDown(MouseButtonValues[i]))
                         yield return MouseButtonValues[i];
-                }
             }
 
             return GetEnumeration();
@@ -156,10 +154,8 @@ namespace Fracture.Engine.Input.Devices
             IEnumerable<MouseButton> GetEnumeration()
             {
                 for (var i = 0; i < MouseButtonValues.Length; i++)
-                {
                     if (IsButtonPressed(MouseButtonValues[i]))
                         yield return MouseButtonValues[i];
-                }
             }
 
             return GetEnumeration();
@@ -173,10 +169,8 @@ namespace Fracture.Engine.Input.Devices
             IEnumerable<MouseButton> GetEnumeration()
             {
                 for (var i = 0; i < MouseButtonValues.Length; i++)
-                {
                     if (IsButtonUp(MouseButtonValues[i]))
                         yield return MouseButtonValues[i];
-                }
             }
 
             return GetEnumeration();
@@ -190,10 +184,8 @@ namespace Fracture.Engine.Input.Devices
             IEnumerable<MouseButton> GetEnumeration()
             {
                 for (var i = 0; i < MouseButtonValues.Length; i++)
-                {
                     if (IsButtonReleased(MouseButtonValues[i]))
                         yield return MouseButtonValues[i];
-                }
             }
 
             return GetEnumeration();
@@ -274,11 +266,20 @@ namespace Fracture.Engine.Input.Devices
             var buttons = MouseButton.None;
 
             // Determine button states.
-            if (state.LeftButton == ButtonState.Pressed) buttons   |= MouseButton.Left;
-            if (state.MiddleButton == ButtonState.Pressed) buttons |= MouseButton.Middle;
-            if (state.RightButton == ButtonState.Pressed) buttons  |= MouseButton.Right;
-            if (state.XButton1 == ButtonState.Pressed) buttons     |= MouseButton.X1;
-            if (state.XButton2 == ButtonState.Pressed) buttons     |= MouseButton.X2;
+            if (state.LeftButton == ButtonState.Pressed)
+                buttons |= MouseButton.Left;
+
+            if (state.MiddleButton == ButtonState.Pressed)
+                buttons |= MouseButton.Middle;
+
+            if (state.RightButton == ButtonState.Pressed)
+                buttons |= MouseButton.Right;
+
+            if (state.XButton1 == ButtonState.Pressed)
+                buttons |= MouseButton.X1;
+
+            if (state.XButton2 == ButtonState.Pressed)
+                buttons |= MouseButton.X2;
 
             // Create new state.
             mouseStateBuffer.Push(new MouseState(new Point(state.X, state.Y), buttons, state.ScrollWheelValue));

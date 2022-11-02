@@ -149,8 +149,7 @@ namespace Fracture.Engine.Core.Systems
         }
 
         public void Push<T>(SceneChangedCallback callback = null, params IBindingValue[] bindings) where T : Scene
-        {
-            actions.Enqueue(() =>
+            => actions.Enqueue(() =>
             {
                 var last  = scenes.Count == 0 ? null : scenes.Peek();
                 var scene = activator.Activate<T>(bindings);
@@ -168,11 +167,9 @@ namespace Fracture.Engine.Core.Systems
 
                 Current = scene;
             });
-        }
 
         public void Pop(SceneChangedCallback callback = null)
-        {
-            actions.Enqueue(() =>
+            => actions.Enqueue(() =>
             {
                 if (scenes.Count == 0)
                     throw new InvalidOperationException("no scenes in the stack");
@@ -191,11 +188,9 @@ namespace Fracture.Engine.Core.Systems
 
                 Current = next;
             });
-        }
 
         public void PopUntil(Func<Scene, bool> predicate, SceneChangedCallback callback = null)
-        {
-            actions.Enqueue(() =>
+            => actions.Enqueue(() =>
             {
                 var last = scenes.Pop();
 
@@ -227,7 +222,6 @@ namespace Fracture.Engine.Core.Systems
 
                 throw new InvalidOperationException("no scene matches predicate");
             });
-        }
 
         public override void Update(IGameEngineTime time)
         {

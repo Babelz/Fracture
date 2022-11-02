@@ -130,7 +130,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public QuadTreeNodeLink Unlink()
         {
-            if (previous == null) return this;
+            if (previous == null)
+                return this;
 
             // Store for later as previous gets cleared.
             var last = previous;
@@ -335,21 +336,19 @@ namespace Fracture.Engine.Physics
             // Delete this nodes body list and transfer to
             // children.
             foreach (var bodyList in bodyLists)
+            foreach (var bodyId in bodyList)
             {
-                foreach (var bodyId in bodyList)
-                {
-                    ref var body = ref Bodies.AtIndex(bodyId);
+                ref var body = ref Bodies.AtIndex(bodyId);
 
-                    // Bodies can exist in more than one cell.
-                    var tl = TopLeft.Add(body);
-                    var tr = TopRight.Add(body);
+                // Bodies can exist in more than one cell.
+                var tl = TopLeft.Add(body);
+                var tr = TopRight.Add(body);
 
-                    var br = BottomRight.Add(body);
-                    var bl = BottomLeft.Add(body);
+                var br = BottomRight.Add(body);
+                var bl = BottomLeft.Add(body);
 
-                    if (!(tl || tr || br || bl))
-                        throw new InvalidOperationException($"could not add body {bodyId} to any nodes after split");
-                }
+                if (!(tl || tr || br || bl))
+                    throw new InvalidOperationException($"could not add body {bodyId} to any nodes after split");
             }
 
             // Allow GC to collect and compact tree.
@@ -412,7 +411,8 @@ namespace Fracture.Engine.Physics
             // can exist with the children cells even while split. 
             // When removing a body, we need to check collision between both 
             // bounding volumes in case the body is active.
-            if ((body.Active && !Aabb.Intersects(body.TransformBoundingBox, boundingBox)) &&
+            if (body.Active &&
+                !Aabb.Intersects(body.TransformBoundingBox, boundingBox) &&
                 !Aabb.Intersects(body.BoundingBox, boundingBox))
                 return false;
 
@@ -447,9 +447,7 @@ namespace Fracture.Engine.Physics
                 link = BottomLeft.RootQuery(link);
             }
             else if (Count != 0)
-            {
                 link = link.Link(bodyLists);
-            }
 
             return link;
         }
@@ -468,9 +466,7 @@ namespace Fracture.Engine.Physics
                 link = BottomLeft.AabbQueryNarrow(link, in aabb);
             }
             else if (Count != 0)
-            {
                 link = link.Link(bodyLists);
-            }
 
             return link;
         }
@@ -489,9 +485,7 @@ namespace Fracture.Engine.Physics
                 link = BottomLeft.RayCastNarrow(link, in a, in b);
             }
             else if (Count != 0)
-            {
                 link = link.Link(bodyLists);
-            }
 
             return link;
         }
@@ -516,21 +510,19 @@ namespace Fracture.Engine.Physics
                 link = link.Link(out var results);
 
                 foreach (var bodyList in bodyLists)
+                foreach (var bodyId in bodyList)
                 {
-                    foreach (var bodyId in bodyList)
-                    {
-                        if (!selector?.Invoke(bodyId) ?? false)
-                            continue;
+                    if (!selector?.Invoke(bodyId) ?? false)
+                        continue;
 
-                        // All queries should be done using the current 
-                        // bounding box, not the future one.
-                        ref var body = ref Bodies.AtIndex(bodyId);
+                    // All queries should be done using the current 
+                    // bounding box, not the future one.
+                    ref var body = ref Bodies.AtIndex(bodyId);
 
-                        if (!Aabb.Intersects(body.BoundingBox, aabb))
-                            continue;
+                    if (!Aabb.Intersects(body.BoundingBox, aabb))
+                        continue;
 
-                        results[(int)body.Type - 1].Add(bodyId);
-                    }
+                    results[(int)body.Type - 1].Add(bodyId);
                 }
 
                 if (!results.Any(l => l.Count != 0))
@@ -561,21 +553,19 @@ namespace Fracture.Engine.Physics
                 link = link.Link(out var results);
 
                 foreach (var bodyList in bodyLists)
+                foreach (var bodyId in bodyList)
                 {
-                    foreach (var bodyId in bodyList)
-                    {
-                        if (!selector?.Invoke(bodyId) ?? false)
-                            continue;
+                    if (!selector?.Invoke(bodyId) ?? false)
+                        continue;
 
-                        // All queries should be done using the current 
-                        // bounding box, not the future one.
-                        ref var body = ref Bodies.AtIndex(bodyId);
+                    // All queries should be done using the current 
+                    // bounding box, not the future one.
+                    ref var body = ref Bodies.AtIndex(bodyId);
 
-                        if (!Line.Intersects(new Line(a, b), body.BoundingBox))
-                            continue;
+                    if (!Line.Intersects(new Line(a, b), body.BoundingBox))
+                        continue;
 
-                        results[(int)body.Type - 1].Add(bodyId);
-                    }
+                    results[(int)body.Type - 1].Add(bodyId);
                 }
 
                 if (!results.Any(l => l.Count != 0))
@@ -689,7 +679,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public void RootQuery(QuadTreeNodeLink link)
         {
-            if (link == null) throw new ArgumentNullException(nameof(link));
+            if (link == null)
+                throw new ArgumentNullException(nameof(link));
 
             Root.RootQuery(link);
         }
@@ -701,7 +692,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public void AabbQueryNarrow(QuadTreeNodeLink link, in Aabb aabb)
         {
-            if (link == null) throw new ArgumentNullException(nameof(link));
+            if (link == null)
+                throw new ArgumentNullException(nameof(link));
 
             Root.AabbQueryNarrow(link, in aabb);
         }
@@ -712,7 +704,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public void RayCastNarrow(QuadTreeNodeLink link, in Vector2 a, in Vector2 b)
         {
-            if (link == null) throw new ArgumentNullException(nameof(link));
+            if (link == null)
+                throw new ArgumentNullException(nameof(link));
 
             Root.RayCastNarrow(link, in a, in b);
         }
@@ -724,7 +717,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public void RayCastBroad(QuadTreeNodeLink link, in Vector2 a, in Vector2 b, BodySelector selector = null)
         {
-            if (link == null) throw new ArgumentNullException(nameof(link));
+            if (link == null)
+                throw new ArgumentNullException(nameof(link));
 
             Root.RayCastBroad(link, in a, in b, selector);
         }
@@ -734,7 +728,8 @@ namespace Fracture.Engine.Physics
         /// </summary>
         public void AabbQueryBroad(QuadTreeNodeLink link, in Aabb aabb, BodySelector selector = null)
         {
-            if (link == null) throw new ArgumentNullException(nameof(link));
+            if (link == null)
+                throw new ArgumentNullException(nameof(link));
 
             Root.AabbQueryBroad(link, in aabb, selector);
         }

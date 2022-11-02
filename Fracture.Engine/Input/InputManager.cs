@@ -85,7 +85,8 @@ namespace Fracture.Engine.Input
                 {
                     result = test(j, triggers[i]);
 
-                    if (result) break;
+                    if (result)
+                        break;
                 }
 
                 if (!result)
@@ -97,17 +98,25 @@ namespace Fracture.Engine.Input
 
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, T trigger)
         {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-            if (callback == null) throw new ArgumentNullException(nameof(callback));
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (callback == null)
+                throw new ArgumentNullException(nameof(callback));
 
             bindings.Add(new InputBinding<T>(name, new[] { trigger }, callback, state));
         }
 
         public void Bind(string name, InputBindingCallback callback, InputTriggerState state, params T[] combination)
         {
-            if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
-            if (callback == null) throw new ArgumentNullException(nameof(callback));
-            if (combination.Length < 2) throw new ArgumentOutOfRangeException(nameof(combination), "atleast 2 triggers are required for combination");
+            if (string.IsNullOrEmpty(name))
+                throw new ArgumentNullException(nameof(name));
+
+            if (callback == null)
+                throw new ArgumentNullException(nameof(callback));
+
+            if (combination.Length < 2)
+                throw new ArgumentOutOfRangeException(nameof(combination), "atleast 2 triggers are required for combination");
 
             bindings.Add(new InputBinding<T>(name, combination, callback, state));
         }
@@ -153,7 +162,7 @@ namespace Fracture.Engine.Input
                     InputTriggerState.Up => IsTriggerUp(binding.Triggers),
                     InputTriggerState.Pressed => IsTriggerPressed(binding.Triggers),
                     InputTriggerState.Down => IsTriggerDown(binding.Triggers),
-                    _ => false
+                    _ => false,
                 };
 
                 if (triggered)

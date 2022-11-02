@@ -73,7 +73,7 @@ namespace Fracture.Net.Serialization
 
             // Write sparse collection flag.
             var nullMaskOffset = offset;
-            var nullMask       = new BitField(checked((ushort)(BitField.LengthFromBits(values.Length))));
+            var nullMask       = new BitField(checked((ushort)BitField.LengthFromBits(values.Length)));
 
             // Leave space for the null mask.
             var collectionDataRegionOffset = offset;

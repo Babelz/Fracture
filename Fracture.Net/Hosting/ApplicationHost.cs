@@ -139,9 +139,15 @@ namespace Fracture.Net.Hosting
 
             services.Bind(this);
 
-            application.ShuttingDown += delegate { ShuttingDown?.Invoke(this, EventArgs.Empty); };
+            application.ShuttingDown += delegate
+            {
+                ShuttingDown?.Invoke(this, EventArgs.Empty);
+            };
 
-            application.Starting += delegate { Starting?.Invoke(this, EventArgs.Empty); };
+            application.Starting += delegate
+            {
+                Starting?.Invoke(this, EventArgs.Empty);
+            };
 
             foreach (var service in services.All<IApplicationService>())
                 Log.Information($"loaded service {service.GetType().FullName} at startup...");
@@ -152,7 +158,6 @@ namespace Fracture.Net.Hosting
         public void Tick()
         {
             foreach (var service in services.All<IActiveApplicationService>())
-            {
                 try
                 {
                     service.Tick();
@@ -160,11 +165,10 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warning(e, "unhandled error occurred while updating service", service);
-                    
+
                     // Propagate exceptions to application layer.
                     throw;
                 }
-            }
         }
 
         public void Shutdown()
@@ -220,7 +224,6 @@ namespace Fracture.Net.Hosting
                 Log.Information("application shutdown signaled, unloading all scripts...");
 
                 foreach (var script in scripts.All<IApplicationScript>().ToList())
-                {
                     try
                     {
                         Log.Information($"unloading script ${script.GetType().FullName}...");
@@ -234,11 +237,10 @@ namespace Fracture.Net.Hosting
                         // Propagate exceptions to application layer.
                         throw;
                     }
-                }
             };
 
-            application.Join       += (object sender, in PeerJoinEventArgs e)    => Join?.Invoke(this, e);
-            application.Reset      += (object sender, in PeerResetEventArgs e)   => Reset?.Invoke(this, e);
+            application.Join       += (object sender, in PeerJoinEventArgs e) => Join?.Invoke(this, e);
+            application.Reset      += (object sender, in PeerResetEventArgs e) => Reset?.Invoke(this, e);
             application.BadRequest += (object sender, in PeerMessageEventArgs e) => BadRequest?.Invoke(this, e);
 
             foreach (var script in scripts.All<IApplicationScript>())
@@ -276,7 +278,10 @@ namespace Fracture.Net.Hosting
                     break;
             }
 
-            script.Unloading += delegate { scripts.Unbind(script); };
+            script.Unloading += delegate
+            {
+                scripts.Unbind(script);
+            };
 
             scripts.Bind(script);
         }
@@ -284,7 +289,6 @@ namespace Fracture.Net.Hosting
         public void Tick()
         {
             foreach (var script in scripts.All<IApplicationScript>().ToList())
-            {
                 switch (script)
                 {
                     case IApplicationCommandScript iacs:
@@ -316,7 +320,6 @@ namespace Fracture.Net.Hosting
 
                         break;
                 }
-            }
         }
 
         public void Shutdown()

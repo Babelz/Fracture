@@ -34,18 +34,14 @@ namespace Fracture.Engine.Scripting
         /// happens only once during the scripts life time.
         /// </summary>
         public virtual void Load()
-        {
-            Loading?.Invoke(this, EventArgs.Empty);
-        }
+            => Loading?.Invoke(this, EventArgs.Empty);
 
         /// <summary>
         /// Method called when the script is getting unloaded. This happens right before the script is getting disposed
         /// and happens only once during the scripts life time.
         /// </summary>
         public virtual void Unload()
-        {
-            Unloading?.Invoke(this, EventArgs.Empty);
-        }
+            => Unloading?.Invoke(this, EventArgs.Empty);
     }
 
     public abstract class CommandCsScript : CsScript

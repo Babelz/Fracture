@@ -151,9 +151,9 @@ namespace Fracture.Common.Di
             var options = binder.Options;
             var strict  = (options & DependencyBindingOptions.Strict) == DependencyBindingOptions.Strict;
 
-            dependency = binder.Proxy != null
-                ? new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Proxy, options), strict)
-                : new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Type, options), strict);
+            dependency = binder.Proxy != null ?
+                new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Proxy, options), strict) :
+                new Dependency(binder.Instance, DependencyTypeMapper.Map(binder.Type, options), strict);
 
             return true;
         }
@@ -165,13 +165,17 @@ namespace Fracture.Common.Di
 
             DependencyBinder binder;
 
-            if (instance != null) binder  = new DependencyBinder(options, instance);
-            else if (type != null) binder = new DependencyBinder(options, type);
-            else throw new InvalidOperationException("construction requires type of instance to continue");
+            if (instance != null)
+                binder = new DependencyBinder(options, instance);
+            else if (type != null)
+                binder = new DependencyBinder(options, type);
+            else
+                throw new InvalidOperationException("construction requires type of instance to continue");
 
             var resolver = new DependencyBindingResolver(this);
 
-            if (proxy != null) binder.AsProxy(proxy);
+            if (proxy != null)
+                binder.AsProxy(proxy);
 
             if (instance == null)
             {
@@ -235,12 +239,12 @@ namespace Fracture.Common.Di
 
         public IEnumerable<T> All<T>(Func<T, bool> predicate)
             => dependencies.Where(d => d.Castable<T>())
-                .Select(d => d.Cast<T>())
-                .Where(predicate);
+                           .Select(d => d.Cast<T>())
+                           .Where(predicate);
 
         public IEnumerable<T> All<T>()
             => dependencies.Where(d => d.Castable<T>())
-                .Select(d => d.Cast<T>());
+                           .Select(d => d.Cast<T>());
 
         public void Unbind(Type type)
         {
@@ -366,7 +370,6 @@ namespace Fracture.Common.Di
             var sb = new StringBuilder();
 
             foreach (var binder in binders)
-            {
                 try
                 {
                     binder.Bind();
@@ -382,7 +385,6 @@ namespace Fracture.Common.Di
 
                     sb.Append($"exception occurred during activation: {e}\n");
                 }
-            }
 
             if (sb.Length != 0)
                 throw new DependencyBinderVerificationException($"failed to activate following dependencies:\n{sb}");

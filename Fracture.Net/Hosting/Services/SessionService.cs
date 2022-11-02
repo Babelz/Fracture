@@ -102,7 +102,7 @@ namespace Fracture.Net.Hosting.Services
 
     public static class SessionServiceMiddleware<T> where T : SessionBase
     {
-        public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions) 
+        public static MiddlewareHandlerDelegate<RequestMiddlewareContext> CreateRefreshSession(ISessionService<T> sessions)
             => (in RequestMiddlewareContext context) =>
             {
                 if (sessions.TryGet(context.Request.Connection.PeerId, out var session))
@@ -124,9 +124,7 @@ namespace Fracture.Net.Hosting.Services
         [BindingConstructor]
         public SessionService(IApplicationServiceHost application)
             : base(application)
-        {
-            sessions = new Dictionary<int, T>();
-        }
+            => sessions = new Dictionary<int, T>();
 
         public bool Active(int peerId)
             => sessions.ContainsKey(peerId);

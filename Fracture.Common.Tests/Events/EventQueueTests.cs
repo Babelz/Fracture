@@ -42,7 +42,7 @@ namespace Fracture.Common.Tests.Events
             // Publish 3 events, should get invoked 3 times.
             var expectedValues = new HashSet<int>
             {
-                10, 100, 1000
+                10, 100, 1000,
             };
 
             queue.Publish(TestTopic, 10);
@@ -69,7 +69,7 @@ namespace Fracture.Common.Tests.Events
             // Publish 3 events, should get invoked 3 times.
             var expectedValues = new HashSet<int>
             {
-                10, 1000
+                10, 1000,
             };
 
             queue.Publish(TestTopic, 10);

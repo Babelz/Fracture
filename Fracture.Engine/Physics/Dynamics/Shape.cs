@@ -28,7 +28,7 @@ namespace Fracture.Engine.Physics.Dynamics
         /// <summary>
         /// Polygon shape with n-vertices.
         /// </summary>
-        Polygon = 2
+        Polygon = 2,
     }
 
     /// <summary>
@@ -140,26 +140,22 @@ namespace Fracture.Engine.Physics.Dynamics
             // Setup AABB and vertices.
             localVertices = new[]
             {
-                Vector2.Zero
+                Vector2.Zero,
             };
 
             worldVertices = new[]
             {
-                Vector2.Zero
+                Vector2.Zero,
             };
         }
 
         public Aabb TranslateBoundingBox(in Vector2 positionTranslation, float angleTranslation, float angle)
-        {
             // Circles are not affected by rotation.
-            return new Aabb(BoundingBox.Position + positionTranslation, new Vector2(radius));
-        }
+            => new Aabb(BoundingBox.Position + positionTranslation, new Vector2(radius));
 
         public Aabb TransformBoundingBox(in Vector2 positionTransform, float angleTransformation)
-        {
             // Circles are not affected by rotation.
-            return new Aabb(positionTransform, new Vector2(radius));
-        }
+            => new Aabb(positionTransform, new Vector2(radius));
 
         public void ApplyTransformation(in Vector2 positionTransform, float angleTransform)
         {
@@ -275,7 +271,7 @@ namespace Fracture.Engine.Physics.Dynamics
 
                 if (i == 0)
                     sign = zcross > 0.0f;
-                else if (sign != (zcross > 0.0f))
+                else if (sign != zcross > 0.0f)
                     return false;
             }
 

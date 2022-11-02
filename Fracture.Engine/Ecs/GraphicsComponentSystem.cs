@@ -843,7 +843,7 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Animation is played once.
         /// </summary>
-        Play = 1
+        Play = 1,
     }
 
     /// <summary>
@@ -1013,9 +1013,7 @@ namespace Fracture.Engine.Ecs
                                               IGraphicsLayerSystem layers,
                                               ITransformComponentSystem transforms)
             : base(events, layers, transforms, Ecs.GraphicsComponentTypeId.SpriteAnimation)
-        {
-            finishedEvents = events.CreateUnique<int, SpriteAnimationFinishedEventArgs>();
-        }
+            => finishedEvents = events.CreateUnique<int, SpriteAnimationFinishedEventArgs>();
 
         private void SetPlaying(int componentId, bool playing)
         {
@@ -1191,7 +1189,7 @@ namespace Fracture.Engine.Ecs
         /// <summary>
         /// Text will be fitted to the element bounds.
         /// </summary>
-        Fit
+        Fit,
     }
 
     public interface ISpriteTextComponentSystem : IGraphicsComponentSystem
@@ -1215,7 +1213,7 @@ namespace Fracture.Engine.Ecs
     }
 
     public sealed class SpriteTextComponentSystem : GraphicsComponentSystem<SpriteTextComponentSystem.SpriteTextComponent>,
-        ISpriteTextComponentSystem
+                                                    ISpriteTextComponentSystem
     {
         #region Sprite text component structure
         public struct SpriteTextComponent : IGraphicsComponent

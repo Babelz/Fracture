@@ -23,11 +23,9 @@ namespace Fracture.Net.Messages
 
         public MessageSchemaTypeException(Type type, string message, Exception inner = null)
             : base($"message schema operation for schema {type.Name} threw and exception: {message}", inner)
-        {
-            Type = type;
-        }
+            => Type = type;
     }
-    
+
     /// <summary>
     /// Utility class for defining messaging schemas. Works only as wrapper around serialization library. For any more fine tuned schema mapping use the
     /// serialization type mappers.
@@ -70,10 +68,10 @@ namespace Fracture.Net.Messages
         {
             if (!type.IsAbstract && !type.IsSealed)
                 throw new MessageSchemaTypeException(type, "message schema types must be static");
-            
+
             if (type.GetAttribute<DescriptionAttribute>() == null)
                 throw new MessageSchemaTypeException(type, $"type is not annotated with {nameof(MessageSchema)}.{nameof(DescriptionAttribute)}");
-            
+
             if (!type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static).Any(m => m.GetAttribute<LoadAttribute>() != null))
                 throw new MessageSchemaTypeException(type, $"none of the types methods are annotated with {nameof(MessageSchema)}.{nameof(LoadAttribute)}");
         }
@@ -82,12 +80,11 @@ namespace Fracture.Net.Messages
         private static void LoadSchema(Type type)
         {
             LoadedSchemas.Add(type);
-            
+
             try
             {
                 foreach (var method in type.GetMethods(BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Static)
                                            .Where(m => m.GetAttribute<LoadAttribute>() != null))
-                {
                     try
                     {
                         method.Invoke(null, null);
@@ -96,7 +93,6 @@ namespace Fracture.Net.Messages
                     {
                         throw new MessageSchemaTypeException(type, "load schema method threw an exception", e);
                     }
-                }
             }
             catch (Exception e)
             {
@@ -143,12 +139,12 @@ namespace Fracture.Net.Messages
         {
             if (schemaType == null)
                 throw new ArgumentNullException(nameof(schemaType));
-            
+
             if (LoadedSchemas.Contains(schemaType))
                 return;
-            
+
             ValidateSchemaType(schemaType);
-            
+
             LoadSchema(schemaType);
         }
     }

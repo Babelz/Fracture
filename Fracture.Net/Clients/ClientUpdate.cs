@@ -38,9 +38,7 @@ namespace Fracture.Net.Clients
             #endregion
 
             public Connected(IPEndPoint remoteEndPoint)
-            {
-                RemoteEndPoint = remoteEndPoint ?? throw new ArgumentNullException(nameof(remoteEndPoint));
-            }
+                => RemoteEndPoint = remoteEndPoint ?? throw new ArgumentNullException(nameof(remoteEndPoint));
         }
 
         /// <summary>
@@ -104,7 +102,7 @@ namespace Fracture.Net.Clients
             /// <summary>
             /// Packet is outgoing from the client to the remote host.
             /// </summary>
-            Local
+            Local,
         }
 
         /// <summary>

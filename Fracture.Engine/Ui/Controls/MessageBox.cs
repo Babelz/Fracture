@@ -22,16 +22,16 @@ namespace Fracture.Engine.Ui.Controls
     [Flags]
     public enum MessageBoxButtons : ushort
     {
-        None    = (1 << 0),
-        Accept  = (1 << 1),
-        Ok      = (1 << 2),
-        Cancel  = (1 << 3),
-        Return  = (1 << 4),
-        Decline = (1 << 5),
-        Close   = (1 << 6),
-        Retry   = (1 << 7),
-        Yes     = (1 << 8),
-        No      = (1 << 9)
+        None    = 1 << 0,
+        Accept  = 1 << 1,
+        Ok      = 1 << 2,
+        Cancel  = 1 << 3,
+        Return  = 1 << 4,
+        Decline = 1 << 5,
+        Close   = 1 << 6,
+        Retry   = 1 << 7,
+        Yes     = 1 << 8,
+        No      = 1 << 9,
     }
 
     public enum MessageBoxResult : ushort
@@ -45,7 +45,7 @@ namespace Fracture.Engine.Ui.Controls
         Close   = 6,
         Retry   = 7,
         Yes     = 8,
-        No      = 9
+        No      = 9,
     }
 
     public sealed class MessageBox : StaticContainerControl
@@ -92,7 +92,7 @@ namespace Fracture.Engine.Ui.Controls
                 Anchor      = Anchor.Center,
                 Text        = message,
                 Size        = new Vector2(0.9f, 0.4f),
-                WrapAround  = true
+                WrapAround  = true,
             };
 
             var messageBoxPanel = new HeaderPanel
@@ -100,7 +100,7 @@ namespace Fracture.Engine.Ui.Controls
                 Positioning = Positioning.Offset,
                 Anchor      = Anchor.Center,
                 Size        = size,
-                HeaderText  = header
+                HeaderText  = header,
             };
 
             if (draggable)
@@ -112,20 +112,20 @@ namespace Fracture.Engine.Ui.Controls
             if (buttons != MessageBoxButtons.None)
             {
                 var messageBoxButtonsValues = Enum.GetValues(typeof(MessageBoxButtons))
-                    .Cast<MessageBoxButtons>()
-                    .ToList();
+                                                  .Cast<MessageBoxButtons>()
+                                                  .ToList();
 
                 var messageBoxResultValues = Enum.GetValues(typeof(MessageBoxResult))
-                    .Cast<MessageBoxResult>()
-                    .ToDictionary(v => v.ToString().ToLower(), v => v);
+                                                 .Cast<MessageBoxResult>()
+                                                 .ToDictionary(v => v.ToString().ToLower(), v => v);
 
                 foreach (var messageBoxButtonValue in messageBoxButtonsValues)
-                {
                     if ((buttons & messageBoxButtonValue) == messageBoxButtonValue)
+                    {
                         CreateButton(messageBoxButtons,
                                      messageBoxButtonValue.ToString().ToLower(),
                                      messageBoxResultValues[messageBoxButtonValue.ToString().ToLower()]);
-                }
+                    }
             }
 
             // Validate buttons.
@@ -182,7 +182,7 @@ namespace Fracture.Engine.Ui.Controls
                 Size        = new Vector2(0.25f, 0.1f),
                 Positioning = Positioning.Anchor,
                 Anchor      = Anchor.Center | Anchor.Bottom,
-                Text        = text
+                Text        = text,
             };
 
             button.Click += (s, e) => Close(result);

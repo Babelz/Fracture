@@ -27,7 +27,10 @@ namespace Fracture.Net.Hosting.Messaging
         /// </summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static MiddlewareMatchDelegate<T> Any()
-            => delegate { return true; };
+            => delegate
+            {
+                return true;
+            };
     }
 
     /// <summary>
@@ -48,7 +51,7 @@ namespace Fracture.Net.Hosting.Messaging
         /// <summary>
         /// Middleware rejected the object and it should not be accepted by the next entity in the pipeline.
         /// </summary>
-        Reject
+        Reject,
     }
 
     /// <summary>

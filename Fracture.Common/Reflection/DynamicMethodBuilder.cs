@@ -25,64 +25,40 @@ namespace Fracture.Common.Reflection
         }
 
         public LocalBuilder DeclareLocal(Type type)
-        {
-            return il.DeclareLocal(type);
-        }
+            => il.DeclareLocal(type);
 
         public void Emit(OpCode op)
-        {
-            il.Emit(op);
-        }
+            => il.Emit(op);
 
         public void Emit(OpCode op, Label label)
-        {
-            il.Emit(op, label);
-        }
+            => il.Emit(op, label);
 
         public void Emit(OpCode op, int value)
-        {
-            il.Emit(op, value);
-        }
+            => il.Emit(op, value);
 
         public void Emit(OpCode op, string value)
-        {
-            il.Emit(op, value);
-        }
+            => il.Emit(op, value);
 
         public void Emit(OpCode op, Type type)
-        {
-            il.Emit(op, type);
-        }
+            => il.Emit(op, type);
 
         public void Emit(OpCode op, LocalBuilder local)
-        {
-            il.Emit(op, local);
-        }
+            => il.Emit(op, local);
 
         public void Emit(OpCode op, FieldInfo field)
-        {
-            il.Emit(op, field);
-        }
+            => il.Emit(op, field);
 
         public void Emit(OpCode op, MethodInfo method)
-        {
-            il.Emit(op, method);
-        }
+            => il.Emit(op, method);
 
         public void Emit(OpCode op, ConstructorInfo constructor)
-        {
-            il.Emit(op, constructor);
-        }
+            => il.Emit(op, constructor);
 
         public Label DefineLabel()
-        {
-            return il.DefineLabel();
-        }
+            => il.DefineLabel();
 
         public void MarkLabel(Label label)
-        {
-            il.MarkLabel(label);
-        }
+            => il.MarkLabel(label);
 
         public Delegate CreateDelegate(Type type)
             => dynamicMethod.CreateDelegate(type);

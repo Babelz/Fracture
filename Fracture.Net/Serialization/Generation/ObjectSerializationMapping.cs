@@ -19,7 +19,7 @@ namespace Fracture.Net.Serialization.Generation
         /// <summary>
         /// Path points to a public field.
         /// </summary>
-        Field
+        Field,
     }
 
     /// <summary>
@@ -368,7 +368,7 @@ namespace Fracture.Net.Serialization.Generation
             {
                 // Ensure type has parameterless constructor.
                 constructor = serializationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                    .FirstOrDefault(c => c.GetParameters().Length == 0);
+                                               .FirstOrDefault(c => c.GetParameters().Length == 0);
 
                 if (!serializationType.IsValueType && constructor == null)
                     throw new InvalidOperationException($"type {serializationType.Name} has no parameterless constructor");
@@ -376,8 +376,8 @@ namespace Fracture.Net.Serialization.Generation
             else
             {
                 var candidates = serializationType.GetConstructors(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
-                    .Where(c => c.GetParameters().Length == objectActivationHints.Count)
-                    .ToArray();
+                                                  .Where(c => c.GetParameters().Length == objectActivationHints.Count)
+                                                  .ToArray();
 
                 if (objectActivationHints.Any(h => h.Type != null))
                 {
@@ -385,9 +385,9 @@ namespace Fracture.Net.Serialization.Generation
                         throw new InvalidOperationException("type hints are used but all activation hints don't have it");
 
                     candidates = candidates.Where(c => c.GetParameters()
-                                                      .Select(p => p.ParameterType)
-                                                      .SequenceEqual(objectActivationHints.Select(h => h.Type)))
-                        .ToArray();
+                                                        .Select(p => p.ParameterType)
+                                                        .SequenceEqual(objectActivationHints.Select(h => h.Type)))
+                                           .ToArray();
                 }
 
                 // Go trough all arguments and make sure types match.
@@ -406,9 +406,11 @@ namespace Fracture.Net.Serialization.Generation
                 }
 
                 if (constructor == null)
+                {
                     throw new InvalidOperationException($"type {serializationType.Name} has no constructor " +
                                                         $"that accepts {objectActivationHints.Count} arguments, this might also be caused by mismatched" +
                                                         "binding names");
+                }
             }
 
             return constructor;
@@ -417,7 +419,6 @@ namespace Fracture.Net.Serialization.Generation
         private IEnumerable<SerializationValue> GetObjectActivationValues()
         {
             foreach (var objectActivationHint in objectActivationHints)
-            {
                 if (objectActivationHint.Value.Path == SerializationValueLocation.Field)
                 {
                     // Make sure the serialization field is valid.
@@ -442,7 +443,6 @@ namespace Fracture.Net.Serialization.Generation
 
                     yield return new SerializationValue(property: serializationTypeProperty);
                 }
-            }
         }
 
         private IEnumerable<SerializationValue> GetSerializationFieldValues()
@@ -487,11 +487,11 @@ namespace Fracture.Net.Serialization.Generation
                 return;
 
             var serializationTypeFields = serializationType.GetFields(BindingFlags.Instance | BindingFlags.Public)
-                .Where(f => !serializationValueHints.Any(h => h.Name == f.Name &&
-                                                              h.Path == SerializationValueLocation.Field));
+                                                           .Where(f => !serializationValueHints.Any(h => h.Name == f.Name &&
+                                                                                                         h.Path == SerializationValueLocation.Field));
 
             serializationValueHints.AddRange(serializationTypeFields.Where(f => !excludedFields.Contains(f.Name))
-                                                 .Select(f => SerializationValueHint.Field(f.Name)));
+                                                                    .Select(f => SerializationValueHint.Field(f.Name)));
         }
 
         private void DiscoverPublicPropertyHints()
@@ -500,20 +500,18 @@ namespace Fracture.Net.Serialization.Generation
                 return;
 
             var serializationTypeProperties = serializationType.GetProperties(BindingFlags.Instance | BindingFlags.Public)
-                .Where(p => !serializationValueHints.Any(h => h.Name == p.Name &&
-                                                              h.Path == SerializationValueLocation.Property));
+                                                               .Where(p => !serializationValueHints.Any(h => h.Name == p.Name &&
+                                                                                                             h.Path == SerializationValueLocation.Property));
 
             serializationValueHints.AddRange(serializationTypeProperties.Where(p => !excludedProperties.Contains(p.Name))
-                                                 .Select(p => SerializationValueHint.Property(p.Name)));
+                                                                        .Select(p => SerializationValueHint.Property(p.Name)));
         }
 
         private void RemoveActivationValueHints()
             => serializationValueHints.RemoveAll(h => objectActivationHints.Any(a => a.Value.Name == h.Name));
 
         private ObjectActivator GetObjectActivator()
-            => activator != null
-                ? new ObjectActivator(activator)
-                : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
+            => activator != null ? new ObjectActivator(activator) : new ObjectActivator(GetObjectActivationConstructor(), GetObjectActivationValues().ToList().AsReadOnly());
 
         /// <summary>
         /// Directs the builder to map the types constructor that matches given hints.

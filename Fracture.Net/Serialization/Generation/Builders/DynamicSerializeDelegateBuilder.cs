@@ -32,7 +32,7 @@ namespace Fracture.Net.Serialization.Generation.Builders
                        {
                            typeof(object), // Argument 0.
                            typeof(byte[]), // Argument 1.
-                           typeof(int) // Argument 2.
+                           typeof(int), // Argument 2.
                        }
                    ))
         {
@@ -175,7 +175,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             // Call serialize.
             DynamicMethodBuilder.Emit(OpCodes.Call, ValueSerializerRegistry.GetSerializeMethodInfo(valueSerializerType, value.Type));
 
-            if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount) return;
+            if (serializationValueIndex + 1 >= ValueRanges.SerializationValuesCount)
+                return;
 
             // Add last value serialized to the offset, push 'offset' to stack.
             DynamicMethodBuilder.Emit(OpCodes.Ldarg_2);
@@ -206,7 +207,8 @@ namespace Fracture.Net.Serialization.Generation.Builders
             EmitStoreArgumentValueToLocal();
 
             // Declare locals for null checks and masking if any of exist.
-            if (ValueRanges.NullableValuesCount == 0) return;
+            if (ValueRanges.NullableValuesCount == 0)
+                return;
 
             // Local 1: for masking null bit fields.
             localNullMask = DynamicMethodBuilder.DeclareLocal(typeof(BitField));

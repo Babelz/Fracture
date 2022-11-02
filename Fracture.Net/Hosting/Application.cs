@@ -77,32 +77,32 @@ namespace Fracture.Net.Hosting
         /// <summary>
         /// Peer will be reset if unhandled error occurs while peer is joining.
         /// </summary>
-        Join = (1 << 0),
+        Join = 1 << 0,
 
         /// <summary>
         /// Peer will be reset if unhandled error occurs while deserializing peer request.
         /// </summary>
-        Receive = (1 << 1),
+        Receive = 1 << 1,
 
         /// <summary>
         /// Peer will be reset if unhandled error occurs while handling peer request.
         /// </summary>
-        Request = (1 << 2),
+        Request = 1 << 2,
 
         /// <summary>
         /// Peer will be reset if unhandled error occurs while handling peer notification.
         /// </summary>
-        Notification = (1 << 3),
+        Notification = 1 << 3,
 
         /// <summary>
         /// Peer will be reset if unhandled error occurs while handling peer response.
         /// </summary>
-        Response = (1 << 4),
+        Response = 1 << 4,
 
         /// <summary>
         /// Most strict mode. Any unhandled errors will cause the peer to reset immediately.
         /// </summary>
-        Strict = Join | Receive | Request | Notification | Response
+        Strict = Join | Receive | Request | Notification | Response,
     }
 
     /// <summary>
@@ -114,11 +114,11 @@ namespace Fracture.Net.Hosting
         /// All exceptions in the pipeline are ingested and reported back via logging. 
         /// </summary>
         Ingest = 0,
-        
+
         /// <summary>
         /// All exceptions in the pipeline are re-thrown.
         /// </summary>
-        Throw
+        Throw,
     }
 
     /// <summary>
@@ -340,10 +340,10 @@ namespace Fracture.Net.Hosting
             ShuttingDown?.Invoke(this, EventArgs.Empty);
 
             notificationCenter.Shutdown();
-            
+
             server.Shutdown();
         }
-        
+
         /// <summary>
         /// Handles received peer join events.
         /// </summary>
@@ -393,7 +393,7 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Warning(e, "unhandled error occurred notifying about resetting peer");
-                    
+
                     HandlePipelineExceptionFidelity(e);
                 }
 
@@ -618,7 +618,7 @@ namespace Fracture.Net.Hosting
             catch (Exception e)
             {
                 Log.Warning(e, "unhandled error occurred when invoking tick");
-                    
+
                 HandlePipelineExceptionFidelity(e);
             }
         }
@@ -657,9 +657,8 @@ namespace Fracture.Net.Hosting
         /// Run notification middleware for all enqueued notifications.
         /// </summary>
         private void RunNotificationMiddleware()
-        {
             // Notification ownership is moved to the application at this point.
-            notificationCenter.Handle((notification) =>
+            => notificationCenter.Handle((notification) =>
             {
                 // All notifications might not have peers associated with them. In this case we broadcast the notification to all peers.
                 var peerIds = (notification.PeerIds ?? server.PeerIds).ToArray();
@@ -684,7 +683,6 @@ namespace Fracture.Net.Hosting
                     Log.Warning(e, "unhandled error occurred in notification middleware");
                 }
             });
-        }
 
         /// <summary>
         /// Send out all enqueued responses. This can possibly disconnect peers.
@@ -821,7 +819,6 @@ namespace Fracture.Net.Hosting
         private void ResetLeavingPeers()
         {
             foreach (var peerId in leavingPeerIds)
-            {
                 try
                 {
                     server.Disconnect(peerId);
@@ -829,10 +826,9 @@ namespace Fracture.Net.Hosting
                 catch (Exception e)
                 {
                     Log.Error(e, "unhandled error occurred while disconnecting peer");
-                    
+
                     HandlePipelineExceptionFidelity(e);
                 }
-            }
 
             leavingPeerIds.Clear();
         }
@@ -889,7 +885,7 @@ namespace Fracture.Net.Hosting
 
                 // Step 6: disconnect all leaving peers.
                 ResetLeavingPeers();
-                
+
                 // Step 7: update application timer.
                 timer.Tick();
 

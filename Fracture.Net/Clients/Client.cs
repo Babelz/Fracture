@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Net;
 using System.Threading;
 using Fracture.Common;
@@ -31,7 +32,7 @@ namespace Fracture.Net.Clients
         /// <summary>
         /// Client is disconnecting from remote host.
         /// </summary>
-        Disconnecting
+        Disconnecting,
     }
 
     /// <summary>
@@ -146,7 +147,7 @@ namespace Fracture.Net.Clients
 
         public abstract void Connect(IPEndPoint endPoint);
 
-        public virtual IEnumerable<ClientUpdate> Poll()
+        public virtual Span<ClientUpdate> Poll()
             => Updates.Read();
 
         public virtual void Dispose()

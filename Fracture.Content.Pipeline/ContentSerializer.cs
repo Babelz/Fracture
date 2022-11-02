@@ -45,7 +45,8 @@ namespace Fracture.Content.Pipeline
 
             var length = size == 0 ? sourceLength : size;
 
-            if (length > destinationLength) throw new InvalidOperationException("sizeof(destination) < sizeof(source)");
+            if (length > destinationLength)
+                throw new InvalidOperationException("sizeof(destination) < sizeof(source)");
 
             Array.Copy(sourceBytes, destinationBytes, length);
 
