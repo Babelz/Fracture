@@ -1,5 +1,6 @@
 using System;
 using Fracture.Common.Di;
+using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
 
 namespace Fracture.Engine.Core.Systems
@@ -30,8 +31,9 @@ namespace Fracture.Engine.Core.Systems
         private readonly IObjectActivator activator;
         #endregion
 
-        public GameObjectActivatorSystem(IObjectActivator activator)
-            => this.activator = activator ?? throw new ArgumentNullException(nameof(activator));
+        [BindingConstructor]
+        protected GameObjectActivatorSystem(IObjectActivator activator)
+            => this.activator = activator;
 
         public T Activate<T>(params IBindingValue[] bindings)
             => activator.Activate<T>(bindings);

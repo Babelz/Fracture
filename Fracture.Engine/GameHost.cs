@@ -146,11 +146,11 @@ namespace Fracture.Engine
             // Bind core systems that every game should have. 
             Log.Info($"binding core systems...");
 
-            systems.Bind(new GameTimeSystem(game.Time));
+            systems.Bind<GameTimeSystem>(BindingValue.Const("time", game.Time));
 
-            systems.Bind(new GraphicsDeviceSystem(game.GraphicsDeviceManager, game.Window));
-            systems.Bind(new ContentSystem(game.Content));
-            systems.Bind(new GameObjectActivatorSystem(kernel));
+            systems.Bind<GraphicsDeviceSystem>(BindingValue.Const("manager", game.GraphicsDeviceManager), BindingValue.Const("window", game.Window));
+            systems.Bind<ContentSystem>(BindingValue.Const("content", game.Content));
+            systems.Bind<GameObjectActivatorSystem>(BindingValue.Const("kernel", kernel));
 
             systems.Bind<EventQueueSystem>();
             systems.Bind<EventSchedulerSystem>();

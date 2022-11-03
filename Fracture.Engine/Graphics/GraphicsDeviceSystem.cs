@@ -1,11 +1,35 @@
 using System;
 using System.IO;
+using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
+using Fracture.Engine.Events;
+using Fracture.Engine.Ui.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fracture.Engine.Graphics
 {
+    public readonly struct BackbufferParametersChangedEventArgs
+    {
+        #region Properties
+        public int NewWidth
+        {
+            get;
+        }
+
+        public int NewHeight
+        {
+            get;
+        }
+        #endregion
+
+        public BackbufferParametersChangedEventArgs(int newWidth, int newHeight)
+        {
+            NewWidth  = newWidth;
+            NewHeight = newHeight;
+        }
+    }
+    
     /// <summary>
     /// Interface for implementing graphics device systems that provide device free interface for working with graphics devices. Works as wrapper for the
     /// actual graphics device. This is s core system of the engine.
@@ -153,11 +177,12 @@ namespace Fracture.Engine.Graphics
         }
         #endregion
 
-        public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
+        [BindingConstructor]
+        protected GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
         {
-            this.manager = manager ?? throw new ArgumentNullException(nameof(manager));
+            this.manager = manager;
 
-            Window = window != null ? new Window(window) : throw new ArgumentNullException(nameof(window));
+            Window = new Window(window);
         }
 
         public void SetRenderTarget(RenderTarget2D renderTarget)
