@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -254,11 +255,11 @@ namespace Fracture.Engine.Net
         public void Disconnect()
             => client.Disconnect();
 
-        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => packetHandler.Use(name, match, handler);
+        public void Use(object handle, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            => packetHandler.Use(handle, match, handler);
 
-        public void Revoke(string name)
-            => packetHandler.Revoke(name);
+        public void Revoke(object handle)
+            => packetHandler.Revoke(handle);
 
         public void Send<T>(in T message) where T : IMessage
             => client.Send(message);

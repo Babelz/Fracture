@@ -90,7 +90,7 @@ namespace Fracture.Net.Clients
             GracePeriod = gracePeriod;
             Serializer  = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
-            Updates = new LockedDoubleBuffer<ClientUpdate>();
+            Updates = new LockedDoubleBuffer<ClientUpdate>(128);
         }
 
         private static void ThrowIllegalStateTransition(ClientState current, ClientState next)

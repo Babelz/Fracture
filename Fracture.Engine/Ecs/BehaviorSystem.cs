@@ -58,6 +58,11 @@ namespace Fracture.Engine.Ecs
             Attached = true;
         }
 
+        protected virtual void Behave(IGameEngineTime time)
+        {
+            
+        }
+
         /// <summary>
         /// Detaches the behaviour from the current entity. When overriding call the base method.
         /// </summary>
@@ -73,8 +78,12 @@ namespace Fracture.Engine.Ecs
             EntityId = 0;
         }
 
-        public override void Update(IGameEngineTime time)
+        public sealed override void Update(IGameEngineTime time)
         {
+            if (!Attached)
+                return;
+            
+            Behave(time);
         }
     }
 

@@ -255,6 +255,8 @@ namespace Fracture.Engine.Ecs
 
                 Delete(childId);
             }
+            
+            entity.ChildrenIds.Clear();
 
             // Unpair from parents.
             if (entity.ParentId.HasValue)

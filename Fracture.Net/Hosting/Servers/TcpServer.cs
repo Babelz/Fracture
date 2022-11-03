@@ -84,8 +84,8 @@ namespace Fracture.Net.Hosting.Servers
             Id       = IdCounter++;
             EndPoint = (IPEndPoint)socket.RemoteEndPoint;
 
-            incomingMessageBuffer = new LockedDoubleBuffer<PeerMessageEventArgs>();
-            outgoingMessageBuffer = new LockedDoubleBuffer<ServerMessageEventArgs>();
+            incomingMessageBuffer = new LockedDoubleBuffer<PeerMessageEventArgs>(512);
+            outgoingMessageBuffer = new LockedDoubleBuffer<ServerMessageEventArgs>(512);
             receiveBuffer         = new byte[ReceiveBufferSize];
 
             state           = PeerState.Connected;
@@ -357,7 +357,7 @@ namespace Fracture.Net.Hosting.Servers
                 NoDelay = true,
             };
 
-            newConnections = new LockedDoubleBuffer<Socket>();
+            newConnections = new LockedDoubleBuffer<Socket>(32);
         }
 
         #region Async callbacks

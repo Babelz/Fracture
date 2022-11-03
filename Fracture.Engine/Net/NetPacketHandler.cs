@@ -13,15 +13,14 @@ namespace Fracture.Engine.Net
     public interface INetPacketHandler
     {
         /// <summary>
-        /// Creates new named packet handler route that handles all incoming packets using the handler callback that match the
-        /// provided match delegate.
+        /// Creates new packet handler and bounds it to given handle object. Handler will be invoked for all packages that match the supplied match delegate. 
         /// </summary>
-        void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
+        void Use(object handle, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler);
 
         /// <summary>
-        /// Revokes named route and removes it from the handler.
+        /// Revokes given handle objects all handlers and removes them.
         /// </summary>
-        void Revoke(string name);
+        void Revoke(object handle);
     }
 
     /// <summary>
@@ -33,11 +32,6 @@ namespace Fracture.Engine.Net
         private sealed class NetMessageHandlerContext
         {
             #region Properties
-            public string Name
-            {
-                get;
-            }
-
             public NetPacketMatchDelegate Match
             {
                 get;
@@ -49,9 +43,8 @@ namespace Fracture.Engine.Net
             }
             #endregion
 
-            public NetMessageHandlerContext(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
+            public NetMessageHandlerContext(NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
             {
-                Name    = name ?? throw new ArgumentNullException(nameof(name));
                 Match   = match ?? throw new ArgumentNullException(nameof(match));
                 Handler = handler ?? throw new ArgumentNullException(nameof(handler));
             }
@@ -59,31 +52,49 @@ namespace Fracture.Engine.Net
         #endregion
 
         #region Fields
-        private readonly List<NetMessageHandlerContext> contexts;
+        private readonly Dictionary<object, List<NetMessageHandlerContext>> lookup;
         #endregion
 
         public NetPacketHandler()
-            => contexts = new List<NetMessageHandlerContext>();
+            => lookup = new Dictionary<object, List<NetMessageHandlerContext>>();
 
-        public void Use(string name, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
-            => contexts.Add(new NetMessageHandlerContext(name, match, handler));
-
-        public void Revoke(string name)
+        public void Use(object handle, NetPacketMatchDelegate match, NetPacketHandlerDelegate handler)
         {
-            if (!contexts.Remove(contexts.FirstOrDefault(c => c.Name == name)))
-                throw new InvalidOperationException($"no handle with name {name} exists");
+            if (handle == null)
+                throw new ArgumentNullException(nameof(handle));
+            
+            if (!lookup.TryGetValue(handle, out var handlers))
+            {
+                handlers = new List<NetMessageHandlerContext>();
+                
+                lookup.Add(handle, handlers);
+            }
+            
+            handlers.Add(new NetMessageHandlerContext(match, handler));
+        }
+        
+        public void Revoke(object handle)
+        {
+            if (!lookup.Remove(handle))
+                throw new InvalidOperationException($"no contexts exists for handle {handle}");
         }
 
         public bool Handle(ClientUpdate.Packet packet)
         {
-            var context = contexts.FirstOrDefault(c => c.Match(packet));
+            foreach (var contexts in lookup.Values)
+            {
+                foreach (var context in contexts)
+                {
+                    if (!context.Match(packet))
+                        continue;
 
-            if (context == default)
-                return false;
+                    context.Handler(packet);
 
-            context.Handler(packet);
+                    return true;
+                }
+            }
 
-            return true;
+            return false;
         }
     }
 }

@@ -329,22 +329,15 @@ namespace Fracture.Net.Serialization.Generation
             {
                 ops.Add(new ParametrizedActivationOp(
                             mapping.Activator.Constructor,
-                            mapping.Activator.Values.Select(v => new SerializeValueOp(
-                                                                v,
-                                                                ValueSerializerRegistry.GetValueSerializerForRunType(v.Type)))
+                            mapping.Activator.Values.Select(v => new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type)))
                                    .ToList()
-                                   .AsReadOnly()
-                        )
+                                   .AsReadOnly())
                 );
             }
             else if (!mapping.Activator.IsStructInitializer)
                 ops.Add(new DefaultActivationOp(mapping.Activator.Constructor));
 
-            ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(
-                                                   v,
-                                                   ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-                         )
-            );
+            ops.AddRange(mapping.Values.Select(v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))));
 
             return ops;
         }
@@ -355,10 +348,8 @@ namespace Fracture.Net.Serialization.Generation
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static IEnumerable<ISerializationOp> CompileSerializationOps(in ObjectSerializationMapping mapping)
             => (mapping.Activator.IsDefaultConstructor || mapping.Activator.IsCallbackInitializer ? mapping.Values : mapping.Activator.Values.Concat(mapping.Values)).Select(
-                    v => (ISerializationOp)new SerializeValueOp(v,
-                                                                ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
-                )
-                .ToList();
+                    v => (ISerializationOp)new SerializeValueOp(v, ValueSerializerRegistry.GetValueSerializerForRunType(v.Type))
+                ).ToList();
 
         /// <summary>
         /// Compiles both serialization and deserialization instructions from given mappings.
@@ -504,19 +495,13 @@ namespace Fracture.Net.Serialization.Generation
             var objectSerializationContext = InterpretObjectSerializationValueRanges(program.Type, program.SerializationOps);
 
             // Create dynamic serialization function.
-            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(objectSerializationContext,
-                                                                             program.Type,
-                                                                             program.SerializationOps);
+            var dynamicSerializeDelegate = InterpretDynamicSerializeDelegate(objectSerializationContext, program.Type, program.SerializationOps);
 
             // Create dynamic deserialization function.
-            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(objectSerializationContext,
-                                                                                 program.Type,
-                                                                                 program.DeserializationOps);
+            var dynamicDeserializeDelegate = InterpretDynamicDeserializeDelegate(objectSerializationContext, program.Type, program.DeserializationOps);
 
             // Create dynamic get size function. Instructions from serialize program should be usable when interpreting this function.
-            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(objectSerializationContext,
-                                                                                           program.Type,
-                                                                                           program.SerializationOps);
+            var dynamicGetSizeFromValueDelegate = InterpretDynamicGetSizeFromValueDelegate(objectSerializationContext, program.Type, program.SerializationOps);
 
             return new ObjectSerializer(
                 dynamicSerializeDelegate,

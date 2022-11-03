@@ -74,7 +74,7 @@ namespace Fracture.Net.Messages
         private static int messagePoolSize;
         #endregion
 
-        protected Message()
+        static Message()
             => messagePoolSize = DefaultMessagePoolSize;
 
         public virtual void Clear()
