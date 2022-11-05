@@ -10,7 +10,7 @@ namespace Fracture.Engine.Ui
     /// <summary>
     /// Class that contains single user interface or screen.
     /// </summary>
-    public sealed class Ui : IDisposable
+    public sealed class UiContainer : IDisposable
     {
         #region Fields
         private readonly ControlKeyboardFocusManager keyboardFocusManager;
@@ -37,7 +37,7 @@ namespace Fracture.Engine.Ui
         }
         #endregion
 
-        public Ui(string name,
+        public UiContainer(string name,
                   IView view,
                   IStaticContainerControl root,
                   IMouseDevice mouse,

@@ -34,8 +34,8 @@ namespace Fracture.Engine.Events
     /// </summary>
     public sealed class EventQueueSystem : GameEngineSystem, IEventQueueSystem
     {
-        #region Private lazy event handler class
-        private sealed class LazyEventHandler<TTopic, TArgs> : IEventHandler<TTopic, TArgs>
+        #region Private deferred event handler class
+        private sealed class DeferredEventHandler<TTopic, TArgs> : IEventHandler<TTopic, TArgs>
         {
             #region Properties
             public IEventHandler<TTopic, TArgs> Value
@@ -45,7 +45,7 @@ namespace Fracture.Engine.Events
             }
             #endregion
 
-            public LazyEventHandler()
+            public DeferredEventHandler()
             {
             }
 
@@ -84,9 +84,9 @@ namespace Fracture.Engine.Events
         private void UpdateHandlers<TTopic, TArgs>(IEventHandler<TTopic, TArgs> backlog)
         {
             if (handlers.TryGetValue(typeof(IEventHandler<TTopic, TArgs>), out var handler))
-                (handler as LazyEventHandler<TTopic, TArgs>)!.Value = backlog;
+                (handler as DeferredEventHandler<TTopic, TArgs>)!.Value = backlog;
             else
-                handlers.Add(typeof(IEventHandler<TTopic, TArgs>), new LazyEventHandler<TTopic, TArgs> { Value = backlog });
+                handlers.Add(typeof(IEventHandler<TTopic, TArgs>), new DeferredEventHandler<TTopic, TArgs> { Value = backlog });
         }
 
         public ISharedEvent<TTopic, TArgs> CreateShared<TTopic, TArgs>(int capacity, LetterRetentionPolicy retentionPolicy)
@@ -122,7 +122,7 @@ namespace Fracture.Engine.Events
             if (handler != null)
                 return handler;
 
-            handler = new LazyEventHandler<TTopic, TArgs>();
+            handler = new DeferredEventHandler<TTopic, TArgs>();
 
             handlers.Add(typeof(IEventHandler<TTopic, TArgs>), handler);
 

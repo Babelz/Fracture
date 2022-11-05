@@ -84,6 +84,7 @@
         <Compile Include="Events\EventQueueSystem.cs" />
         <Compile Include="Events\EventSchedulerSystem.cs" />
         <Compile Include="GameHost.cs" />
+        <Compile Include="GameHostEvents.cs" />
         <Compile Include="Graphics\GraphicsDeviceSystem.cs" />
         <Compile Include="Graphics\GraphicsLayerSystem.cs" />
         <Compile Include="Graphics\GraphicsPipelineSystem.cs" />
@@ -133,7 +134,7 @@
         <Compile Include="Ui\Controls\StaticContainerControl.cs" />
         <Compile Include="Ui\Controls\TextInput.cs" />
         <Compile Include="Ui\Controls\WrapPanel.cs" />
-        <Compile Include="Ui\Ui.cs" />
+        <Compile Include="Ui\UiContainer.cs" />
         <Compile Include="Ui\UiCanvas.cs" />
         <Compile Include="Ui\UiLayout.cs" />
         <Compile Include="Ui\UiSystem.cs" />

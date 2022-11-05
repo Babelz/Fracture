@@ -59,21 +59,21 @@ namespace Fracture.Engine.Ui
         }
     }
 
-    public interface IUiSystem : IObjectManagementSystem, IEnumerable<Ui>
+    public interface IUiSystem : IObjectManagementSystem, IEnumerable<UiContainer>
     {
-        Ui Create(IStaticContainerControl root, IUiStyle style, IView view, string name);
-        Ui Create(IStaticContainerControl root, IView view, string name);
+        UiContainer Create(IStaticContainerControl root, IUiStyle style, IView view, string name);
+        UiContainer Create(IStaticContainerControl root, IView view, string name);
 
         /// <summary>
         /// Deletes given UI from the system and disposes it.
         /// </summary>
-        void Delete(Ui ui);
+        void Delete(UiContainer uiContainer);
     }
 
     public sealed class UiSystem : GameEngineSystem, IUiSystem
     {
         #region Fields
-        private readonly List<Ui> uis;
+        private readonly List<UiContainer> uis;
 
         private readonly IGraphicsDeviceSystem graphics;
 
@@ -93,7 +93,7 @@ namespace Fracture.Engine.Ui
             this.devices  = devices;
             this.content  = content;
 
-            uis = new List<Ui>();
+            uis = new List<UiContainer>();
         }
 
         public override void Deinitialize()
@@ -106,12 +106,12 @@ namespace Fracture.Engine.Ui
             base.Deinitialize();
         }
 
-        public Ui Create(IStaticContainerControl root, IUiStyle style, IView view, string name)
+        public UiContainer Create(IStaticContainerControl root, IUiStyle style, IView view, string name)
         {
             root.Style    = style ?? throw new ArgumentNullException(nameof(style));
             root.Graphics = graphics;
 
-            var ui = new Ui(name,
+            var ui = new UiContainer(name,
                             view,
                             root,
                             devices.OfType<IMouseDevice>().First(),
@@ -124,18 +124,18 @@ namespace Fracture.Engine.Ui
             return ui;
         }
 
-        public Ui Create(IStaticContainerControl root, IView view, string name)
+        public UiContainer Create(IStaticContainerControl root, IView view, string name)
             => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
 
-        public void Delete(Ui ui)
+        public void Delete(UiContainer uiContainer)
         {
-            if (ui == null)
-                throw new ArgumentNullException(nameof(ui));
+            if (uiContainer == null)
+                throw new ArgumentNullException(nameof(uiContainer));
 
-            if (!uis.Remove(ui))
+            if (!uis.Remove(uiContainer))
                 throw new InvalidOperationException("could not remove ui");
 
-            ui.Dispose();
+            uiContainer.Dispose();
         }
 
         public void Clear()
@@ -150,7 +150,7 @@ namespace Fracture.Engine.Ui
                 uis[i].Update(time);
         }
 
-        IEnumerator<Ui> IEnumerable<Ui>.GetEnumerator()
+        IEnumerator<UiContainer> IEnumerable<UiContainer>.GetEnumerator()
             => uis.GetEnumerator();
 
         IEnumerator IEnumerable.GetEnumerator()

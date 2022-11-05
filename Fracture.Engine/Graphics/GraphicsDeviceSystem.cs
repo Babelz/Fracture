@@ -1,12 +1,13 @@
 using System.IO;
 using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
+using Fracture.Engine.Events;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Fracture.Engine.Graphics
 {
-    public readonly struct BackbufferParametersChangedEventArgs
+    public readonly struct BackbufferSizeChangedEventArgs
     {
         #region Properties
         public int NewWidth
@@ -18,12 +19,45 @@ namespace Fracture.Engine.Graphics
         {
             get;
         }
+        
+        public int OldWidth
+        {
+            get;
+        }
+
+        public int OldHeight
+        {
+            get;
+        }
         #endregion
 
-        public BackbufferParametersChangedEventArgs(int newWidth, int newHeight)
+        public BackbufferSizeChangedEventArgs(int newWidth, int newHeight, int oldWidth, int oldHeight)
         {
             NewWidth  = newWidth;
             NewHeight = newHeight;
+            OldWidth  = oldWidth;
+            OldHeight = oldHeight;
+        }
+    }
+
+    public readonly struct ViewportChangedEventArgs
+    {
+        #region Properties
+        public Viewport NewViewport
+        {
+            get;
+        }
+
+        public Viewport OldViewport
+        {
+            get;
+        }
+        #endregion
+
+        public ViewportChangedEventArgs(in Viewport newViewport, in Viewport oldViewport)
+        {
+            NewViewport = newViewport;
+            OldViewport = oldViewport;
         }
     }
     
@@ -175,7 +209,7 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         [BindingConstructor]
-        public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
+        public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window, IEventQueueSystem events)
         {
             this.manager = manager;
 
