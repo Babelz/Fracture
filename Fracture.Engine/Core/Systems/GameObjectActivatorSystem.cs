@@ -32,7 +32,7 @@ namespace Fracture.Engine.Core.Systems
         #endregion
 
         [BindingConstructor]
-        protected GameObjectActivatorSystem(IObjectActivator activator)
+        public GameObjectActivatorSystem(IObjectActivator activator)
             => this.activator = activator;
 
         public T Activate<T>(params IBindingValue[] bindings)

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -9,7 +8,7 @@ using Fracture.Engine.Core;
 using Fracture.Net;
 using Fracture.Net.Clients;
 using Fracture.Net.Messages;
-using NLog;
+using Serilog;
 
 namespace Fracture.Engine.Net
 {
@@ -119,8 +118,6 @@ namespace Fracture.Engine.Net
         #endregion
 
         #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-
         public static readonly TimeSpan DefaultQueryGracePeriod = TimeSpan.FromSeconds(15);
         #endregion
 
@@ -235,7 +232,7 @@ namespace Fracture.Engine.Net
             }
 
             if (!packetHandler.Handle(packet))
-                Log.Warn($"packet with message type {packet.Message.GetType().Name} was left unahndled");
+                Log.Warning($"packet with message type {packet.Message.GetType().Name} was left unahndled");
 
             ReleasePacket(packet);
         }

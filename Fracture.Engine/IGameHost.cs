@@ -4,7 +4,7 @@ using System.Linq;
 using Fracture.Common.Di;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
-using NLog;
+using Serilog;
 
 namespace Fracture.Engine
 {
@@ -24,10 +24,6 @@ namespace Fracture.Engine
 
     public sealed class GameEngineSystemHost : IGameEngineSystemHost
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly SortedList<int, Type> context;
 
@@ -45,7 +41,7 @@ namespace Fracture.Engine
 
         public void Bind<T>(params IBindingValue[] bindings) where T : IGameEngineSystem
         {
-            Log.Info($"binding system {typeof(T).FullName}...");
+            Log.Information($"binding system {typeof(T).FullName}...");
 
             context.Add(count++, typeof(T));
 
@@ -54,7 +50,7 @@ namespace Fracture.Engine
 
         public void Bind<T>(T system) where T : IGameEngineSystem
         {
-            Log.Info($"binding system {typeof(T).FullName}...");
+            Log.Information($"binding system {typeof(T).FullName}...");
 
             context.Add(count++, system.GetType());
 

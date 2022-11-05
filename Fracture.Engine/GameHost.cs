@@ -8,7 +8,7 @@ using Fracture.Engine.Events;
 using Fracture.Engine.Graphics;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using NLog;
+using Serilog;
 
 namespace Fracture.Engine
 {
@@ -78,10 +78,6 @@ namespace Fracture.Engine
         }
         #endregion
 
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Events
         public event EventHandler Exiting;
         #endregion
@@ -144,13 +140,13 @@ namespace Fracture.Engine
         private void Initialize()
         {
             // Bind core systems that every game should have. 
-            Log.Info($"binding core systems...");
+            Log.Information($"binding core systems...");
 
             systems.Bind<GameTimeSystem>(BindingValue.Const("time", game.Time));
 
             systems.Bind<GraphicsDeviceSystem>(BindingValue.Const("manager", game.GraphicsDeviceManager), BindingValue.Const("window", game.Window));
             systems.Bind<ContentSystem>(BindingValue.Const("content", game.Content));
-            systems.Bind<GameObjectActivatorSystem>(BindingValue.Const("kernel", kernel));
+            systems.Bind<GameObjectActivatorSystem>(BindingValue.Const("activator", kernel));
 
             systems.Bind<EventQueueSystem>();
             systems.Bind<EventSchedulerSystem>();
@@ -159,16 +155,16 @@ namespace Fracture.Engine
             systems.Bind<EntityPrefabSystem>();
 
             // Allow game to bind game specific bindings.
-            Log.Info($"binding game specific systems...");
+            Log.Information($"binding game specific systems...");
 
             Initialize(systems);
 
             // Initialize all systems bound to the kernel.
-            Log.Info("initializing systems...");
+            Log.Information("initializing systems...");
 
             foreach (var system in systems.GetInOrder())
             {
-                Log.Info($"initializing system {system.GetType().Name}...");
+                Log.Information($"initializing system {system.GetType().Name}...");
 
                 system.Initialize();
             }

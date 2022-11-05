@@ -1,4 +1,3 @@
-using System;
 using Fracture.Common.Di.Attributes;
 using Microsoft.Xna.Framework.Content;
 
@@ -26,7 +25,7 @@ namespace Fracture.Engine.Core.Systems
         #endregion
 
         [BindingConstructor]
-        protected ContentSystem(ContentManager content)
+        public ContentSystem(ContentManager content)
             => this.content = content;
 
         public T Load<T>(string assetName)

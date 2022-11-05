@@ -1,9 +1,6 @@
-using System;
 using System.IO;
 using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
-using Fracture.Engine.Events;
-using Fracture.Engine.Ui.Controls;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -178,7 +175,7 @@ namespace Fracture.Engine.Graphics
         #endregion
 
         [BindingConstructor]
-        protected GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
+        public GraphicsDeviceSystem(GraphicsDeviceManager manager, GameWindow window)
         {
             this.manager = manager;
 

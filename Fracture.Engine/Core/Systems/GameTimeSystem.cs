@@ -1,5 +1,6 @@
 using System;
 using Fracture.Common.Collections;
+using Fracture.Common.Di.Attributes;
 
 namespace Fracture.Engine.Core.Systems
 {
@@ -69,6 +70,7 @@ namespace Fracture.Engine.Core.Systems
         }
         #endregion
 
+        [BindingConstructor]
         public GameTimeSystem(IGameEngineTime time, int snapshotsCount = 60)
         {
             Current   = time;

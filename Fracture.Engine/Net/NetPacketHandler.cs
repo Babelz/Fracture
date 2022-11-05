@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Fracture.Net.Clients;
 
 namespace Fracture.Engine.Net

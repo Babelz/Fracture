@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Fracture.Common.Di.Attributes;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
-using NLog;
+using Serilog;
 
 namespace Fracture.Engine.Input.Devices
 {
@@ -40,10 +40,6 @@ namespace Fracture.Engine.Input.Devices
 
     public sealed class InputDeviceSystem : GameEngineSystem, IInputDeviceSystem
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly HashSet<IInputDevice> devices;
         #endregion
@@ -72,7 +68,7 @@ namespace Fracture.Engine.Input.Devices
                 }
                 catch (Exception e)
                 {
-                    Log.Warn(e, "input device activation failed");
+                    Log.Warning(e, "input device activation failed");
 
                     throw;
                 }

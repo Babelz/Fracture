@@ -5,7 +5,7 @@ using Fracture.Common.Di.Attributes;
 using Fracture.Common.Di.Binding;
 using Fracture.Engine.Core;
 using Fracture.Engine.Core.Systems;
-using NLog;
+using Serilog;
 
 namespace Fracture.Engine.Ecs
 {
@@ -38,10 +38,6 @@ namespace Fracture.Engine.Ecs
     /// </summary>
     public sealed class EntityPrefabSystem : GameEngineSystem, IEntityPrefabSystem
     {
-        #region Static fields
-        private static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        #endregion
-
         #region Fields
         private readonly IGameObjectActivatorSystem activator;
 
