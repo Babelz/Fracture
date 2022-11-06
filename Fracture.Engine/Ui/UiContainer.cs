@@ -1,9 +1,11 @@
 ﻿using System;
 using Fracture.Engine.Core;
+using Fracture.Engine.Core.Primitives;
 using Fracture.Engine.Graphics;
 using Fracture.Engine.Input.Devices;
 using Fracture.Engine.Ui.Components;
 using Fracture.Engine.Ui.Controls;
+using Microsoft.Xna.Framework;
 
 namespace Fracture.Engine.Ui
 {
@@ -26,11 +28,6 @@ namespace Fracture.Engine.Ui
             get;
         }
 
-        public IView View
-        {
-            get;
-        }
-
         public string Name
         {
             get;
@@ -38,13 +35,12 @@ namespace Fracture.Engine.Ui
         #endregion
 
         public UiContainer(string name,
-                  IView view,
-                  IStaticContainerControl root,
-                  IMouseDevice mouse,
-                  IKeyboardDevice keyboard)
+                           IView view,
+                           IStaticContainerControl root,
+                           IMouseDevice mouse,
+                           IKeyboardDevice keyboard)
         {
             Name = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
-            View = view ?? throw new ArgumentNullException(nameof(view));
             Root = root ?? throw new ArgumentNullException(nameof(root));
 
             this.mouse    = mouse ?? throw new ArgumentNullException(nameof(mouse));

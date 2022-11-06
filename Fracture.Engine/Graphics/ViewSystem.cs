@@ -12,12 +12,34 @@ using Microsoft.Xna.Framework.Graphics;
 namespace Fracture.Engine.Graphics
 {
     /// <summary>
+    /// Enumeration that defines the space the view is looking at.
+    /// </summary>
+    public enum ViewSpace : byte
+    {
+        /// <summary>
+        /// The view is looking at world space. This is the game world area where entities live at.
+        /// </summary>
+        World = 0,
+        
+        /// <summary>
+        /// The view is looking at screen space. This is space where objects with static positioning live such
+        /// as mono layer entities and HUDs live at.
+        /// </summary>
+        Screen
+    }
+    
+    /// <summary>
     /// Interface for implementing 2D cameras.
     /// </summary>
     public interface IView
     {
         #region Properties
-        int Id
+        string Name
+        {
+            get;
+        }
+
+        ViewSpace Space
         {
             get;
         }
@@ -117,11 +139,16 @@ namespace Fracture.Engine.Graphics
     public class View : IView
     {
         #region Properties
-        public int Id
+        public string Name
         {
             get;
         }
 
+        public ViewSpace Space
+        {
+            get;
+        }
+        
         public Aabb BoundingBox
         {
             get;
@@ -178,9 +205,10 @@ namespace Fracture.Engine.Graphics
         /// Creates new instance of view using given view port and sets its
         /// origin to the center of the viewport.
         /// </summary>
-        public View(int id, in Viewport viewport)
+        public View(string name, ViewSpace space, in Viewport viewport)
         {
-            Id       = id;
+            Name     = !string.IsNullOrEmpty(name) ? name : throw new ArgumentNullException(nameof(name));
+            Space    = space;
             Viewport = viewport;
             Position = Vector2.Zero;
             Zoom     = 1.0f;
@@ -291,7 +319,7 @@ namespace Fracture.Engine.Graphics
     /// </summary>
     public interface IViewSystem : IObjectManagementSystem, IEnumerable<IView>
     {
-        IView Create(in Viewport viewport);
+        IView Create(string name, ViewSpace space, in Viewport viewport);
 
         void Delete(IView view);
     }
@@ -302,8 +330,6 @@ namespace Fracture.Engine.Graphics
     public sealed class ViewSystem : GameEngineSystem, IViewSystem
     {
         #region Fields
-        private readonly FreeList<int> ids;
-
         private readonly List<IView> views;
         #endregion
 
@@ -312,13 +338,12 @@ namespace Fracture.Engine.Graphics
         {
             var idc = 0;
 
-            ids   = new FreeList<int>(() => idc++);
             views = new List<IView>();
         }
 
-        public IView Create(in Viewport viewport)
+        public IView Create(string name, ViewSpace space, in Viewport viewport)
         {
-            var view = new View(ids.Take(), viewport);
+            var view = new View(name, space, viewport);
 
             views.Add(view);
 
@@ -331,9 +356,7 @@ namespace Fracture.Engine.Graphics
                 throw new ArgumentNullException(nameof(view));
 
             if (!views.Remove(view))
-                throw new InvalidOperationException($"view {view.Id} doest not exist");
-
-            ids.Return(view.Id);
+                throw new InvalidOperationException($"could not remove view {view.Name} from the system");
         }
 
         public void Clear()

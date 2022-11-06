@@ -542,7 +542,7 @@ namespace Fracture.Engine.Graphics
     }
 
     /// <summary>
-    /// Phase that handles drawing layers based on ECS components.
+    /// Phase that handles drawing layers.
     /// </summary>
     public sealed class GraphicsLayerPipelinePhase : GraphicsPipelinePhase
     {
@@ -588,7 +588,7 @@ namespace Fracture.Engine.Graphics
         {
             var fragment = Pipeline.FragmentAtIndex(Index);
 
-            foreach (var view in views)
+            foreach (var view in views.Where(v => v.Space == ViewSpace.World))
             {
                 fragment.Begin(view);
 

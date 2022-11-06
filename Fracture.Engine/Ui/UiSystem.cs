@@ -19,16 +19,17 @@ namespace Fracture.Engine.Ui
     public sealed class UiPipelinePhase : GraphicsPipelinePhase
     {
         #region Fields
-        private readonly IUiSystem uis;
+        private readonly IUiSystem   uis;
+        private readonly IViewSystem views;
         #endregion
 
-        public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, int index)
+        public UiPipelinePhase(IGameHost host, IGraphicsPipelineSystem pipelines, IUiSystem uis, IViewSystem views, int index)
             : base(host,
                    pipelines,
                    index,
                    new GraphicsFragmentSettings(
                        SpriteSortMode.Deferred,
-                       BlendState.AlphaBlend,
+                       BlendState.NonPremultiplied,
                        new SamplerState
                        {
                            Filter   = TextureFilter.Point,
@@ -38,7 +39,10 @@ namespace Fracture.Engine.Ui
                        },
                        DepthStencilState.None,
                        RasterizerState.CullNone))
-            => this.uis = uis ?? throw new ArgumentNullException(nameof(uis));
+        {
+            this.uis   = uis ?? throw new ArgumentNullException(nameof(uis));
+            this.views = views ?? throw new ArgumentNullException(nameof(views));
+        }
 
         public override void Execute(IGameEngineTime time)
         {
@@ -48,12 +52,15 @@ namespace Fracture.Engine.Ui
             {
                 ui.BeforeDraw(fragment, time);
 
-                fragment.Begin(ui.View);
+                foreach (var view in views.Where(v => v.Space == ViewSpace.Screen))
+                {
+                    fragment.Begin(view);
 
-                ui.Draw(fragment, time);
+                    ui.Draw(fragment, time);
 
-                fragment.End();
-
+                    fragment.End();
+                }
+                
                 ui.AfterDraw(fragment, time);
             }
         }
@@ -67,7 +74,7 @@ namespace Fracture.Engine.Ui
         /// <summary>
         /// Deletes given UI from the system and disposes it.
         /// </summary>
-        void Delete(UiContainer uiContainer);
+        void Delete(UiContainer container);
     }
 
     public sealed class UiSystem : GameEngineSystem, IUiSystem
@@ -112,10 +119,10 @@ namespace Fracture.Engine.Ui
             root.Graphics = graphics;
 
             var ui = new UiContainer(name,
-                            view,
-                            root,
-                            devices.OfType<IMouseDevice>().First(),
-                            devices.OfType<IKeyboardDevice>().First());
+                                     view,
+                                     root,
+                                     devices.OfType<IMouseDevice>().First(),
+                                     devices.OfType<IKeyboardDevice>().First());
 
             uis.Add(ui);
 
@@ -127,15 +134,15 @@ namespace Fracture.Engine.Ui
         public UiContainer Create(IStaticContainerControl root, IView view, string name)
             => Create(root, content.Load<UiStyle>("ui\\styles\\default"), view, name);
 
-        public void Delete(UiContainer uiContainer)
+        public void Delete(UiContainer container)
         {
-            if (uiContainer == null)
-                throw new ArgumentNullException(nameof(uiContainer));
+            if (container == null)
+                throw new ArgumentNullException(nameof(container));
 
-            if (!uis.Remove(uiContainer))
+            if (!uis.Remove(container))
                 throw new InvalidOperationException("could not remove ui");
 
-            uiContainer.Dispose();
+            container.Dispose();
         }
 
         public void Clear()
