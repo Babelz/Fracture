@@ -94,6 +94,7 @@ namespace Fracture.Engine.Ecs
 
         bool LocalExists(int remoteId);
         int LocalIdOf(int remoteId);
+        bool TryGetLocalIdOf(int remoteId, out int localId);
 
         IEnumerable<int> ChildrenOf(int parentId);
 
@@ -367,6 +368,9 @@ namespace Fracture.Engine.Ecs
         public int LocalIdOf(int remoteId)
             => remoteEntityIdMap[remoteId];
 
+        public bool TryGetLocalIdOf(int remoteId, out int localId)
+            => remoteEntityIdMap.TryGetValue(remoteId, out localId);
+            
         public IEnumerable<int> ChildrenOf(int parentId)
         {
             AssertAlive(parentId);

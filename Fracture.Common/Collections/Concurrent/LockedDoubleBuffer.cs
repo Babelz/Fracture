@@ -48,7 +48,7 @@ namespace Fracture.Common.Collections.Concurrent
         {
             lock (swapLock)
             {
-                if (writeBuffer.Length > readBuffer.Length)
+                if (head >= readBuffer.Length)
                     Array.Resize(ref readBuffer, head);
 
                 // Swap write and read buffers for second thread to continue on writing and 

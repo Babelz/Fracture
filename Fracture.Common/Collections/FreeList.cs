@@ -26,7 +26,7 @@ namespace Fracture.Common.Collections
         }
 
         /// <summary>
-        /// Takes next item from the free list.
+        /// Takes next item from the free list and removes it from it.
         /// </summary>
         public T Take()
             => free.Count != 0 ? free.Pop() : next();
@@ -36,5 +36,21 @@ namespace Fracture.Common.Collections
         /// </summary>
         public void Return(T element)
             => free.Push(element);
+
+        /// <summary>
+        /// Peeks the next free item from the list without removing it from it. In case the list is empty
+        /// one value will be pushed to it and stored to it.
+        /// </summary>
+        public T Peek()
+        {
+            if (free.Count != 0)
+                return free.Peek();
+
+            var value = next();
+            
+            free.Push(value);
+
+            return value;
+        }
     }
 }

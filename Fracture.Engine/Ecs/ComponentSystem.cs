@@ -95,6 +95,9 @@ namespace Fracture.Engine.Ecs
         protected int IdAtIndex(int index)
             => aliveComponents[index];
 
+        protected int PeekNextComponentId()
+            => freeComponents.Peek();
+        
         protected virtual int InitializeComponent(int entityId)
         {
             var componentId = freeComponents.Take();
