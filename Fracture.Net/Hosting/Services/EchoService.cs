@@ -113,7 +113,7 @@ namespace Fracture.Net.Hosting.Services
 
             var max = GetMax(peerId);
             var min = GetMin(peerId);
-
+            
             return TimeSpan.FromMilliseconds(peerSamples.Where(s => s > min && s < max).Average(t => t.TotalMilliseconds));
         }
 
